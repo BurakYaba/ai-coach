@@ -1,10 +1,11 @@
 'use client';
 
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -127,13 +128,20 @@ export function NewReadingSession() {
     questionCount: 5,
     questionTypes: ['multiple-choice', 'true-false'],
   });
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setLoadingStep('Generating reading content and materials...');
-
     try {
+      // Reset state
+      setError(null);
+      setIsLoading(true);
+      setLoadingStep('Generating content...');
+
+      // Initialize a timeout controller
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
+
       // Pass the exact CEFR level to the API without mapping
       const apiLevel = params.level; // 'A1', 'A2', 'B1', 'B2', 'C1', or 'C2'
 
@@ -154,10 +162,11 @@ export function NewReadingSession() {
         count: Math.ceil(params.questionCount / params.questionTypes.length),
       }));
 
-      // Call the unified API endpoint
+      // Call the unified API endpoint with timeout handling
       const unifiedResponse = await fetch('/api/reading/generate/unified', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           level: apiLevel,
           topic: params.topic,
@@ -168,8 +177,29 @@ export function NewReadingSession() {
         }),
       });
 
+      // Clear the timeout
+      clearTimeout(timeoutId);
+
       if (!unifiedResponse.ok) {
-        throw new Error('Failed to generate reading session content');
+        // Check for specific error status codes
+        if (unifiedResponse.status === 504) {
+          throw new Error(
+            'The request timed out. Please try again with a shorter content length or simpler topic.'
+          );
+        }
+
+        // Try to get error details from the response
+        let errorMessage = 'Failed to generate reading session content';
+        try {
+          const errorData = await unifiedResponse.json();
+          if (errorData.error) {
+            errorMessage = errorData.error;
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+
+        throw new Error(errorMessage);
       }
 
       const unifiedData = await unifiedResponse.json();
@@ -308,17 +338,34 @@ export function NewReadingSession() {
 
       toast.success('Your reading session has been created.');
       router.push(`/dashboard/reading/${session._id}`);
-    } catch (error) {
-      console.error('Error creating reading session:', error);
-      toast.error('Failed to create reading session. Please try again.');
-    } finally {
+    } catch (error: any) {
       setIsLoading(false);
       setLoadingStep('');
+      // Handle abort/timeout errors specially
+      if (error.name === 'AbortError') {
+        const errorMessage =
+          'Request timed out. Please try again with a shorter content length or simpler topic.';
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } else {
+        const errorMessage =
+          error.message || 'Failed to create reading session';
+        setError(errorMessage);
+        toast.error(errorMessage);
+      }
+      console.error('Error creating reading session:', error);
     }
   };
 
   return (
     <Card className="p-6">
+      {error && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Form fields in a single row */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

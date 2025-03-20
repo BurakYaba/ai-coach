@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "src/app/api/reading/generate/unified/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}

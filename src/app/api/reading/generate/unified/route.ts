@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { OpenAI } from 'openai';
 
+// Add retry and timeout configuration
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  timeout: 50000, // 50 seconds timeout
+  maxRetries: 3, // Retry failed requests up to 3 times
 });
 
 // Types Definition
@@ -259,12 +262,17 @@ Format the response as a VALID JSON object with:
   }
 }`;
 
-    // Get model response
+    // Get model response with timeout handling
     const model =
       process.env.USE_GPT4_FOR_CONTENT === 'true' ? 'gpt-4o' : 'gpt-3.5-turbo';
     console.log(`Using model: ${model} for content generation`);
 
-    const completion = await openai.chat.completions.create({
+    // Add a timeout promise to race against the OpenAI call
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('OpenAI request timed out')), 45000); // 45 sec timeout
+    });
+
+    const completionPromise = openai.chat.completions.create({
       model: model,
       messages: [
         {
@@ -277,6 +285,12 @@ Format the response as a VALID JSON object with:
       temperature: 0.7,
       response_format: { type: 'json_object' },
     });
+
+    // Race the OpenAI request against the timeout
+    const completion = (await Promise.race([
+      completionPromise,
+      timeoutPromise,
+    ])) as any;
 
     // Extract and validate response
     const content = completion.choices[0].message.content;
