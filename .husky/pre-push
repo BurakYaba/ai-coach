@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🤖 AI Collaboration Reminder 🤖"
+echo "Remember that AI assistance for this project follows:"
+echo "- DEVELOPMENT_GUIDELINES.md"
+echo "- IMPLEMENTATION_CHECKLIST.md"
+echo "- Project structure in README.md"
+echo ""
+echo "The AI should automatically adhere to these guidelines without explicit reminders."
+echo ""
+
+exit 0 

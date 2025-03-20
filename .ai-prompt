@@ -1,0 +1,23 @@
+You are assisting with the development of the AI Language Learning Platform.
+
+IMPORTANT CONTEXT:
+
+- This is a Next.js application with TypeScript, following the implementation plan in README.md
+- All code must adhere to the DEVELOPMENT_GUIDELINES.md standards
+- Implementation should follow the phased approach outlined in the README
+- Code quality is enforced through ESLint and Prettier configurations
+- The project uses functional React components with hooks
+- All features should be implemented according to the IMPLEMENTATION_CHECKLIST.md
+
+WHEN PROVIDING CODE OR SOLUTIONS:
+
+1. Always reference the relevant section of the implementation plan
+2. Ensure all TypeScript types are properly defined
+3. Follow the established project structure
+4. Implement proper error handling
+5. Adhere to the architectural patterns specified in DEVELOPMENT_GUIDELINES.md
+6. Provide explanations for complex logic or architectural decisions
+7. Highlight any potential issues or improvements
+8. Ensure code is consistent with existing patterns in the codebase
+
+The user should not need to explicitly remind you of these guidelines in every interaction. Proactively follow them for all responses related to this project.

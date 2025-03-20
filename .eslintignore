@@ -1,0 +1,18 @@
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Dependencies
+node_modules/
+
+# Misc
+.github/
+.vscode/
+public/
+*.config.js
+next-env.d.ts
+
+# Test coverage
+coverage/ 

@@ -1,0 +1,842 @@
+'use client';
+
+import Link from 'next/link';
+import { useRouter, useParams } from 'next/navigation';
+import { useState, useEffect } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from '@/hooks/use-toast';
+
+interface WritingSession {
+  _id: string;
+  prompt: {
+    text: string;
+    type: string;
+    topic: string;
+    targetLength: number;
+  };
+  submission: {
+    content: string;
+    finalVersion: {
+      submittedAt: string;
+      wordCount: number;
+    };
+  };
+  analysis: {
+    overallScore: number;
+    summaryFeedback: string;
+    lengthAssessment: {
+      assessment: string;
+      feedback: string;
+    };
+    strengths: string[];
+    improvements: string[];
+    details: {
+      grammar: {
+        score: number;
+        errorList: {
+          type: string;
+          context: string;
+          suggestion: string;
+          explanation: string;
+        }[];
+        suggestions: string[];
+        strengths: string[];
+        improvements: string[];
+      };
+      vocabulary: {
+        score: number;
+        level: string;
+        strengths: string[];
+        improvements: string[];
+        wordFrequency: {
+          word: string;
+          count: number;
+          category: string;
+        }[];
+      };
+      structure: {
+        score: number;
+        strengths: string[];
+        improvements: string[];
+      };
+      content: {
+        score: number;
+        relevance: number;
+        depth: number;
+        strengths: string[];
+        improvements: string[];
+      };
+    };
+    timestamp: string;
+  };
+  status: 'draft' | 'submitted' | 'analyzed' | 'completed';
+  analyzedAt: string;
+}
+
+export default function FeedbackPage() {
+  const router = useRouter();
+  const params = useParams();
+  const sessionId = params.id as string;
+
+  const [session, setSession] = useState<WritingSession | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch session data
+  useEffect(() => {
+    async function fetchSession() {
+      try {
+        console.log('Fetching session data for:', sessionId);
+        const response = await fetch(`/api/writing/sessions/${sessionId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch session');
+        }
+        const data = await response.json();
+        console.log('Session data received:', data.session);
+        console.log('Analysis data:', data.session.analysis);
+        setSession(data.session);
+
+        // If session is not analyzed, redirect to analyze page
+        if (
+          data.session.status !== 'analyzed' &&
+          data.session.status !== 'completed'
+        ) {
+          toast({
+            title: 'Not Analyzed',
+            description: 'This writing session has not been analyzed yet.',
+          });
+          router.push(`/dashboard/writing/${sessionId}/analyze`);
+        }
+      } catch (error) {
+        console.error('Error fetching writing session:', error);
+        setError('Failed to load writing session');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchSession();
+  }, [sessionId, router]);
+
+  // Mark session as completed
+  const handleComplete = async () => {
+    try {
+      const response = await fetch(
+        `/api/writing/sessions/${sessionId}/complete`,
+        {
+          method: 'POST',
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to complete session');
+      }
+
+      toast({
+        title: 'Session Completed',
+        description: 'Your writing session has been marked as completed.',
+      });
+
+      // Refresh session data
+      const updatedResponse = await fetch(`/api/writing/sessions/${sessionId}`);
+      const data = await updatedResponse.json();
+      setSession(data.session);
+    } catch (error) {
+      console.error('Error completing session:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to complete session. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto py-6 space-y-6">
+        <div className="flex justify-between items-center">
+          <Skeleton className="h-8 w-1/3" />
+        </div>
+        <Card>
+          <CardHeader>
+            <Skeleton className="h-6 w-2/3" />
+            <Skeleton className="h-4 w-1/2 mt-2" />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full mt-2" />
+            <Skeleton className="h-4 w-2/3 mt-2" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Error</CardTitle>
+            <CardDescription>{error}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>
+              There was an error loading your feedback. Please try again or go
+              back to your writing dashboard.
+            </p>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button
+              variant="outline"
+              onClick={() => router.push('/dashboard/writing')}
+            >
+              Back to Dashboard
+            </Button>
+            <Button onClick={() => window.location.reload()}>Try Again</Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Session Not Found</CardTitle>
+            <CardDescription>
+              The writing session you&apos;re looking for doesn&apos;t exist or
+              you don&apos;t have access to it.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Please check the URL or go back to your writing dashboard.</p>
+          </CardContent>
+          <CardFooter>
+            <Button onClick={() => router.push('/dashboard/writing')}>
+              Back to Writing Dashboard
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  const { analysis } = session;
+
+  // Check if analysis data is available
+  if (!analysis) {
+    return (
+      <div className="container mx-auto py-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Analysis Not Available</CardTitle>
+            <CardDescription>
+              The analysis for this writing session is not available yet.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Please try analyzing this session again.</p>
+          </CardContent>
+          <CardFooter>
+            <Button
+              onClick={() =>
+                router.push(`/dashboard/writing/${sessionId}/analyze`)
+              }
+            >
+              Analyze Again
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push('/dashboard/writing')}
+            >
+              Back to Writing Dashboard
+            </Button>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Writing Feedback
+          </h1>
+          <p className="text-muted-foreground">
+            Review your feedback and improve your writing skills
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button variant="outline" asChild>
+            <Link href={`/dashboard/writing/${sessionId}`}>
+              View Submission
+            </Link>
+          </Button>
+
+          {session.status !== 'completed' && (
+            <Button onClick={handleComplete}>Mark as Completed</Button>
+          )}
+        </div>
+      </div>
+
+      {/* Header Card with Title and Score */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+            <div>
+              <CardTitle className="capitalize">
+                {session.prompt.type}: {session.prompt.topic}
+              </CardTitle>
+              <CardDescription>
+                {new Date(analysis.timestamp).toLocaleDateString()} •{' '}
+                {session.submission.finalVersion.wordCount} words
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge
+                variant={session.status === 'completed' ? 'default' : 'outline'}
+              >
+                {session.status === 'completed' ? 'Completed' : 'Analyzed'}
+              </Badge>
+              <div className="flex items-center gap-1 bg-primary/10 text-primary font-medium px-2 py-1 rounded-md">
+                <span className="text-sm">Score:</span>
+                <span className="text-lg font-bold">
+                  {analysis.overallScore}
+                </span>
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+      </Card>
+
+      {/* Two-column layout for feedback and detailed analysis */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Left column: Summary feedback, strengths, improvements, and length assessment */}
+        <div className="space-y-6">
+          <Card>
+            <CardContent className="pt-6 space-y-6">
+              <div className="p-4 bg-muted rounded-lg">
+                <p className="italic">
+                  {analysis.summaryFeedback || 'No summary feedback available.'}
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">Strengths</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {analysis.strengths && analysis.strengths.length > 0 ? (
+                        analysis.strengths.map((strength, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <span className="text-green-500 mt-1">✓</span>
+                            <span>{strength}</span>
+                          </li>
+                        ))
+                      ) : (
+                        <li>No strengths identified.</li>
+                      )}
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base">
+                      Areas for Improvement
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="space-y-2">
+                      {analysis.improvements &&
+                      analysis.improvements.length > 0 ? (
+                        analysis.improvements.map((improvement, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <span className="text-amber-500 mt-1">!</span>
+                            <span>{improvement}</span>
+                          </li>
+                        ))
+                      ) : (
+                        <li>No specific improvements suggested.</li>
+                      )}
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-medium mb-2">Length Assessment</h3>
+                <div className="p-3 rounded-lg bg-muted">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Badge variant="outline" className="capitalize">
+                      {analysis.lengthAssessment?.assessment || 'Not assessed'}
+                    </Badge>
+                    <span className="text-sm">
+                      {session.submission.finalVersion?.wordCount || 0} /{' '}
+                      {session.prompt.targetLength || 'unknown'} words
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {analysis.lengthAssessment?.feedback ||
+                      'No length assessment available.'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right column: Detailed Analysis Tabs */}
+        <div>
+          <Tabs defaultValue="grammar" className="w-full">
+            <TabsList className="grid grid-cols-4 mb-4">
+              <TabsTrigger value="grammar">Grammar</TabsTrigger>
+              <TabsTrigger value="vocabulary">Vocabulary</TabsTrigger>
+              <TabsTrigger value="structure">Structure</TabsTrigger>
+              <TabsTrigger value="content">Content</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="grammar" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle>Grammar & Spelling</CardTitle>
+                    <div className="flex items-center gap-1 bg-primary/10 text-primary font-medium px-2 py-1 rounded-md">
+                      <span className="text-sm">Score:</span>
+                      <span className="text-lg font-bold">
+                        {analysis.details?.grammar?.score || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {analysis.details?.grammar?.errorList &&
+                  analysis.details.grammar.errorList.length > 0 ? (
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium">Errors Found</h3>
+                      {analysis.details.grammar.errorList.map(
+                        (error, index) => (
+                          <Card key={index}>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-base capitalize">
+                                {error.type || 'Unknown'} Error
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                              <div>
+                                <p className="text-sm font-medium">Context:</p>
+                                <p className="p-2 bg-muted rounded-md">
+                                  {error.context || 'No context available'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">
+                                  Suggestion:
+                                </p>
+                                <p className="p-2 bg-primary/5 text-primary rounded-md">
+                                  {error.suggestion ||
+                                    'No suggestion available'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium">
+                                  Explanation:
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {error.explanation ||
+                                    'No explanation available'}
+                                </p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center p-4">
+                      <p>No grammar errors found.</p>
+                    </div>
+                  )}
+
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-medium">Suggestions</h3>
+                    <ul className="space-y-2">
+                      {analysis.details?.grammar?.suggestions &&
+                      analysis.details.grammar.suggestions.length > 0 ? (
+                        analysis.details.grammar.suggestions.map(
+                          (suggestion, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <span className="text-blue-500 mt-1">•</span>
+                              <span>{suggestion}</span>
+                            </li>
+                          )
+                        )
+                      ) : (
+                        <li>No grammar suggestions available.</li>
+                      )}
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="vocabulary" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>Vocabulary Usage</CardTitle>
+                      <CardDescription>
+                        Estimated level:{' '}
+                        <Badge variant="outline">
+                          {analysis.details?.vocabulary?.level ||
+                            'Not assessed'}
+                        </Badge>
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-1 bg-primary/10 text-primary font-medium px-2 py-1 rounded-md">
+                      <span className="text-sm">Score:</span>
+                      <span className="text-lg font-bold">
+                        {analysis.details?.vocabulary?.score || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Strengths</h3>
+                      <ul className="space-y-2">
+                        {analysis.details?.vocabulary?.strengths &&
+                        analysis.details.vocabulary.strengths.length > 0 ? (
+                          analysis.details.vocabulary.strengths.map(
+                            (strength, index) => (
+                              <li
+                                key={index}
+                                className="flex items-start gap-2"
+                              >
+                                <span className="text-green-500 mt-1">✓</span>
+                                <span>{strength}</span>
+                              </li>
+                            )
+                          )
+                        ) : (
+                          <li>No vocabulary strengths identified.</li>
+                        )}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">
+                        Areas for Improvement
+                      </h3>
+                      <ul className="space-y-2">
+                        {analysis.details?.vocabulary?.improvements &&
+                        analysis.details.vocabulary.improvements.length > 0 ? (
+                          analysis.details.vocabulary.improvements.map(
+                            (improvement, index) => (
+                              <li
+                                key={index}
+                                className="flex items-start gap-2"
+                              >
+                                <span className="text-amber-500 mt-1">!</span>
+                                <span>{improvement}</span>
+                              </li>
+                            )
+                          )
+                        ) : (
+                          <li>No vocabulary improvements suggested.</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-medium mb-2">Word Frequency</h3>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full border">
+                        <thead>
+                          <tr className="bg-muted">
+                            <th className="p-2 border">Word</th>
+                            <th className="p-2 border">Count</th>
+                            <th className="p-2 border">Category</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {analysis.details?.vocabulary?.wordFrequency &&
+                          analysis.details.vocabulary.wordFrequency.length >
+                            0 ? (
+                            analysis.details.vocabulary.wordFrequency.map(
+                              (item, index) => (
+                                <tr
+                                  key={index}
+                                  className={
+                                    index % 2 === 0
+                                      ? 'bg-background'
+                                      : 'bg-muted/50'
+                                  }
+                                >
+                                  <td className="p-2 border">
+                                    {item.word || 'N/A'}
+                                  </td>
+                                  <td className="p-2 border">
+                                    {item.count || 0}
+                                  </td>
+                                  <td className="p-2 border capitalize">
+                                    {item.category || 'Unknown'}
+                                  </td>
+                                </tr>
+                              )
+                            )
+                          ) : (
+                            <tr>
+                              <td
+                                colSpan={3}
+                                className="p-2 border text-center"
+                              >
+                                No word frequency data available.
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="structure" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle>Structure & Organization</CardTitle>
+                    <div className="flex items-center gap-1 bg-primary/10 text-primary font-medium px-2 py-1 rounded-md">
+                      <span className="text-sm">Score:</span>
+                      <span className="text-lg font-bold">
+                        {analysis.details?.structure?.score || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Strengths</h3>
+                      <ul className="space-y-2">
+                        {analysis.details?.structure?.strengths &&
+                        analysis.details.structure.strengths.length > 0 ? (
+                          analysis.details.structure.strengths.map(
+                            (strength, index) => (
+                              <li
+                                key={index}
+                                className="flex items-start gap-2"
+                              >
+                                <span className="text-green-500 mt-1">✓</span>
+                                <span>{strength}</span>
+                              </li>
+                            )
+                          )
+                        ) : (
+                          <li>No structure strengths identified.</li>
+                        )}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">
+                        Areas for Improvement
+                      </h3>
+                      <ul className="space-y-2">
+                        {analysis.details?.structure?.improvements &&
+                        analysis.details.structure.improvements.length > 0 ? (
+                          analysis.details.structure.improvements.map(
+                            (improvement, index) => (
+                              <li
+                                key={index}
+                                className="flex items-start gap-2"
+                              >
+                                <span className="text-amber-500 mt-1">!</span>
+                                <span>{improvement}</span>
+                              </li>
+                            )
+                          )
+                        ) : (
+                          <li>No structure improvements suggested.</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-muted rounded-lg">
+                    <h3 className="text-lg font-medium mb-2">Structure Tips</h3>
+                    <ul className="space-y-2">
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-500 mt-1">•</span>
+                        <span>
+                          Make sure each paragraph focuses on a single main
+                          idea.
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-500 mt-1">•</span>
+                        <span>
+                          Use transition words to connect ideas between
+                          paragraphs.
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-500 mt-1">•</span>
+                        <span>
+                          Ensure your introduction clearly presents your main
+                          topic or thesis.
+                        </span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-blue-500 mt-1">•</span>
+                        <span>
+                          Your conclusion should summarize key points and
+                          provide closure.
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="content" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <CardTitle>Content & Ideas</CardTitle>
+                    <div className="flex items-center gap-1 bg-primary/10 text-primary font-medium px-2 py-1 rounded-md">
+                      <span className="text-sm">Score:</span>
+                      <span className="text-lg font-bold">
+                        {analysis.details?.content?.score || 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="p-4 bg-muted rounded-lg">
+                      <h3 className="text-lg font-medium mb-2">Relevance</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span>Topic Relevance:</span>
+                          <span className="font-medium">
+                            {analysis.details?.content?.relevance || 'N/A'}/100
+                          </span>
+                        </div>
+                        <Progress
+                          value={analysis.details?.content?.relevance || 0}
+                          className="h-2"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-muted rounded-lg">
+                      <h3 className="text-lg font-medium mb-2">Depth</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span>Analysis Depth:</span>
+                          <span className="font-medium">
+                            {analysis.details?.content?.depth || 'N/A'}/100
+                          </span>
+                        </div>
+                        <Progress
+                          value={analysis.details?.content?.depth || 0}
+                          className="h-2"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">Strengths</h3>
+                      <ul className="space-y-2">
+                        {analysis.details?.content?.strengths &&
+                        analysis.details.content.strengths.length > 0 ? (
+                          analysis.details.content.strengths.map(
+                            (strength, index) => (
+                              <li
+                                key={index}
+                                className="flex items-start gap-2"
+                              >
+                                <span className="text-green-500 mt-1">✓</span>
+                                <span>{strength}</span>
+                              </li>
+                            )
+                          )
+                        ) : (
+                          <li>No content strengths identified.</li>
+                        )}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">
+                        Areas for Improvement
+                      </h3>
+                      <ul className="space-y-2">
+                        {analysis.details?.content?.improvements &&
+                        analysis.details.content.improvements.length > 0 ? (
+                          analysis.details.content.improvements.map(
+                            (improvement, index) => (
+                              <li
+                                key={index}
+                                className="flex items-start gap-2"
+                              >
+                                <span className="text-amber-500 mt-1">!</span>
+                                <span>{improvement}</span>
+                              </li>
+                            )
+                          )
+                        ) : (
+                          <li>No content improvements suggested.</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+
+      <div className="flex justify-between items-center pt-4">
+        <Button variant="outline" asChild>
+          <Link href="/dashboard/writing">Back to Dashboard</Link>
+        </Button>
+
+        {session.status !== 'completed' && (
+          <Button onClick={handleComplete}>Mark as Completed</Button>
+        )}
+      </div>
+    </div>
+  );
+}
