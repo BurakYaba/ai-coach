@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { useState, useCallback, memo } from 'react';
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,15 +15,24 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 
 interface DeleteSessionButtonProps {
   sessionId: string;
 }
 
-export function DeleteSessionButton({ sessionId }: DeleteSessionButtonProps) {
+// Use memo to prevent unnecessary re-renders
+export const DeleteSessionButton = memo(function DeleteSessionButton({
+  sessionId,
+}: DeleteSessionButtonProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
 
-  const handleDelete = async () => {
+  // Use useCallback to memoize the handler
+  const handleDelete = useCallback(async () => {
+    if (isDeleting) return;
+
     try {
       setIsDeleting(true);
       const response = await fetch(
@@ -36,22 +46,22 @@ export function DeleteSessionButton({ sessionId }: DeleteSessionButtonProps) {
       );
 
       if (response.ok) {
-        // Redirect to the reading page with success message
-        window.location.href = '/dashboard/reading?success=deleted';
+        // Use router.push instead of window.location for better performance
+        router.push('/dashboard/reading?success=deleted');
       } else {
-        // Redirect with error message
-        window.location.href = '/dashboard/reading?error=delete-failed';
+        router.push('/dashboard/reading?error=delete-failed');
       }
     } catch (error) {
       console.error('Error deleting session:', error);
-      window.location.href = '/dashboard/reading?error=delete-failed';
+      router.push('/dashboard/reading?error=delete-failed');
     } finally {
       setIsDeleting(false);
+      setIsOpen(false);
     }
-  };
+  }, [sessionId, isDeleting, router]);
 
   return (
-    <AlertDialog>
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
       <AlertDialogTrigger asChild>
         <Button
           variant="outline"
@@ -82,4 +92,4 @@ export function DeleteSessionButton({ sessionId }: DeleteSessionButtonProps) {
       </AlertDialogContent>
     </AlertDialog>
   );
-}
+});

@@ -48,17 +48,16 @@ interface FilterOptions {
   topic?: string;
 }
 
+// Cache responses for 10 seconds
+export const revalidate = 10;
+
 export async function GET(req: NextRequest) {
   try {
-    // Replace console.log with proper logging mechanism in production
-
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
-
-    await dbConnect();
 
     // Parse query parameters
     const url = new URL(req.url);
@@ -86,29 +85,38 @@ export async function GET(req: NextRequest) {
     const skip = (page - 1) * limit;
 
     await dbConnect();
-    console.log(`Fetching reading sessions for user: ${session.user.id}`);
 
-    const sessions = await ReadingSession.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit);
+    // Use Promise.all for parallel queries
+    const [sessions, total] = await Promise.all([
+      ReadingSession.find(filter)
+        .select(
+          'title level topic wordCount estimatedReadingTime questions vocabulary userProgress createdAt'
+        )
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      ReadingSession.countDocuments(filter),
+    ]);
 
-    const total = await ReadingSession.countDocuments(filter);
     const pages = Math.ceil(total / limit);
 
-    console.log(
-      `Found ${sessions.length} reading sessions for user: ${session.user.id}`
-    );
+    // Set cache headers
+    const headers = new Headers();
+    headers.set('Cache-Control', 'max-age=10');
 
-    return NextResponse.json({
-      sessions,
-      pagination: {
-        total,
-        pages,
-        current: page,
-        limit,
+    return NextResponse.json(
+      {
+        sessions,
+        pagination: {
+          total,
+          pages,
+          current: page,
+          limit,
+        },
       },
-    });
+      { headers }
+    );
   } catch (error) {
     console.error('Error in GET /api/reading/sessions:', error);
     return NextResponse.json(

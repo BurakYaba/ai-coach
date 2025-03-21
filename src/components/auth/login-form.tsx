@@ -45,20 +45,16 @@ export function LoginForm() {
       const result = await signIn('credentials', {
         email: data.email,
         password: data.password,
-        redirect: false,
+        redirect: true,
+        callbackUrl: '/dashboard',
       });
 
       if (result?.error) {
         toast.error(result.error);
-        return;
+        setIsLoading(false);
       }
-
-      toast.success('Logged in successfully');
-      router.push('/dashboard');
-      router.refresh();
     } catch (error) {
       toast.error('Something went wrong. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   }

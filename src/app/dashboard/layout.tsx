@@ -4,6 +4,10 @@ import { getServerSession } from 'next-auth';
 import DashboardHeader from '@/components/dashboard/header';
 import { authOptions } from '@/lib/auth';
 
+// Improves performance by reducing re-renders
+export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+
 export default async function DashboardLayout({
   children,
 }: {

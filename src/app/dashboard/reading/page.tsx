@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
+import { Suspense } from 'react';
 
 import { DeleteSessionButton } from '@/components/reading/DeleteSessionButton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -25,6 +26,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 
@@ -33,8 +35,11 @@ export const metadata: Metadata = {
   description: 'Improve your English reading skills with AI-powered content.',
 };
 
+// Add dynamic = 'force-dynamic' to ensure page is not statically cached
+export const dynamic = 'force-dynamic';
+
 interface ReadingSession {
-  _id: string;
+  _id: string | any;
   title: string;
   content: string;
   level: string;
@@ -50,14 +55,69 @@ interface ReadingSession {
   };
 }
 
+// Add a type definition for the MongoDB document
+interface MongoReadingSession {
+  _id: any;
+  title: string;
+  content: string;
+  level: string;
+  topic: string;
+  wordCount: number;
+  estimatedReadingTime: number;
+  questions: any[];
+  vocabulary: any[];
+  userProgress: {
+    questionsAnswered: number;
+    vocabularyReviewed: string[];
+    completionTime: string | null;
+  };
+}
+
+// Update the ReadingSessionsResponse type
 interface ReadingSessionsResponse {
-  sessions: ReadingSession[];
+  sessions: any[]; // Use any[] for flexibility with Mongoose types
   pagination: {
     total: number;
     pages: number;
     current: number;
     limit: number;
   };
+}
+
+// Loading skeleton component for reading sessions
+function ReadingSessionsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {Array.from({ length: 8 }).map((_, index) => (
+        <Card key={index} className="h-full flex flex-col">
+          <CardHeader className="pb-3">
+            <div className="flex justify-between items-start">
+              <div>
+                <Skeleton className="h-5 w-40 mb-1" />
+                <Skeleton className="h-3 w-24" />
+              </div>
+              <Skeleton className="h-5 w-20" />
+            </div>
+          </CardHeader>
+          <CardContent className="flex-grow pb-3">
+            <div className="space-y-3">
+              <div>
+                <div className="flex justify-between text-xs mb-1">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-3 w-8" />
+                </div>
+                <Skeleton className="h-2 w-full" />
+              </div>
+              <Skeleton className="h-16 w-full" />
+            </div>
+          </CardContent>
+          <CardFooter className="pt-0">
+            <Skeleton className="h-9 w-full" />
+          </CardFooter>
+        </Card>
+      ))}
+    </div>
+  );
 }
 
 async function getReadingSessions(
@@ -74,18 +134,18 @@ async function getReadingSessions(
     // Import the ReadingSession model directly
     const ReadingSession = (await import('@/models/ReadingSession')).default;
 
-    // Query the database directly with pagination
+    // Use lean() for better performance, only select fields we need
     const sessions = await ReadingSession.find({ userId })
+      .select(
+        'title level topic wordCount estimatedReadingTime questions vocabulary userProgress'
+      )
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     const total = await ReadingSession.countDocuments({ userId });
     const pages = Math.ceil(total / limit);
-
-    console.log(
-      `Successfully fetched ${sessions.length} reading sessions for page ${page} (${skip + 1}-${Math.min(skip + limit, total)} of ${total})`
-    );
 
     return {
       sessions,
@@ -104,6 +164,157 @@ async function getReadingSessions(
       pagination: { total: 0, pages: 1, current: 1, limit: 8 },
     };
   }
+}
+
+// Separate component for reading sessions list
+async function ReadingSessionsList({
+  userId,
+  currentPage,
+}: {
+  userId: string;
+  currentPage: number;
+}) {
+  const { sessions, pagination } = await getReadingSessions(
+    userId,
+    currentPage
+  );
+
+  if (sessions.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center justify-center py-12">
+          <h3 className="text-xl font-semibold mb-2">
+            No reading sessions yet
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Start your first reading session to begin learning.
+          </p>
+          <Button asChild>
+            <Link href="/dashboard/reading/new">Create Your First Session</Link>
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {sessions.map(session => (
+          <Card key={session._id.toString()} className="h-full flex flex-col">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-base mb-1">
+                    {session.title}
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    {session.wordCount} words • {session.estimatedReadingTime}{' '}
+                    min read
+                  </CardDescription>
+                </div>
+                <Badge
+                  variant={
+                    session.userProgress.completionTime
+                      ? 'secondary'
+                      : 'default'
+                  }
+                  className="text-xs"
+                >
+                  {session.userProgress.completionTime
+                    ? 'Completed'
+                    : 'In Progress'}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="flex-grow pb-3">
+              <div className="space-y-3">
+                <div>
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Progress</span>
+                    <span>
+                      {Math.round(
+                        ((session.userProgress.questionsAnswered +
+                          session.userProgress.vocabularyReviewed.length) /
+                          (session.questions.length +
+                            session.vocabulary.length)) *
+                          100
+                      )}
+                      %
+                    </span>
+                  </div>
+                  <Progress
+                    value={Math.round(
+                      ((session.userProgress.questionsAnswered +
+                        session.userProgress.vocabularyReviewed.length) /
+                        (session.questions.length +
+                          session.vocabulary.length)) *
+                        100
+                    )}
+                    className="h-1"
+                  />
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  <Badge variant="outline" className="text-xs">
+                    {session.level}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {session.topic}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex flex-col gap-2 pt-0">
+              <Button asChild variant="secondary" className="w-full h-9">
+                <Link href={`/dashboard/reading/${session._id.toString()}`}>
+                  {session.userProgress.completionTime
+                    ? 'Review Session'
+                    : 'Continue Reading'}
+                </Link>
+              </Button>
+              <DeleteSessionButton sessionId={session._id.toString()} />
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+
+      {pagination.pages > 1 && (
+        <Pagination className="mt-6">
+          <PaginationContent>
+            {pagination.current > 1 && (
+              <PaginationItem>
+                <Link
+                  href={`/dashboard/reading?page=${pagination.current - 1}`}
+                >
+                  <PaginationPrevious />
+                </Link>
+              </PaginationItem>
+            )}
+            {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(
+              page => (
+                <PaginationItem key={page}>
+                  <Link href={`/dashboard/reading?page=${page}`}>
+                    <PaginationLink isActive={page === pagination.current}>
+                      {page}
+                    </PaginationLink>
+                  </Link>
+                </PaginationItem>
+              )
+            )}
+            {pagination.current < pagination.pages && (
+              <PaginationItem>
+                <Link
+                  href={`/dashboard/reading?page=${pagination.current + 1}`}
+                >
+                  <PaginationNext />
+                </Link>
+              </PaginationItem>
+            )}
+          </PaginationContent>
+        </Pagination>
+      )}
+    </>
+  );
 }
 
 export default async function ReadingPage({
@@ -146,21 +357,6 @@ export default async function ReadingPage({
     successMessage = 'Reading session deleted successfully.';
   }
 
-  let readingSessions: ReadingSessionsResponse;
-
-  try {
-    readingSessions = await getReadingSessions(session.user.id, currentPage);
-  } catch (error) {
-    console.error('Error in ReadingPage:', error);
-    errorMessage = 'Unable to load reading sessions. Please try again later.';
-    readingSessions = {
-      sessions: [],
-      pagination: { total: 0, pages: 1, current: 1, limit: 8 },
-    };
-  }
-
-  const { sessions, pagination } = readingSessions;
-
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
@@ -191,143 +387,14 @@ export default async function ReadingPage({
         </Alert>
       )}
 
-      {sessions.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <h3 className="text-xl font-semibold mb-2">
-              No reading sessions yet
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Start your first reading session to begin learning.
-            </p>
-            <Button asChild>
-              <Link href="/dashboard/reading/new">
-                Create Your First Session
-              </Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {sessions.map((session: ReadingSession) => (
-              <Card key={session._id} className="h-full flex flex-col">
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-base mb-1">
-                        {session.title}
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        {session.wordCount} words •{' '}
-                        {session.estimatedReadingTime} min read
-                      </CardDescription>
-                    </div>
-                    <Badge
-                      variant={
-                        session.userProgress.completionTime
-                          ? 'secondary'
-                          : 'default'
-                      }
-                      className="text-xs"
-                    >
-                      {session.userProgress.completionTime
-                        ? 'Completed'
-                        : 'In Progress'}
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-grow pb-3">
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span>Progress</span>
-                        <span>
-                          {Math.round(
-                            ((session.userProgress.questionsAnswered +
-                              session.userProgress.vocabularyReviewed.length) /
-                              (session.questions.length +
-                                session.vocabulary.length)) *
-                              100
-                          )}
-                          %
-                        </span>
-                      </div>
-                      <Progress
-                        value={
-                          ((session.userProgress.questionsAnswered +
-                            session.userProgress.vocabularyReviewed.length) /
-                            (session.questions.length +
-                              session.vocabulary.length)) *
-                          100
-                        }
-                        className="h-2"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <Badge variant="outline" className="text-xs">
-                        {session.level}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        {session.topic}
-                      </Badge>
-                    </div>
-                  </div>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-2 pt-0">
-                  <Button asChild size="sm" className="w-full">
-                    <Link href={`/dashboard/reading/${session._id}`}>
-                      {session.userProgress.completionTime
-                        ? 'Review'
-                        : 'Continue'}
-                    </Link>
-                  </Button>
-                  <DeleteSessionButton sessionId={session._id.toString()} />
-                </CardFooter>
-              </Card>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {pagination.pages > 1 && (
-            <Pagination className="mt-4">
-              <PaginationContent>
-                {pagination.current > 1 && (
-                  <PaginationItem>
-                    <Link
-                      href={`/dashboard/reading?page=${pagination.current - 1}`}
-                    >
-                      <PaginationPrevious />
-                    </Link>
-                  </PaginationItem>
-                )}
-
-                {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(
-                  page => (
-                    <PaginationItem key={page}>
-                      <Link href={`/dashboard/reading?page=${page}`}>
-                        <PaginationLink isActive={page === pagination.current}>
-                          {page}
-                        </PaginationLink>
-                      </Link>
-                    </PaginationItem>
-                  )
-                )}
-
-                {pagination.current < pagination.pages && (
-                  <PaginationItem>
-                    <Link
-                      href={`/dashboard/reading?page=${pagination.current + 1}`}
-                    >
-                      <PaginationNext />
-                    </Link>
-                  </PaginationItem>
-                )}
-              </PaginationContent>
-            </Pagination>
-          )}
-        </div>
-      )}
+      <div className="space-y-6">
+        <Suspense fallback={<ReadingSessionsSkeleton />}>
+          <ReadingSessionsList
+            userId={session.user.id}
+            currentPage={currentPage}
+          />
+        </Suspense>
+      </div>
     </div>
   );
 }

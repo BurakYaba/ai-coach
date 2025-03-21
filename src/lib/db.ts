@@ -39,12 +39,18 @@ mongoose.connection.setMaxListeners(20);
 
 export async function dbConnect() {
   if (cached.conn) {
+    // Return immediately if we already have a connection
     return cached.conn;
   }
 
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      // Add connection pool options
+      maxPoolSize: 10,
+      minPoolSize: 5,
+      socketTimeoutMS: 45000,
+      connectTimeoutMS: 10000,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then(mongoose => {

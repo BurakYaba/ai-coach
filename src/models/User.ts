@@ -37,6 +37,7 @@ const userSchema = new Schema<IUser>(
       trim: true,
       lowercase: true,
       match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'],
+      index: true,
     },
     password: {
       type: String,
@@ -126,6 +127,9 @@ const userSchema = new Schema<IUser>(
     timestamps: true,
   }
 );
+
+// Add compound indexes for common query patterns
+userSchema.index({ email: 1, createdAt: 1 });
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {

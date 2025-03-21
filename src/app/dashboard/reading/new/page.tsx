@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function NewReadingSessionPage() {
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-3">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Create New Reading Session</h1>
         <p className="text-gray-600">

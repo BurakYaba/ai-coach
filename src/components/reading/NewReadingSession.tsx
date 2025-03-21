@@ -2,7 +2,7 @@
 
 import { Loader2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useCallback, useRef, memo } from 'react';
 import { toast } from 'sonner';
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
-// Predefined topics for the dropdown
+// Memoize static arrays to prevent unnecessary re-renders
 const topics = [
   'Technology',
   'Science',
@@ -71,6 +71,14 @@ const questionTypes: QuestionType[] = [
   { value: 'fill-blank', label: 'Fill in the Blanks' },
 ];
 
+// Length to words mapping for reference
+const lengthToWords = {
+  short: 150,
+  medium: 200,
+  long: 300,
+  veryLong: 400,
+};
+
 interface GenerationParams {
   topic: string;
   level: string;
@@ -116,7 +124,8 @@ interface GrammarResponse {
   patterns: GrammarPattern[];
 }
 
-export function NewReadingSession() {
+// Use memo to prevent unnecessary re-renders
+export const NewReadingSession = memo(function NewReadingSession() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState<string>('');
@@ -129,233 +138,262 @@ export function NewReadingSession() {
     questionTypes: ['multiple-choice', 'true-false'],
   });
   const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      // Reset state
-      setError(null);
-      setIsLoading(true);
-      setLoadingStep('Generating content...');
+  // Use useCallback to memoize the handler
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      try {
+        // Reset state
+        setError(null);
+        setIsLoading(true);
+        setLoadingStep('Generating content...');
 
-      // Initialize a timeout controller
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 minute timeout
-
-      // Pass the exact CEFR level to the API without mapping
-      const apiLevel = params.level; // 'A1', 'A2', 'B1', 'B2', 'C1', or 'C2'
-
-      // Map the length to word count
-      const lengthToWords = {
-        short: 150,
-        medium: 200,
-        long: 300,
-        veryLong: 400,
-      };
-
-      const targetLength =
-        lengthToWords[params.length as keyof typeof lengthToWords];
-
-      // Prepare question type configuration
-      const questionTypeConfig = params.questionTypes.map(type => ({
-        type,
-        count: Math.ceil(params.questionCount / params.questionTypes.length),
-      }));
-
-      // Call the unified API endpoint with timeout handling
-      const unifiedResponse = await fetch('/api/reading/generate/unified', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-        body: JSON.stringify({
-          level: apiLevel,
-          topic: params.topic,
-          targetLength,
-          interests: params.interests,
-          questionTypes: questionTypeConfig,
-          questionCount: params.questionCount,
-        }),
-      });
-
-      // Clear the timeout
-      clearTimeout(timeoutId);
-
-      if (!unifiedResponse.ok) {
-        // Check for specific error status codes
-        if (unifiedResponse.status === 504) {
-          throw new Error(
-            'The request timed out. Please try again with a shorter content length or simpler topic.'
-          );
+        // Abort any ongoing request
+        if (abortControllerRef.current) {
+          abortControllerRef.current.abort();
         }
 
-        // Try to get error details from the response
-        let errorMessage = 'Failed to generate reading session content';
-        try {
-          const errorData = await unifiedResponse.json();
-          if (errorData.error) {
-            errorMessage = errorData.error;
+        // Initialize a new abort controller
+        abortControllerRef.current = new AbortController();
+        const timeoutId = setTimeout(() => {
+          if (abortControllerRef.current) {
+            abortControllerRef.current.abort();
           }
-        } catch (e) {
-          // Ignore JSON parsing errors
-        }
+        }, 120000); // 2 minute timeout
 
-        throw new Error(errorMessage);
-      }
+        // Pass the exact CEFR level to the API without mapping
+        const apiLevel = params.level; // 'A1', 'A2', 'B1', 'B2', 'C1', or 'C2'
 
-      const unifiedData = await unifiedResponse.json();
+        // Get target length from the mapping
+        const targetLength =
+          lengthToWords[params.length as keyof typeof lengthToWords];
 
-      // Extract the data from the unified response
-      const content = unifiedData.content;
-      const questions = { questions: unifiedData.questions || [] };
-      const vocabulary = { vocabulary: unifiedData.vocabulary || [] };
-      const grammar = { patterns: unifiedData.grammar || [] };
+        // Prepare question type configuration
+        const questionTypeConfig = params.questionTypes.map(type => ({
+          type,
+          count: Math.ceil(params.questionCount / params.questionTypes.length),
+        }));
 
-      setLoadingStep('Creating reading session...');
+        // Call the unified API endpoint with timeout handling
+        const unifiedResponse = await fetch('/api/reading/generate/unified', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: abortControllerRef.current.signal,
+          body: JSON.stringify({
+            level: apiLevel,
+            topic: params.topic,
+            targetLength,
+            interests: params.interests,
+            questionTypes: questionTypeConfig,
+            questionCount: params.questionCount,
+          }),
+        });
 
-      // Calculate word count and estimated reading time
-      const wordCount = content.content.split(/\s+/).length;
-      const estimatedReadingTime = Math.ceil((wordCount / 200) * 60); // words per minute
+        // Clear the timeout
+        clearTimeout(timeoutId);
 
-      // Transform questions to match the expected schema format
-      const transformedQuestions = questions.questions.map(
-        (question: Question) => {
-          // Ensure question has a type, default to multiple-choice if missing
-          let questionType = question.type || 'multiple-choice';
-
-          // Normalize question type to match what the schema expects
-          // Convert 'fill-in-the-blank' to 'fill-blank'
-          if (questionType === 'fill-in-the-blank') {
-            questionType = 'fill-blank';
+        if (!unifiedResponse.ok) {
+          // Check for specific error status codes
+          if (unifiedResponse.status === 504) {
+            throw new Error(
+              'The request timed out. Please try again with a shorter content length or simpler topic.'
+            );
           }
 
-          // Transform options from {id, text} objects to string[] if needed
-          let options: string[] | null = null;
-          if (question.options) {
-            if (
-              typeof question.options[0] === 'object' &&
-              question.options[0] !== null
-            ) {
-              // If options are objects with id and text, extract just the text
-              options = question.options.map(
-                (opt: { id?: string; text?: string } | string) =>
-                  typeof opt === 'object' && 'text' in opt && opt.text
-                    ? opt.text
-                    : String(opt)
-              );
-            } else if (Array.isArray(question.options)) {
-              // If already an array of strings, use as is
-              options = question.options.map(opt => String(opt));
+          // Try to get error details from the response
+          let errorMessage = 'Failed to generate reading session content';
+          try {
+            const errorData = await unifiedResponse.json();
+            if (errorData.error) {
+              errorMessage = errorData.error;
             }
+          } catch (e) {
+            // Ignore JSON parsing errors
           }
 
-          return {
-            id: question.id,
-            type: questionType as
-              | 'multiple-choice'
-              | 'true-false'
-              | 'fill-blank',
-            question: question.question || `Question about ${params.topic}`, // Ensure question text exists
-            options: options,
-            correctAnswer: question.correctAnswer || 'A', // Default to A if missing
-            explanation: question.explanation || 'No explanation provided.',
-          };
+          throw new Error(errorMessage);
         }
-      );
 
-      // Transform vocabulary items to match the expected schema format
-      const transformedVocabulary = vocabulary.vocabulary.map(
-        (word: VocabularyWord) => {
-          // Create a properly formatted vocabulary item with all required fields
-          return {
-            word: word.word,
-            definition: word.definition,
-            context: word.context || `Example context for "${word.word}".`,
-            examples: Array.isArray(word.examples)
-              ? word.examples
-              : [`Example usage of "${word.word}".`],
-            difficulty:
-              typeof word.difficulty === 'number' ? word.difficulty : 3,
-          };
+        const unifiedData = await unifiedResponse.json();
+
+        // Extract the data from the unified response
+        const content = unifiedData.content;
+        const questions = { questions: unifiedData.questions || [] };
+        const vocabulary = { vocabulary: unifiedData.vocabulary || [] };
+        const grammar = { patterns: unifiedData.grammar || [] };
+
+        setLoadingStep('Creating reading session...');
+
+        // Calculate word count and estimated reading time
+        const wordCount = content.content.split(/\s+/).length;
+        const estimatedReadingTime = Math.ceil((wordCount / 200) * 60); // words per minute
+
+        // Transform questions to match the expected schema format
+        const transformedQuestions = questions.questions.map(
+          (question: Question) => {
+            // Ensure question has a type, default to multiple-choice if missing
+            let questionType = question.type || 'multiple-choice';
+
+            // Normalize question type to match what the schema expects
+            // Convert 'fill-in-the-blank' to 'fill-blank'
+            if (questionType === 'fill-in-the-blank') {
+              questionType = 'fill-blank';
+            }
+
+            // Transform options from {id, text} objects to string[] if needed
+            let options: string[] | null = null;
+            if (question.options) {
+              if (
+                typeof question.options[0] === 'object' &&
+                question.options[0] !== null
+              ) {
+                // If options are objects with id and text, extract just the text
+                options = question.options.map(
+                  (opt: { id?: string; text?: string } | string) =>
+                    typeof opt === 'object' && 'text' in opt && opt.text
+                      ? opt.text
+                      : String(opt)
+                );
+              } else if (Array.isArray(question.options)) {
+                // If already an array of strings, use as is
+                options = question.options.map(opt => String(opt));
+              }
+            }
+
+            // Return properly formatted question
+            return {
+              id: question.id,
+              type: questionType,
+              question: question.question,
+              options: options || [],
+              correctAnswer: question.correctAnswer,
+              explanation: question.explanation,
+            };
+          }
+        );
+
+        // Transform vocabulary items to match the expected schema format
+        const transformedVocabulary = vocabulary.vocabulary.map(
+          (word: VocabularyWord) => {
+            // Create a properly formatted vocabulary item with all required fields
+            return {
+              word: word.word,
+              definition: word.definition,
+              context: word.context || `Example context for "${word.word}".`,
+              examples: Array.isArray(word.examples)
+                ? word.examples
+                : [`Example usage of "${word.word}".`],
+              difficulty:
+                typeof word.difficulty === 'number' ? word.difficulty : 3,
+            };
+          }
+        );
+
+        // Create reading session
+        const sessionResponse = await fetch('/api/reading/sessions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title: content.title,
+            content: content.content,
+            questions: transformedQuestions,
+            vocabulary: transformedVocabulary,
+            grammarFocus: grammar.patterns,
+            level: params.level,
+            topic: params.topic,
+            wordCount: wordCount,
+            estimatedReadingTime: estimatedReadingTime,
+            aiAnalysis: {
+              readingLevel:
+                apiLevel === 'A1'
+                  ? 1
+                  : apiLevel === 'A2'
+                    ? 2
+                    : apiLevel === 'B1'
+                      ? 3
+                      : apiLevel === 'B2'
+                        ? 5
+                        : apiLevel === 'C1'
+                          ? 7
+                          : apiLevel === 'C2'
+                            ? 9
+                            : 3,
+              complexityScore:
+                apiLevel === 'A1'
+                  ? 1
+                  : apiLevel === 'A2'
+                    ? 2
+                    : apiLevel === 'B1'
+                      ? 4
+                      : apiLevel === 'B2'
+                        ? 6
+                        : apiLevel === 'C1'
+                          ? 8
+                          : apiLevel === 'C2'
+                            ? 10
+                            : 4,
+              topicRelevance: content.metadata?.topicRelevance || 8,
+              suggestedNextTopics: [params.topic],
+            },
+          }),
+        });
+
+        if (!sessionResponse.ok) {
+          const errorText = await sessionResponse.text();
+          console.error('Session creation error:', errorText);
+          throw new Error(`Failed to create reading session: ${errorText}`);
         }
-      );
 
-      // Create reading session
-      const sessionResponse = await fetch('/api/reading/sessions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: content.title,
-          content: content.content,
-          questions: transformedQuestions,
-          vocabulary: transformedVocabulary,
-          grammarFocus: grammar.patterns,
-          level: params.level,
-          topic: params.topic,
-          wordCount: wordCount,
-          estimatedReadingTime: estimatedReadingTime,
-          aiAnalysis: {
-            readingLevel:
-              apiLevel === 'A1'
-                ? 1
-                : apiLevel === 'A2'
-                  ? 2
-                  : apiLevel === 'B1'
-                    ? 3
-                    : apiLevel === 'B2'
-                      ? 5
-                      : apiLevel === 'C1'
-                        ? 7
-                        : apiLevel === 'C2'
-                          ? 9
-                          : 3,
-            complexityScore:
-              apiLevel === 'A1'
-                ? 1
-                : apiLevel === 'A2'
-                  ? 2
-                  : apiLevel === 'B1'
-                    ? 4
-                    : apiLevel === 'B2'
-                      ? 6
-                      : apiLevel === 'C1'
-                        ? 8
-                        : apiLevel === 'C2'
-                          ? 10
-                          : 4,
-            topicRelevance: content.metadata?.topicRelevance || 8,
-            suggestedNextTopics: [params.topic],
-          },
-        }),
-      });
+        const session = await sessionResponse.json();
 
-      if (!sessionResponse.ok) {
-        const errorText = await sessionResponse.text();
-        console.error('Session creation error:', errorText);
-        throw new Error(`Failed to create reading session: ${errorText}`);
+        toast.success('Your reading session has been created.');
+        router.push(`/dashboard/reading/${session._id}`);
+      } catch (error: any) {
+        setIsLoading(false);
+        setLoadingStep('');
+        // Handle abort/timeout errors specially
+        if (error.name === 'AbortError') {
+          const errorMessage =
+            'Request timed out. Please try again with a shorter content length or simpler topic.';
+          setError(errorMessage);
+          toast.error(errorMessage);
+        } else {
+          const errorMessage =
+            error.message || 'Failed to create reading session';
+          setError(errorMessage);
+          toast.error(errorMessage);
+        }
+        console.error('Error creating reading session:', error);
+      }
+    },
+    [params, router]
+  );
+
+  // Update a specific param without re-rendering the entire component
+  const updateParam = useCallback((key: keyof GenerationParams, value: any) => {
+    setParams(prev => ({ ...prev, [key]: value }));
+  }, []);
+
+  // Handle question type toggle with minimal re-renders
+  const handleQuestionTypeToggle = useCallback((type: string) => {
+    setParams(prev => {
+      const currentTypes = [...prev.questionTypes];
+      const typeIndex = currentTypes.indexOf(type);
+
+      if (typeIndex === -1) {
+        // Ensure at least one type is selected
+        return { ...prev, questionTypes: [...currentTypes, type] };
+      } else if (currentTypes.length > 1) {
+        // Prevent deselecting the last type
+        currentTypes.splice(typeIndex, 1);
+        return { ...prev, questionTypes: currentTypes };
       }
 
-      const session = await sessionResponse.json();
-
-      toast.success('Your reading session has been created.');
-      router.push(`/dashboard/reading/${session._id}`);
-    } catch (error: any) {
-      setIsLoading(false);
-      setLoadingStep('');
-      // Handle abort/timeout errors specially
-      if (error.name === 'AbortError') {
-        const errorMessage =
-          'Request timed out. Please try again with a shorter content length or simpler topic.';
-        setError(errorMessage);
-        toast.error(errorMessage);
-      } else {
-        const errorMessage =
-          error.message || 'Failed to create reading session';
-        setError(errorMessage);
-        toast.error(errorMessage);
-      }
-      console.error('Error creating reading session:', error);
-    }
-  };
+      return prev;
+    });
+  }, []);
 
   return (
     <Card className="p-6">
@@ -546,4 +584,4 @@ export function NewReadingSession() {
       </form>
     </Card>
   );
-}
+});

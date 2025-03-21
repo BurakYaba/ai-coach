@@ -21,12 +21,19 @@ export const authOptions: NextAuthOptions = {
 
         await dbConnect();
 
-        const user = await User.findOne({ email: credentials.email });
+        const user = await User.findOne({ email: credentials.email })
+          .lean()
+          .exec();
         if (!user) {
           throw new Error('No user found with this email');
         }
 
-        const isValid = await user.comparePassword(credentials.password);
+        const userModel = await User.findById(user._id);
+        if (!userModel) {
+          throw new Error('User not found');
+        }
+
+        const isValid = await userModel.comparePassword(credentials.password);
         if (!isValid) {
           throw new Error('Invalid password');
         }
@@ -41,6 +48,7 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
+    maxAge: 7 * 24 * 60 * 60, // 7 days
   },
   pages: {
     signIn: '/login',
@@ -59,6 +67,9 @@ export const authOptions: NextAuthOptions = {
       }
       return session;
     },
+  },
+  jwt: {
+    maxAge: 7 * 24 * 60 * 60, // 7 days
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
