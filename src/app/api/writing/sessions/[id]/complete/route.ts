@@ -41,22 +41,33 @@ interface IUserStats extends Document {
   };
 }
 
+// POST /api/writing/sessions/[id]/complete - Mark a session as completed
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Check authentication
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
+    if (!session?.user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Connect to database
     await dbConnect();
-    const writingSession = await WritingSession.findOne({
-      _id: params.id,
-      userId: session.user.id,
-    });
 
+    // Validate ID
+    if (!mongoose.isValidObjectId(params.id)) {
+      return NextResponse.json(
+        { error: 'Invalid session ID' },
+        { status: 400 }
+      );
+    }
+
+    // Fetch session
+    const writingSession = await WritingSession.findById(params.id);
+
+    // Check if session exists
     if (!writingSession) {
       return NextResponse.json(
         { error: 'Writing session not found' },
@@ -64,38 +75,48 @@ export async function POST(
       );
     }
 
-    const body = await req.json();
-    const { content } = body;
+    // Check if user owns the session
+    if (writingSession.userId.toString() !== session.user.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+    }
 
-    if (!content) {
+    // Check if session can be marked as completed
+    if (writingSession.status !== 'analyzed') {
       return NextResponse.json(
-        { error: 'Content is required' },
+        {
+          error:
+            'Session must be analyzed before it can be marked as completed',
+          currentStatus: writingSession.status,
+        },
         { status: 400 }
       );
     }
 
-    // Update the submission object and other properties
-    if (writingSession.submission) {
-      writingSession.submission.content = content;
-    } else {
-      writingSession.set('submission', { content });
-    }
-
-    writingSession.set('status', 'submitted');
-    writingSession.set('updatedAt', new Date());
-
+    // Update status to completed
+    writingSession.status = 'completed';
     await writingSession.save();
 
-    // Update user progress
-    await updateUserProgress(session.user.id, writingSession);
-
-    return NextResponse.json(writingSession);
+    return NextResponse.json({
+      success: true,
+      message: 'Session marked as completed',
+      session: writingSession,
+    });
   } catch (error) {
+    console.error('Error marking session as completed:', error);
+    if (error instanceof mongoose.Error.ValidationError) {
+      return NextResponse.json(
+        { error: 'Validation error', details: error.message },
+        { status: 400 }
+      );
+    }
     if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Failed to complete session', details: error.message },
+        { status: 500 }
+      );
     }
     return NextResponse.json(
-      { error: 'Failed to complete writing session' },
+      { error: 'Failed to complete session' },
       { status: 500 }
     );
   }

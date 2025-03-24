@@ -54,16 +54,18 @@ export function WritingPromptList() {
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const promptsPerPage = 8; // 2 rows x 4 columns
+  const [showAllResults, setShowAllResults] = useState(false);
 
   useEffect(() => {
     async function fetchPrompts() {
       try {
-        const response = await fetch('/api/writing/prompts');
+        const response = await fetch('/api/writing/prompts?limit=50');
         if (!response.ok) {
           throw new Error('Failed to fetch prompts');
         }
         const data = await response.json();
         setPrompts(data.prompts);
+        console.log(`Fetched ${data.prompts.length} prompts`);
       } catch (error) {
         console.error('Error fetching writing prompts:', error);
         toast({
@@ -143,10 +145,11 @@ export function WritingPromptList() {
   const totalPages = Math.ceil(filteredPrompts.length / promptsPerPage);
   const indexOfLastPrompt = currentPage * promptsPerPage;
   const indexOfFirstPrompt = indexOfLastPrompt - promptsPerPage;
-  const currentPrompts = filteredPrompts.slice(
-    indexOfFirstPrompt,
-    indexOfLastPrompt
-  );
+
+  // Show all prompts if showAllResults is true, otherwise use pagination
+  const currentPrompts = showAllResults
+    ? filteredPrompts
+    : filteredPrompts.slice(indexOfFirstPrompt, indexOfLastPrompt);
 
   // Generate page numbers for pagination
   const pageNumbers = [];
@@ -211,12 +214,26 @@ export function WritingPromptList() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Levels</SelectItem>
-              <SelectItem value="beginner">Beginner</SelectItem>
-              <SelectItem value="intermediate">Intermediate</SelectItem>
-              <SelectItem value="advanced">Advanced</SelectItem>
+              <SelectItem value="A1">A1</SelectItem>
+              <SelectItem value="A2">A2</SelectItem>
+              <SelectItem value="B1">B1</SelectItem>
+              <SelectItem value="B2">B2</SelectItem>
+              <SelectItem value="C1">C1</SelectItem>
+              <SelectItem value="C2">C2</SelectItem>
             </SelectContent>
           </Select>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowAllResults(!showAllResults)}
+        >
+          {showAllResults ? 'Show Paged Results' : 'Show All Results'}
+        </Button>
+      </div>
+
+      <div className="text-sm text-muted-foreground mb-2">
+        Showing {currentPrompts.length} of {filteredPrompts.length} prompts
       </div>
 
       {filteredPrompts.length === 0 ? (
@@ -298,7 +315,7 @@ export function WritingPromptList() {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
+          {!showAllResults && totalPages > 1 && (
             <Pagination className="mt-4">
               <PaginationContent>
                 <PaginationItem>

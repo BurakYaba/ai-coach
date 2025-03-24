@@ -20,13 +20,14 @@ export async function GET(req: NextRequest) {
 
     // Parse query parameters
     const url = new URL(req.url);
-    const level = url.searchParams.get('level') || 'B1';
+    const level = url.searchParams.get('level');
     const type = url.searchParams.get('type');
     const topic = url.searchParams.get('topic');
     const limit = parseInt(url.searchParams.get('limit') || '10');
 
     // Build query
-    const query: any = { level };
+    const query: any = {};
+    if (level) query.level = level;
     if (type) query.type = type;
     if (topic) query.topic = { $regex: topic, $options: 'i' };
 
@@ -107,6 +108,19 @@ export async function generatePrompt(
   type: string,
   topic?: string
 ): Promise<IWritingPrompt> {
+  // Add debug logging to see what parameters are received
+  console.log(
+    `Generating prompt with level: ${level}, type: ${type}, topic: ${topic}`
+  );
+
+  // Validate type parameter
+  if (!['essay', 'letter', 'story', 'argument'].includes(type)) {
+    console.warn(
+      `Invalid writing type received: ${type}, falling back to essay`
+    );
+    type = 'essay';
+  }
+
   // This would typically use an AI service like OpenAI
   // For now, we'll return a placeholder implementation with more variety
 
@@ -255,11 +269,11 @@ export async function generatePrompt(
     ],
     letter: [
       {
-        text: `Write a formal letter to a government official proposing a new initiative related to ${topic}. Explain the need, benefits, and implementation steps.`,
+        text: `Write a formal letter to a government official about ${topic}. Explain the need, benefits, and implementation steps for addressing this issue.`,
         requirements: [
           'Proper formal letter format with date, addresses, and salutation',
           'Clear introduction stating your purpose',
-          'Detailed explanation of the proposal with supporting evidence',
+          'Detailed explanation with supporting evidence',
           'Discussion of benefits and addressing potential concerns',
           'Professional closing with a specific request for action',
         ],
@@ -267,17 +281,17 @@ export async function generatePrompt(
       {
         text: `Write a letter to the editor of a newspaper responding to a recent article about ${topic}. Express your agreement or disagreement, providing reasoned arguments and evidence.`,
         requirements: [
+          'Appropriate letter format with date and salutation',
           'Reference to the original article in the opening',
           'Clear statement of your position',
           'Well-structured arguments with supporting evidence',
-          'Acknowledgment of opposing viewpoints',
           'Concise conclusion reinforcing your main point',
         ],
       },
       {
-        text: `Write a letter to a company suggesting improvements to their products or services related to ${topic}. Describe your experiences, identify issues, and offer constructive suggestions.`,
+        text: `Write a letter to a company regarding ${topic}. Describe your experiences, identify issues, and offer constructive suggestions for improvement.`,
         requirements: [
-          'Professional tone and appropriate format',
+          'Professional letter format with appropriate headers',
           'Brief introduction explaining your relationship with the company',
           'Specific examples of issues or areas for improvement',
           'Constructive, actionable suggestions',
@@ -285,19 +299,19 @@ export async function generatePrompt(
         ],
       },
       {
-        text: `Write a letter to a younger person offering advice about ${topic} based on your knowledge or experience. Share insights, lessons learned, and practical guidance.`,
+        text: `Write a personal letter to a friend or family member about your experience with ${topic}. Share insights, lessons learned, and practical guidance.`,
         requirements: [
-          'Engaging and appropriate opening',
+          'Informal letter format with appropriate greeting',
           'Personal anecdotes or experiences that illustrate your points',
           'Practical, actionable advice',
           'Empathetic and encouraging tone',
-          'Thoughtful conclusion with an invitation for further discussion',
+          'Warm conclusion with an invitation for further discussion',
         ],
       },
     ],
     story: [
       {
-        text: `Write a short story in which a character's life is transformed by an encounter with ${topic}. Focus on character development and emotional journey.`,
+        text: `Write a short story in which the main character encounters ${topic} in an unexpected way. Focus on character development and emotional journey.`,
         requirements: [
           'Engaging opening that introduces the main character',
           'Vivid setting descriptions',
@@ -317,7 +331,7 @@ export async function generatePrompt(
         ],
       },
       {
-        text: `Write a science fiction or fantasy story that reimagines ${topic} in a speculative world. Create unique settings, characters, and situations while exploring themes relevant to our world.`,
+        text: `Write a creative short story that reimagines ${topic} in a fantasy or science fiction setting. Create unique characters and situations while exploring themes relevant to our world.`,
         requirements: [
           'Creative worldbuilding with consistent rules',
           'Engaging characters with clear motivations',
@@ -327,10 +341,10 @@ export async function generatePrompt(
         ],
       },
       {
-        text: `Write a story from the perspective of someone whose life is deeply affected by ${topic}. Focus on their experiences, challenges, and personal growth.`,
+        text: `Write a story from the first-person perspective of someone deeply affected by ${topic}. Focus on their experiences, challenges, and personal growth.`,
         requirements: [
-          'Strong first-person or close third-person narration',
-          'Authentic voice appropriate to the character',
+          'Strong first-person narration with distinct voice',
+          'Authentic character reactions and emotions',
           'Meaningful conflict related to the topic',
           "Development of the character's understanding or perspective",
           "Resolution that reflects the character's journey",
@@ -349,7 +363,7 @@ export async function generatePrompt(
         ],
       },
       {
-        text: `Write an argument analyzing the ethical implications of ${topic}. Examine different ethical perspectives and defend your position on what approach is most justified.`,
+        text: `Write an argumentative essay analyzing the ethical implications of ${topic}. Examine different ethical perspectives and defend your position on what approach is most justified.`,
         requirements: [
           'Introduction that presents the ethical dilemma',
           'Explanation of relevant ethical frameworks or principles',
@@ -359,7 +373,7 @@ export async function generatePrompt(
         ],
       },
       {
-        text: `Write an argument evaluating whether current approaches to ${topic} are adequate. Assess existing policies or practices and argue for maintaining or changing them.`,
+        text: `Write a critical argument evaluating current approaches to ${topic}. Assess existing policies or practices and argue for maintaining or changing them.`,
         requirements: [
           'Clear thesis stating your evaluation and position',
           'Analysis of current approaches with specific examples',
@@ -369,7 +383,7 @@ export async function generatePrompt(
         ],
       },
       {
-        text: `Write an argument examining how different groups or communities are affected by ${topic}. Advocate for an approach that addresses inequities or disparities.`,
+        text: `Write a persuasive argument examining how different groups are affected by ${topic}. Advocate for an approach that addresses inequities or disparities.`,
         requirements: [
           'Introduction highlighting the significance of the issue',
           'Analysis of impacts on different groups with supporting evidence',
@@ -381,11 +395,15 @@ export async function generatePrompt(
     ],
   };
 
-  // Select a random template based on type
+  // Select a random template based on validated type
   const templates =
     promptTemplates[type as keyof typeof promptTemplates] ||
     promptTemplates.essay;
   const template = templates[Math.floor(Math.random() * templates.length)];
+
+  console.log(
+    `Selected template for ${type} with topic: ${topic}. Template text: ${template.text.substring(0, 50)}...`
+  );
 
   // Define suggested length based on CEFR level
   const suggestedLength = {

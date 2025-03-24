@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 
 import { authOptions } from '@/lib/auth';
 import { dbConnect } from '@/lib/db';
-import { WritingAnalyzer } from '@/lib/writing-analyzer';
+import { OpenAIWritingAnalyzer } from '@/lib/openai-writing-analyzer';
 import WritingSession from '@/models/WritingSession';
 
 // GET /api/writing/sessions/[id] - Get a specific writing session
@@ -31,7 +31,8 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(writingSession);
+    // Return in the expected format: { session: writingSession }
+    return NextResponse.json({ session: writingSession });
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -238,32 +239,10 @@ export async function POST(
         min: writingSession.prompt.targetLength * 0.8,
         max: writingSession.prompt.targetLength * 1.2,
       },
-      rubric: [
-        {
-          criterion: 'Content',
-          description: 'Addresses the prompt thoroughly with relevant ideas',
-          weight: 30,
-        },
-        {
-          criterion: 'Organization',
-          description: 'Logical structure with clear transitions',
-          weight: 20,
-        },
-        {
-          criterion: 'Language Use',
-          description: 'Appropriate vocabulary and sentence structures',
-          weight: 25,
-        },
-        {
-          criterion: 'Grammar & Mechanics',
-          description: 'Correct grammar, spelling, and punctuation',
-          weight: 25,
-        },
-      ],
     };
 
     // Analyze submission
-    const analyzer = new WritingAnalyzer();
+    const analyzer = new OpenAIWritingAnalyzer();
     const analysis = await analyzer.analyzeSubmission({
       content: writingSession.submission.finalVersion.content,
       prompt: promptForAnalysis as any,
@@ -272,14 +251,124 @@ export async function POST(
 
     // Update session with analysis
     writingSession.analysis = {
-      grammarScore: analysis.scores.grammar,
-      vocabularyScore: analysis.scores.vocabulary,
-      coherenceScore: analysis.scores.coherence,
-      styleScore: analysis.scores.style,
-      overallScore: analysis.scores.overall,
+      grammarScore: analysis.grammarScore,
+      vocabularyScore: analysis.vocabularyScore,
+      coherenceScore: analysis.coherenceScore,
+      styleScore: analysis.styleScore,
+      overallScore: analysis.overallScore,
       feedback: analysis.feedback,
       grammarIssues: analysis.grammarIssues,
       vocabularyAnalysis: analysis.vocabularyAnalysis,
+      summaryFeedback: analysis.feedback.overallAssessment,
+      strengths: analysis.feedback.strengths,
+      improvements:
+        analysis.feedback.areasForImprovement || analysis.feedback.improvements,
+      lengthAssessment: {
+        assessment: 'appropriate',
+        feedback: `Your submission meets the target length requirement of approximately ${writingSession.prompt.targetLength} words.`,
+      },
+      details: {
+        grammar: {
+          score: analysis.grammarScore,
+          errorList: analysis.grammarIssues,
+          suggestions: analysis.feedback.improvements.filter(
+            item =>
+              item.toLowerCase().includes('grammar') ||
+              item.toLowerCase().includes('spelling') ||
+              item.toLowerCase().includes('punctuation') ||
+              item.toLowerCase().includes('sentence') ||
+              item.toLowerCase().startsWith('grammar:')
+          ),
+          strengths: analysis.feedback.strengths.filter(
+            item =>
+              item.toLowerCase().includes('grammar') ||
+              item.toLowerCase().includes('spelling') ||
+              item.toLowerCase().includes('punctuation') ||
+              item.toLowerCase().includes('sentence') ||
+              item.toLowerCase().startsWith('grammar strength')
+          ),
+          improvements: analysis.feedback.improvements.filter(
+            item =>
+              item.toLowerCase().includes('grammar') ||
+              item.toLowerCase().includes('spelling') ||
+              item.toLowerCase().includes('punctuation') ||
+              item.toLowerCase().includes('sentence') ||
+              item.toLowerCase().startsWith('grammar:') ||
+              item.toLowerCase().startsWith('grammar improvement')
+          ),
+        },
+        vocabulary: {
+          score: analysis.vocabularyScore,
+          level: analysis.vocabularyAnalysis.level,
+          strengths:
+            analysis.vocabularyAnalysis.strengths ||
+            analysis.feedback.strengths.filter(
+              item =>
+                item.toLowerCase().includes('vocabulary') ||
+                item.toLowerCase().includes('word') ||
+                item.toLowerCase().includes('term') ||
+                item.toLowerCase().startsWith('vocabulary strength')
+            ),
+          improvements:
+            analysis.vocabularyAnalysis.improvements ||
+            analysis.feedback.improvements.filter(
+              item =>
+                item.toLowerCase().includes('vocabulary') ||
+                item.toLowerCase().includes('word') ||
+                item.toLowerCase().includes('term') ||
+                item.toLowerCase().startsWith('vocabulary:') ||
+                item.toLowerCase().startsWith('vocabulary improvement')
+            ),
+          wordFrequency: analysis.vocabularyAnalysis.wordFrequency,
+        },
+        structure: {
+          score: analysis.coherenceScore,
+          strengths: analysis.feedback.strengths.filter(
+            item =>
+              item.toLowerCase().includes('structure') ||
+              item.toLowerCase().includes('organization') ||
+              item.toLowerCase().includes('coherence') ||
+              item.toLowerCase().includes('flow') ||
+              item.toLowerCase().includes('paragraph') ||
+              item.toLowerCase().startsWith('structure strength')
+          ),
+          improvements: analysis.feedback.improvements.filter(
+            item =>
+              item.toLowerCase().includes('structure') ||
+              item.toLowerCase().includes('organization') ||
+              item.toLowerCase().includes('coherence') ||
+              item.toLowerCase().includes('flow') ||
+              item.toLowerCase().includes('paragraph') ||
+              item.toLowerCase().startsWith('structure:') ||
+              item.toLowerCase().startsWith('structure improvement')
+          ),
+        },
+        content: {
+          score: analysis.styleScore,
+          relevance: Math.min(100, analysis.styleScore + 5),
+          depth: Math.min(100, analysis.vocabularyScore + 5),
+          strengths: analysis.feedback.strengths.filter(
+            item =>
+              item.toLowerCase().includes('content') ||
+              item.toLowerCase().includes('idea') ||
+              item.toLowerCase().includes('argument') ||
+              item.toLowerCase().includes('point') ||
+              item.toLowerCase().includes('topic') ||
+              item.toLowerCase().startsWith('content strength')
+          ),
+          improvements: analysis.feedback.improvements.filter(
+            item =>
+              item.toLowerCase().includes('content') ||
+              item.toLowerCase().includes('idea') ||
+              item.toLowerCase().includes('argument') ||
+              item.toLowerCase().includes('point') ||
+              item.toLowerCase().includes('topic') ||
+              item.toLowerCase().startsWith('content:') ||
+              item.toLowerCase().startsWith('content improvement')
+          ),
+        },
+      },
+      timestamp: new Date(),
     };
 
     // Update status
@@ -293,6 +382,7 @@ export async function POST(
       analysis,
     });
   } catch (error) {
+    console.error('Error analyzing writing session:', error);
     return NextResponse.json(
       { error: 'Failed to analyze writing session' },
       { status: 500 }
