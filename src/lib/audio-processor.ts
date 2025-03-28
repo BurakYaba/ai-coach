@@ -434,6 +434,7 @@ export async function createMultiSpeakerAudio(transcript: string) {
           folder: 'listening-segments',
           resource_type: 'video',
           format: 'mp3',
+          audio_codec: 'mp3',
         });
 
         return {

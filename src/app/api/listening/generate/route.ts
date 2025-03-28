@@ -18,6 +18,8 @@ import ListeningSession, { IListeningSession } from '@/models/ListeningSession';
 
 // Force dynamic rendering to handle server-side requests properly
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+export const fetchCache = 'force-no-store';
 
 // Initialize OpenAI with improved timeout handling
 const openai = new OpenAI({
