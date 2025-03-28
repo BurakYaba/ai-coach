@@ -71,8 +71,8 @@ export class OpenAIWritingAnalyzer {
     // Initialize the OpenAI client with configuration
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
-      timeout: 30000, // 30 seconds timeout
-      maxRetries: 2, // Retry failed requests up to 2 times
+      timeout: 55000, // 55 seconds timeout (just under the 60 second Vercel function limit)
+      maxRetries: 3, // Increase retry attempts to 3
     });
   }
 

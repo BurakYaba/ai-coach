@@ -130,6 +130,20 @@ export default function AnalyzeWritingPage() {
       );
 
       if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+
+        // Check if it's a timeout error (status 504)
+        if (response.status === 504) {
+          throw new Error(
+            'Analysis timed out. Your essay might be too long or our servers are experiencing high load.'
+          );
+        }
+
+        // Use the error message from the server if available
+        if (errorData && errorData.error) {
+          throw new Error(errorData.error);
+        }
+
         throw new Error('Failed to analyze writing');
       }
 
@@ -142,7 +156,11 @@ export default function AnalyzeWritingPage() {
       }, 1000);
     } catch (error) {
       console.error('Error analyzing writing:', error);
-      setError('Failed to analyze writing. Please try again.');
+      setError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to analyze writing. Please try again.'
+      );
       setAnalyzing(false);
     }
   };
@@ -171,25 +189,83 @@ export default function AnalyzeWritingPage() {
   if (error) {
     return (
       <div className="container mx-auto py-6">
-        <Card>
+        <Card className="border-destructive">
           <CardHeader>
-            <CardTitle>Error</CardTitle>
-            <CardDescription>{error}</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-destructive"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+              Analysis Error
+            </CardTitle>
+            <CardDescription>
+              {error.includes('timed out')
+                ? 'The analysis took too long to complete.'
+                : 'There was an error analyzing your writing.'}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p>
-              There was an error analyzing your writing. Please try again or go
-              back to your writing.
-            </p>
+            <div className="space-y-4">
+              <p className="text-sm">{error}</p>
+
+              {error.includes('timed out') && (
+                <div className="bg-muted p-4 rounded-md text-sm space-y-2">
+                  <p className="font-medium">Suggestions:</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>
+                      Try again in a few minutes when server load may be lower
+                    </li>
+                    <li>
+                      If your essay is very long (over 1000 words), consider
+                      splitting it into smaller sections
+                    </li>
+                    <li>
+                      Check that your essay doesn't contain unusual formatting
+                      or special characters
+                    </li>
+                  </ul>
+                </div>
+              )}
+            </div>
           </CardContent>
-          <CardFooter className="flex justify-between">
+          <CardFooter className="flex justify-between border-t pt-6">
             <Button
               variant="outline"
-              onClick={() => router.push('/dashboard/writing')}
+              onClick={() => router.push(`/dashboard/writing/${sessionId}`)}
             >
-              Back to Dashboard
+              Back to Writing
             </Button>
-            <Button onClick={() => window.location.reload()}>Try Again</Button>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => router.push('/dashboard/writing')}
+              >
+                Writing Dashboard
+              </Button>
+              <Button
+                onClick={() => {
+                  setError(null);
+                  setLoading(false);
+                  setAnalyzing(false);
+                  setProgress(0);
+                  startAnalysis();
+                }}
+              >
+                Try Again
+              </Button>
+            </div>
           </CardFooter>
         </Card>
       </div>

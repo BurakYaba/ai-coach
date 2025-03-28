@@ -6,6 +6,9 @@ import { dbConnect } from '@/lib/db';
 import { OpenAIWritingAnalyzer } from '@/lib/openai-writing-analyzer';
 import WritingSession, { IWritingSession } from '@/models/WritingSession';
 
+// Set to force-dynamic to handle server-side requests properly
+export const dynamic = 'force-dynamic';
+
 // Initialize the OpenAI Analyzer
 const openaiAnalyzer = new OpenAIWritingAnalyzer();
 
@@ -51,24 +54,68 @@ export async function POST(
       );
     }
 
-    const analysis = await analyzeWriting(writingSession);
+    // Set a controller to handle timeouts more gracefully
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, 55000); // 55 second timeout
 
-    writingSession.analysis = analysis;
-    writingSession.status = 'analyzed';
-    writingSession.analyzedAt = new Date();
+    try {
+      const analysis = await analyzeWriting(writingSession);
 
-    await writingSession.save();
+      // Clear the timeout since the operation completed successfully
+      clearTimeout(timeoutId);
 
-    return NextResponse.json({
-      success: true,
-      session: writingSession,
-    });
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      writingSession.analysis = analysis;
+      writingSession.status = 'analyzed';
+      writingSession.analyzedAt = new Date();
+
+      await writingSession.save();
+
+      return NextResponse.json({
+        success: true,
+        session: writingSession,
+      });
+    } catch (analysisError) {
+      // Clear the timeout
+      clearTimeout(timeoutId);
+
+      console.error('Analysis error:', analysisError);
+
+      // Check if the operation was aborted due to timeout
+      if (controller.signal.aborted) {
+        return NextResponse.json(
+          {
+            error:
+              'Analysis timed out. The essay may be too long or our servers are experiencing high load.',
+            retryable: true,
+          },
+          { status: 504 }
+        );
+      }
+
+      // Return more specific error for other analysis failures
+      return NextResponse.json(
+        {
+          error:
+            analysisError instanceof Error
+              ? analysisError.message
+              : 'Failed to analyze writing',
+          retryable: true,
+        },
+        { status: 500 }
+      );
     }
+  } catch (error) {
+    console.error('Unexpected error in writing analysis route:', error);
     return NextResponse.json(
-      { error: 'Failed to analyze writing session' },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : 'An unexpected error occurred',
+        retryable: true,
+      },
       { status: 500 }
     );
   }
@@ -102,145 +149,152 @@ async function analyzeWriting(writingSession: IWritingSession) {
     },
   };
 
-  // Call the OpenAI analyzer
-  const openAIAnalysis = await openaiAnalyzer.analyzeSubmission({
-    content,
-    prompt: writingPrompt as any,
-    level: userLevel,
-  });
+  try {
+    // Call the OpenAI analyzer
+    const openAIAnalysis = await openaiAnalyzer.analyzeSubmission({
+      content,
+      prompt: writingPrompt as any,
+      level: userLevel,
+    });
 
-  console.log('OpenAI analysis successful');
+    console.log('OpenAI analysis successful');
 
-  // Assessment of the length requirement
-  const lengthAssessment = assessLength(actualLength, targetLength);
+    // Assessment of the length requirement
+    const lengthAssessment = assessLength(actualLength, targetLength);
 
-  // Complete writing analysis with all components
-  return {
-    // Scores
-    overallScore: openAIAnalysis.overallScore,
-    grammarScore: openAIAnalysis.grammarScore,
-    vocabularyScore: openAIAnalysis.vocabularyScore,
-    coherenceScore: openAIAnalysis.coherenceScore,
-    styleScore: openAIAnalysis.styleScore,
+    // Complete writing analysis with all components
+    return {
+      // Scores
+      overallScore: openAIAnalysis.overallScore,
+      grammarScore: openAIAnalysis.grammarScore,
+      vocabularyScore: openAIAnalysis.vocabularyScore,
+      coherenceScore: openAIAnalysis.coherenceScore,
+      styleScore: openAIAnalysis.styleScore,
 
-    // Text feedback
-    summaryFeedback: openAIAnalysis.feedback.overallAssessment,
-    lengthAssessment,
-    strengths: openAIAnalysis.feedback.strengths,
-    improvements:
-      openAIAnalysis.feedback.areasForImprovement ||
-      openAIAnalysis.feedback.improvements,
+      // Text feedback
+      summaryFeedback: openAIAnalysis.feedback.overallAssessment,
+      lengthAssessment,
+      strengths: openAIAnalysis.feedback.strengths,
+      improvements:
+        openAIAnalysis.feedback.areasForImprovement ||
+        openAIAnalysis.feedback.improvements,
 
-    // Detailed analysis sections
-    feedback: openAIAnalysis.feedback,
-    grammarIssues: openAIAnalysis.grammarIssues,
-    vocabularyAnalysis: openAIAnalysis.vocabularyAnalysis,
+      // Detailed analysis sections
+      feedback: openAIAnalysis.feedback,
+      grammarIssues: openAIAnalysis.grammarIssues,
+      vocabularyAnalysis: openAIAnalysis.vocabularyAnalysis,
 
-    // Required traditional format for backward compatibility
-    details: {
-      grammar: {
-        score: openAIAnalysis.grammarScore,
-        errorList: openAIAnalysis.grammarIssues,
-        suggestions: openAIAnalysis.feedback.improvements.filter(
-          item =>
-            item.toLowerCase().includes('grammar') ||
-            item.toLowerCase().includes('spelling') ||
-            item.toLowerCase().includes('punctuation') ||
-            item.toLowerCase().includes('sentence') ||
-            item.toLowerCase().startsWith('grammar:')
-        ),
-        strengths: openAIAnalysis.feedback.strengths.filter(
-          item =>
-            item.toLowerCase().includes('grammar') ||
-            item.toLowerCase().includes('spelling') ||
-            item.toLowerCase().includes('punctuation') ||
-            item.toLowerCase().includes('sentence') ||
-            item.toLowerCase().startsWith('grammar strength')
-        ),
-        improvements: openAIAnalysis.feedback.improvements.filter(
-          item =>
-            item.toLowerCase().includes('grammar') ||
-            item.toLowerCase().includes('spelling') ||
-            item.toLowerCase().includes('punctuation') ||
-            item.toLowerCase().includes('sentence') ||
-            item.toLowerCase().startsWith('grammar:') ||
-            item.toLowerCase().startsWith('grammar improvement')
-        ),
-      },
-      vocabulary: {
-        score: openAIAnalysis.vocabularyScore,
-        level: openAIAnalysis.vocabularyAnalysis.level,
-        // Use the dedicated vocabulary strengths/improvements from the vocabulary analysis
-        strengths:
-          openAIAnalysis.vocabularyAnalysis.strengths ||
-          openAIAnalysis.feedback.strengths.filter(
+      // Required traditional format for backward compatibility
+      details: {
+        grammar: {
+          score: openAIAnalysis.grammarScore,
+          errorList: openAIAnalysis.grammarIssues,
+          suggestions: openAIAnalysis.feedback.improvements.filter(
             item =>
-              item.toLowerCase().includes('vocabulary') ||
-              item.toLowerCase().includes('word') ||
-              item.toLowerCase().includes('term') ||
-              item.toLowerCase().startsWith('vocabulary strength')
+              item.toLowerCase().includes('grammar') ||
+              item.toLowerCase().includes('spelling') ||
+              item.toLowerCase().includes('punctuation') ||
+              item.toLowerCase().includes('sentence') ||
+              item.toLowerCase().startsWith('grammar:')
           ),
-        improvements:
-          openAIAnalysis.vocabularyAnalysis.improvements ||
-          openAIAnalysis.feedback.improvements.filter(
+          strengths: openAIAnalysis.feedback.strengths.filter(
             item =>
-              item.toLowerCase().includes('vocabulary') ||
-              item.toLowerCase().includes('word') ||
-              item.toLowerCase().includes('term') ||
-              item.toLowerCase().startsWith('vocabulary:') ||
-              item.toLowerCase().startsWith('vocabulary improvement')
+              item.toLowerCase().includes('grammar') ||
+              item.toLowerCase().includes('spelling') ||
+              item.toLowerCase().includes('punctuation') ||
+              item.toLowerCase().includes('sentence') ||
+              item.toLowerCase().startsWith('grammar strength')
           ),
-        wordFrequency: openAIAnalysis.vocabularyAnalysis.wordFrequency,
+          improvements: openAIAnalysis.feedback.improvements.filter(
+            item =>
+              item.toLowerCase().includes('grammar') ||
+              item.toLowerCase().includes('spelling') ||
+              item.toLowerCase().includes('punctuation') ||
+              item.toLowerCase().includes('sentence') ||
+              item.toLowerCase().startsWith('grammar:') ||
+              item.toLowerCase().startsWith('grammar improvement')
+          ),
+        },
+        vocabulary: {
+          score: openAIAnalysis.vocabularyScore,
+          level: openAIAnalysis.vocabularyAnalysis.level,
+          // Use the dedicated vocabulary strengths/improvements from the vocabulary analysis
+          strengths:
+            openAIAnalysis.vocabularyAnalysis.strengths ||
+            openAIAnalysis.feedback.strengths.filter(
+              item =>
+                item.toLowerCase().includes('vocabulary') ||
+                item.toLowerCase().includes('word') ||
+                item.toLowerCase().includes('term') ||
+                item.toLowerCase().startsWith('vocabulary strength')
+            ),
+          improvements:
+            openAIAnalysis.vocabularyAnalysis.improvements ||
+            openAIAnalysis.feedback.improvements.filter(
+              item =>
+                item.toLowerCase().includes('vocabulary') ||
+                item.toLowerCase().includes('word') ||
+                item.toLowerCase().includes('term') ||
+                item.toLowerCase().startsWith('vocabulary:') ||
+                item.toLowerCase().startsWith('vocabulary improvement')
+            ),
+          wordFrequency: openAIAnalysis.vocabularyAnalysis.wordFrequency,
+        },
+        structure: {
+          score: openAIAnalysis.coherenceScore,
+          strengths: openAIAnalysis.feedback.strengths.filter(
+            item =>
+              item.toLowerCase().includes('structure') ||
+              item.toLowerCase().includes('organization') ||
+              item.toLowerCase().includes('coherence') ||
+              item.toLowerCase().includes('flow') ||
+              item.toLowerCase().includes('paragraph') ||
+              item.toLowerCase().startsWith('structure strength')
+          ),
+          improvements: openAIAnalysis.feedback.improvements.filter(
+            item =>
+              item.toLowerCase().includes('structure') ||
+              item.toLowerCase().includes('organization') ||
+              item.toLowerCase().includes('coherence') ||
+              item.toLowerCase().includes('flow') ||
+              item.toLowerCase().includes('paragraph') ||
+              item.toLowerCase().startsWith('structure:') ||
+              item.toLowerCase().startsWith('structure improvement')
+          ),
+        },
+        content: {
+          score: openAIAnalysis.styleScore,
+          relevance: Math.min(100, openAIAnalysis.styleScore + 5),
+          depth: Math.min(100, openAIAnalysis.vocabularyScore + 5),
+          strengths: openAIAnalysis.feedback.strengths.filter(
+            item =>
+              item.toLowerCase().includes('content') ||
+              item.toLowerCase().includes('idea') ||
+              item.toLowerCase().includes('argument') ||
+              item.toLowerCase().includes('point') ||
+              item.toLowerCase().includes('topic') ||
+              item.toLowerCase().startsWith('content strength')
+          ),
+          improvements: openAIAnalysis.feedback.improvements.filter(
+            item =>
+              item.toLowerCase().includes('content') ||
+              item.toLowerCase().includes('idea') ||
+              item.toLowerCase().includes('argument') ||
+              item.toLowerCase().includes('point') ||
+              item.toLowerCase().includes('topic') ||
+              item.toLowerCase().startsWith('content:') ||
+              item.toLowerCase().startsWith('content improvement')
+          ),
+        },
       },
-      structure: {
-        score: openAIAnalysis.coherenceScore,
-        strengths: openAIAnalysis.feedback.strengths.filter(
-          item =>
-            item.toLowerCase().includes('structure') ||
-            item.toLowerCase().includes('organization') ||
-            item.toLowerCase().includes('coherence') ||
-            item.toLowerCase().includes('flow') ||
-            item.toLowerCase().includes('paragraph') ||
-            item.toLowerCase().startsWith('structure strength')
-        ),
-        improvements: openAIAnalysis.feedback.improvements.filter(
-          item =>
-            item.toLowerCase().includes('structure') ||
-            item.toLowerCase().includes('organization') ||
-            item.toLowerCase().includes('coherence') ||
-            item.toLowerCase().includes('flow') ||
-            item.toLowerCase().includes('paragraph') ||
-            item.toLowerCase().startsWith('structure:') ||
-            item.toLowerCase().startsWith('structure improvement')
-        ),
-      },
-      content: {
-        score: openAIAnalysis.styleScore,
-        relevance: Math.min(100, openAIAnalysis.styleScore + 5),
-        depth: Math.min(100, openAIAnalysis.vocabularyScore + 5),
-        strengths: openAIAnalysis.feedback.strengths.filter(
-          item =>
-            item.toLowerCase().includes('content') ||
-            item.toLowerCase().includes('idea') ||
-            item.toLowerCase().includes('argument') ||
-            item.toLowerCase().includes('point') ||
-            item.toLowerCase().includes('topic') ||
-            item.toLowerCase().startsWith('content strength')
-        ),
-        improvements: openAIAnalysis.feedback.improvements.filter(
-          item =>
-            item.toLowerCase().includes('content') ||
-            item.toLowerCase().includes('idea') ||
-            item.toLowerCase().includes('argument') ||
-            item.toLowerCase().includes('point') ||
-            item.toLowerCase().includes('topic') ||
-            item.toLowerCase().startsWith('content:') ||
-            item.toLowerCase().startsWith('content improvement')
-        ),
-      },
-    },
-    timestamp: new Date(),
-  };
+      timestamp: new Date(),
+    };
+  } catch (error) {
+    console.error('Error during writing analysis:', error);
+    throw new Error(
+      `Failed to analyze writing: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
 }
 
 /**

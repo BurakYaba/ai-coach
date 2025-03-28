@@ -2,6 +2,9 @@
   "functions": {
     "src/app/api/reading/generate/unified/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/writing/sessions/[id]/analyze/route.ts": {
+      "maxDuration": 60
     }
   }
 }
