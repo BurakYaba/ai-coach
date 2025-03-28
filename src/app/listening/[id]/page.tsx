@@ -125,18 +125,23 @@ export default function ListeningSessionPage({
                 exampleCount: v.examples?.length,
               }))
             : [],
-          isSegmented: !!data.isSegmented,
-          segmentsCount: data.segments?.length || 0,
+          isSegmented: !!data.content?.isSegmented,
+          segmentsCount: data.content?.segments?.length || 0,
         });
 
         setSession(data);
 
         // Handle segmented audio (when FFmpeg isn't available on server)
-        if (data.isSegmented && Array.isArray(data.segments)) {
+        if (data.content?.isSegmented && Array.isArray(data.content.segments)) {
+          console.log(
+            'Loading segmented audio:',
+            data.content.segments.length,
+            'segments'
+          );
           setIsSegmentedAudio(true);
-          setAudioSegments(data.segments);
+          setAudioSegments(data.content.segments);
           // Initialize refs array for each segment
-          segmentRefs.current = data.segments.map(() => null);
+          segmentRefs.current = data.content.segments.map(() => null);
         }
 
         // Initialize answers array with empty strings

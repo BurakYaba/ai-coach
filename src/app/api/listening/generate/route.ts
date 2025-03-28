@@ -236,6 +236,8 @@ export async function POST(req: NextRequest) {
             transcript,
             audioUrl: audioResult.url,
             cloudinaryPublicId: audioResult.publicId,
+            isSegmented: !!audioResult.isSegmented,
+            segments: audioResult.segments || [],
           },
           level,
           topic,
@@ -347,19 +349,19 @@ Number of speakers: ${speakerCount}
 
 ${
   contentType === 'dialogue'
-    ? 'Format as a conversation between two people named Speaker A and Speaker B.'
+    ? 'Format as a conversation between two people with common names like "John" and "Emma". Use format "Name: text" for each line.'
     : contentType === 'interview'
-      ? 'Format as an interview between an Interviewer and a Guest.'
+      ? 'Format as an interview between a host with a name (like "David") and a guest with a name (like "Sarah"). Use format "Name: text" for each line.'
       : contentType === 'monologue'
-        ? 'Format as a speech or presentation by a single Speaker.'
-        : 'Format as a news report with an Anchor and perhaps a Reporter.'
+        ? 'Format as a speech or presentation by a single person with a real name. Use format "Name: text" for each line.'
+        : 'Format as a news report with a named anchor and perhaps a named reporter. Use format "Name: text" for each line.'
 }
 
 Rules:
 1. Use language appropriate for ${level} level (vocabulary, grammar structures, idioms)
 2. Make the conversation flow naturally with short, realistic exchanges
 3. Include pauses, fillers, and hesitations to make it sound natural
-4. Use clear speaker attributions (e.g., "Speaker A: Hello there.")
+4. Use clear speaker attributions with real names (e.g., "Emma: Hello there.")
 5. Keep it focused on the topic
 6. Aim for exactly ${targetWordCount} words to fit the time constraints
 
