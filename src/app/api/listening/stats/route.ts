@@ -6,6 +6,8 @@ import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import ListeningSession from '@/models/ListeningSession';
 
+export const dynamic = 'force-dynamic';
+
 // Define CEFR levels since we can't import from the missing module
 const CEFRLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 

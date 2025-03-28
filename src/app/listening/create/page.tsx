@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
 
@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 
 const formSchema = z.object({
@@ -46,7 +47,8 @@ const formSchema = z.object({
   targetLength: z.enum(['short', 'medium', 'long']),
 });
 
-export default function CreateListeningSessionPage() {
+// Create a wrapper component that uses useSearchParams
+function CreateListeningForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -312,7 +314,69 @@ export default function CreateListeningSessionPage() {
   );
 }
 
-// Custom component for content type radio options
+// Loading fallback for the Suspense boundary
+function FormSkeleton() {
+  return (
+    <div className="container mx-auto max-w-3xl p-4 md:p-8">
+      <div className="mb-6">
+        <Skeleton className="h-8 w-40 mb-2" />
+        <Skeleton className="h-10 w-64 mb-2" />
+        <Skeleton className="h-4 w-full max-w-md" />
+      </div>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-full" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div>
+              <Skeleton className="h-5 w-20 mb-2" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-4 w-full mt-1" />
+            </div>
+            <div>
+              <Skeleton className="h-5 w-20 mb-2" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-4 w-full mt-1" />
+            </div>
+            <div>
+              <Skeleton className="h-5 w-20 mb-2" />
+              <div className="grid grid-cols-2 gap-4">
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-20 w-full" />
+              </div>
+            </div>
+            <div>
+              <Skeleton className="h-5 w-20 mb-2" />
+              <div className="flex space-x-4">
+                <Skeleton className="h-8 w-full" />
+                <Skeleton className="h-8 w-full" />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-4 pt-4">
+              <Skeleton className="h-10 w-20" />
+              <Skeleton className="h-10 w-40" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// Main component that uses Suspense
+export default function CreateListeningSessionPage() {
+  return (
+    <Suspense fallback={<FormSkeleton />}>
+      <CreateListeningForm />
+    </Suspense>
+  );
+}
+
+// Helper component for content type radio options
 function ContentTypeOption({
   value,
   label,
