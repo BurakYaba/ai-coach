@@ -17,6 +17,8 @@ const mkdtempPromise = promisify(fs.mkdtemp);
 // Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  timeout: 55000, // 55 seconds timeout to stay under Vercel's 60-second limit
+  maxRetries: 3, // Increase retries for better reliability
 });
 
 // Define voices by gender for better matching

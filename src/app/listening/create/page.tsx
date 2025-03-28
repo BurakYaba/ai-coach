@@ -97,10 +97,23 @@ function CreateListeningForm() {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(
-          error.message || 'Failed to generate listening session'
-        );
+        // Try to get detailed error information
+        const errorData = await response.json().catch(() => null);
+
+        // Handle specific status codes
+        if (response.status === 504) {
+          throw new Error(
+            'The request timed out. This might be due to high server load or the complexity of your request. Please try again with shorter content length.'
+          );
+        }
+
+        // Use server error message if available
+        if (errorData && errorData.error) {
+          throw new Error(errorData.error);
+        }
+
+        // Fallback error message
+        throw new Error('Failed to generate listening session');
       }
 
       const data = await response.json();
@@ -114,12 +127,36 @@ function CreateListeningForm() {
       router.push(`/listening/${data._id}`);
     } catch (error) {
       console.error('Error creating session:', error);
+
+      // Determine if error is retryable
+      const isTimeout =
+        error instanceof Error &&
+        (error.message.includes('timed out') ||
+          error.message.includes('timeout'));
+
       toast({
         title: 'Error',
         description:
           error instanceof Error ? error.message : 'Failed to create session',
         variant: 'destructive',
+        action: isTimeout ? (
+          <Button
+            variant="outline"
+            onClick={() => {
+              // Suggest simpler parameters for timeout errors
+              form.setValue('targetLength', 'short');
+              toast({
+                title: 'Tip',
+                description:
+                  'Try with shorter content length for faster processing.',
+              });
+            }}
+          >
+            Try Shorter
+          </Button>
+        ) : undefined,
       });
+
       setIsLoading(false);
     }
   }

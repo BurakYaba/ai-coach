@@ -16,17 +16,29 @@ import { generateQuestions, extractVocabulary } from '@/lib/question-generator';
 import { normalizeQuestionType } from '@/lib/utils';
 import ListeningSession, { IListeningSession } from '@/models/ListeningSession';
 
-// Initialize OpenAI
+// Force dynamic rendering to handle server-side requests properly
+export const dynamic = 'force-dynamic';
+
+// Initialize OpenAI with improved timeout handling
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  timeout: 55000, // 55 seconds timeout
+  maxRetries: 3,
 });
 
 // POST /api/listening/generate - Generate listening content
 export async function POST(req: NextRequest) {
+  // Set a controller to handle timeouts more gracefully
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    controller.abort();
+  }, 55000); // 55 second timeout
+
   try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
+      clearTimeout(timeoutId);
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -40,6 +52,7 @@ export async function POST(req: NextRequest) {
 
     // Validate required fields
     if (!level || !topic || !contentType) {
+      clearTimeout(timeoutId);
       return NextResponse.json(
         { error: 'Missing required fields: level, topic, or contentType' },
         { status: 400 }
@@ -101,8 +114,34 @@ export async function POST(req: NextRequest) {
         speakerCount
       );
 
+      // Check if operation was aborted due to timeout
+      if (controller.signal.aborted) {
+        clearTimeout(timeoutId);
+        return NextResponse.json(
+          {
+            error:
+              'Operation timed out. Please try again with a shorter content length or a different topic.',
+            retryable: true,
+          },
+          { status: 504 }
+        );
+      }
+
       // Step 2: Create multi-speaker audio from transcript
       const audioResult = await createMultiSpeakerAudio(transcript);
+
+      // Check if operation was aborted due to timeout after audio generation
+      if (controller.signal.aborted) {
+        clearTimeout(timeoutId);
+        return NextResponse.json(
+          {
+            error:
+              'Audio generation timed out. Please try again with a shorter content length.',
+            retryable: true,
+          },
+          { status: 504 }
+        );
+      }
 
       // Step 3: Generate questions
       const questions = await generateQuestions(transcript, level);
@@ -222,32 +261,68 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(listeningSession, { status: 201 });
       } catch (dbError) {
         console.error('Database error creating listening session:', dbError);
+        clearTimeout(timeoutId);
         return NextResponse.json(
           {
             error: 'Failed to create listening session',
             details: (dbError as Error).message,
             modelError: true,
+            retryable: true,
           },
           { status: 400 }
         );
       }
     } catch (processingError) {
+      clearTimeout(timeoutId);
+
+      // Check if the operation was aborted due to timeout
+      if (controller.signal.aborted) {
+        return NextResponse.json(
+          {
+            error:
+              'Content generation timed out. Please try again with simpler parameters.',
+            details:
+              'The operation took too long to complete. Try using a shorter content length or different topic.',
+            retryable: true,
+            stage: 'timeout',
+          },
+          { status: 504 }
+        );
+      }
+
       console.error('Error processing content:', processingError);
       return NextResponse.json(
         {
           error: 'Error generating content',
           details: (processingError as Error).message,
           stage: 'content_processing',
+          retryable: true,
         },
         { status: 500 }
       );
     }
   } catch (error) {
+    clearTimeout(timeoutId);
     console.error('Error generating listening content:', error);
+
+    // Check if the operation was aborted due to timeout
+    if (controller.signal.aborted) {
+      return NextResponse.json(
+        {
+          error: 'Operation timed out. Please try again.',
+          details:
+            'The request took too long to process. Try again or choose different parameters.',
+          retryable: true,
+        },
+        { status: 504 }
+      );
+    }
+
     return NextResponse.json(
       {
         error: 'Error generating listening content',
         details: (error as Error).message,
+        retryable: true,
       },
       { status: 500 }
     );
@@ -262,66 +337,70 @@ async function generateTranscript(
   targetWordCount: number,
   speakerCount: number
 ): Promise<string> {
+  // Define a more efficient prompt template to reduce token usage and processing time
+  const promptTemplate = `
+Create a natural, conversational ${contentType} in English about "${topic}" for a language learner at ${level} CEFR level.
+Target word count: ${targetWordCount} words (important: keep it concise and within this limit)
+Number of speakers: ${speakerCount}
+
+${
+  contentType === 'dialogue'
+    ? 'Format as a conversation between two people named Speaker A and Speaker B.'
+    : contentType === 'interview'
+      ? 'Format as an interview between an Interviewer and a Guest.'
+      : contentType === 'monologue'
+        ? 'Format as a speech or presentation by a single Speaker.'
+        : 'Format as a news report with an Anchor and perhaps a Reporter.'
+}
+
+Rules:
+1. Use language appropriate for ${level} level (vocabulary, grammar structures, idioms)
+2. Make the conversation flow naturally with short, realistic exchanges
+3. Include pauses, fillers, and hesitations to make it sound natural
+4. Use clear speaker attributions (e.g., "Speaker A: Hello there.")
+5. Keep it focused on the topic
+6. Aim for exactly ${targetWordCount} words to fit the time constraints
+
+Output ONLY the transcript without any other explanations or meta-information.
+`.trim();
+
   try {
-    // Generate content using OpenAI with named speakers
-    const response = await openai.chat.completions.create({
+    const completion = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: `You are an expert language education content creator specializing in ${level} level content for English language learners. 
-          Create authentic, natural-sounding ${contentType} with named speakers instead of generic labels.
-          Assign culturally diverse names to speakers (e.g., "Maria:", "John:", "Aisha:", "Wei:") 
-          that clearly indicate their gender. Make the content appropriate for ${level} CEFR level learners.
-          
-          IMPORTANT: Return ONLY the raw transcript text without any markdown formatting, headers, titles, or explanations.
-          Do not include dialogue labels like "Dialogue:" or "Conversation about X" at the beginning.`,
+          content:
+            'You are an expert language teacher creating authentic listening materials for language learners.',
         },
-        {
-          role: 'user',
-          content: `Create a ${contentType} in English at CEFR level ${level} about ${topic}. 
-          Include ${speakerCount} different characters with diverse backgrounds and perspectives.
-          
-          IMPORTANT FORMATTING INSTRUCTIONS:
-          1. Instead of using "Speaker 1:", "Speaker 2:", etc., give each person a clear name
-          2. Format each turn with the character's name like "Maria:" or "John:" at the beginning of each turn
-          3. Choose gender-appropriate names that reflect diverse cultural backgrounds
-          4. Ensure the character names clearly indicate gender (e.g., Maria is clearly female, John is clearly male)
-          5. Maintain consistent speech patterns appropriate for each character's background
-          6. DO NOT include any markdown formatting, headers, or titles
-          7. DO NOT include "Dialogue:" or "Conversation:" prefixes
-          8. Start directly with the first speaker's line
-          
-          The content should be approximately ${targetWordCount} words in total.
-          Make it educational, engaging, and natural-sounding.
-
-          For level ${level}:
-          - Use appropriate vocabulary and grammar
-          - Include some cultural context
-          - Make it natural and conversational
-          - Include some common expressions and idioms appropriate for the level
-          - Design it to be interesting for language learners`,
-        },
+        { role: 'user', content: promptTemplate },
       ],
       temperature: 0.7,
-      max_tokens: 1500,
+      max_tokens: Math.min(4000, targetWordCount * 8), // Limit tokens based on target word count
     });
 
-    // Clean the transcript - remove markdown, headers, asterisks
-    let transcript = response.choices[0].message.content?.trim() || '';
+    if (!completion.choices || !completion.choices[0]?.message?.content) {
+      throw new Error(
+        'Failed to generate transcript: OpenAI returned empty response'
+      );
+    }
 
-    // Remove any markdown headers or formatting
-    transcript = transcript
-      .replace(/^#+ .*$/gm, '') // Remove markdown headers
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
-      .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting
-      .replace(/^(Dialogue|Conversation):.+\n/gm, '') // Remove dialogue/conversation labels
-      .replace(/^#{3}\s.*\n+/gm, '') // Remove any ### headers
-      .trim();
-
-    return transcript;
+    return completion.choices[0].message.content;
   } catch (error) {
     console.error('Error generating transcript:', error);
+
+    // Check if it's a timeout error and provide more specific messaging
+    if (error instanceof Error) {
+      if (
+        error.message.includes('timeout') ||
+        error.message.includes('timed out')
+      ) {
+        throw new Error(
+          `Transcript generation timed out. Please try with a shorter length (${level} level, ${targetWordCount} words might be too complex).`
+        );
+      }
+    }
+
     throw error;
   }
 }
