@@ -119,12 +119,6 @@ export default function ListeningSessionPage({
             ? data.questions.map((q: any) => q.type)
             : [],
           vocabCount: data.vocabulary ? data.vocabulary.length : 0,
-          vocabExamples: data.vocabulary
-            ? data.vocabulary.slice(0, 1).map((v: any) => ({
-                word: v.word,
-                exampleCount: v.examples?.length,
-              }))
-            : [],
           isSegmented: !!data.content?.isSegmented,
           segmentsCount: data.content?.segments?.length || 0,
         });
@@ -133,15 +127,30 @@ export default function ListeningSessionPage({
 
         // Handle segmented audio (when FFmpeg isn't available on server)
         if (data.content?.isSegmented && Array.isArray(data.content.segments)) {
+          // Enhanced logging for debugging segmented audio
           console.log(
             'Loading segmented audio:',
             data.content.segments.length,
-            'segments'
+            'segments',
+            data.content.segments.map((s: any) => ({
+              url: s.url?.substring(0, 30) + '...',
+              duration: s.duration,
+              speaker: s.speakerName,
+            }))
           );
+
           setIsSegmentedAudio(true);
           setAudioSegments(data.content.segments);
+
           // Initialize refs array for each segment
-          segmentRefs.current = data.content.segments.map(() => null);
+          segmentRefs.current = Array(data.content.segments.length).fill(null);
+
+          // Force a rerender to ensure audio elements are created
+          setTimeout(() => {
+            setIsLoading(false);
+          }, 100);
+        } else {
+          setIsLoading(false);
         }
 
         // Initialize answers array with empty strings
@@ -151,7 +160,6 @@ export default function ListeningSessionPage({
         setError(
           err instanceof Error ? err : new Error('Failed to load session')
         );
-      } finally {
         setIsLoading(false);
       }
     }
@@ -231,17 +239,51 @@ export default function ListeningSessionPage({
   // Handle play/pause
   const togglePlay = () => {
     if (isSegmentedAudio) {
+      console.log(
+        `Toggle play (segmented): current=${isPlaying ? 'playing' : 'paused'}, segment=${currentSegmentIndex}`
+      );
+
       if (isPlaying) {
         // Pause the current segment
         const currentSegment = segmentRefs.current[currentSegmentIndex];
         if (currentSegment) {
           currentSegment.pause();
+          console.log(`Paused segment ${currentSegmentIndex}`);
+        } else {
+          console.error(`No ref for current segment ${currentSegmentIndex}`);
         }
       } else {
         // Play the current segment
         const currentSegment = segmentRefs.current[currentSegmentIndex];
         if (currentSegment) {
-          currentSegment.play().catch(console.error);
+          console.log(`Attempting to play segment ${currentSegmentIndex}`);
+          // Ensure it's properly loaded first
+          currentSegment.load();
+
+          // Small delay to ensure loading completes
+          setTimeout(() => {
+            if (currentSegment) {
+              currentSegment.play().catch(error => {
+                console.error(
+                  `Error playing segment ${currentSegmentIndex}:`,
+                  error
+                );
+
+                // Try again with user interaction
+                const playPromise = currentSegment.play();
+                if (playPromise !== undefined) {
+                  playPromise.catch(e => {
+                    console.log(
+                      'Play was prevented, trying again with user interaction'
+                    );
+                    // Show some UI element that would allow the user to start playback
+                  });
+                }
+              });
+            }
+          }, 100);
+        } else {
+          console.error(`Missing segment ref for index ${currentSegmentIndex}`);
         }
       }
     } else {
@@ -499,7 +541,19 @@ export default function ListeningSessionPage({
               <audio
                 key={`segment-${index}`}
                 ref={el => {
-                  segmentRefs.current[index] = el;
+                  if (el) {
+                    // Store the element reference
+                    segmentRefs.current[index] = el;
+
+                    // Set initial volume
+                    el.volume = volume / 100;
+
+                    // Ensure first segment is loaded
+                    if (index === 0) {
+                      console.log(`Loading initial segment: ${segment.url}`);
+                      el.load();
+                    }
+                  }
                 }}
                 src={segment.url}
                 preload="metadata"
@@ -543,21 +597,46 @@ export default function ListeningSessionPage({
                   }
                 }}
                 onEnded={() => {
+                  console.log(
+                    `Segment ${index} ended. Current index: ${currentSegmentIndex}`
+                  );
                   if (index === currentSegmentIndex) {
                     // If there are more segments, play the next one
                     if (index < audioSegments.length - 1) {
+                      console.log(`Moving to segment ${index + 1}`);
                       setCurrentSegmentIndex(index + 1);
-                      const nextSegment = segmentRefs.current[index + 1];
-                      if (nextSegment) {
-                        setTimeout(() => {
-                          nextSegment.play().catch(console.error);
-                        }, 100);
+
+                      // Ensure the previous segment is fully stopped
+                      if (segmentRefs.current[index]) {
+                        segmentRefs.current[index]!.pause();
                       }
+
+                      // Play the next segment after a small delay
+                      setTimeout(() => {
+                        const nextSegment = segmentRefs.current[index + 1];
+                        if (nextSegment) {
+                          console.log(`Playing segment ${index + 1}`);
+                          // Ensure the element is properly loaded
+                          nextSegment.load();
+                          nextSegment.play().catch(error => {
+                            console.error(
+                              `Error playing segment ${index + 1}:`,
+                              error
+                            );
+                          });
+                        } else {
+                          console.error(`Segment ${index + 1} ref not found`);
+                        }
+                      }, 100);
                     } else {
                       // End of all segments
+                      console.log('End of all segments');
                       setIsPlaying(false);
                     }
                   }
+                }}
+                onError={e => {
+                  console.error(`Error loading segment ${index}:`, e);
                 }}
               >
                 <track kind="captions" src="" label="English captions" />

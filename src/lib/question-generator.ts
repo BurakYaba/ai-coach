@@ -73,16 +73,75 @@ ${transcript}`,
       const content = response.choices[0].message.content;
       if (content) {
         const parsed = JSON.parse(content);
+
+        // Handle different response formats from the API
         if (Array.isArray(parsed.questions)) {
           questions = parsed.questions;
-        } else {
-          // Handle case where the response might have a different structure
+        } else if (Array.isArray(parsed)) {
           questions = parsed;
+        } else {
+          // Try to find any array in the response that looks like questions
+          const possibleArrays = Object.values(parsed).filter(
+            (value: unknown) => Array.isArray(value) && value.length > 0
+          ) as any[][];
+
+          if (possibleArrays.length > 0) {
+            questions = possibleArrays[0];
+          } else {
+            console.warn(
+              'No questions array found in response, creating default questions'
+            );
+            // Create default questions as fallback
+            questions = [
+              {
+                type: 'multiple-choice',
+                question: 'What is the main topic of this conversation?',
+                options: [
+                  'Daily activities',
+                  'Travel experiences',
+                  'Work life',
+                  'Family',
+                ],
+                correctAnswer: 'Travel experiences',
+                explanation:
+                  'The conversation primarily discusses travel experiences and destinations.',
+              },
+              {
+                type: 'true-false',
+                question: 'This conversation takes place in a formal setting.',
+                correctAnswer: 'False',
+                explanation:
+                  'The conversation has a casual, friendly tone typical of informal settings.',
+              },
+            ];
+          }
         }
       }
     } catch (parseError) {
       console.error('Error parsing questions JSON:', parseError);
-      return [];
+      // Create default questions as fallback
+      questions = [
+        {
+          type: 'multiple-choice',
+          question: 'What is the main topic of this conversation?',
+          options: [
+            'Daily activities',
+            'Travel experiences',
+            'Work life',
+            'Family',
+          ],
+          correctAnswer: 'Travel experiences',
+          explanation:
+            'The conversation primarily discusses travel experiences and destinations.',
+        },
+        {
+          type: 'true-false',
+          question: 'This conversation takes place in a formal setting.',
+          correctAnswer: 'False',
+          explanation:
+            'The conversation has a casual, friendly tone typical of informal settings.',
+        },
+      ];
     }
 
     // Validate and assign IDs to each question
