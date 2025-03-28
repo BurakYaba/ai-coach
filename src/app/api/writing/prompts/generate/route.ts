@@ -7,6 +7,33 @@ import WritingPrompt from '@/models/WritingPrompt';
 
 import { generatePrompt } from '../route';
 
+// Function to check if two strings are similar
+function stringSimilarity(s1: string, s2: string): number {
+  if (s1 === s2) return 1.0; // If strings are identical
+
+  // Convert both strings to lowercase for better comparison
+  const str1 = s1.toLowerCase();
+  const str2 = s2.toLowerCase();
+
+  // Count matching words
+  const words1 = str1.split(/\s+/).filter(Boolean);
+  const words2 = str2.split(/\s+/).filter(Boolean);
+
+  let matchingWords = 0;
+
+  // Count how many words from str1 appear in str2
+  const wordSet2 = new Set(words2);
+  for (const word of words1) {
+    if (wordSet2.has(word)) {
+      matchingWords++;
+    }
+  }
+
+  // Calculate Jaccard similarity coefficient
+  const totalUniqueWords = new Set([...words1, ...words2]).size;
+  return totalUniqueWords > 0 ? matchingWords / totalUniqueWords : 0;
+}
+
 // POST /api/writing/prompts/generate - Generate a writing prompt
 export async function POST(req: NextRequest) {
   try {
@@ -21,10 +48,10 @@ export async function POST(req: NextRequest) {
     const { level, topic, type } = body;
 
     // Validate required fields
-    if (!level || !topic || !type) {
+    if (!level || !type) {
       return NextResponse.json(
         {
-          error: 'Missing required fields: level, topic, and type are required',
+          error: 'Missing required fields: level and type are required',
         },
         { status: 400 }
       );
@@ -53,7 +80,7 @@ export async function POST(req: NextRequest) {
     }
 
     console.log(
-      `Generating prompt with validated parameters: type=${type}, level=${level}, topic=${topic}`
+      `Generating prompt with validated parameters: type=${type}, level=${level}, topic=${topic || 'not specified'}`
     );
 
     // Generate prompt using the function from parent route file with parameters in the correct order:
@@ -64,18 +91,44 @@ export async function POST(req: NextRequest) {
     try {
       await dbConnect();
 
-      // Check if a similar prompt already exists to avoid duplicates
-      const existingPrompt = await WritingPrompt.findOne({
+      // Get existing prompts with similar type, level, and topic for similarity check
+      const similarPrompts = await WritingPrompt.find({
         type: generatedPrompt.type,
         level: generatedPrompt.level,
-        topic: generatedPrompt.topic,
-        text: generatedPrompt.text,
-      });
+        ...(topic ? { topic: { $regex: new RegExp(topic, 'i') } } : {}),
+      })
+        .sort({ createdAt: -1 })
+        .limit(20) // Check the most recent 20 matching prompts
+        .lean();
 
-      if (existingPrompt) {
+      // Check for duplicates or similar prompts
+      let isDuplicate = false;
+      let similarPrompt = null;
+
+      for (const existingPrompt of similarPrompts) {
+        // Check text similarity
+        const textSimilarity = stringSimilarity(
+          generatedPrompt.text,
+          existingPrompt.text
+        );
+
+        // If the similarity is high (above 0.7 or 70%), consider it a duplicate
+        if (textSimilarity > 0.7) {
+          isDuplicate = true;
+          similarPrompt = existingPrompt;
+          console.log(
+            `Found similar prompt with ID: ${existingPrompt._id} (similarity: ${textSimilarity.toFixed(2)})`
+          );
+          break;
+        }
+      }
+
+      if (isDuplicate && similarPrompt) {
         // If a similar prompt exists, return it instead of creating a duplicate
-        console.log(`Found existing prompt with ID: ${existingPrompt._id}`);
-        return NextResponse.json({ prompt: existingPrompt });
+        console.log(
+          `Returning existing similar prompt instead of creating duplicate`
+        );
+        return NextResponse.json({ prompt: similarPrompt });
       }
 
       // Save the generated prompt to the database

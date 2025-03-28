@@ -1,10 +1,18 @@
 import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { OpenAI } from 'openai';
 
 import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import WritingPrompt, { IWritingPrompt } from '@/models/WritingPrompt';
+
+// Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  timeout: 30000, // 30 seconds timeout
+  maxRetries: 2, // Retry failed requests up to 2 times
+});
 
 // GET /api/writing/prompts - Get writing prompts
 export async function GET(req: NextRequest) {
@@ -121,8 +129,186 @@ export async function generatePrompt(
     type = 'essay';
   }
 
-  // This would typically use an AI service like OpenAI
-  // For now, we'll return a placeholder implementation with more variety
+  try {
+    // Define suggested length based on CEFR level
+    const suggestedLength = {
+      A1: { min: 80, max: 120 },
+      A2: { min: 120, max: 180 },
+      B1: { min: 180, max: 250 },
+      B2: { min: 250, max: 350 },
+      C1: { min: 350, max: 450 },
+      C2: { min: 450, max: 600 },
+    };
+
+    // Define time limit based on CEFR level
+    const getTimeLimit = (level: string): number => {
+      switch (level) {
+        case 'A1':
+          return 20;
+        case 'A2':
+          return 25;
+        case 'B1':
+          return 30;
+        case 'B2':
+          return 40;
+        case 'C1':
+          return 50;
+        case 'C2':
+          return 60;
+        default:
+          return 30;
+      }
+    };
+
+    // Define CEFR level guidelines for language complexity
+    const levelGuidelines = {
+      A1: 'Use only the most basic vocabulary (500-800 words) and very simple present tense sentences. Keep sentences very short (5-8 words). Avoid idioms, phrasal verbs, and complex grammar. Use concrete, everyday topics only.',
+      A2: 'Use basic vocabulary (1000-1500 words) and simple sentences with basic past and future tenses. Keep sentences relatively short (8-10 words). Use only very common phrasal verbs and expressions.',
+      B1: 'Use moderate vocabulary (2000-2500 words) with a mix of simple and some complex sentences. Average sentence length should be 10-15 words. Include some common idiomatic expressions (1-2). Can cover somewhat abstract topics but with clear explanations.',
+      B2: 'Use broader vocabulary (3500-4000 words) with complex sentences. Average sentence length can be 15-20 words. Include various tenses and several idiomatic expressions. Can use passive constructions and complex conditionals.',
+      C1: 'Use sophisticated vocabulary (5000-6000 words) and complex sentence structures with multiple clauses. Include advanced grammatical structures and idiomatic expressions naturally. Can express nuanced opinions and hypothetical situations.',
+      C2: 'Use extensive vocabulary including specialized terms (8000+ words). Can include all grammatical structures including rare forms. Can use sophisticated rhetoric, metaphors, and cultural references. No simplification needed.',
+    };
+
+    // Prepare the system prompt
+    const systemPrompt = `You are an expert language teacher who creates high-quality writing prompts for language learners. 
+Your task is to create a writing prompt for CEFR level ${level} students in the format of a ${type}.
+
+VERY IMPORTANT: The language you use in the prompt must be appropriate for CEFR ${level} students.
+${levelGuidelines[level as keyof typeof levelGuidelines]}
+
+The prompt should be challenging but achievable for students at this level.`;
+
+    // Prepare the user prompt
+    let userPrompt = `Create a writing prompt for a ${type} `;
+
+    if (topic) {
+      userPrompt += `about "${topic}" `;
+    }
+
+    userPrompt += `suitable for CEFR ${level} level English learners.
+
+Return your response as a JSON object with the following fields:
+{
+  "text": "The main prompt text that clearly instructs what to write about",
+  "requirements": ["5-6 specific requirements or elements that should be included in the response"],
+  "rubric": [
+    {"criterion": "Content", "description": "Description of what makes good content", "weight": 30},
+    {"criterion": "Organization", "description": "Description of good organization", "weight": 20},
+    {"criterion": "Language Use", "description": "Description of appropriate language use", "weight": 25},
+    {"criterion": "Grammar & Mechanics", "description": "Description of grammar expectations", "weight": 25}
+  ]
+}
+
+Remember that the language complexity of your prompt MUST match CEFR level ${level}. The requirements should be clear and achievable for students at this level.`;
+
+    // Get suggested length range for this level
+    const lengthRange =
+      suggestedLength[level as keyof typeof suggestedLength] ||
+      suggestedLength.B1;
+
+    console.log('Calling OpenAI to generate writing prompt...');
+
+    // Call OpenAI API
+    const completion = await openai.chat.completions.create({
+      model:
+        process.env.USE_GPT4_FOR_CONTENT === 'true'
+          ? 'gpt-4o'
+          : 'gpt-3.5-turbo',
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7, // A bit of creativity
+      response_format: { type: 'json_object' }, // Ensure we get valid JSON
+    });
+
+    // Parse the response
+    const aiResponse = JSON.parse(
+      completion.choices[0].message.content || '{}'
+    );
+
+    console.log('Successfully generated AI writing prompt');
+
+    // Create prompt object with the AI-generated content
+    const prompt: Partial<IWritingPrompt> = {
+      type: type as 'essay' | 'letter' | 'story' | 'argument',
+      level,
+      topic: topic || 'general',
+      text: aiResponse.text,
+      requirements: aiResponse.requirements || [],
+      suggestedLength: lengthRange,
+      timeLimit: getTimeLimit(level),
+      rubric: aiResponse.rubric || [
+        {
+          criterion: 'Content',
+          description: 'Addresses the prompt thoroughly with relevant ideas',
+          weight: 30,
+        },
+        {
+          criterion: 'Organization',
+          description: 'Logical structure with clear transitions',
+          weight: 20,
+        },
+        {
+          criterion: 'Language Use',
+          description: 'Appropriate vocabulary and sentence structures',
+          weight: 25,
+        },
+        {
+          criterion: 'Grammar & Mechanics',
+          description: 'Correct grammar, spelling, and punctuation',
+          weight: 25,
+        },
+      ],
+    };
+
+    return prompt as IWritingPrompt;
+  } catch (error) {
+    console.error('Error generating AI writing prompt:', error);
+
+    // Fallback to template-based prompt if AI fails
+    console.log('Falling back to template-based prompt generation');
+
+    return generateTemplatePrompt(level, type, topic);
+  }
+}
+
+// Renamed original template function as fallback
+function generateTemplatePrompt(
+  level: string,
+  type: string,
+  topic?: string
+): IWritingPrompt {
+  // Define suggested length based on CEFR level
+  const suggestedLength = {
+    A1: { min: 80, max: 120 },
+    A2: { min: 120, max: 180 },
+    B1: { min: 180, max: 250 },
+    B2: { min: 250, max: 350 },
+    C1: { min: 350, max: 450 },
+    C2: { min: 450, max: 600 },
+  };
+
+  // Define time limit based on CEFR level
+  const getTimeLimit = (level: string): number => {
+    switch (level) {
+      case 'A1':
+        return 20;
+      case 'A2':
+        return 25;
+      case 'B1':
+        return 30;
+      case 'B2':
+        return 40;
+      case 'C1':
+        return 50;
+      case 'C2':
+        return 60;
+      default:
+        return 30;
+    }
+  };
 
   // Define topic categories if none provided
   const topicCategories = {
@@ -405,60 +591,6 @@ export async function generatePrompt(
     `Selected template for ${type} with topic: ${topic}. Template text: ${template.text.substring(0, 50)}...`
   );
 
-  // Define suggested length based on CEFR level
-  const suggestedLength = {
-    A1: { min: 80, max: 120 },
-    A2: { min: 120, max: 180 },
-    B1: { min: 180, max: 250 },
-    B2: { min: 250, max: 350 },
-    C1: { min: 350, max: 450 },
-    C2: { min: 450, max: 600 },
-  };
-
-  // Define time limit based on CEFR level
-  const getTimeLimit = (level: string): number => {
-    switch (level) {
-      case 'A1':
-        return 20;
-      case 'A2':
-        return 25;
-      case 'B1':
-        return 30;
-      case 'B2':
-        return 40;
-      case 'C1':
-        return 50;
-      case 'C2':
-        return 60;
-      default:
-        return 30;
-    }
-  };
-
-  // Define rubric based on type and level
-  const rubric = [
-    {
-      criterion: 'Content',
-      description: 'Addresses the prompt thoroughly with relevant ideas',
-      weight: 30,
-    },
-    {
-      criterion: 'Organization',
-      description: 'Logical structure with clear transitions',
-      weight: 20,
-    },
-    {
-      criterion: 'Language Use',
-      description: 'Appropriate vocabulary and sentence structures',
-      weight: 25,
-    },
-    {
-      criterion: 'Grammar & Mechanics',
-      description: 'Correct grammar, spelling, and punctuation',
-      weight: 25,
-    },
-  ];
-
   // Create prompt object
   const prompt: Partial<IWritingPrompt> = {
     type: type as 'essay' | 'letter' | 'story' | 'argument',
@@ -470,7 +602,28 @@ export async function generatePrompt(
       suggestedLength[level as keyof typeof suggestedLength] ||
       suggestedLength.B1,
     timeLimit: getTimeLimit(level),
-    rubric,
+    rubric: [
+      {
+        criterion: 'Content',
+        description: 'Addresses the prompt thoroughly with relevant ideas',
+        weight: 30,
+      },
+      {
+        criterion: 'Organization',
+        description: 'Logical structure with clear transitions',
+        weight: 20,
+      },
+      {
+        criterion: 'Language Use',
+        description: 'Appropriate vocabulary and sentence structures',
+        weight: 25,
+      },
+      {
+        criterion: 'Grammar & Mechanics',
+        description: 'Correct grammar, spelling, and punctuation',
+        weight: 25,
+      },
+    ],
   };
 
   return prompt as IWritingPrompt;

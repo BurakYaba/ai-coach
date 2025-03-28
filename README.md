@@ -1289,133 +1289,285 @@ This implementation plan provides a structured approach to building the speaking
 ```typescript
 interface IListeningSession extends Document {
   userId: mongoose.Types.ObjectId;
-  audioContent: {
-    id: string;
-    title: string;
-    description: string;
-    duration: number;
-    difficulty: 'beginner' | 'intermediate' | 'advanced';
-    type: 'dialogue' | 'monologue' | 'news' | 'interview';
-    scenario: string;
+  title: string;
+  content: {
     transcript: string;
     audioUrl: string;
-    metadata: {
-      topics: string[];
-      keywords: string[];
-      speakerCount?: number;
-    };
   };
-  exercises: Array<{
+  level: string; // 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'
+  topic: string;
+  duration: number;
+  contentType: 'dialogue' | 'monologue' | 'news' | 'interview';
+  questions: Array<{
+    id: string;
     type: 'multiple-choice' | 'true-false' | 'fill-blank';
     question: string;
     options?: string[];
     correctAnswer: string;
-    userAnswer?: string;
-    timestamp: number;
-    points: number;
+    explanation: string;
+    timestamp: number; // Position in audio where question is relevant
   }>;
-  progress: {
-    completedSegments: number[];
-    currentPosition: number;
-    score: number;
-    accuracy: number;
-    comprehensionRate: number;
-  };
-  performance: {
+  vocabulary: Array<{
+    word: string;
+    definition: string;
+    context: string;
+    examples: string[];
+    difficulty: number;
+    timestamp: number; // Position in audio where word appears
+  }>;
+  userProgress: {
     startTime: Date;
-    endTime?: Date;
-    pauseDuration: number;
+    completionTime?: Date;
+    timeSpent: number;
+    questionsAnswered: number;
+    correctAnswers: number;
+    vocabularyReviewed: string[];
+    comprehensionScore: number;
+    userAnswers?: Record<string, string>;
+    listenedSegments: Array<[number, number]>; // Start and end times of listened segments
     replays: Array<{
       segment: [number, number];
       count: number;
     }>;
-    difficultSegments: number[];
   };
+  aiAnalysis: {
+    listeningLevel: number;
+    complexityScore: number;
+    topicRelevance: number;
+    suggestedNextTopics: string[];
+  };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-interface IListeningProgress extends Document {
+interface IListeningStats extends Document {
   userId: mongoose.Types.ObjectId;
   overallStats: {
     totalSessions: number;
     totalListeningTime: number;
     averageAccuracy: number;
+    completedExercises: number;
     strongTopics: string[];
     weakTopics: string[];
   };
-  skillLevels: {
-    comprehension: number;
-    vocabularyRecognition: number;
-    contextualUnderstanding: number;
-  };
-  topicMastery: Record<string, number>;
+  progressByLevel: Record<
+    string,
+    {
+      sessionsCompleted: number;
+      averageScore: number;
+      timeSpent: number;
+    }
+  >;
+  progressByContentType: Record<
+    string,
+    {
+      sessionsCompleted: number;
+      averageScore: number;
+      timeSpent: number;
+    }
+  >;
+  recentActivity: Array<{
+    sessionId: mongoose.Types.ObjectId;
+    title: string;
+    score: number;
+    date: Date;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
 }
 ```
 
 #### 6.2 Technical Implementation
 
-1. **Dialogue Generation System**
+1. **Multi-Speaker Content Processing Pipeline**
 
-   - OpenAI GPT-4 integration for dialogue creation
-   - Context-aware content generation
-   - Difficulty level management
-   - Topic and scenario variety
-   - Natural conversation flow
+   - OpenAI GPT-4o generates realistic multi-speaker conversations
+   - Content is formatted with clear speaker indicators
+   - Transcript is automatically processed to extract speaker segments
+   - Whisper API converts each speaker segment to speech with different voices
+   - FFmpeg combines separate audio files with proper timing
+   - Final audio is stored in Cloudinary for streaming
+   - Full processing is handled through serverless functions
 
-2. **Audio Generation System**
+2. **Content Generation System**
 
-   - OpenAI TTS API integration
-   - Audio file management and caching
-   - Multiple speaker voice mapping
-   - Audio quality optimization
-   - Segment timing management
+   - Conversations are generated based on CEFR level, topic, and content type
+   - Natural language dialogue is created with appropriate vocabulary and grammar
+   - Context-aware content ensures relevance to learning objectives
+   - Speaker variety is maintained for authentic listening experiences
+   - Level-appropriate generation follows CEFR guidelines
 
-3. **Exercise Generation**
+3. **Audio Processing System**
 
-   - AI-powered question generation
-   - Multiple question types
-   - Answer validation system
-   - Difficulty adaptation
-   - Progress tracking
+   - Text-to-Speech conversion uses Whisper API for natural sounding voices
+   - Different voice profiles are applied to different speakers
+   - FFmpeg handles audio concatenation with natural pauses
+   - Audio optimization for clarity and learning purposes
+   - Efficient processing pipeline with error handling and retries
 
-4. **Interactive Interface**
-   - Custom audio player
-   - Interactive transcript
-   - Real-time progress tracking
-   - Exercise interface
-   - Performance feedback
+4. **Interactive Listening Interface**
 
-#### 6.3 Integration Features
+   - Custom audio player with synchronized transcript
+   - Speaker highlighting as audio plays
+   - Word-level vocabulary integration
+   - Segment replay functionality for difficult parts
+   - Adjustable playback speed for different learning levels
 
-1. **Content Management**
+#### 6.3 API Routes
 
-   - Audio content generation and storage
-   - Transcript synchronization
-   - Exercise management
-   - Performance analytics
-   - Content caching system
+```typescript
+// Base endpoint - Get all listening sessions
+// GET /api/listening
+async function GET(req: NextRequest) {
+  // Get user's listening sessions with filtering/pagination
+}
 
-2. **User Experience**
+// Create new session
+// POST /api/listening
+async function POST(req: NextRequest) {
+  // Create new listening session
+}
 
-   - Responsive audio player
-   - Interactive exercises
-   - Progress visualization
-   - Performance feedback
-   - Adaptive difficulty
+// Generate new listening content
+// POST /api/listening/generate
+async function POST(req: NextRequest) {
+  // Generate content based on level, topic, and content type
+  // Process multi-speaker audio and store in Cloudinary
+}
 
-3. **Learning Analytics**
+// Get specific session
+// GET /api/listening/[id]
+async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+  // Get specific session with detailed data
+}
 
-   - Comprehension tracking
-   - Performance metrics
-   - Progress visualization
-   - Difficulty adaptation
-   - Personalized recommendations
+// Update session progress
+// PATCH /api/listening/[id]
+async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  // Update progress, answers, etc.
+}
 
-4. **System Integration**
-   - Session management
-   - User progress tracking
-   - Gamification integration
-   - AI tutor feedback
-   - Cross-module learning paths
+// Get user statistics
+// GET /api/listening/stats
+async function GET(req: NextRequest) {
+  // Get aggregated listening statistics and progress
+}
+```
+
+#### 6.4 Component Structure
+
+1. **Main Dashboard Components**
+
+   ```
+   /components/listening/
+     ListeningList.tsx - List of available listening sessions
+     ListeningFilterBar.tsx - Filtering and sorting options
+     ListeningCard.tsx - Card component for session display
+     ListeningStats.tsx - Statistics display component
+   ```
+
+2. **Session Interface Components**
+
+   ```
+   /components/listening/
+     ListeningPlayer.tsx - Custom audio player with transcript sync
+     ListeningTranscript.tsx - Interactive transcript with speaker highlighting
+     ListeningQuestions.tsx - Comprehension question interface
+     ListeningFeedback.tsx - Performance feedback display
+     VocabularyPanel.tsx - Vocabulary learning component
+   ```
+
+3. **Core Processing Components**
+   ```
+   /lib/listening/
+     transcript-generator.ts - OpenAI integration for content generation
+     audio-processor.ts - Whisper API and FFmpeg integration
+     cloudinary-uploader.ts - Audio file storage and management
+     comprehension-generator.ts - Question and vocabulary generation
+   ```
+
+#### 6.5 Implementation Process
+
+1. **Multi-Speaker Audio Generation Process**
+
+   ```typescript
+   async function createMultiSpeakerAudio(transcript: string) {
+     // 1. Parse transcript to separate speakers
+     const segments = parseTranscriptBySpeaker(transcript);
+
+     // 2. Generate audio for each speaker using Whisper API
+     const audioFiles = await Promise.all(
+       segments.map(async segment => {
+         const voice = getVoiceForSpeaker(segment.speakerNumber);
+         const audioResponse = await openai.audio.speech.create({
+           model: 'tts-1',
+           voice: voice,
+           input: segment.text,
+         });
+
+         // Save to temp file
+         const tempFilePath = saveTemporaryFile(
+           await audioResponse.arrayBuffer()
+         );
+         return { path: tempFilePath, speakerNumber: segment.speakerNumber };
+       })
+     );
+
+     // 3. Combine audio files with FFmpeg
+     const combinedAudioPath = await combineAudioWithFFmpeg(audioFiles);
+
+     // 4. Upload to Cloudinary
+     const cloudinaryResult = await uploadToCloudinary(combinedAudioPath);
+
+     // 5. Clean up temporary files
+     cleanupTemporaryFiles([...audioFiles.map(f => f.path), combinedAudioPath]);
+
+     return cloudinaryResult;
+   }
+   ```
+
+2. **Integration with Existing Application**
+
+   The implementation will seamlessly integrate with the existing application structure:
+
+   - Use the same auth middleware as other modules
+   - Follow the same API route structure
+   - Maintain consistent UI patterns
+   - Use shared components where appropriate
+   - Leverage existing data models and patterns
+
+#### 6.6 Implementation Phases
+
+1. **Phase 1: Core Infrastructure (1 week)**
+
+   - Create MongoDB models for listening sessions and stats
+   - Implement OpenAI integration for transcript generation
+   - Set up Whisper API and FFmpeg processing
+   - Configure Cloudinary integration
+   - Create basic API endpoints
+
+2. **Phase 2: Audio Processing Pipeline (1 week)**
+
+   - Build multi-speaker transcript parsing system
+   - Implement text-to-speech conversion with speaker differentiation
+   - Create FFmpeg audio concatenation system
+   - Develop error handling and retry logic
+   - Set up audio file management and cleanup
+
+3. **Phase 3: User Interface (1 week)**
+
+   - Create custom audio player with transcript synchronization
+   - Implement interactive transcript with speaker highlighting
+   - Build comprehension question interface
+   - Develop vocabulary integration
+   - Create progress tracking components
+
+4. **Phase 4: Integration and Testing (1 week)**
+   - Connect with vocabulary system
+   - Implement analytics and progress tracking
+   - Perform comprehensive testing
+   - Optimize performance and resource usage
+   - Create user documentation
 
 ### Phase 7: Dashboard Technical Implementation ⏳
 

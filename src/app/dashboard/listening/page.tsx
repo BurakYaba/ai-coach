@@ -5,22 +5,22 @@ import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { Suspense } from 'react';
 
-import { ReadingProgressPage } from '@/components/reading/ReadingProgressPage';
-import { ReadingSessionList } from '@/components/reading/ReadingSessionList';
+import { ListeningStats } from '@/components/listening/ListeningStats';
+import {
+  SessionList,
+  SessionSkeleton,
+} from '@/components/listening/SessionList';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { authOptions } from '@/lib/auth';
 
 export const metadata: Metadata = {
-  title: 'Reading Practice',
-  description: 'Improve your English reading skills with AI-powered content.',
+  title: 'Listening Practice | Language Coach',
+  description: 'Improve your listening skills with personalized audio content',
 };
 
-// Add dynamic = 'force-dynamic' to ensure page is not statically cached
-export const dynamic = 'force-dynamic';
-
-export default async function ReadingPage({
+export default async function ListeningDashboardPage({
   searchParams,
 }: {
   searchParams: { page?: string; error?: string; success?: string };
@@ -42,10 +42,10 @@ export default async function ReadingPage({
         errorMessage = 'Invalid session ID. Please try again.';
         break;
       case 'not-found':
-        errorMessage = 'Reading session not found.';
+        errorMessage = 'Listening session not found.';
         break;
       case 'delete-failed':
-        errorMessage = 'Failed to delete reading session. Please try again.';
+        errorMessage = 'Failed to delete listening session. Please try again.';
         break;
       default:
         errorMessage = 'An error occurred. Please try again.';
@@ -54,23 +54,22 @@ export default async function ReadingPage({
 
   // Set success message based on URL parameter
   if (searchParams.success === 'deleted') {
-    successMessage = 'Reading session deleted successfully.';
+    successMessage = 'Listening session deleted successfully.';
   }
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Reading Practice
+            Listening Practice
           </h1>
           <p className="text-muted-foreground">
-            Improve your reading comprehension with AI-generated content
-            tailored to your level.
+            Improve your listening skills with personalized audio content
           </p>
         </div>
-        <Link href="/dashboard/reading/new">
-          <Button size="lg">Start New Session</Button>
+        <Link href="/dashboard/listening/create">
+          <Button size="lg">Start New Practice</Button>
         </Link>
       </div>
 
@@ -96,11 +95,21 @@ export default async function ReadingPage({
         </TabsList>
 
         <TabsContent value="sessions" className="space-y-4">
-          <ReadingSessionList />
+          <Suspense fallback={<SessionSkeleton count={8} />}>
+            <SessionList filter="all" />
+          </Suspense>
         </TabsContent>
 
         <TabsContent value="progress" className="space-y-4">
-          <ReadingProgressPage />
+          <Suspense
+            fallback={
+              <div className="h-[200px]">
+                <div className="h-full w-full bg-muted/10 animate-pulse rounded-lg"></div>
+              </div>
+            }
+          >
+            <ListeningStats />
+          </Suspense>
         </TabsContent>
       </Tabs>
     </div>

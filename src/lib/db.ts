@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 interface CachedConnection {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
+  isEventsRegistered?: boolean; // Add this flag to track if events are registered
 }
 
 // Define the global type for mongoose cache
@@ -27,6 +28,7 @@ if (!MONGODB_URI) {
 const cached: CachedConnection = global.mongoose || {
   conn: null,
   promise: null,
+  isEventsRegistered: false, // Initialize the flag
 };
 
 // Initialize the cached connection if it doesn't exist
@@ -36,6 +38,39 @@ if (!global.mongoose) {
 
 // Set the maximum number of listeners to avoid memory leak warnings
 mongoose.connection.setMaxListeners(20);
+
+// Register event listeners only once
+if (!cached.isEventsRegistered) {
+  // Handle connection events
+  mongoose.connection.on('connected', () => {
+    console.log('MongoDB connection established');
+  });
+
+  mongoose.connection.on('error', err => {
+    console.error('MongoDB connection error:', err);
+  });
+
+  mongoose.connection.on('disconnected', () => {
+    console.log('MongoDB connection disconnected');
+  });
+
+  // Handle process termination
+  const gracefulShutdown = () => {
+    mongoose.connection.close(false).then(() => {
+      console.log('MongoDB connection closed through app termination');
+      process.exit(0);
+    });
+  };
+
+  // Only add these event listeners once
+  if (process.env.NODE_ENV !== 'test') {
+    process.on('SIGINT', gracefulShutdown);
+    process.on('SIGTERM', gracefulShutdown);
+  }
+
+  // Mark event listeners as registered
+  cached.isEventsRegistered = true;
+}
 
 export async function dbConnect() {
   if (cached.conn) {
@@ -68,33 +103,6 @@ export async function dbConnect() {
   }
 
   return cached.conn;
-}
-
-// Handle connection events
-mongoose.connection.on('connected', () => {
-  console.log('MongoDB connection established');
-});
-
-mongoose.connection.on('error', err => {
-  console.error('MongoDB connection error:', err);
-});
-
-mongoose.connection.on('disconnected', () => {
-  console.log('MongoDB connection disconnected');
-});
-
-// Handle process termination
-const gracefulShutdown = () => {
-  mongoose.connection.close(false).then(() => {
-    console.log('MongoDB connection closed through app termination');
-    process.exit(0);
-  });
-};
-
-// Only add these event listeners once
-if (process.env.NODE_ENV !== 'test') {
-  process.on('SIGINT', gracefulShutdown);
-  process.on('SIGTERM', gracefulShutdown);
 }
 
 export default dbConnect;
