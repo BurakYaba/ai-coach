@@ -7,14 +7,6 @@ export interface IListeningSession extends Document {
     transcript: string;
     audioUrl: string;
     cloudinaryPublicId?: string;
-    isSegmented?: boolean;
-    segments?: Array<{
-      speakerIndex: number;
-      speakerName: string;
-      url: string;
-      publicId: string;
-      duration: number;
-    }>;
   };
   level: string; // 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'
   topic: string;
@@ -85,31 +77,6 @@ const ListeningSessionSchema = new Schema<IListeningSession>(
         required: true,
       },
       cloudinaryPublicId: String,
-      isSegmented: Boolean,
-      segments: [
-        {
-          speakerIndex: {
-            type: Number,
-            required: true,
-          },
-          speakerName: {
-            type: String,
-            required: true,
-          },
-          url: {
-            type: String,
-            required: true,
-          },
-          publicId: {
-            type: String,
-            required: true,
-          },
-          duration: {
-            type: Number,
-            required: true,
-          },
-        },
-      ],
     },
     level: {
       type: String,

@@ -37,7 +37,7 @@ export async function uploadAudioBuffer(
     const uploadOptions = {
       folder: options.folder || 'listening-sessions',
       resource_type: options.resource_type || 'auto',
-      audio_codec: options.audio_codec || 'mp3',
+      audio_codec: options.audio_codec || 'aac',
       bit_rate: options.bit_rate || '128k',
       format: options.format,
       use_filename: true,

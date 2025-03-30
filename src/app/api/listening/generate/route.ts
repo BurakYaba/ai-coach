@@ -18,8 +18,6 @@ import ListeningSession, { IListeningSession } from '@/models/ListeningSession';
 
 // Force dynamic rendering to handle server-side requests properly
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-export const fetchCache = 'force-no-store';
 
 // Initialize OpenAI with improved timeout handling
 const openai = new OpenAI({
@@ -236,8 +234,6 @@ export async function POST(req: NextRequest) {
             transcript,
             audioUrl: audioResult.url,
             cloudinaryPublicId: audioResult.publicId,
-            isSegmented: !!audioResult.isSegmented,
-            segments: audioResult.segments || [],
           },
           level,
           topic,
@@ -341,29 +337,35 @@ async function generateTranscript(
   targetWordCount: number,
   speakerCount: number
 ): Promise<string> {
-  // Define a more efficient prompt template to reduce token usage and processing time
+  // Define a prompt template that requests diverse named speakers
   const promptTemplate = `
 Create a natural, conversational ${contentType} in English about "${topic}" for a language learner at ${level} CEFR level.
 Target word count: ${targetWordCount} words (important: keep it concise and within this limit)
 Number of speakers: ${speakerCount}
 
+IMPORTANT SPEAKER INSTRUCTIONS:
 ${
   contentType === 'dialogue'
-    ? 'Format as a conversation between two people with common names like "John" and "Emma". Use format "Name: text" for each line.'
+    ? 'Create a conversation between two people. Give each person a real name (like "Maria", "John", "Aisha", "Wei") instead of generic labels like "Speaker A".'
     : contentType === 'interview'
-      ? 'Format as an interview between a host with a name (like "David") and a guest with a name (like "Sarah"). Use format "Name: text" for each line.'
+      ? 'Create an interview with real names for both the interviewer and guest (like "Maria", "John", "Aisha", "Wei") instead of generic labels.'
       : contentType === 'monologue'
-        ? 'Format as a speech or presentation by a single person with a real name. Use format "Name: text" for each line.'
-        : 'Format as a news report with a named anchor and perhaps a named reporter. Use format "Name: text" for each line.'
+        ? 'Create a speech by a person with a real name (like "Maria", "John", "Aisha", or "Wei") instead of generic "Speaker".'
+        : 'Create a news report with real names for the anchor and any reporters (like "Maria", "John", "Aisha", "Wei") instead of generic labels.'
 }
 
-Rules:
+Format requirements:
+1. Use culturally diverse names for speakers (e.g., "Maria:", "John:", "Aisha:", "Wei:")
+2. Format each turn with the speaker's name followed by a colon at the beginning of their line (e.g., "Maria: Hello there.")
+3. Choose gender-appropriate names that clearly indicate gender 
+4. Keep consistent speech patterns appropriate for each speaker's background
+
+Content rules:
 1. Use language appropriate for ${level} level (vocabulary, grammar structures, idioms)
 2. Make the conversation flow naturally with short, realistic exchanges
 3. Include pauses, fillers, and hesitations to make it sound natural
-4. Use clear speaker attributions with real names (e.g., "Emma: Hello there.")
-5. Keep it focused on the topic
-6. Aim for exactly ${targetWordCount} words to fit the time constraints
+4. Keep focused on the topic
+5. Aim for exactly ${targetWordCount} words to fit the time constraints
 
 Output ONLY the transcript without any other explanations or meta-information.
 `.trim();
@@ -375,7 +377,7 @@ Output ONLY the transcript without any other explanations or meta-information.
         {
           role: 'system',
           content:
-            'You are an expert language teacher creating authentic listening materials for language learners.',
+            'You are an expert language education content creator specializing in creating authentic conversations with diverse speakers. Use real names instead of generic labels like "Speaker A" or "Speaker B".',
         },
         { role: 'user', content: promptTemplate },
       ],
@@ -389,7 +391,19 @@ Output ONLY the transcript without any other explanations or meta-information.
       );
     }
 
-    return completion.choices[0].message.content;
+    // Clean the transcript - remove any potential markdown or formatting
+    let transcript = completion.choices[0].message.content.trim();
+
+    // Remove any markdown headers or unnecessary formatting
+    transcript = transcript
+      .replace(/^#+ .*$/gm, '') // Remove markdown headers
+      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
+      .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting
+      .replace(/^(Dialogue|Conversation):.+\n/gm, '') // Remove dialogue/conversation labels
+      .replace(/^#{3}\s.*\n+/gm, '') // Remove any ### headers
+      .trim();
+
+    return transcript;
   } catch (error) {
     console.error('Error generating transcript:', error);
 

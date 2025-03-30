@@ -98,12 +98,6 @@ export default function ListeningSessionPage({
   const [showTranscript, setShowTranscript] = useState(false);
   const [activeTab, setActiveTab] = useState('listen');
 
-  // For segmented audio playback (when FFmpeg isn't available)
-  const [currentSegmentIndex, setCurrentSegmentIndex] = useState(0);
-  const [audioSegments, setAudioSegments] = useState<any[]>([]);
-  const [isSegmentedAudio, setIsSegmentedAudio] = useState(false);
-  const segmentRefs = useRef<(HTMLAudioElement | null)[]>([]);
-
   const [answers, setAnswers] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<any>(null);
@@ -119,40 +113,15 @@ export default function ListeningSessionPage({
             ? data.questions.map((q: any) => q.type)
             : [],
           vocabCount: data.vocabulary ? data.vocabulary.length : 0,
-          isSegmented: !!data.content?.isSegmented,
-          segmentsCount: data.content?.segments?.length || 0,
+          vocabExamples: data.vocabulary
+            ? data.vocabulary.slice(0, 1).map((v: any) => ({
+                word: v.word,
+                exampleCount: v.examples?.length,
+              }))
+            : [],
         });
 
         setSession(data);
-
-        // Handle segmented audio (when FFmpeg isn't available on server)
-        if (data.content?.isSegmented && Array.isArray(data.content.segments)) {
-          // Enhanced logging for debugging segmented audio
-          console.log(
-            'Loading segmented audio:',
-            data.content.segments.length,
-            'segments',
-            data.content.segments.map((s: any) => ({
-              url: s.url?.substring(0, 30) + '...',
-              duration: s.duration,
-              speaker: s.speakerName,
-            }))
-          );
-
-          setIsSegmentedAudio(true);
-          setAudioSegments(data.content.segments);
-
-          // Initialize refs array for each segment
-          segmentRefs.current = Array(data.content.segments.length).fill(null);
-
-          // Force a rerender to ensure audio elements are created
-          setTimeout(() => {
-            setIsLoading(false);
-          }, 100);
-        } else {
-          setIsLoading(false);
-        }
-
         // Initialize answers array with empty strings
         setAnswers(new Array(data.questions?.length || 0).fill(''));
       } catch (err) {
@@ -160,6 +129,7 @@ export default function ListeningSessionPage({
         setError(
           err instanceof Error ? err : new Error('Failed to load session')
         );
+      } finally {
         setIsLoading(false);
       }
     }
@@ -173,56 +143,15 @@ export default function ListeningSessionPage({
     if (!audio) return;
 
     const handleTimeUpdate = () => {
-      if (isSegmentedAudio) {
-        // For segmented audio, calculate the global time by adding up previous segments
-        const previousSegmentsDuration = audioSegments
-          .slice(0, currentSegmentIndex)
-          .reduce((sum, segment) => sum + (segment.duration || 0), 0);
-
-        const currentSegmentTime =
-          segmentRefs.current[currentSegmentIndex]?.currentTime || 0;
-        setCurrentTime(previousSegmentsDuration + currentSegmentTime);
-      } else {
-        // Normal single audio file
-        setCurrentTime(audio.currentTime);
-      }
+      setCurrentTime(audio.currentTime);
     };
 
     const handleDurationChange = () => {
-      if (isSegmentedAudio) {
-        // For segmented audio, use the total duration from all segments
-        const totalDuration = audioSegments.reduce(
-          (sum, segment) => sum + (segment.duration || 0),
-          0
-        );
-        setDuration(totalDuration);
-      } else {
-        // Normal single audio file
-        setDuration(audio.duration);
-      }
+      setDuration(audio.duration);
     };
 
     const handleEnded = () => {
-      if (isSegmentedAudio) {
-        // If there are more segments, play the next one
-        if (currentSegmentIndex < audioSegments.length - 1) {
-          setCurrentSegmentIndex(currentSegmentIndex + 1);
-
-          // Play the next segment after a small delay
-          setTimeout(() => {
-            const nextSegment = segmentRefs.current[currentSegmentIndex + 1];
-            if (nextSegment) {
-              nextSegment.play().catch(console.error);
-            }
-          }, 100);
-        } else {
-          // Reached the end of all segments
-          setIsPlaying(false);
-        }
-      } else {
-        // Normal behavior for single audio file
-        setIsPlaying(false);
-      }
+      setIsPlaying(false);
     };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
@@ -234,68 +163,17 @@ export default function ListeningSessionPage({
       audio.removeEventListener('durationchange', handleDurationChange);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [isSegmentedAudio, currentSegmentIndex, audioSegments]);
+  }, []);
 
   // Handle play/pause
   const togglePlay = () => {
-    if (isSegmentedAudio) {
-      console.log(
-        `Toggle play (segmented): current=${isPlaying ? 'playing' : 'paused'}, segment=${currentSegmentIndex}`
-      );
+    const audio = audioRef.current;
+    if (!audio) return;
 
-      if (isPlaying) {
-        // Pause the current segment
-        const currentSegment = segmentRefs.current[currentSegmentIndex];
-        if (currentSegment) {
-          currentSegment.pause();
-          console.log(`Paused segment ${currentSegmentIndex}`);
-        } else {
-          console.error(`No ref for current segment ${currentSegmentIndex}`);
-        }
-      } else {
-        // Play the current segment
-        const currentSegment = segmentRefs.current[currentSegmentIndex];
-        if (currentSegment) {
-          console.log(`Attempting to play segment ${currentSegmentIndex}`);
-          // Ensure it's properly loaded first
-          currentSegment.load();
-
-          // Small delay to ensure loading completes
-          setTimeout(() => {
-            if (currentSegment) {
-              currentSegment.play().catch(error => {
-                console.error(
-                  `Error playing segment ${currentSegmentIndex}:`,
-                  error
-                );
-
-                // Try again with user interaction
-                const playPromise = currentSegment.play();
-                if (playPromise !== undefined) {
-                  playPromise.catch(e => {
-                    console.log(
-                      'Play was prevented, trying again with user interaction'
-                    );
-                    // Show some UI element that would allow the user to start playback
-                  });
-                }
-              });
-            }
-          }, 100);
-        } else {
-          console.error(`Missing segment ref for index ${currentSegmentIndex}`);
-        }
-      }
+    if (isPlaying) {
+      audio.pause();
     } else {
-      // Normal single audio file
-      const audio = audioRef.current;
-      if (!audio) return;
-
-      if (isPlaying) {
-        audio.pause();
-      } else {
-        audio.play().catch(console.error);
-      }
+      audio.play();
     }
 
     setIsPlaying(!isPlaying);
@@ -303,74 +181,20 @@ export default function ListeningSessionPage({
 
   // Handle seeking
   const handleSeek = (value: number[]) => {
-    const seekTime = value[0];
+    const audio = audioRef.current;
+    if (!audio) return;
 
-    if (isSegmentedAudio) {
-      // Find which segment contains the seek time
-      let timeAccumulated = 0;
-      let targetSegmentIndex = 0;
-      let timeWithinTargetSegment = seekTime;
-
-      for (let i = 0; i < audioSegments.length; i++) {
-        const segmentDuration = audioSegments[i].duration || 0;
-
-        if (timeAccumulated + segmentDuration > seekTime) {
-          // This segment contains our seek position
-          targetSegmentIndex = i;
-          timeWithinTargetSegment = seekTime - timeAccumulated;
-          break;
-        }
-
-        timeAccumulated += segmentDuration;
-      }
-
-      // Pause all segments
-      segmentRefs.current.forEach(segment => {
-        if (segment) segment.pause();
-      });
-
-      // Update the current segment index
-      setCurrentSegmentIndex(targetSegmentIndex);
-
-      // Set the current time within the target segment
-      const targetSegment = segmentRefs.current[targetSegmentIndex];
-      if (targetSegment) {
-        targetSegment.currentTime = timeWithinTargetSegment;
-
-        // If already playing, play the new segment
-        if (isPlaying) {
-          targetSegment.play().catch(console.error);
-        }
-      }
-
-      // Update the displayed time
-      setCurrentTime(seekTime);
-    } else {
-      // Normal single audio behavior
-      const audio = audioRef.current;
-      if (!audio) return;
-
-      audio.currentTime = seekTime;
-      setCurrentTime(seekTime);
-    }
+    audio.currentTime = value[0];
+    setCurrentTime(value[0]);
   };
 
   // Handle volume change
   const handleVolumeChange = (value: number[]) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
     const newVolume = value[0];
-
-    if (isSegmentedAudio) {
-      // Apply the volume to all segments
-      segmentRefs.current.forEach(segment => {
-        if (segment) segment.volume = newVolume / 100;
-      });
-    } else {
-      // Normal single audio behavior
-      const audio = audioRef.current;
-      if (!audio) return;
-      audio.volume = newVolume / 100;
-    }
-
+    audio.volume = newVolume / 100;
     setVolume(newVolume);
 
     if (newVolume === 0) {
@@ -382,26 +206,16 @@ export default function ListeningSessionPage({
 
   // Toggle mute
   const toggleMute = () => {
-    if (isSegmentedAudio) {
-      // Apply mute/unmute to all segments
-      segmentRefs.current.forEach(segment => {
-        if (segment) {
-          segment.volume = isMuted ? volume / 100 : 0;
-        }
-      });
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isMuted) {
+      audio.volume = volume / 100;
+      setIsMuted(false);
     } else {
-      // Normal single audio behavior
-      const audio = audioRef.current;
-      if (!audio) return;
-
-      if (isMuted) {
-        audio.volume = volume / 100;
-      } else {
-        audio.volume = 0;
-      }
+      audio.volume = 0;
+      setIsMuted(true);
     }
-
-    setIsMuted(!isMuted);
   };
 
   // Handle answer changes
@@ -534,145 +348,29 @@ export default function ListeningSessionPage({
 
       {/* Audio Player */}
       <div className="mb-8 rounded-lg border bg-card p-4 shadow-sm">
-        {isSegmentedAudio ? (
-          /* Segmented Audio Player (hidden audio elements for each segment) */
-          <div className="hidden">
-            {audioSegments.map((segment, index) => (
-              <audio
-                key={`segment-${index}`}
-                ref={el => {
-                  if (el) {
-                    // Store the element reference
-                    segmentRefs.current[index] = el;
-
-                    // Set initial volume
-                    el.volume = volume / 100;
-
-                    // Ensure first segment is loaded
-                    if (index === 0) {
-                      console.log(`Loading initial segment: ${segment.url}`);
-                      el.load();
-                    }
-                  }
-                }}
-                src={segment.url}
-                preload="metadata"
-                onLoadedMetadata={() => {
-                  // Update total duration when segment metadata is loaded
-                  const totalDuration = audioSegments.reduce(
-                    (sum, segment, i) => {
-                      const segmentDuration =
-                        segmentRefs.current[i]?.duration ||
-                        segment.duration ||
-                        0;
-                      return sum + segmentDuration;
-                    },
-                    0
-                  );
-                  setDuration(totalDuration);
-
-                  if (index === 0) {
-                    console.log(
-                      `Segmented audio loaded: ${audioSegments.length} segments, total duration: ${totalDuration}s`
-                    );
-                  }
-                }}
-                onTimeUpdate={() => {
-                  if (index === currentSegmentIndex) {
-                    // Update current time during playback
-                    const previousSegmentsDuration = audioSegments
-                      .slice(0, index)
-                      .reduce(
-                        (sum, segment, i) =>
-                          sum +
-                          (segmentRefs.current[i]?.duration ||
-                            segment.duration ||
-                            0),
-                        0
-                      );
-
-                    const segmentTime =
-                      segmentRefs.current[index]?.currentTime || 0;
-                    setCurrentTime(previousSegmentsDuration + segmentTime);
-                  }
-                }}
-                onEnded={() => {
-                  console.log(
-                    `Segment ${index} ended. Current index: ${currentSegmentIndex}`
-                  );
-                  if (index === currentSegmentIndex) {
-                    // If there are more segments, play the next one
-                    if (index < audioSegments.length - 1) {
-                      console.log(`Moving to segment ${index + 1}`);
-                      setCurrentSegmentIndex(index + 1);
-
-                      // Ensure the previous segment is fully stopped
-                      if (segmentRefs.current[index]) {
-                        segmentRefs.current[index]!.pause();
-                      }
-
-                      // Play the next segment after a small delay
-                      setTimeout(() => {
-                        const nextSegment = segmentRefs.current[index + 1];
-                        if (nextSegment) {
-                          console.log(`Playing segment ${index + 1}`);
-                          // Ensure the element is properly loaded
-                          nextSegment.load();
-                          nextSegment.play().catch(error => {
-                            console.error(
-                              `Error playing segment ${index + 1}:`,
-                              error
-                            );
-                          });
-                        } else {
-                          console.error(`Segment ${index + 1} ref not found`);
-                        }
-                      }, 100);
-                    } else {
-                      // End of all segments
-                      console.log('End of all segments');
-                      setIsPlaying(false);
-                    }
-                  }
-                }}
-                onError={e => {
-                  console.error(`Error loading segment ${index}:`, e);
-                }}
-              >
-                <track kind="captions" src="" label="English captions" />
-                Your browser does not support the audio element.
-              </audio>
-            ))}
-          </div>
-        ) : (
-          /* Standard Audio Player */
-          <audio
-            ref={audioRef}
-            src={session.content?.audioUrl}
-            preload="metadata"
-            onLoadedMetadata={() => {
-              // Set initial duration when metadata is loaded
-              if (audioRef.current) {
-                setDuration(audioRef.current.duration);
-                console.log(
-                  'Audio duration loaded:',
-                  audioRef.current.duration
-                );
-              }
-            }}
-            onTimeUpdate={() => {
-              // Update current time during playback
-              if (audioRef.current) {
-                setCurrentTime(audioRef.current.currentTime);
-              }
-            }}
-            onEnded={() => setIsPlaying(false)}
-            className="hidden"
-          >
-            <track kind="captions" src="" label="English captions" />
-            Your browser does not support the audio element.
-          </audio>
-        )}
+        <audio
+          ref={audioRef}
+          src={session.content?.audioUrl}
+          preload="metadata"
+          onLoadedMetadata={() => {
+            // Set initial duration when metadata is loaded
+            if (audioRef.current) {
+              setDuration(audioRef.current.duration);
+              console.log('Audio duration loaded:', audioRef.current.duration);
+            }
+          }}
+          onTimeUpdate={() => {
+            // Update current time during playback
+            if (audioRef.current) {
+              setCurrentTime(audioRef.current.currentTime);
+            }
+          }}
+          onEnded={() => setIsPlaying(false)}
+          className="hidden"
+        >
+          <track kind="captions" src="" label="English captions" />
+          Your browser does not support the audio element.
+        </audio>
 
         <div className="mb-4">
           <div className="flex items-center justify-between">

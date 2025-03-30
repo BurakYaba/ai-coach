@@ -6,10 +6,7 @@ import { authOptions } from '@/lib/auth';
 import dbConnect from '@/lib/db';
 import ListeningSession from '@/models/ListeningSession';
 
-// Configure this route for proper server-side handling in Next.js
 export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-export const fetchCache = 'force-no-store';
 
 // Define CEFR levels since we can't import from the missing module
 const CEFRLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];

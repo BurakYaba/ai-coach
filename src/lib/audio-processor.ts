@@ -368,126 +368,111 @@ export async function createMultiSpeakerAudio(transcript: string) {
       })
     );
 
-    // Check if FFmpeg is available by trying to execute a simple command
-    let ffmpegAvailable = false;
+    // Create file with concatenation instructions for FFmpeg
+    const concatFilePath = path.join(tempDir, 'concat.txt');
+    const concatFileContent = audioFilePaths
+      .map(file => `file '${file.path.replace(/'/g, "'\\''")}'`)
+      .join('\n');
+
+    await writeFilePromise(concatFilePath, concatFileContent);
+    tempFiles.push(concatFilePath);
+
+    // Combine audio files with FFmpeg using mp3 format with LAME encoder
+    // This ensures consistency for all files
+    const combinedPath = path.join(tempDir, `combined-${uuidv4()}.mp3`);
+    await execPromise(
+      `"${FFMPEG_PATH}" -f concat -safe 0 -i "${concatFilePath}" -c:a libmp3lame -q:a 4 "${combinedPath}"`
+    );
+    tempFiles.push(combinedPath);
+
+    // Read the combined file
+    const combinedBuffer = fs.readFileSync(combinedPath);
+
     try {
-      await execPromise(`${FFMPEG_PATH} -version`);
-      ffmpegAvailable = true;
-    } catch (ffmpegError: any) {
-      console.warn('FFmpeg not available:', ffmpegError.message);
-      ffmpegAvailable = false;
-    }
+      // Try to upload to Cloudinary with specific encoding settings
+      // This tells Cloudinary exactly what format to expect
+      const cloudinaryResult = await uploadAudioBuffer(combinedBuffer, {
+        folder: 'listening-sessions',
+        resource_type: 'video',
+        format: 'mp3', // Explicitly specify format
+        audio_codec: 'mp3', // Explicitly specify codec
+      });
 
-    // If FFmpeg is available, use it to combine audio files
-    if (ffmpegAvailable) {
+      return {
+        url: cloudinaryResult.url,
+        publicId: cloudinaryResult.publicId,
+        duration: cloudinaryResult.duration,
+        speakerCount: new Set(segments.map(s => s.speakerIndex)).size,
+      };
+    } catch (cloudinaryError) {
+      console.warn(
+        'Cloudinary upload failed, using local audio:',
+        cloudinaryError
+      );
+
+      // Try once more with raw upload approach
       try {
-        // Create file with concatenation instructions for FFmpeg
-        const concatFilePath = path.join(tempDir, 'concat.txt');
-        const concatFileContent = audioFilePaths
-          .map(file => `file '${file.path.replace(/'/g, "'\\''")}'`)
-          .join('\n');
-
-        await writeFilePromise(concatFilePath, concatFileContent);
-        tempFiles.push(concatFilePath);
-
-        // Combine audio files with FFmpeg using mp3 format with LAME encoder
-        const combinedPath = path.join(tempDir, `combined-${uuidv4()}.mp3`);
+        // Create a properly formatted MP3 file with two-pass encoding for better compatibility
+        const finalAudioPath = path.join(tempDir, `final-${uuidv4()}.mp3`);
         await execPromise(
-          `"${FFMPEG_PATH}" -f concat -safe 0 -i "${concatFilePath}" -c:a libmp3lame -q:a 4 "${combinedPath}"`
+          `"${FFMPEG_PATH}" -i "${combinedPath}" -c:a libmp3lame -b:a 128k "${finalAudioPath}"`
         );
-        tempFiles.push(combinedPath);
+        tempFiles.push(finalAudioPath);
 
-        // Read the combined file
-        const combinedBuffer = fs.readFileSync(combinedPath);
+        // Read the final file
+        const finalBuffer = fs.readFileSync(finalAudioPath);
 
-        // Upload to Cloudinary
-        const cloudinaryResult = await uploadAudioBuffer(combinedBuffer, {
+        // Try uploading with raw resource type
+        const cloudinaryResult = await uploadAudioBuffer(finalBuffer, {
           folder: 'listening-sessions',
-          resource_type: 'video',
+          resource_type: 'raw',
           format: 'mp3',
-          audio_codec: 'mp3',
         });
 
         return {
           url: cloudinaryResult.url,
           publicId: cloudinaryResult.publicId,
-          duration: cloudinaryResult.duration,
+          duration:
+            cloudinaryResult.duration || estimateAudioDuration(transcript),
           speakerCount: new Set(segments.map(s => s.speakerIndex)).size,
         };
-      } catch (ffmpegProcessError) {
-        console.warn('FFmpeg processing error:', ffmpegProcessError);
-        // Fall through to the fallback approach
-      }
-    }
+      } catch (secondError) {
+        console.warn('Secondary upload attempt failed:', secondError);
 
-    // FALLBACK: Upload individual audio segments to Cloudinary and return as an array
-    // This allows the frontend to handle playing them in sequence
-    console.log('Using fallback method: uploading individual audio segments');
-
-    // Upload each audio file separately
-    const audioSegments = await Promise.all(
-      audioFilePaths.map(async (file, index) => {
-        const buffer = fs.readFileSync(file.path);
-
-        // Upload each segment to Cloudinary
-        const result = await uploadAudioBuffer(buffer, {
-          folder: 'listening-segments',
-          resource_type: 'video',
-          format: 'mp3',
-          audio_codec: 'mp3',
-        });
+        // Convert buffer to base64 data URL as final fallback
+        const base64Audio = combinedBuffer.toString('base64');
+        const dataUrl = `data:audio/mp3;base64,${base64Audio}`;
 
         return {
-          speakerIndex: file.speakerIndex,
-          speakerName: file.speakerName,
-          url: result.url,
-          publicId: result.publicId,
-          duration:
-            result.duration || estimateSegmentDuration(segments[index].text),
+          url: dataUrl,
+          publicId: `local-${uuidv4()}`,
+          duration: estimateAudioDuration(transcript),
+          speakerCount: new Set(segments.map(s => s.speakerIndex)).size,
         };
-      })
-    );
-
-    // Calculate total duration
-    const totalDuration = audioSegments.reduce(
-      (sum, segment) => sum + (segment.duration || 0),
-      0
-    );
-
-    // Get first audio for thumbnail/preview
-    const previewUrl = audioSegments.length > 0 ? audioSegments[0].url : '';
-    const previewId = audioSegments.length > 0 ? audioSegments[0].publicId : '';
-
-    return {
-      url: previewUrl, // Use the first segment as the main URL
-      publicId: previewId,
-      duration: totalDuration || estimateAudioDuration(transcript),
-      speakerCount: new Set(segments.map(s => s.speakerIndex)).size,
-      segments: audioSegments, // Include all segments for client-side playback
-      isSegmented: true, // Flag to indicate this is a segmented audio
-    };
+      }
+    }
   } catch (error) {
     console.error('Error creating multi-speaker audio:', error);
-    cleanupTempFiles(tempFiles);
     throw error;
   } finally {
-    // Clean up temp files
-    cleanupTempFiles(tempFiles);
+    // Clean up temporary files
+    await Promise.all(
+      tempFiles.map(file =>
+        unlinkPromise(file).catch(err =>
+          console.warn(`Failed to delete temporary file ${file}:`, err)
+        )
+      )
+    );
+
+    // Try to remove the temporary directory if it was created
+    if (tempDir) {
+      try {
+        fs.rmdirSync(tempDir);
+      } catch (error) {
+        console.warn(`Failed to remove temporary directory ${tempDir}:`, error);
+      }
+    }
   }
-}
-
-/**
- * Estimate the duration of a text segment in seconds
- * @param text The text segment
- * @returns Estimated duration in seconds
- */
-function estimateSegmentDuration(text: string): number {
-  // Average speaking rate: ~150 words per minute or 2.5 words per second
-  const wordCount = text.split(/\s+/).length;
-  const estimatedSeconds = wordCount / 2.5;
-
-  // Add a small buffer for natural pauses
-  return Math.max(1, Math.ceil(estimatedSeconds * 1.2));
 }
 
 /**
@@ -537,30 +522,5 @@ export async function generateTitleFromTranscript(
   } catch (error) {
     console.error('Error generating title:', error);
     return `Conversation about ${topic}`;
-  }
-}
-
-/**
- * Cleanup temporary files and try to remove the directory
- * @param files Array of file paths to clean up
- */
-async function cleanupTempFiles(files: string[]): Promise<void> {
-  // Clean up temporary files
-  await Promise.all(
-    files.map(file =>
-      unlinkPromise(file).catch(err =>
-        console.warn(`Failed to delete temporary file ${file}:`, err)
-      )
-    )
-  );
-
-  // Try to remove the temporary directory if it exists
-  const dir = files.length > 0 ? path.dirname(files[0]) : '';
-  if (dir) {
-    try {
-      fs.rmdirSync(dir);
-    } catch (error) {
-      console.warn(`Failed to remove temporary directory ${dir}:`, error);
-    }
   }
 }
