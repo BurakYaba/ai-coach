@@ -13,10 +13,15 @@ interface DashboardHeaderProps {
 
 export default function DashboardHeader({ user }: DashboardHeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-14 items-center justify-between">
-        <div className="mr-4 hidden md:flex">
-          <DashboardNav />
+    <header className="sticky top-0 z-50 w-full border-b border-muted/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
+        <div className="flex items-center">
+          <span className="font-bold text-lg mr-8 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+            AI Coach
+          </span>
+          <div className="hidden md:flex">
+            <DashboardNav />
+          </div>
         </div>
         <div className="flex items-center space-x-4">
           <UserNav user={user} />

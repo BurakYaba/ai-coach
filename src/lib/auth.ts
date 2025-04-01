@@ -94,3 +94,18 @@ declare module 'next-auth/jwt' {
     id?: string;
   }
 }
+
+// Add this helper function to check for admin access
+export async function isAdmin(userId: string): Promise<boolean> {
+  try {
+    // Dynamically import User model to avoid server/client mismatch issues
+    const User = (await import('@/models/User')).default;
+    await dbConnect();
+
+    const user = await User.findById(userId);
+    return user?.role === 'admin';
+  } catch (error) {
+    console.error('Error checking admin status:', error);
+    return false;
+  }
+}

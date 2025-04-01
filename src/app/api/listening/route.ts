@@ -31,10 +31,12 @@ export async function GET(req: NextRequest) {
       query = {
         ...baseQuery,
         'userProgress.completionTime': { $exists: true, $ne: null },
+        isLibrary: { $ne: true },
       };
     } else if (filter === 'inprogress') {
       query = {
         ...baseQuery,
+        isLibrary: { $ne: true },
         $and: [
           {
             $or: [
@@ -46,10 +48,16 @@ export async function GET(req: NextRequest) {
             $or: [
               { 'userProgress.timeSpent': { $gt: 0 } },
               { 'userProgress.questionsAnswered': { $gt: 0 } },
+              { 'userProgress.vocabularyReviewed': { $exists: true, $ne: [] } },
               { 'userProgress.listenedSegments': { $exists: true, $ne: [] } },
             ],
           },
         ],
+      };
+    } else if (filter === 'library') {
+      query = {
+        ...baseQuery,
+        isLibrary: true,
       };
     }
 

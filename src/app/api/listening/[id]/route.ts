@@ -105,6 +105,11 @@ export async function PATCH(
     const updateData = await req.json();
     const { userProgress, completionTime } = updateData;
 
+    console.log(
+      'PATCH endpoint received update data:',
+      JSON.stringify(updateData)
+    );
+
     // Update only allowed fields (primarily userProgress)
     const updateFields: any = {};
 
@@ -114,6 +119,11 @@ export async function PATCH(
         ...listeningSession.userProgress.toObject(),
         ...userProgress,
       };
+
+      console.log(
+        'PATCH endpoint merged userProgress:',
+        JSON.stringify(updateFields['userProgress'])
+      );
 
       // If completionTime is provided, add it
       if (completionTime) {
@@ -126,6 +136,11 @@ export async function PATCH(
       id,
       { $set: updateFields },
       { new: true, runValidators: true }
+    );
+
+    console.log(
+      'PATCH endpoint updated session with comprehensionScore:',
+      updatedSession.userProgress.comprehensionScore
     );
 
     return NextResponse.json(updatedSession);

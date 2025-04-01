@@ -71,11 +71,21 @@ export async function POST(
     const questionFeedback = questions.map((question: any, index: number) => {
       const userAnswer = answers[index] || '';
       const correctAnswer = question.correctAnswer || '';
+
+      // Add detailed debugging for answer evaluation
+      console.log(`Evaluating question ${index + 1}:`);
+      console.log(`- Question: ${question.question}`);
+      console.log(`- Type: ${question.type}`);
+      console.log(`- User answer: "${userAnswer}"`);
+      console.log(`- Correct answer: "${correctAnswer}"`);
+
       const isCorrect = compareAnswers(
         userAnswer,
         correctAnswer,
         question.type
       );
+
+      console.log(`- Is correct: ${isCorrect}`);
 
       return {
         question: question.question,
@@ -94,6 +104,10 @@ export async function POST(
       questions.length > 0
         ? Math.round((correctCount / questions.length) * 100)
         : 0;
+
+    console.log(
+      `Calculating score: ${correctCount} correct out of ${questions.length} questions = ${score}%`
+    );
 
     // Generate overall feedback based on score
     let overallFeedback = '';
@@ -116,23 +130,80 @@ export async function POST(
       questionsAnswered: questions.length,
       correctAnswers: correctCount,
       comprehensionScore: score,
-      completionTime: new Date(),
       userAnswers: answers.reduce((obj, answer, index) => {
         obj[`q${index}`] = answer;
         return obj;
       }, {}),
     };
 
+    // Only set completionTime if all questions are answered and all vocabulary items are reviewed
+    const allQuestionsAnswered =
+      updatedProgress.questionsAnswered === questions.length;
+    const allVocabularyReviewed =
+      updatedProgress.vocabularyReviewed?.length ===
+      listeningSession.vocabulary?.length;
+
+    // Set completionTime only when the session is 100% complete
+    if (allQuestionsAnswered && allVocabularyReviewed) {
+      updatedProgress.completionTime = new Date();
+      console.log('Setting completion time as all content has been completed');
+    } else {
+      console.log(
+        'Not setting completion time as content is not fully completed:',
+        {
+          questionsAnswered: updatedProgress.questionsAnswered,
+          totalQuestions: questions.length,
+          vocabularyReviewed: updatedProgress.vocabularyReviewed?.length || 0,
+          totalVocabulary: listeningSession.vocabulary?.length || 0,
+        }
+      );
+    }
+
+    console.log(`Saving user progress with comprehensionScore: ${score}`);
+
+    // Debug log the object being saved
+    console.log('User progress object:', {
+      questionsAnswered: updatedProgress.questionsAnswered,
+      correctAnswers: updatedProgress.correctAnswers,
+      comprehensionScore: updatedProgress.comprehensionScore,
+      completionTime: updatedProgress.completionTime,
+    });
+
     await ListeningSession.findByIdAndUpdate(id, {
       $set: { userProgress: updatedProgress },
     });
+
+    // Verify the update by fetching the updated document
+    const updatedSession = await ListeningSession.findById(id);
+    console.log(
+      'Verified saved comprehensionScore:',
+      updatedSession.userProgress.comprehensionScore
+    );
 
     // Return feedback
     return NextResponse.json({
       score,
       correctCount,
       totalQuestions: questions.length,
-      questionFeedback,
+      answers: questionFeedback.map(
+        (
+          item: {
+            question: string;
+            userAnswer: string;
+            correctAnswer: string;
+            isCorrect: boolean;
+            explanation: string;
+          },
+          index: number
+        ) => ({
+          question: item.question,
+          userAnswer: item.userAnswer,
+          correctAnswer: item.correctAnswer,
+          isCorrect: item.isCorrect,
+          correct: item.isCorrect, // Add 'correct' property for backward compatibility
+          explanation: item.explanation,
+        })
+      ),
       overallFeedback,
     });
   } catch (error) {
@@ -152,12 +223,49 @@ function compareAnswers(
 ): boolean {
   if (!userAnswer) return false;
 
+  // Add detailed debug logging
+  console.log('COMPARE ANSWERS DEBUG:');
+  console.log(`- User answer raw: "${userAnswer}"`);
+  console.log(`- Correct answer raw: "${correctAnswer}"`);
+  console.log(`- Question type: ${type}`);
+
   // Normalize the question type
   const questionType = normalizeQuestionType(type);
+  console.log(`- Normalized question type: ${questionType}`);
 
-  // For multiple choice and true-false, do direct comparison
-  if (questionType === 'multiple-choice' || questionType === 'true-false') {
-    return userAnswer.toLowerCase() === correctAnswer.toLowerCase();
+  // For multiple choice, do direct comparison
+  if (questionType === 'multiple-choice') {
+    const result = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
+    console.log(`- Multiple choice comparison result: ${result}`);
+    return result;
+  }
+
+  // For true-false, be more flexible with comparison
+  if (questionType === 'true-false') {
+    // Convert both answers to lowercase for consistent comparison
+    const userAnswerLower = userAnswer.toLowerCase();
+    const correctAnswerLower = correctAnswer.toLowerCase();
+
+    // Normalize answers - check if they represent the same boolean value
+    // regardless of format (true/false, True/False, A/B)
+    const isUserTrue = userAnswerLower === 'true' || userAnswerLower === 'a';
+    const isUserFalse = userAnswerLower === 'false' || userAnswerLower === 'b';
+    const isCorrectTrue =
+      correctAnswerLower === 'true' || correctAnswerLower === 'a';
+    const isCorrectFalse =
+      correctAnswerLower === 'false' || correctAnswerLower === 'b';
+
+    console.log(`- Is user answer true? ${isUserTrue}`);
+    console.log(`- Is user answer false? ${isUserFalse}`);
+    console.log(`- Is correct answer true? ${isCorrectTrue}`);
+    console.log(`- Is correct answer false? ${isCorrectFalse}`);
+
+    // Compare the normalized values
+    const result =
+      (isUserTrue && isCorrectTrue) || (isUserFalse && isCorrectFalse);
+
+    console.log(`- True/false comparison result: ${result}`);
+    return result;
   }
 
   // For fill-blank, be more lenient with comparison
@@ -184,8 +292,11 @@ function compareAnswers(
     const commonWords = words1.filter(word => words2.includes(word)).length;
     const totalWords = Math.max(words1.length, words2.length);
 
+    const similarityRatio = commonWords / totalWords;
+    console.log(`- Fill-blank similarity ratio: ${similarityRatio}`);
+
     // If 75% or more words match, consider it correct
-    return commonWords / totalWords >= 0.75;
+    return similarityRatio >= 0.75;
   }
 
   return false;

@@ -17,6 +17,11 @@ interface TopicCount {
   count: number;
 }
 
+interface CategoryCount {
+  category: string;
+  count: number;
+}
+
 interface ProgressByCategory {
   level?: string;
   type?: string;
@@ -36,21 +41,55 @@ export async function GET(req: NextRequest) {
     await dbConnect();
     const userId = session.user.id;
 
+    // Base query to exclude library items (they are reference items, not user sessions)
+    const baseQuery = {
+      userId,
+      isLibrary: { $ne: true },
+    };
+
     // Calculate overall statistics
-    const totalSessions = await ListeningSession.countDocuments({ userId });
+    const totalSessions = await ListeningSession.countDocuments(baseQuery);
 
     // Get completed sessions (sessions with completionTime)
     const completedSessions = await ListeningSession.find({
-      userId,
+      ...baseQuery,
       'userProgress.completionTime': { $exists: true },
+    });
+
+    // Additional debugging: Inspect raw data of completed sessions
+    console.log('RAW COMPLETED SESSIONS DATA:');
+    completedSessions.forEach((session, index) => {
+      console.log(`Session ${index + 1} ID:`, session._id);
+      console.log(`Session ${index + 1} Title:`, session.title);
+      console.log(
+        `Session ${index + 1} Completion Time:`,
+        session.userProgress.completionTime
+      );
+      console.log(
+        `Session ${index + 1} Questions Answered:`,
+        session.userProgress.questionsAnswered
+      );
+      console.log(
+        `Session ${index + 1} Correct Answers:`,
+        session.userProgress.correctAnswers
+      );
+      console.log(
+        `Session ${index + 1} userProgress:`,
+        JSON.stringify(session.userProgress)
+      );
     });
 
     const totalCompletedSessions = completedSessions.length;
 
     // Calculate total listening time (in minutes)
     const totalListeningTime = await ListeningSession.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-      { $group: { _id: null, total: { $sum: '$content.duration' } } },
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          isLibrary: { $ne: true },
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$duration' } } },
     ]);
 
     const totalTimeInMinutes =
@@ -61,19 +100,63 @@ export async function GET(req: NextRequest) {
     // Calculate average score across completed sessions
     let averageScore = 0;
     if (totalCompletedSessions > 0) {
+      // Add debug logging
+      console.log('Found completed sessions:', totalCompletedSessions);
+      completedSessions.forEach((session, index) => {
+        console.log(
+          `Session ${index + 1} comprehensionScore:`,
+          session.userProgress?.comprehensionScore
+        );
+      });
+
       const totalScore = completedSessions.reduce((sum, session) => {
-        return sum + (session.userProgress.score || 0);
+        const score = session.userProgress?.comprehensionScore || 0;
+        console.log('Adding score:', score);
+        return sum + score;
       }, 0);
+
       averageScore =
         Math.round((totalScore / totalCompletedSessions) * 100) / 100;
+      console.log('Calculated average score:', averageScore);
+    } else {
+      console.log('No completed sessions found');
     }
+
+    // Calculate library-specific statistics
+    const libraryStats = await ListeningSession.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          isLibrary: { $ne: true },
+          libraryItemId: { $exists: true, $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          completed: {
+            $sum: {
+              $cond: [
+                { $ifNull: ['$userProgress.completionTime', false] },
+                1,
+                0,
+              ],
+            },
+          },
+        },
+      },
+    ]);
+
+    const librarySessionsStats =
+      libraryStats.length > 0 ? libraryStats[0] : { total: 0, completed: 0 };
 
     // Calculate progress by level
     const progressByLevel = await Promise.all(
       CEFRLevels.map(async (level: string) => {
         const sessionsAtLevel = await ListeningSession.find({
-          userId,
-          'content.level': level,
+          ...baseQuery,
+          level,
         });
 
         const completedAtLevel = sessionsAtLevel.filter(
@@ -97,8 +180,8 @@ export async function GET(req: NextRequest) {
     const progressByContentType = await Promise.all(
       contentTypes.map(async (type: string) => {
         const sessionsOfType = await ListeningSession.find({
-          userId,
-          'content.contentType': type,
+          ...baseQuery,
+          contentType: type,
         });
 
         const completedOfType = sessionsOfType.filter(
@@ -150,12 +233,10 @@ export async function GET(req: NextRequest) {
 
     // Calculate most common topics
     const topicCounts: Record<string, number> = {};
-    const sessions = await ListeningSession.find({ userId }).select(
-      'content.topic'
-    );
+    const sessions = await ListeningSession.find(baseQuery).select('topic');
 
     sessions.forEach(session => {
-      const topic = session.content.topic;
+      const topic = session.topic;
       if (topic) {
         topicCounts[topic] = (topicCounts[topic] || 0) + 1;
       }
@@ -166,6 +247,31 @@ export async function GET(req: NextRequest) {
       .sort((a: TopicCount, b: TopicCount) => b.count - a.count)
       .slice(0, 5);
 
+    // Calculate most common categories (for library sessions)
+    const categoryStats = await ListeningSession.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          isLibrary: { $ne: true },
+          libraryItemId: { $exists: true, $ne: null },
+          category: { $exists: true, $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: '$category',
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { count: -1 } },
+      { $limit: 5 },
+    ]);
+
+    const commonCategories = categoryStats.map(item => ({
+      category: item._id,
+      count: item.count,
+    }));
+
     // Return all statistics
     return NextResponse.json({
       overview: {
@@ -174,10 +280,13 @@ export async function GET(req: NextRequest) {
         totalListeningTime: totalTimeInMinutes,
         averageScore,
         currentStreak,
+        librarySessionsTotal: librarySessionsStats.total,
+        librarySessionsCompleted: librarySessionsStats.completed,
       },
       progressByLevel,
       progressByContentType,
       commonTopics,
+      commonCategories,
     });
   } catch (error) {
     console.error('Error fetching listening statistics:', error);

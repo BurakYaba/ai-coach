@@ -11,6 +11,10 @@ const navItems = [
     href: '/dashboard',
   },
   {
+    title: 'Listening',
+    href: '/dashboard/listening',
+  },
+  {
     title: 'Reading',
     href: '/dashboard/reading',
   },
@@ -36,14 +40,16 @@ export function DashboardNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center space-x-4 lg:space-x-6">
+    <nav className="flex items-center space-x-1 lg:space-x-2">
       {navItems.map(item => (
         <Link
           key={item.href}
           href={item.href}
           className={cn(
-            'text-sm font-medium transition-colors hover:text-primary',
-            pathname === item.href ? 'text-primary' : 'text-muted-foreground'
+            'px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:bg-muted/50 hover:text-primary',
+            pathname === item.href
+              ? 'text-primary bg-primary/5 shadow-sm'
+              : 'text-muted-foreground'
           )}
         >
           {item.title}

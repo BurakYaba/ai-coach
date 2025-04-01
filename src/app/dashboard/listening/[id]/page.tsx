@@ -117,6 +117,11 @@ export default function ListeningSessionPage({
     feedbackItems?: any[];
   } | null>(null);
 
+  // Add a state to track questions answered in the current session
+  const [currentSessionAnswers, setCurrentSessionAnswers] = useState<
+    Set<string>
+  >(new Set());
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   // Define the loadSession function outside useEffect to avoid strict mode issues
@@ -256,8 +261,16 @@ export default function ListeningSessionPage({
 
       const result = await submitAnswers(params.id, answersToSubmit);
 
+      // Log the raw feedback result
+      console.log('Feedback result:', JSON.stringify(result));
+
       // Extract the result for the current question
       const currentQuestionResult = result.answers?.[currentQuestionIndex];
+
+      console.log(
+        'Current question result:',
+        JSON.stringify(currentQuestionResult)
+      );
 
       // Update the feedback state
       setFeedback((prev: any) => ({
@@ -278,7 +291,10 @@ export default function ListeningSessionPage({
         answers[currentQuestionIndex];
 
       // Calculate the new correct answers count
-      const isCorrect = currentQuestionResult?.correct || false;
+      const isCorrect = currentQuestionResult?.isCorrect || false;
+
+      console.log(`Question is correct: ${isCorrect}`);
+
       const newCorrectAnswers =
         (session.userProgress?.correctAnswers || 0) + (isCorrect ? 1 : 0);
 
@@ -291,13 +307,39 @@ export default function ListeningSessionPage({
           ? Math.round((newCorrectAnswers / answeredQuestionsCount) * 100)
           : 0;
 
-      // Update session progress on the server
-      await updateSessionProgress(params.id, {
+      console.log(
+        `Dashboard page calculating comprehensionScore: ${newCorrectAnswers}/${answeredQuestionsCount} = ${comprehensionScore}%`
+      );
+
+      // Check if this answers all questions and all vocabulary is reviewed
+      const allQuestionsAnswered =
+        answeredQuestionsCount === session.questions?.length;
+      const allVocabularyReviewed =
+        (session.userProgress?.vocabularyReviewed?.length || 0) ===
+        session.vocabulary?.length;
+
+      // Prepare update data
+      const updateData: any = {
         questionsAnswered: answeredQuestionsCount,
         correctAnswers: newCorrectAnswers,
         comprehensionScore,
         userAnswers: userAnswersObj,
-      });
+      };
+
+      // If all content is complete, set completionTime
+      if (
+        allQuestionsAnswered &&
+        allVocabularyReviewed &&
+        !session.userProgress?.completionTime
+      ) {
+        updateData.completionTime = new Date().toISOString();
+        console.log(
+          'Setting completion time as all content has been completed'
+        );
+      }
+
+      // Update session progress on the server
+      await updateSessionProgress(params.id, updateData);
 
       // Update the session state locally
       setSession((prev: any) => ({
@@ -308,30 +350,35 @@ export default function ListeningSessionPage({
           correctAnswers: newCorrectAnswers,
           comprehensionScore,
           userAnswers: userAnswersObj,
+          ...(allQuestionsAnswered &&
+          allVocabularyReviewed &&
+          !prev.userProgress.completionTime
+            ? { completionTime: new Date().toISOString() }
+            : {}),
         },
       }));
 
-      toast({
-        title: isCorrect ? 'Correct!' : 'Incorrect',
-        description: isCorrect
-          ? 'Your answer is correct!'
-          : `The correct answer is: ${session.questions[currentQuestionIndex].correctAnswer}`,
+      // Add the current question to the set of answered questions
+      setCurrentSessionAnswers(prev => {
+        const newSet = new Set(prev);
+        newSet.add(session.questions[currentQuestionIndex].id);
+        return newSet;
       });
 
-      // Automatically move to the next unanswered question if available
-      if (currentQuestionIndex < session.questions.length - 1) {
-        // Find the next unanswered question
-        const nextUnanswered = session.questions.findIndex(
-          (q: any, idx: number) =>
-            idx > currentQuestionIndex && !userAnswersObj[q.id]
-        );
+      // Remove automatic advancement - user will click Next button manually
+      // if (currentQuestionIndex < session.questions.length - 1) {
+      //   // Find the next unanswered question
+      //   const nextUnanswered = session.questions.findIndex(
+      //     (q: any, idx: number) =>
+      //       idx > currentQuestionIndex && !userAnswersObj[q.id]
+      //   );
 
-        if (nextUnanswered !== -1) {
-          setTimeout(() => {
-            setCurrentQuestionIndex(nextUnanswered);
-          }, 1500); // Short delay before moving
-        }
-      }
+      //   if (nextUnanswered !== -1) {
+      //     setTimeout(() => {
+      //       setCurrentQuestionIndex(nextUnanswered);
+      //     }, 1500); // Short delay before moving
+      //   }
+      // }
     } catch (err) {
       console.error('Error submitting answer:', err);
       toast({
@@ -449,8 +496,15 @@ export default function ListeningSessionPage({
           onLoadedMetadata={() => {
             // Set initial duration when metadata is loaded
             if (audioRef.current) {
-              setDuration(audioRef.current.duration);
-              console.log('Audio duration loaded:', audioRef.current.duration);
+              const loadedDuration = audioRef.current.duration;
+              setDuration(loadedDuration);
+              console.log('Audio duration loaded:', {
+                loadedDuration,
+                isFinite: isFinite(loadedDuration),
+                formatted: formatTime(loadedDuration),
+                sessionDuration: session.duration,
+                formattedSession: formatTime(session.duration || 0),
+              });
             }
           }}
           onTimeUpdate={() => {
@@ -470,7 +524,15 @@ export default function ListeningSessionPage({
           <div className="flex items-center justify-between">
             <div className="text-sm font-medium">
               {formatTime(currentTime)} /{' '}
-              {formatTime(duration || session.duration || 0)}
+              {formatTime(
+                duration && isFinite(duration) && duration > 0
+                  ? duration
+                  : session?.duration &&
+                      isFinite(session.duration) &&
+                      session.duration > 0
+                    ? session.duration
+                    : 0
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={toggleMute}>
@@ -494,7 +556,15 @@ export default function ListeningSessionPage({
           <Slider
             value={[currentTime]}
             min={0}
-            max={duration || session.duration || 100}
+            max={
+              duration && isFinite(duration) && duration > 0
+                ? duration
+                : session?.duration &&
+                    isFinite(session.duration) &&
+                    session.duration > 0
+                  ? session.duration
+                  : 100
+            }
             step={0.1}
             onValueChange={handleSeek}
             className="mt-2"
@@ -677,14 +747,41 @@ export default function ListeningSessionPage({
                       updatedReviewedWords.length >
                       (session.userProgress?.vocabularyReviewed?.length || 0)
                     ) {
-                      updateSessionProgress(params.id, {
+                      // Check if this completes all vocabulary and all questions are answered
+                      const allVocabularyReviewed =
+                        updatedReviewedWords.length ===
+                        session.vocabulary?.length;
+                      const allQuestionsAnswered =
+                        session.userProgress?.questionsAnswered ===
+                        session.questions?.length;
+
+                      // If all content is completed, set completionTime
+                      const updateData: any = {
                         vocabularyReviewed: updatedReviewedWords,
-                      }).then(() => {
+                      };
+
+                      if (
+                        allVocabularyReviewed &&
+                        allQuestionsAnswered &&
+                        !session.userProgress?.completionTime
+                      ) {
+                        updateData.completionTime = new Date().toISOString();
+                        console.log(
+                          'Setting completion time as all content has been completed'
+                        );
+                      }
+
+                      updateSessionProgress(params.id, updateData).then(() => {
                         setSession((prev: any) => ({
                           ...prev,
                           userProgress: {
                             ...prev.userProgress,
                             vocabularyReviewed: updatedReviewedWords,
+                            ...(allVocabularyReviewed &&
+                            allQuestionsAnswered &&
+                            !prev.userProgress.completionTime
+                              ? { completionTime: new Date().toISOString() }
+                              : {}),
                           },
                         }));
                       });
@@ -911,11 +1008,75 @@ export default function ListeningSessionPage({
                     />
                   )}
 
+                  {/* Current session feedback - show immediately after answering */}
+                  {session.userProgress?.userAnswers &&
+                    session.userProgress.userAnswers[
+                      session.questions[currentQuestionIndex].id
+                    ] &&
+                    currentSessionAnswers.has(
+                      session.questions[currentQuestionIndex].id
+                    ) && (
+                      <Alert
+                        className={`border mt-4 ${
+                          session.userProgress.userAnswers[
+                            session.questions[currentQuestionIndex].id
+                          ] ===
+                          session.questions[currentQuestionIndex].correctAnswer
+                            ? 'bg-green-50 border-green-200'
+                            : 'bg-red-50 border-red-200'
+                        }`}
+                      >
+                        <AlertDescription>
+                          <div className="font-semibold mb-2">
+                            {session.userProgress.userAnswers[
+                              session.questions[currentQuestionIndex].id
+                            ] ===
+                            session.questions[currentQuestionIndex]
+                              .correctAnswer
+                              ? 'Correct!'
+                              : 'Incorrect'}
+                          </div>
+                          <div>
+                            <span className="font-semibold">Your answer: </span>
+                            {
+                              session.userProgress.userAnswers[
+                                session.questions[currentQuestionIndex].id
+                              ]
+                            }
+                          </div>
+                          <div className="mt-2">
+                            <span className="font-semibold">
+                              The correct answer:{' '}
+                            </span>
+                            {
+                              session.questions[currentQuestionIndex]
+                                .correctAnswer
+                            }
+                          </div>
+                          {session.questions[currentQuestionIndex]
+                            .explanation && (
+                            <div className="mt-2">
+                              <span className="font-semibold">
+                                Explanation:{' '}
+                              </span>
+                              {
+                                session.questions[currentQuestionIndex]
+                                  .explanation
+                              }
+                            </div>
+                          )}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
                   {/* Previous answer feedback */}
                   {session.userProgress?.userAnswers &&
                     session.userProgress.userAnswers[
                       session.questions[currentQuestionIndex].id
-                    ] && (
+                    ] &&
+                    !currentSessionAnswers.has(
+                      session.questions[currentQuestionIndex].id
+                    ) && (
                       <Alert className="bg-blue-50 border-blue-200">
                         <AlertDescription>
                           <div className="font-semibold mb-2">

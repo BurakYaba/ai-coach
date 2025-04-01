@@ -65,10 +65,65 @@ module.exports = {
           from: { height: "var(--radix-collapsible-content-height)" },
           to: { height: 0 },
         },
+        "pulse-glow": {
+          "0%, 100%": { opacity: 1 },
+          "50%": { opacity: 0.6 },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "gradient-xy": {
+          "0%, 100%": {
+            "background-size": "400% 400%",
+            "background-position": "left center"
+          },
+          "50%": {
+            "background-size": "200% 200%",
+            "background-position": "right center"
+          }
+        },
       },
       animation: {
         "collapsible-down": "collapsible-down 0.2s ease-out",
         "collapsible-up": "collapsible-up 0.2s ease-out",
+        "pulse-glow": "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "float": "float 3s ease-in-out infinite",
+        "gradient-xy": "gradient-xy 15s ease infinite",
+      },
+      backgroundImage: {
+        "radial-gradient": "radial-gradient(var(--tw-gradient-stops))",
+        "conic-gradient": "conic-gradient(from 225deg, var(--primary), var(--accent), var(--secondary), var(--primary))",
+      },
+      transitionDuration: {
+        DEFAULT: "200ms",
+      },
+      transitionTimingFunction: {
+        DEFAULT: "cubic-bezier(0.4, 0, 0.2, 1)",
+      },
+      letterSpacing: {
+        tagline: ".15em",
+      },
+      boxShadow: {
+        "glow-primary": "0 0 20px 5px var(--primary-rgb, rgba(74, 144, 226, 0.2))",
+        "glow-accent": "0 0 20px 5px var(--accent-rgb, rgba(241, 196, 15, 0.2))",
+      },
+      opacity: {
+        15: "0.15",
+        85: "0.85",
+      },
+      zIndex: {
+        1: "1",
+        2: "2",
+        3: "3",
+      },
+    },
+    container: {
+      center: true,
+      padding: {
+        DEFAULT: "1rem",
+        sm: "1.5rem",
+        lg: "2rem",
       },
     },
   },

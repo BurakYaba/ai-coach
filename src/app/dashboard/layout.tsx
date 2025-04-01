@@ -20,10 +20,16 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-background to-background relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute -z-10 inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 right-0 w-[40rem] h-[40rem] -translate-y-1/2 translate-x-1/2 rounded-full bg-primary/5 blur-3xl opacity-30" />
+        <div className="absolute bottom-0 left-0 w-[40rem] h-[40rem] translate-y-1/2 -translate-x-1/2 rounded-full bg-secondary/5 blur-3xl opacity-30" />
+      </div>
+
       <DashboardHeader user={session.user} />
       <main className="flex-1">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </div>
       </main>

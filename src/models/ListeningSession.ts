@@ -50,6 +50,11 @@ export interface IListeningSession extends Document {
     topicRelevance: number;
     suggestedNextTopics: string[];
   };
+  // Library-specific fields
+  isLibrary: boolean; // Whether this is a library item or user-generated
+  isPublic: boolean; // Whether the session is available in the library
+  category?: string; // Category for organizing library content
+  tags?: string[]; // Tags for searching and filtering
   createdAt: Date;
   updatedAt: Date;
 }
@@ -228,6 +233,25 @@ const ListeningSessionSchema = new Schema<IListeningSession>(
         max: 10,
       },
       suggestedNextTopics: [String],
+    },
+    // Library-specific fields
+    isLibrary: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    isPublic: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    category: {
+      type: String,
+      index: true,
+    },
+    tags: {
+      type: [String],
+      index: true,
     },
   },
   {

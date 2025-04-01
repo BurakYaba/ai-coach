@@ -476,14 +476,48 @@ export async function createMultiSpeakerAudio(transcript: string) {
 }
 
 /**
- * Estimate audio duration based on word count
+ * Estimate the duration of audio based on text content
  * @param text The text to estimate duration for
  * @returns Estimated duration in seconds
  */
 export function estimateAudioDuration(text: string): number {
-  // Average speaking rate is about 150 words per minute
+  // Identify if the text has multiple speakers
+  const speakerLines = text.split(/\n/).filter(line => /\w+\s*:/.test(line));
+  const uniqueSpeakers = new Set(
+    speakerLines
+      .map(line => {
+        const match = line.match(/^(\w+(?:\s+\w+)?)\s*:/);
+        return match ? match[1] : null;
+      })
+      .filter(Boolean)
+  );
+
+  const speakerCount = uniqueSpeakers.size || 1;
+
+  // Count words
   const words = text.trim().split(/\s+/).length;
-  return Math.ceil((words / 150) * 60);
+
+  // Base speaking rate (words per minute)
+  // The more speakers, the slower the overall pace due to turn-taking
+  let wordsPerMinute = 150;
+
+  // Adjust for number of speakers
+  if (speakerCount > 1) {
+    // More speakers = more pauses between exchanges
+    wordsPerMinute -= (speakerCount - 1) * 5;
+  }
+
+  // Basic duration calculation
+  const durationSeconds = (words / wordsPerMinute) * 60;
+
+  // Add time for pauses and natural speech rhythm
+  const pauseTime = speakerCount > 1 ? speakerCount * 5 : 0;
+
+  // Ensure minimum duration
+  const minDuration = Math.max(30, words / 5); // At least 30 seconds or 1 second per 5 words
+
+  // Return the calculated duration, ensuring it's at least the minimum
+  return Math.max(Math.ceil(durationSeconds + pauseTime), minDuration);
 }
 
 /**

@@ -38,7 +38,7 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from '@/hooks/use-toast';
-import { formatTime } from '@/lib/utils';
+import { formatDuration } from '@/lib/utils';
 
 interface ListeningSession {
   _id: string;
@@ -176,14 +176,22 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <h3 className="text-xl font-semibold mb-2">
-            No listening sessions yet
+            {filter === 'completed'
+              ? 'No completed sessions yet'
+              : filter === 'inprogress'
+                ? 'No sessions in progress'
+                : 'No listening sessions yet'}
           </h3>
           <p className="text-gray-600 mb-4">
-            Start your first listening session to begin improving your skills.
+            {filter === 'completed'
+              ? 'Complete listening sessions to see them here.'
+              : filter === 'inprogress'
+                ? 'Start a session from the library to see it here.'
+                : 'Browse the library tab to start your first listening session.'}
           </p>
           <Button asChild>
-            <Link href="/dashboard/listening/create">
-              Create Your First Session
+            <Link href="/dashboard/listening?tab=library">
+              Browse Listening Library
             </Link>
           </Button>
         </CardContent>
@@ -220,6 +228,13 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
                 )
               : 0;
 
+          // A session is truly complete when progress is 100% (all questions answered and all vocabulary reviewed)
+          const isFullyComplete = progressPercentage === 100;
+          // Official completion status (has completionTime)
+          const isMarkedComplete = !!session.userProgress?.completionTime;
+          // Use the official status for display
+          const isCompleted = isMarkedComplete;
+
           // Extract transcript snippet for description
           const transcript = session.content?.transcript || '';
           const description =
@@ -230,8 +245,6 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
               .substring(0, 100)
               .trim() + '...';
 
-          const isCompleted = !!session.userProgress?.completionTime;
-
           return (
             <Card key={session._id} className="h-full flex flex-col">
               <CardHeader className="pb-3">
@@ -241,7 +254,7 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
                       {session.title}
                     </CardTitle>
                     <CardDescription className="text-xs">
-                      {formatTime(session.duration)} • {session.contentType}
+                      {formatDuration(session.duration)} • {session.contentType}
                     </CardDescription>
                   </div>
                   <Badge
@@ -252,40 +265,32 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
                   </Badge>
                 </div>
               </CardHeader>
-              <CardContent className="flex-grow pb-3">
-                <div className="space-y-3">
-                  <div>
-                    <div className="flex justify-between text-xs mb-1">
-                      <span>Progress</span>
-                      <span>{progressPercentage}%</span>
-                    </div>
-                    <Progress value={progressPercentage} className="h-1" />
+              <CardContent className="py-0 flex-grow">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>Progress:</span>
+                    <span>{progressPercentage}%</span>
                   </div>
-                  <p className="text-sm text-gray-500 line-clamp-2">
+                  <Progress value={progressPercentage} className="h-1" />
+                </div>
+                <div className="mt-4">
+                  <p className="text-sm text-muted-foreground line-clamp-2">
                     {description}
                   </p>
-                  <div className="flex flex-wrap gap-1">
-                    <Badge variant="outline" className="text-xs">
-                      {session.level}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
-                      {session.topic}
-                    </Badge>
-                  </div>
                 </div>
               </CardContent>
-              <CardFooter className="pt-0 flex flex-col gap-2">
-                <Button asChild variant="secondary" className="w-full h-9">
+              <CardFooter className="pt-2 flex justify-between">
+                <Button variant="ghost" size="sm" className="text-xs" asChild>
                   <Link href={`/dashboard/listening/${session._id}`}>
                     {isCompleted ? (
                       <>
-                        <CircleCheck className="mr-1 h-4 w-4" />
-                        Review Session
+                        <CircleCheck className="h-3.5 w-3.5 mr-1.5" />
+                        Review
                       </>
                     ) : (
                       <>
-                        <Play className="mr-1 h-4 w-4" />
-                        Continue Listening
+                        <Play className="h-3.5 w-3.5 mr-1.5" />
+                        Continue
                       </>
                     )}
                   </Link>
@@ -298,10 +303,10 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="w-full h-8"
+                      className="text-xs"
                       onClick={() => setSessionToDelete(session._id)}
                     >
-                      <Trash2 className="mr-1 h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5 mr-1.5" />
                       Delete
                     </Button>
                   </AlertDialogTrigger>

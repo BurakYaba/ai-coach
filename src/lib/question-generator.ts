@@ -189,26 +189,44 @@ export async function extractVocabulary(
     const vocabCount =
       vocabCountByLevel[level as keyof typeof vocabCountByLevel] || 10;
 
-    // Generate vocabulary items using OpenAI
+    // Create a normalized version of the transcript for word validation
+    const normalizedTranscript = transcript.toLowerCase();
+    // Create a word list from the transcript
+    const transcriptWords = new Set(
+      normalizedTranscript
+        .replace(/[^\w\s']|_/g, ' ') // Remove punctuation except apostrophes
+        .split(/\s+/)
+        .map(word => word.toLowerCase().trim())
+        .filter(word => word.length > 2) // Keep words longer than 2 chars
+    );
+
+    console.log(`Transcript contains ${transcriptWords.size} unique words`);
+
+    // Generate vocabulary items using OpenAI with a more explicit prompt
     const response = await openai.chat.completions.create({
       model: 'gpt-4o',
       messages: [
         {
           role: 'system',
-          content: `You are an expert language teacher specializing in vocabulary acquisition for ${level} level learners. Extract valuable vocabulary items from texts that are appropriate for this level.`,
+          content: `You are an expert language teacher specializing in vocabulary acquisition for ${level} level learners. Your task is to extract vocabulary items that appear EXACTLY in the transcript provided.`,
         },
         {
           role: 'user',
-          content: `Extract ${vocabCount} vocabulary items from this transcript that would be valuable for ${level} level English learners. Focus on words that are:
+          content: `Extract ${vocabCount} vocabulary items from this transcript that would be valuable for ${level} level English learners. 
+
+VERY IMPORTANT: You MUST ONLY select words or short phrases that appear EXACTLY in the transcript - do not invent, modify, or suggest words that are not present in the exact transcript text.
+
+Focus on words that are:
+- Actually present in the transcript (this is the most important criterion)
 - Appropriate for ${level} level
 - Useful in everyday contexts
 - Representative of different parts of speech
 - Include some challenging but attainable words
 
 For each vocabulary item, provide:
-- word: The vocabulary word or phrase
+- word: The vocabulary word or phrase EXACTLY as it appears in the transcript
 - definition: A clear, concise definition suitable for ${level} level
-- context: The sentence from the transcript containing the word
+- context: The EXACT sentence from the transcript containing the word
 - examples: 2 additional example sentences using the word
 - difficulty: A number from 1-10 indicating difficulty (relative to the ${level} level)
 - timestamp: Approximate position in the text (as a word count from the beginning)
@@ -260,15 +278,51 @@ ${transcript}`,
       return [];
     }
 
-    // Validate each vocabulary item
-    return vocabulary.map((item: any) => ({
-      word: item.word || '',
-      definition: item.definition || '',
-      context: item.context || '',
-      examples: Array.isArray(item.examples) ? item.examples : [],
-      difficulty: Number(item.difficulty) || 5,
-      timestamp: item.timestamp || 0,
-    }));
+    // Validate each vocabulary item and ensure the word is in the transcript
+    const validatedVocabulary = vocabulary
+      .map((item: any) => {
+        const word = item.word || '';
+        const normalizedWord = word.toLowerCase().trim();
+
+        // Check if word appears in transcript
+        const wordAppears = normalizedTranscript.includes(normalizedWord);
+
+        console.log(
+          `Vocabulary word "${word}" ${wordAppears ? 'found' : 'NOT FOUND'} in transcript`
+        );
+
+        // Only include words that actually appear in the transcript
+        if (!wordAppears) {
+          return null;
+        }
+
+        return {
+          word: word,
+          definition: item.definition || '',
+          context: item.context || '',
+          examples: Array.isArray(item.examples) ? item.examples : [],
+          difficulty: Number(item.difficulty) || 5,
+          timestamp: item.timestamp || 0,
+        };
+      })
+      .filter(
+        (
+          item
+        ): item is {
+          word: string;
+          definition: string;
+          context: string;
+          examples: string[];
+          difficulty: number;
+          timestamp: number;
+        } => item !== null
+      ); // Remove null items
+
+    console.log(
+      `Validated ${validatedVocabulary.length} vocabulary items from ${vocabulary.length} suggested`
+    );
+
+    return validatedVocabulary;
   } catch (error) {
     console.error('Error extracting vocabulary:', error);
     return [];

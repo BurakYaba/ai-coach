@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -60,12 +62,15 @@
     --popover-foreground: #34495e; /* Dark Gray */
     --primary: #4a90e2; /* Blue */
     --primary-foreground: #ffffff;
+    --primary-rgb: 74, 144, 226;
     --secondary: #2ecc71; /* Green */
     --secondary-foreground: #ffffff;
+    --secondary-rgb: 46, 204, 113;
     --muted: #f5f7f8; /* Lighter version of Light Gray */
     --muted-foreground: #7f8c8d; /* Medium Gray */
     --accent: #f1c40f; /* Yellow */
     --accent-foreground: #34495e; /* Dark Gray */
+    --accent-rgb: 241, 196, 15;
     --destructive: #e74c3c; /* Red - keeping a red tone for destructive actions */
     --destructive-foreground: #ffffff;
     --border: #d1d8dc; /* Slightly darker Light Gray */
@@ -76,6 +81,9 @@
     --notification: #e67e22; /* Orange */
     --notification-foreground: #ffffff;
     --radius: 0.625rem;
+    --font-sans:
+      'Sora', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      'Helvetica Neue', Arial, sans-serif;
   }
 
   .dark {
@@ -88,12 +96,15 @@
     --popover-foreground: #ecf0f1; /* Light Gray */
     --primary: #5da3f6; /* Lighter Blue */
     --primary-foreground: #ffffff;
+    --primary-rgb: 93, 163, 246;
     --secondary: #3ee483; /* Lighter Green */
     --secondary-foreground: #ffffff;
+    --secondary-rgb: 62, 228, 131;
     --muted: #3d4b5c; /* Slightly lighter Dark Gray */
     --muted-foreground: #bdc3c7; /* Lighter Gray */
     --accent: #f4d03f; /* Slightly lighter Yellow */
     --accent-foreground: #2c3e50; /* Darker version of Dark Gray */
+    --accent-rgb: 244, 208, 63;
     --destructive: #e74c3c; /* Red */
     --destructive-foreground: #ffffff;
     --border: #4a5c6b; /* Slightly lighter Dark Gray */
@@ -110,7 +121,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }
 
@@ -140,4 +151,43 @@
   .animate-collapsible-up {
     animation: collapsible-up 0.2s ease-out;
   }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary via-accent to-secondary;
+  }
+
+  .gradient-border {
+    @apply p-0.5 bg-gradient-to-r from-primary via-accent to-secondary rounded-xl;
+  }
+
+  .bg-radial {
+    @apply bg-radial-gradient from-accent/30 via-background to-background;
+  }
+
+  .backdrop-blur-card {
+    @apply backdrop-blur-md bg-opacity-70 bg-card;
+  }
+
+  .shadow-glow {
+    box-shadow: 0 0 20px 5px rgba(var(--primary-rgb), 0.2);
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(var(--primary-rgb), 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--primary-rgb), 0.5);
 }

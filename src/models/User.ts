@@ -5,6 +5,8 @@ export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
+  image?: string;
+  role: 'user' | 'admin';
   languageLevel: string;
   learningPreferences: {
     topics: string[];
@@ -48,6 +50,15 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: [true, 'Name is required'],
       trim: true,
+    },
+    image: {
+      type: String,
+      required: false,
+    },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
     },
     languageLevel: {
       type: String,
