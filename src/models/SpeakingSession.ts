@@ -1,0 +1,165 @@
+import mongoose, { Document, Model, Schema } from 'mongoose';
+
+export interface ISpeakingSession extends Document {
+  user: mongoose.Types.ObjectId;
+  startTime: Date;
+  endTime?: Date;
+  duration?: number; // in seconds
+  voice: string;
+  modelName: string;
+  status: 'active' | 'completed' | 'interrupted';
+  transcripts: Array<{
+    role: 'user' | 'assistant';
+    text: string;
+    timestamp: Date;
+  }>;
+  metrics?: {
+    userSpeakingTime?: number; // total time user spent speaking (seconds)
+    assistantSpeakingTime?: number; // total time assistant spent speaking (seconds)
+    turnsCount?: number; // total number of conversation turns
+    uniqueWords?: number; // count of unique words used by user
+  };
+  feedback?: {
+    fluencyScore?: number; // 1-10 rating of speaking fluency
+    accuracyScore?: number; // 1-10 rating of grammatical accuracy
+    vocabularyScore?: number; // 1-10 rating of vocabulary usage
+    overallScore?: number; // 1-10 overall rating
+    strengths?: string[]; // areas where the user performed well
+    areasForImprovement?: string[]; // areas that need improvement
+    suggestions?: string; // suggestions for improvement
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const speakingSessionSchema = new Schema<ISpeakingSession>(
+  {
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      index: true,
+    },
+    startTime: {
+      type: Date,
+      required: true,
+      default: Date.now,
+    },
+    endTime: {
+      type: Date,
+      required: false,
+    },
+    duration: {
+      type: Number,
+      required: false,
+    },
+    voice: {
+      type: String,
+      required: true,
+      enum: ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'],
+      default: 'alloy',
+    },
+    modelName: {
+      type: String,
+      required: true,
+      default: 'gpt-4o-realtime-preview-2024-12-17',
+    },
+    status: {
+      type: String,
+      required: true,
+      enum: ['active', 'completed', 'interrupted'],
+      default: 'active',
+    },
+    transcripts: [
+      {
+        role: {
+          type: String,
+          required: true,
+          enum: ['user', 'assistant'],
+        },
+        text: {
+          type: String,
+          required: true,
+        },
+        timestamp: {
+          type: Date,
+          required: true,
+          default: Date.now,
+        },
+      },
+    ],
+    metrics: {
+      userSpeakingTime: {
+        type: Number,
+        required: false,
+      },
+      assistantSpeakingTime: {
+        type: Number,
+        required: false,
+      },
+      turnsCount: {
+        type: Number,
+        required: false,
+      },
+      uniqueWords: {
+        type: Number,
+        required: false,
+      },
+    },
+    feedback: {
+      fluencyScore: {
+        type: Number,
+        required: false,
+        min: 1,
+        max: 10,
+      },
+      accuracyScore: {
+        type: Number,
+        required: false,
+        min: 1,
+        max: 10,
+      },
+      vocabularyScore: {
+        type: Number,
+        required: false,
+        min: 1,
+        max: 10,
+      },
+      overallScore: {
+        type: Number,
+        required: false,
+        min: 1,
+        max: 10,
+      },
+      strengths: [
+        {
+          type: String,
+          required: false,
+        },
+      ],
+      areasForImprovement: [
+        {
+          type: String,
+          required: false,
+        },
+      ],
+      suggestions: {
+        type: String,
+        required: false,
+      },
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+// Add indexes for common query patterns
+speakingSessionSchema.index({ user: 1, startTime: -1 });
+speakingSessionSchema.index({ status: 1 });
+
+const SpeakingSession =
+  (mongoose.models.SpeakingSession as Model<ISpeakingSession>) ||
+  mongoose.model<ISpeakingSession>('SpeakingSession', speakingSessionSchema);
+
+export default SpeakingSession;

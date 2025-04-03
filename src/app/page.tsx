@@ -62,6 +62,12 @@ export default function LandingPage() {
               Testimonials
             </Link>
             <Link
+              href="/games"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              Games
+            </Link>
+            <Link
               href="#pricing"
               className="text-sm font-medium hover:text-primary transition-colors"
             >
