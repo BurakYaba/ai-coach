@@ -2775,3 +2775,25 @@ class RealTimeConversationService {
 - **Week 6**: Testing, refinement, and documentation
 
 This implementation plan provides a structured approach to building the speaking module while maintaining consistency with the existing application architecture and keeping the implementation straightforward and robust.
+
+## Speaking Module Features
+
+### Speech Evaluation System
+
+The AI Coach platform features a comprehensive speech evaluation system that combines two powerful technologies:
+
+1. **Azure Speech Services** - Analyzes audio characteristics:
+
+   - **Pronunciation Assessment**: Evaluates how accurately sounds are pronounced
+   - **Fluency Assessment**: Measures natural flow and lack of hesitation
+   - **Prosody Analysis**: NEW! Evaluates intonation, rhythm, and stress patterns
+   - **Speaking Rate**: NEW! Measures speaking pace in words per minute
+   - **Word-level Analysis**: NEW! Provides detailed feedback on mispronounced words
+   - **Phoneme-level Feedback**: NEW! Highlights specific sound issues in speech
+
+2. **OpenAI GPT** - Analyzes linguistic content:
+   - **Grammar Analysis**: Identifies grammatical errors and suggests corrections
+   - **Accuracy Assessment**: Evaluates appropriate word usage and meaning
+   - **Feedback Generation**: Provides personalized suggestions for improvement
+
+This dual approach ensures learners receive comprehensive feedback on both how they speak (audio characteristics) and what they say (linguistic content).

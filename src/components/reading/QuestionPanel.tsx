@@ -307,7 +307,7 @@ export function QuestionPanel({
         {isCurrentQuestionAnswered && !showFeedback && (
           <Alert className="bg-blue-100 mb-4">
             <AlertDescription>
-              You've already answered this question. Showing your previous
+              You&apos;ve already answered this question. Showing your previous
               answer and feedback.
             </AlertDescription>
           </Alert>

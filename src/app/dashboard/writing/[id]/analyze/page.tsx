@@ -232,8 +232,8 @@ export default function AnalyzeWritingPage() {
                       splitting it into smaller sections
                     </li>
                     <li>
-                      Check that your essay doesn't contain unusual formatting
-                      or special characters
+                      Check that your essay doesn&apos;t contain unusual
+                      formatting or special characters
                     </li>
                   </ul>
                 </div>
@@ -401,7 +401,9 @@ export default function AnalyzeWritingPage() {
           </div>
 
           <div className="text-center text-sm text-muted-foreground">
-            <p>This may take a minute or two. Please don't close this page.</p>
+            <p>
+              This may take a minute or two. Please don&apos;t close this page.
+            </p>
           </div>
         </CardContent>
       </Card>

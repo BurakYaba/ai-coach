@@ -1,23 +1,23 @@
-import { Plus, Edit, Eye, Trash } from 'lucide-react';
-import Link from 'next/link';
-import { Suspense } from 'react';
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { Suspense } from "react";
 
 // Components
-import { LibraryTable } from '@/components/admin/LibraryTable';
-import { Button } from '@/components/ui/button';
+import { LibraryTable } from "@/components/admin/LibraryTable";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata = {
-  title: 'Listening Library | Admin Dashboard',
-  description: 'Manage listening library content',
+  title: "Listening Library | Admin Dashboard",
+  description: "Manage listening library content",
 };
 
 function LibraryTableSkeleton() {

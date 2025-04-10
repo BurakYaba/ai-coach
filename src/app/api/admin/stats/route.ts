@@ -1,25 +1,25 @@
-import { startOfDay, startOfMonth, startOfWeek, subMonths } from 'date-fns';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { startOfDay, startOfMonth, startOfWeek } from "date-fns";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions, isAdmin } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import ListeningSession from '@/models/ListeningSession';
-import User from '@/models/User';
+import { authOptions, isAdmin } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import ListeningSession from "@/models/ListeningSession";
+import User from "@/models/User";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check if user is admin
     const userIsAdmin = await isAdmin(session.user.id);
     if (!userIsAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     await dbConnect();
@@ -28,7 +28,6 @@ export async function GET(request: NextRequest) {
     const today = startOfDay(new Date());
     const thisWeek = startOfWeek(new Date());
     const thisMonth = startOfMonth(new Date());
-    const lastMonth = startOfMonth(subMonths(new Date(), 1));
 
     // Get total users count
     const totalUsers = await User.countDocuments();
@@ -77,43 +76,43 @@ export async function GET(request: NextRequest) {
 
     // Get sessions completed (where completionTime exists)
     const sessionsCompleted = await ListeningSession.countDocuments({
-      'userProgress.completionTime': { $ne: null },
+      "userProgress.completionTime": { $ne: null },
     });
 
     // Get sessions completed today
     const sessionsCompletedToday = await ListeningSession.countDocuments({
-      'userProgress.completionTime': { $gte: today },
+      "userProgress.completionTime": { $gte: today },
     });
 
     // Get active users by counting distinct users who created sessions today/this week/this month
-    const activeUsersToday = await ListeningSession.distinct('userId', {
+    const activeUsersToday = await ListeningSession.distinct("userId", {
       createdAt: { $gte: today },
     });
 
-    const activeUsersThisWeek = await ListeningSession.distinct('userId', {
+    const activeUsersThisWeek = await ListeningSession.distinct("userId", {
       createdAt: { $gte: thisWeek },
     });
 
-    const activeUsersThisMonth = await ListeningSession.distinct('userId', {
+    const activeUsersThisMonth = await ListeningSession.distinct("userId", {
       createdAt: { $gte: thisMonth },
     });
 
     // Get count of listening sessions by level
     const sessionsByLevel = await ListeningSession.aggregate([
-      { $group: { _id: '$level', count: { $sum: 1 } } },
+      { $group: { _id: "$level", count: { $sum: 1 } } },
       { $sort: { _id: 1 } },
     ]);
 
     // Get count of library items by level
     const libraryItemsByLevel = await ListeningSession.aggregate([
       { $match: { isLibrary: true } },
-      { $group: { _id: '$level', count: { $sum: 1 } } },
+      { $group: { _id: "$level", count: { $sum: 1 } } },
       { $sort: { _id: 1 } },
     ]);
 
     // Get count of listening sessions by content type
     const sessionsByContentType = await ListeningSession.aggregate([
-      { $group: { _id: '$contentType', count: { $sum: 1 } } },
+      { $group: { _id: "$contentType", count: { $sum: 1 } } },
       { $sort: { count: -1 } },
     ]);
 
@@ -132,14 +131,14 @@ export async function GET(request: NextRequest) {
       {
         $group: {
           _id: {
-            year: { $year: '$createdAt' },
-            month: { $month: '$createdAt' },
+            year: { $year: "$createdAt" },
+            month: { $month: "$createdAt" },
           },
           count: { $sum: 1 },
         },
       },
       {
-        $sort: { '_id.year': 1, '_id.month': 1 },
+        $sort: { "_id.year": 1, "_id.month": 1 },
       },
     ]);
 
@@ -178,9 +177,9 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching admin stats:', error);
+    console.error("Error fetching admin stats:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch admin stats' },
+      { error: "Failed to fetch admin stats" },
       { status: 500 }
     );
   }

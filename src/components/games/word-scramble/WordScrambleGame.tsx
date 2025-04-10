@@ -209,7 +209,9 @@ export default function WordScrambleGame({
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Game Results</CardTitle>
-          <CardDescription>Here's how you did in Word Scramble</CardDescription>
+          <CardDescription>
+            Here&apos;s how you did in Word Scramble
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -405,7 +407,8 @@ export default function WordScrambleGame({
                   <li>Click on a letter in the answer area to remove it.</li>
                   <li>Click "Submit" when you think your answer is correct.</li>
                   <li>
-                    If correct, you'll earn 10 points and move to the next word.
+                    If correct, you&apos;ll earn 10 points and move to the next
+                    word.
                   </li>
                   <li>If incorrect, try again!</li>
                   <li>
@@ -420,8 +423,8 @@ export default function WordScrambleGame({
                 <ul className="list-disc list-inside space-y-2">
                   <li>Use the definition as a hint for the word.</li>
                   <li>Look for common prefixes and suffixes.</li>
-                  <li>Try different combinations if you're stuck.</li>
-                  <li>Don't spend too much time on any single word.</li>
+                  <li>Try different combinations if you&apos;re stuck.</li>
+                  <li>Don&apos;t spend too much time on any single word.</li>
                 </ul>
               </div>
 

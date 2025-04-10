@@ -1,19 +1,18 @@
-import mongoose from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import User from '@/models/User';
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import User from "@/models/User";
 
-type LevelKey = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+type LevelKey = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 
 export async function POST(req: NextRequest) {
   try {
     // Check authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Connect to database
@@ -21,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     // Parse request body
     const body = await req.json();
-    const { gameId, score, correctAnswers, totalQuestions, timeSpent, level } =
+    const { gameId, score, correctAnswers, totalQuestions, _timeSpent, level } =
       body;
 
     // Validate required fields
@@ -32,7 +31,7 @@ export async function POST(req: NextRequest) {
       totalQuestions === undefined
     ) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -43,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     const user = await User.findById(session.user.id);
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
     // Update user's total points based on game score
@@ -64,11 +63,11 @@ export async function POST(req: NextRequest) {
         C2: 6,
       };
       const gameLevel =
-        level === 'easy'
-          ? 'A1'
-          : level === 'medium'
-            ? 'B1'
-            : ('C1' as LevelKey);
+        level === "easy"
+          ? "A1"
+          : level === "medium"
+            ? "B1"
+            : ("C1" as LevelKey);
       const currentLevel = user.languageLevel as LevelKey;
 
       if (levelValues[gameLevel] > levelValues[currentLevel]) {
@@ -80,27 +79,27 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Game result saved successfully',
+      message: "Game result saved successfully",
       data: {
         score,
         pointsEarned: score,
       },
     });
   } catch (error) {
-    console.error('Error saving game result:', error);
+    console.error("Error saving game result:", error);
     return NextResponse.json(
-      { error: 'Failed to save game result' },
+      { error: "Failed to save game result" },
       { status: 500 }
     );
   }
 }
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   try {
     // Check authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // For now, we don't have a proper GameResult model, so we'll just return an empty array
@@ -111,9 +110,9 @@ export async function GET(req: NextRequest) {
       data: [],
     });
   } catch (error) {
-    console.error('Error fetching game results:', error);
+    console.error("Error fetching game results:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch game results' },
+      { error: "Failed to fetch game results" },
       { status: 500 }
     );
   }

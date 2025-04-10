@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useVocabularyBank, type VocabularyWord } from '@/hooks/use-vocabulary';
+import { useState, useEffect } from 'react';
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,11 +14,10 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import FlashcardView from '@/components/vocabulary/FlashcardView';
+import { useVocabularyBank, type VocabularyWord } from '@/hooks/use-vocabulary';
 
 export default function VocabularyFlashcardsPage() {
   const router = useRouter();
@@ -171,7 +172,7 @@ export default function VocabularyFlashcardsPage() {
           <CardHeader>
             <CardTitle>Review Complete!</CardTitle>
             <CardDescription>
-              You've reviewed {filteredWords.length} words.
+              You&apos;ve reviewed {filteredWords.length} words.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">

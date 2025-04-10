@@ -19,17 +19,39 @@ export async function GET(req: NextRequest) {
     // Connect to database
     await dbConnect();
 
-    // Get sessions
+    // Parse pagination parameters
+    const url = new URL(req.url);
+    const pageParam = url.searchParams.get('page');
+    const page = pageParam ? parseInt(pageParam) : 1;
+    const limit = 8; // 2 rows x 4 columns
+    const skip = (page - 1) * limit;
+
+    // Count total number of sessions for pagination
+    const totalSessions = await SpeakingSession.countDocuments({
+      user: session.user.id,
+    });
+
+    // Get paginated sessions
     const speakingSessions = await SpeakingSession.find({
       user: session.user.id,
     })
       .sort({ startTime: -1 }) // Most recent first
-      .limit(20) // Limit to 20 sessions
+      .skip(skip)
+      .limit(limit)
       .lean(); // Convert to plain JS objects
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalSessions / limit);
 
     return NextResponse.json({
       success: true,
       sessions: speakingSessions,
+      pagination: {
+        total: totalSessions,
+        pages: totalPages,
+        current: page,
+        limit: limit,
+      },
     });
   } catch (error) {
     console.error('Error fetching speaking sessions:', error);

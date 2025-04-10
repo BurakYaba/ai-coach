@@ -302,8 +302,8 @@ export default function ListeningSessionPage({
         <div className="text-center">
           <h2 className="text-2xl font-bold">Listening session not found</h2>
           <p className="mt-2 text-gray-600">
-            The session you're looking for doesn't exist or you don't have
-            access to it.
+            The session you&apos;re looking for doesn&apos;t exist or you
+            don&apos;t have access to it.
           </p>
           <div className="mt-6">
             <Link href="/listening">

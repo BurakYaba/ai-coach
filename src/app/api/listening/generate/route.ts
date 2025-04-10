@@ -1,23 +1,22 @@
-import crypto from 'crypto';
+import crypto from "crypto";
 
-import mongoose from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { OpenAI } from 'openai';
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { OpenAI } from "openai";
 
 import {
   createMultiSpeakerAudio,
   estimateAudioDuration,
-  parseTranscriptBySpeaker,
-} from '@/lib/audio-processor';
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import { generateQuestions, extractVocabulary } from '@/lib/question-generator';
-import { normalizeQuestionType } from '@/lib/utils';
-import ListeningSession, { IListeningSession } from '@/models/ListeningSession';
+} from "@/lib/audio-processor";
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import { generateQuestions, extractVocabulary } from "@/lib/question-generator";
+import { normalizeQuestionType } from "@/lib/utils";
+import ListeningSession from "@/models/ListeningSession";
 
 // Force dynamic rendering to handle server-side requests properly
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Initialize OpenAI with improved timeout handling
 const openai = new OpenAI({
@@ -39,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     if (!session?.user?.id) {
       clearTimeout(timeoutId);
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
@@ -48,13 +47,13 @@ export async function POST(req: NextRequest) {
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
     const body = await req.json();
-    const { level, topic, contentType, targetLength = 'medium' } = body;
+    const { level, topic, contentType, targetLength = "medium" } = body;
 
     // Validate required fields
     if (!level || !topic || !contentType) {
       clearTimeout(timeoutId);
       return NextResponse.json(
-        { error: 'Missing required fields: level, topic, or contentType' },
+        { error: "Missing required fields: level, topic, or contentType" },
         { status: 400 }
       );
     }
@@ -120,7 +119,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           {
             error:
-              'Operation timed out. Please try again with a shorter content length or a different topic.',
+              "Operation timed out. Please try again with a shorter content length or a different topic.",
             retryable: true,
           },
           { status: 504 }
@@ -136,7 +135,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           {
             error:
-              'Audio generation timed out. Please try again with a shorter content length.',
+              "Audio generation timed out. Please try again with a shorter content length.",
             retryable: true,
           },
           { status: 504 }
@@ -153,18 +152,19 @@ export async function POST(req: NextRequest) {
       const title = await generateTitle(transcript, topic, level);
 
       // After generating the transcript and creating the audio
-      const segments = parseTranscriptBySpeaker(transcript);
-      const speakers = segments.map(
-        (segment: {
-          speakerIndex: number;
-          speakerName: string;
-          detectedGender: 'male' | 'female' | 'unknown';
-        }) => ({
-          speakerIndex: segment.speakerIndex,
-          speakerName: segment.speakerName,
-          detectedGender: segment.detectedGender,
-        })
-      );
+      // const segments = parseTranscriptBySpeaker(transcript); // Not used in this file
+      // The following is unused and can be commented out
+      // const speakers = segments.map(
+      //   (segment: {
+      //     speakerIndex: number;
+      //     speakerName: string;
+      //     detectedGender: 'male' | 'female' | 'unknown';
+      //   }) => ({
+      //     speakerIndex: segment.speakerIndex,
+      //     speakerName: segment.speakerName,
+      //     detectedGender: segment.detectedGender,
+      //   })
+      // );
 
       // Step 6: Create listening session with careful error handling
       try {
@@ -172,7 +172,7 @@ export async function POST(req: NextRequest) {
         const timestampedQuestions = questions.map((q: any, index: number) => {
           // Ensure the question type is properly normalized
           const normalizedType = normalizeQuestionType(
-            q.type || 'multiple-choice'
+            q.type || "multiple-choice"
           );
 
           // For debugging
@@ -187,11 +187,11 @@ export async function POST(req: NextRequest) {
             type: normalizedType,
             question: q.question,
             options:
-              normalizedType === 'multiple-choice'
+              normalizedType === "multiple-choice"
                 ? q.options || []
                 : undefined,
             correctAnswer: q.correctAnswer,
-            explanation: q.explanation || 'Explanation not provided',
+            explanation: q.explanation || "Explanation not provided",
             timestamp: Math.floor(Math.random() * audioResult.duration), // Random timestamp for now
           };
         });
@@ -201,13 +201,13 @@ export async function POST(req: NextRequest) {
           (v: any, index: number) => {
             // For debugging
             console.log(
-              `Processing vocabulary ${index}: word="${v.word}", examples=${Array.isArray(v.examples) ? v.examples.length : 'none'}`
+              `Processing vocabulary ${index}: word="${v.word}", examples=${Array.isArray(v.examples) ? v.examples.length : "none"}`
             );
 
             return {
-              word: v.word || '',
-              definition: v.definition || '',
-              context: v.context || 'No example provided',
+              word: v.word || "",
+              definition: v.definition || "",
+              context: v.context || "No example provided",
               examples:
                 Array.isArray(v.examples) && v.examples.length > 0
                   ? v.examples
@@ -260,11 +260,11 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json(listeningSession, { status: 201 });
       } catch (dbError) {
-        console.error('Database error creating listening session:', dbError);
+        console.error("Database error creating listening session:", dbError);
         clearTimeout(timeoutId);
         return NextResponse.json(
           {
-            error: 'Failed to create listening session',
+            error: "Failed to create listening session",
             details: (dbError as Error).message,
             modelError: true,
             retryable: true,
@@ -280,22 +280,22 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           {
             error:
-              'Content generation timed out. Please try again with simpler parameters.',
+              "Content generation timed out. Please try again with simpler parameters.",
             details:
-              'The operation took too long to complete. Try using a shorter content length or different topic.',
+              "The operation took too long to complete. Try using a shorter content length or different topic.",
             retryable: true,
-            stage: 'timeout',
+            stage: "timeout",
           },
           { status: 504 }
         );
       }
 
-      console.error('Error processing content:', processingError);
+      console.error("Error processing content:", processingError);
       return NextResponse.json(
         {
-          error: 'Error generating content',
+          error: "Error generating content",
           details: (processingError as Error).message,
-          stage: 'content_processing',
+          stage: "content_processing",
           retryable: true,
         },
         { status: 500 }
@@ -303,15 +303,15 @@ export async function POST(req: NextRequest) {
     }
   } catch (error) {
     clearTimeout(timeoutId);
-    console.error('Error generating listening content:', error);
+    console.error("Error generating listening content:", error);
 
     // Check if the operation was aborted due to timeout
     if (controller.signal.aborted) {
       return NextResponse.json(
         {
-          error: 'Operation timed out. Please try again.',
+          error: "Operation timed out. Please try again.",
           details:
-            'The request took too long to process. Try again or choose different parameters.',
+            "The request took too long to process. Try again or choose different parameters.",
           retryable: true,
         },
         { status: 504 }
@@ -320,7 +320,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error: 'Error generating listening content',
+        error: "Error generating listening content",
         details: (error as Error).message,
         retryable: true,
       },
@@ -345,11 +345,11 @@ Number of speakers: ${speakerCount}
 
 IMPORTANT SPEAKER INSTRUCTIONS:
 ${
-  contentType === 'dialogue'
+  contentType === "dialogue"
     ? 'Create a conversation between two people. Give each person a real name (like "Maria", "John", "Aisha", "Wei") instead of generic labels like "Speaker A".'
-    : contentType === 'interview'
+    : contentType === "interview"
       ? 'Create an interview with real names for both the interviewer and guest (like "Maria", "John", "Aisha", "Wei") instead of generic labels.'
-      : contentType === 'monologue'
+      : contentType === "monologue"
         ? 'Create a speech by a person with a real name (like "Maria", "John", "Aisha", or "Wei") instead of generic "Speaker".'
         : 'Create a news report with real names for the anchor and any reporters (like "Maria", "John", "Aisha", "Wei") instead of generic labels.'
 }
@@ -372,14 +372,14 @@ Output ONLY the transcript without any other explanations or meta-information.
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: "gpt-4o",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content:
             'You are an expert language education content creator specializing in creating authentic conversations with diverse speakers. Use real names instead of generic labels like "Speaker A" or "Speaker B".',
         },
-        { role: 'user', content: promptTemplate },
+        { role: "user", content: promptTemplate },
       ],
       temperature: 0.7,
       max_tokens: Math.min(4000, targetWordCount * 8), // Limit tokens based on target word count
@@ -387,7 +387,7 @@ Output ONLY the transcript without any other explanations or meta-information.
 
     if (!completion.choices || !completion.choices[0]?.message?.content) {
       throw new Error(
-        'Failed to generate transcript: OpenAI returned empty response'
+        "Failed to generate transcript: OpenAI returned empty response"
       );
     }
 
@@ -396,22 +396,22 @@ Output ONLY the transcript without any other explanations or meta-information.
 
     // Remove any markdown headers or unnecessary formatting
     transcript = transcript
-      .replace(/^#+ .*$/gm, '') // Remove markdown headers
-      .replace(/\*\*(.*?)\*\*/g, '$1') // Remove bold formatting
-      .replace(/\*(.*?)\*/g, '$1') // Remove italic formatting
-      .replace(/^(Dialogue|Conversation):.+\n/gm, '') // Remove dialogue/conversation labels
-      .replace(/^#{3}\s.*\n+/gm, '') // Remove any ### headers
+      .replace(/^#+ .*$/gm, "") // Remove markdown headers
+      .replace(/\*\*(.*?)\*\*/g, "$1") // Remove bold formatting
+      .replace(/\*(.*?)\*/g, "$1") // Remove italic formatting
+      .replace(/^(Dialogue|Conversation):.+\n/gm, "") // Remove dialogue/conversation labels
+      .replace(/^#{3}\s.*\n+/gm, "") // Remove any ### headers
       .trim();
 
     return transcript;
   } catch (error) {
-    console.error('Error generating transcript:', error);
+    console.error("Error generating transcript:", error);
 
     // Check if it's a timeout error and provide more specific messaging
     if (error instanceof Error) {
       if (
-        error.message.includes('timeout') ||
-        error.message.includes('timed out')
+        error.message.includes("timeout") ||
+        error.message.includes("timed out")
       ) {
         throw new Error(
           `Transcript generation timed out. Please try with a shorter length (${level} level, ${targetWordCount} words might be too complex).`
@@ -432,15 +432,15 @@ async function generateTitle(
   try {
     // Generate a title using OpenAI
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: "gpt-3.5-turbo",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content:
-            'You are a helpful assistant that creates concise, engaging titles for language learning content.',
+            "You are a helpful assistant that creates concise, engaging titles for language learning content.",
         },
         {
-          role: 'user',
+          role: "user",
           content: `Create a short, engaging title (maximum 8 words) for a ${level} level language learning listening exercise about ${topic} based on this transcript. Don't use quotes in the title:\n\n${transcript.substring(0, 1000)}...`,
         },
       ],
@@ -451,9 +451,9 @@ async function generateTitle(
     const title =
       response.choices[0].message.content?.trim() ||
       `Conversation about ${topic}`;
-    return title.replace(/["']/g, ''); // Remove quotes if they exist
+    return title.replace(/["']/g, ""); // Remove quotes if they exist
   } catch (error) {
-    console.error('Error generating title:', error);
+    console.error("Error generating title:", error);
     return `Conversation about ${topic}`;
   }
 }
@@ -466,20 +466,20 @@ async function suggestNextTopics(
   try {
     // Generate next topic suggestions using OpenAI
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: "gpt-3.5-turbo",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content:
-            'You are a language learning expert who suggests related topics for learners to explore next.',
+            "You are a language learning expert who suggests related topics for learners to explore next.",
         },
         {
-          role: 'user',
+          role: "user",
           content: `Suggest 3 related topics that would be good for ${level} level English learners to explore after studying "${topic}". Return just a JSON array of strings with no additional text.`,
         },
       ],
       temperature: 0.7,
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
     });
 
     try {
@@ -493,7 +493,7 @@ async function suggestNextTopics(
         }
       }
     } catch (parseError) {
-      console.error('Error parsing topics JSON:', parseError);
+      console.error("Error parsing topics JSON:", parseError);
     }
 
     // Default suggested topics if parsing fails
@@ -503,7 +503,7 @@ async function suggestNextTopics(
       `${topic} in different contexts`,
     ];
   } catch (error) {
-    console.error('Error suggesting next topics:', error);
+    console.error("Error suggesting next topics:", error);
     return [
       `More about ${topic}`,
       `Advanced ${topic}`,

@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Model, Types } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface Question {
   question: string;
@@ -17,7 +17,7 @@ export interface VocabularyItem {
 export interface Speaker {
   speakerIndex: number;
   speakerName: string;
-  detectedGender?: 'male' | 'female' | 'unknown';
+  detectedGender?: "male" | "female" | "unknown";
 }
 
 export interface ListeningSessionDocument extends Document {
@@ -58,7 +58,7 @@ const ListeningSessionSchema = new Schema<ListeningSessionDocument>(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     title: {
@@ -82,7 +82,7 @@ const ListeningSessionSchema = new Schema<ListeningSessionDocument>(
     level: {
       type: String,
       required: true,
-      enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
+      enum: ["A1", "A2", "B1", "B2", "C1", "C2"],
     },
     topic: {
       type: String,
@@ -91,7 +91,7 @@ const ListeningSessionSchema = new Schema<ListeningSessionDocument>(
     contentType: {
       type: String,
       required: true,
-      enum: ['dialogue', 'monologue', 'interview', 'news'],
+      enum: ["dialogue", "monologue", "interview", "news"],
     },
     duration: {
       type: Number,
@@ -149,8 +149,8 @@ const ListeningSessionSchema = new Schema<ListeningSessionDocument>(
           speakerName: { type: String, required: true },
           detectedGender: {
             type: String,
-            enum: ['male', 'female', 'unknown'],
-            default: 'unknown',
+            enum: ["male", "female", "unknown"],
+            default: "unknown",
           },
         },
       ],
@@ -166,7 +166,7 @@ const ListeningSessionSchema = new Schema<ListeningSessionDocument>(
 const ListeningSession =
   mongoose.models.ListeningSession ||
   mongoose.model<ListeningSessionDocument>(
-    'ListeningSession',
+    "ListeningSession",
     ListeningSessionSchema
   );
 

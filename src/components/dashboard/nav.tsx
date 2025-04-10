@@ -31,6 +31,10 @@ const navItems = [
     href: '/dashboard/speaking',
   },
   {
+    title: 'Grammar',
+    href: '/dashboard/grammar',
+  },
+  {
     title: 'Games',
     href: '/games',
   },
@@ -52,7 +56,9 @@ export function DashboardNav() {
           className={cn(
             'px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:bg-muted/50 hover:text-primary',
             pathname === item.href ||
-              (item.href === '/games' && pathname.startsWith('/games'))
+              (item.href === '/games' && pathname.startsWith('/games')) ||
+              (item.href === '/dashboard/grammar' &&
+                pathname.startsWith('/dashboard/grammar'))
               ? 'text-primary bg-primary/5 shadow-sm'
               : 'text-muted-foreground'
           )}

@@ -350,8 +350,8 @@ export default function WritingSessionPage() {
           <CardHeader>
             <CardTitle>Session Not Found</CardTitle>
             <CardDescription>
-              The writing session you're looking for doesn't exist or you don't
-              have access to it.
+              The writing session you&apos;re looking for doesn&apos;t exist or
+              you don&apos;t have access to it.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -481,9 +481,9 @@ export default function WritingSessionPage() {
                         </>
                       ) : (
                         <>
-                          Your writing will be submitted for analysis. You won't
-                          be able to edit it after submission. Are you sure you
-                          want to continue?
+                          Your writing will be submitted for analysis. You
+                          won&apos;t be able to edit it after submission. Are
+                          you sure you want to continue?
                         </>
                       )}
                     </AlertDialogDescription>

@@ -25,6 +25,23 @@ export interface IUser extends Document {
     progressReminders: boolean;
     theme: 'light' | 'dark' | 'system';
   };
+  // Grammar-specific fields
+  grammarProgress: {
+    badges: {
+      name: string;
+      category: string;
+      level: string;
+      earnedAt: Date;
+    }[];
+    mastery: {
+      category: string;
+      level: number; // 1-5 scale
+      lastPracticed: Date;
+    }[];
+    lastDailyChallenge?: Date;
+    challengeStreak: number;
+    savedFlashcards?: string[]; // IDs of saved flashcards
+  };
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -133,6 +150,60 @@ const userSchema = new Schema<IUser>(
         default: 'system',
       },
     },
+    // Grammar-specific progress fields
+    grammarProgress: {
+      badges: [
+        {
+          name: {
+            type: String,
+            required: true,
+          },
+          category: {
+            type: String,
+            required: true,
+          },
+          level: {
+            type: String,
+            enum: ['bronze', 'silver', 'gold'],
+            default: 'bronze',
+          },
+          earnedAt: {
+            type: Date,
+            default: Date.now,
+          },
+        },
+      ],
+      mastery: [
+        {
+          category: {
+            type: String,
+            required: true,
+          },
+          level: {
+            type: Number,
+            min: 1,
+            max: 5,
+            default: 1,
+          },
+          lastPracticed: {
+            type: Date,
+            default: Date.now,
+          },
+        },
+      ],
+      lastDailyChallenge: {
+        type: Date,
+        default: null,
+      },
+      challengeStreak: {
+        type: Number,
+        default: 0,
+      },
+      savedFlashcards: {
+        type: [String],
+        default: [],
+      },
+    },
   },
   {
     timestamps: true,
@@ -141,6 +212,7 @@ const userSchema = new Schema<IUser>(
 
 // Add compound indexes for common query patterns
 userSchema.index({ email: 1, createdAt: 1 });
+userSchema.index({ 'grammarProgress.lastDailyChallenge': 1 }); // For daily challenge queries
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {

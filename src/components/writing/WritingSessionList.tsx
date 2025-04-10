@@ -187,7 +187,7 @@ export function WritingSessionList() {
         <CardHeader>
           <CardTitle>No Writing Sessions</CardTitle>
           <CardDescription>
-            You haven't created any writing sessions yet.
+            You haven&apos;t created any writing sessions yet.
           </CardDescription>
         </CardHeader>
         <CardContent>

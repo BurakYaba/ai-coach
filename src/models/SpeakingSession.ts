@@ -23,10 +23,38 @@ export interface ISpeakingSession extends Document {
     fluencyScore?: number; // 1-10 rating of speaking fluency
     accuracyScore?: number; // 1-10 rating of grammatical accuracy
     vocabularyScore?: number; // 1-10 rating of vocabulary usage
+    pronunciationScore?: number; // 1-10 rating of pronunciation quality
+    completenessScore?: number; // 1-10 rating of sentence completeness
+    grammarScore?: number; // 1-10 rating of grammatical correctness
+    prosodyScore?: number; // 1-10 rating of intonation and rhythm
+    speakingRate?: number; // words per minute speaking rate
     overallScore?: number; // 1-10 overall rating
     strengths?: string[]; // areas where the user performed well
     areasForImprovement?: string[]; // areas that need improvement
     suggestions?: string; // suggestions for improvement
+    grammarIssues?: Array<{
+      text: string; // the problematic text
+      issue: string; // description of the grammar issue
+      correction: string; // corrected version
+      explanation: string; // explanation of the grammar rule
+    }>;
+    mispronunciations?: Array<{
+      word: string; // the mispronounced word
+      phonemes?: Array<{
+        phoneme: string; // the phoneme that was mispronounced
+        score: number; // score for this phoneme (0-100)
+      }>;
+      pronunciationScore: number; // score for this word (0-100)
+      offset: number; // offset in milliseconds from the start of the audio
+      duration: number; // duration of the word in milliseconds
+    }>;
+  };
+  metadata?: {
+    mode?: 'realtime' | 'turn-based';
+    scenario?: string;
+    level?: string;
+    audioUrls?: string[]; // Array of audio recording URLs for this session
+    systemPrompt?: string; // Store the system prompt to avoid regenerating it
   };
   createdAt: Date;
   updatedAt: Date;
@@ -125,6 +153,34 @@ const speakingSessionSchema = new Schema<ISpeakingSession>(
         min: 1,
         max: 10,
       },
+      pronunciationScore: {
+        type: Number,
+        required: false,
+        min: 1,
+        max: 10,
+      },
+      completenessScore: {
+        type: Number,
+        required: false,
+        min: 1,
+        max: 10,
+      },
+      prosodyScore: {
+        type: Number,
+        required: false,
+        min: 1,
+        max: 10,
+      },
+      speakingRate: {
+        type: Number,
+        required: false,
+      },
+      grammarScore: {
+        type: Number,
+        required: false,
+        min: 1,
+        max: 10,
+      },
       overallScore: {
         type: Number,
         required: false,
@@ -144,6 +200,83 @@ const speakingSessionSchema = new Schema<ISpeakingSession>(
         },
       ],
       suggestions: {
+        type: String,
+        required: false,
+      },
+      grammarIssues: [
+        {
+          text: {
+            type: String,
+            required: false,
+          },
+          issue: {
+            type: String,
+            required: false,
+          },
+          correction: {
+            type: String,
+            required: false,
+          },
+          explanation: {
+            type: String,
+            required: false,
+          },
+        },
+      ],
+      mispronunciations: [
+        {
+          word: {
+            type: String,
+            required: false,
+          },
+          phonemes: [
+            {
+              phoneme: {
+                type: String,
+                required: false,
+              },
+              score: {
+                type: Number,
+                required: false,
+              },
+            },
+          ],
+          pronunciationScore: {
+            type: Number,
+            required: false,
+          },
+          offset: {
+            type: Number,
+            required: false,
+          },
+          duration: {
+            type: Number,
+            required: false,
+          },
+        },
+      ],
+    },
+    metadata: {
+      mode: {
+        type: String,
+        enum: ['realtime', 'turn-based'],
+        required: false,
+      },
+      scenario: {
+        type: String,
+        required: false,
+      },
+      level: {
+        type: String,
+        required: false,
+      },
+      audioUrls: [
+        {
+          type: String,
+          required: false,
+        },
+      ],
+      systemPrompt: {
         type: String,
         required: false,
       },

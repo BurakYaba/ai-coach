@@ -172,8 +172,8 @@ export function LibraryBrowser() {
         <div className="text-center py-12">
           <h3 className="text-lg font-medium mb-2">No items found</h3>
           <p className="text-muted-foreground">
-            Try adjusting your search or filters to find what you're looking
-            for.
+            Try adjusting your search or filters to find what you&apos;re
+            looking for.
           </p>
         </div>
       ) : (

@@ -208,7 +208,7 @@ export default function LandingPage() {
                 className="relative group hover:shadow-glow transition-all duration-500 backdrop-blur-card"
               >
                 <div className="absolute top-0 right-0 -mt-4 -mr-4 w-12 h-12 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-xl font-bold">
-                  "
+                  {index + 1}
                 </div>
                 <div className="space-y-4">
                   <p className="italic text-muted-foreground">

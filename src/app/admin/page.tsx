@@ -1,21 +1,20 @@
-import Link from 'next/link';
-import { getServerSession } from 'next-auth';
+import Link from "next/link";
+import { getServerSession } from "next-auth";
 
-import { DashboardStats } from '@/components/admin/DashboardStats';
-import { Button } from '@/components/ui/button';
+import { DashboardStats } from "@/components/admin/DashboardStats";
+import { Button } from "@/components/ui/button";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { authOptions } from '@/lib/auth';
+} from "@/components/ui/card";
+import { authOptions } from "@/lib/auth";
 
 export const metadata = {
-  title: 'Admin Dashboard',
-  description: 'Manage your language learning platform',
+  title: "Admin Dashboard",
+  description: "Manage your language learning platform",
 };
 
 // Admin action card component
