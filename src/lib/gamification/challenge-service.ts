@@ -1,7 +1,4 @@
-// @ts-nocheck
-// TEMPORARY FIX: This file needs a thorough refactoring to address function name conflicts and type issues.
-// This ts-nocheck directive is used as a temporary measure to get the build to pass.
-// A proper fix would require restructuring the challenge service implementation.
+// Properly refactored to address function name conflicts and type issues
 
 import { dbConnect } from "@/lib/db";
 import Challenge, { IChallenge } from "@/models/Challenge";
@@ -20,6 +17,25 @@ interface ChallengeTemplate {
   targetMax: number;
   xpReward: number;
   activityType?: string;
+}
+
+// Challenge types
+interface ChallengeData {
+  id: string;
+  description: string;
+  module: string;
+  target: number;
+  progress: number;
+  completed: boolean;
+  xpReward: number;
+}
+
+interface ChallengeSet {
+  userId: mongoose.Types.ObjectId;
+  challengeType: "daily" | "weekly";
+  challenges: ChallengeData[];
+  refreshedAt: Date;
+  expiresAt: Date;
 }
 
 // Challenge templates for different modules
@@ -177,238 +193,7 @@ const WEEKLY_CHALLENGE_TEMPLATES: ChallengeTemplate[] = [
   },
 ];
 
-// Challenge types
-interface Challenge {
-  id: string;
-  description: string;
-  module: string;
-  target: number;
-  progress: number;
-  completed: boolean;
-  xpReward: number;
-}
-
-interface ChallengeSet {
-  userId: mongoose.Types.ObjectId;
-  challengeType: "daily" | "weekly";
-  challenges: Challenge[];
-  refreshedAt: Date;
-  expiresAt: Date;
-}
-
 export class ChallengeService {
-  // Get user's current challenges
-  static async getUserChallenges(userId: string): Promise<{
-    daily: Challenge[];
-    weekly: Challenge[];
-    refreshedAt: Date;
-    expiresAt: Date;
-  }> {
-    await dbConnect();
-    const objectId = new mongoose.Types.ObjectId(userId);
-
-    // This is where we would normally query the database for challenges
-    // For now, we'll generate them if they don't exist
-
-    // In a real implementation, we'd check if challenges exist and if they're expired
-    const shouldGenerateDaily = true; // Mock logic
-    const shouldGenerateWeekly = true; // Mock logic
-
-    let dailyChallenges: Challenge[] = [];
-    let weeklyChallenges: Challenge[] = [];
-    const refreshedAt = new Date();
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // Default 1 day from now
-
-    if (shouldGenerateDaily) {
-      dailyChallenges = await this.createDailyChallenges(userId);
-    }
-
-    if (shouldGenerateWeekly) {
-      weeklyChallenges = await this.createWeeklyChallenges(userId);
-    }
-
-    // Update challenge progress based on user activity
-    const updatedDailyChallenges = await this.updateChallengeProgress(
-      userId,
-      dailyChallenges
-    );
-    const updatedWeeklyChallenges = await this.updateChallengeProgress(
-      userId,
-      weeklyChallenges
-    );
-
-    return {
-      daily: updatedDailyChallenges,
-      weekly: updatedWeeklyChallenges,
-      refreshedAt,
-      expiresAt,
-    };
-  }
-
-  // Generate a set of daily challenges for a user (in-memory version)
-  /* COMMENTED OUT TO RESOLVE BUILD ERROR - NEEDS REFACTORING
-  static createDailyChallengeTemplates(userId: string): Challenge[] {
-    // Select 3 random daily challenge templates
-    const selectedTemplates = this.getRandomItems(DAILY_CHALLENGE_TEMPLATES, 3);
-
-    // Convert templates to actual challenges
-    return selectedTemplates.map(template => {
-      const target = this.getRandomInt(template.targetMin, template.targetMax);
-      return {
-        id: `${template.id}_${Date.now()}`,
-        description: template.description.replace(
-          "{target}",
-          target.toString()
-        ),
-        module: template.module,
-        target,
-        progress: 0,
-        completed: false,
-        xpReward: template.xpReward,
-      };
-    });
-  }
-
-  // Generate a set of weekly challenges for a user (in-memory version)
-  static createWeeklyChallengeTemplates(userId: string): Challenge[] {
-    // Select 4 random weekly challenge templates
-    const selectedTemplates = this.getRandomItems(
-      WEEKLY_CHALLENGE_TEMPLATES,
-      4
-    );
-
-    // Convert templates to actual challenges
-    return selectedTemplates.map(template => {
-      const target = this.getRandomInt(template.targetMin, template.targetMax);
-      return {
-        id: `${template.id}_${Date.now()}`,
-        description: template.description.replace(
-          "{target}",
-          target.toString()
-        ),
-        module: template.module,
-        target,
-        progress: 0,
-        completed: false,
-        xpReward: template.xpReward,
-      };
-    });
-  }
-  */
-
-  // Update challenge progress based on user activity (in-memory version)
-  /* COMMENTED OUT TO RESOLVE BUILD ERROR - NEEDS REFACTORING
-  static async updateInMemoryChallengeProgress(
-    userId: string,
-    challenges: Challenge[]
-  ): Promise<Challenge[]> {
-    await dbConnect();
-    const objectId = new mongoose.Types.ObjectId(userId);
-
-    // In a real implementation, we would query the database for user activities
-    // and update the progress accordingly
-
-    // For demonstration, we'll just return random progress
-    return challenges.map(challenge => {
-      // Simulate progressed challenges with random values
-      const progress = this.getRandomInt(0, challenge.target);
-      const completed = progress >= challenge.target;
-
-      return {
-        ...challenge,
-        progress,
-        completed,
-      };
-    });
-  }
-  */
-
-  // Update challenge progress when a specific activity is completed
-  static async updateChallengeProgressForActivity(
-    userId: string,
-    module: string,
-    activityType: string
-  ): Promise<{
-    dailyChallengesUpdated: number;
-    weeklyChallengesUpdated: number;
-    completedChallenges: Array<{ id: string; xpReward: number }>;
-  }> {
-    await dbConnect();
-    const objectId = new mongoose.Types.ObjectId(userId);
-
-    // Get user's current challenges
-    const { daily, weekly } = await this.getUserChallenges(userId);
-
-    const completedChallenges: Array<{ id: string; xpReward: number }> = [];
-    let dailyChallengesUpdated = 0;
-    let weeklyChallengesUpdated = 0;
-
-    // Update daily challenges
-    const updatedDaily = daily.map(challenge => {
-      // Check if this challenge is for the current module
-      if (challenge.module === module || challenge.module === "all") {
-        // If the challenge is not already completed, update progress
-        if (!challenge.completed) {
-          const newProgress = challenge.progress + 1;
-          const newCompleted = newProgress >= challenge.target;
-
-          // If the challenge is newly completed, add to completed list
-          if (newCompleted && !challenge.completed) {
-            completedChallenges.push({
-              id: challenge.id,
-              xpReward: challenge.xpReward,
-            });
-          }
-
-          dailyChallengesUpdated++;
-
-          return {
-            ...challenge,
-            progress: newProgress,
-            completed: newCompleted,
-          };
-        }
-      }
-
-      return challenge;
-    });
-
-    // Update weekly challenges (similar logic)
-    const updatedWeekly = weekly.map(challenge => {
-      if (challenge.module === module || challenge.module === "all") {
-        if (!challenge.completed) {
-          const newProgress = challenge.progress + 1;
-          const newCompleted = newProgress >= challenge.target;
-
-          if (newCompleted && !challenge.completed) {
-            completedChallenges.push({
-              id: challenge.id,
-              xpReward: challenge.xpReward,
-            });
-          }
-
-          weeklyChallengesUpdated++;
-
-          return {
-            ...challenge,
-            progress: newProgress,
-            completed: newCompleted,
-          };
-        }
-      }
-
-      return challenge;
-    });
-
-    // In a real implementation, we would update the database with the new challenges
-
-    return {
-      dailyChallengesUpdated,
-      weeklyChallengesUpdated,
-      completedChallenges,
-    };
-  }
-
   // Helper function to get random items from an array
   private static getRandomItems<T>(array: T[], count: number): T[] {
     const shuffled = [...array].sort(() => 0.5 - Math.random());
@@ -420,10 +205,89 @@ export class ChallengeService {
     return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
+  // Generate in-memory challenge data from templates (for preview/mock purposes)
+  private static generateChallengeDataFromTemplate(
+    templateType: "daily" | "weekly",
+    userId: string
+  ): ChallengeData[] {
+    const templates =
+      templateType === "daily"
+        ? DAILY_CHALLENGE_TEMPLATES
+        : WEEKLY_CHALLENGE_TEMPLATES;
+
+    const count = templateType === "daily" ? 3 : 4;
+    const selectedTemplates = this.getRandomItems(templates, count);
+
+    return selectedTemplates.map(template => {
+      const target = this.getRandomInt(template.targetMin, template.targetMax);
+      return {
+        id: `${template.id}_${Date.now()}`,
+        description: template.description.replace(
+          "{target}",
+          target.toString()
+        ),
+        module: template.module,
+        target,
+        progress: 0,
+        completed: false,
+        xpReward: template.xpReward,
+      };
+    });
+  }
+
+  // Get user's current challenges
+  static async getUserChallenges(userId: string): Promise<{
+    daily: ChallengeData[];
+    weekly: ChallengeData[];
+    refreshedAt: Date;
+    expiresAt: Date;
+  }> {
+    await dbConnect();
+    const objectId = new mongoose.Types.ObjectId(userId);
+
+    // Default values
+    const refreshedAt = new Date();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // Default 1 day from now
+
+    // Fetch daily challenges
+    const dailyChallenge = await this.getDailyChallenges(userId);
+    let dailyChallenges: ChallengeData[] = [];
+    if (dailyChallenge) {
+      dailyChallenges = [...dailyChallenge.challenges];
+    } else {
+      // Generate mock challenges if none found
+      dailyChallenges = this.generateChallengeDataFromTemplate("daily", userId);
+    }
+
+    // Fetch weekly challenges
+    const weeklyChallenge = await this.getWeeklyChallenges(userId);
+    let weeklyChallenges: ChallengeData[] = [];
+    if (weeklyChallenge) {
+      weeklyChallenges = [...weeklyChallenge.challenges];
+    } else {
+      // Generate mock challenges if none found
+      weeklyChallenges = this.generateChallengeDataFromTemplate(
+        "weekly",
+        userId
+      );
+    }
+
+    return {
+      daily: dailyChallenges,
+      weekly: weeklyChallenges,
+      refreshedAt,
+      expiresAt,
+    };
+  }
+
   // Get or generate daily challenges for a user
   static async getDailyChallenges(
     userId: string
-  ): Promise<(Document<unknown, any, IChallenge> & IChallenge) | null> {
+  ): Promise<
+    | (Document<unknown, object, IChallenge> &
+        IChallenge & { _id: mongoose.Types.ObjectId })
+    | null
+  > {
     await dbConnect();
     const objectId = new mongoose.Types.ObjectId(userId);
 
@@ -436,7 +300,7 @@ export class ChallengeService {
 
     // If no active challenges, generate new ones
     if (!dailyChallenge) {
-      dailyChallenge = await this.createDailyChallenges(userId);
+      dailyChallenge = await this.createDailyChallengeDocument(userId);
     }
 
     return dailyChallenge;
@@ -445,7 +309,11 @@ export class ChallengeService {
   // Get or generate weekly challenges for a user
   static async getWeeklyChallenges(
     userId: string
-  ): Promise<(Document<unknown, any, IChallenge> & IChallenge) | null> {
+  ): Promise<
+    | (Document<unknown, object, IChallenge> &
+        IChallenge & { _id: mongoose.Types.ObjectId })
+    | null
+  > {
     await dbConnect();
     const objectId = new mongoose.Types.ObjectId(userId);
 
@@ -458,16 +326,20 @@ export class ChallengeService {
 
     // If no active challenges, generate new ones
     if (!weeklyChallenge) {
-      weeklyChallenge = await this.createWeeklyChallenges(userId);
+      weeklyChallenge = await this.createWeeklyChallengeDocument(userId);
     }
 
     return weeklyChallenge;
   }
 
-  // Generate new daily challenges
-  private static async createDailyChallenges(
+  // Generate and persist new daily challenges
+  private static async createDailyChallengeDocument(
     userId: string
-  ): Promise<(Document<unknown, any, IChallenge> & IChallenge) | null> {
+  ): Promise<
+    | (Document<unknown, object, IChallenge> &
+        IChallenge & { _id: mongoose.Types.ObjectId })
+    | null
+  > {
     const objectId = new mongoose.Types.ObjectId(userId);
 
     // Get user profile to personalize challenges
@@ -502,10 +374,14 @@ export class ChallengeService {
     }
   }
 
-  // Generate new weekly challenges
-  private static async createWeeklyChallenges(
+  // Generate and persist new weekly challenges
+  private static async createWeeklyChallengeDocument(
     userId: string
-  ): Promise<(Document<unknown, any, IChallenge> & IChallenge) | null> {
+  ): Promise<
+    | (Document<unknown, object, IChallenge> &
+        IChallenge & { _id: mongoose.Types.ObjectId })
+    | null
+  > {
     const objectId = new mongoose.Types.ObjectId(userId);
 
     // Get user profile to personalize challenges
@@ -548,16 +424,8 @@ export class ChallengeService {
   private static selectRandomChallenges(
     templates: ChallengeTemplate[],
     count: number,
-    profile: any
-  ): Array<{
-    id: string;
-    description: string;
-    module: string;
-    target: number;
-    progress: number;
-    completed: boolean;
-    xpReward: number;
-  }> {
+    profile: Record<string, any>
+  ): Array<ChallengeData> {
     // Shuffle templates
     const shuffled = [...templates].sort(() => 0.5 - Math.random());
 
@@ -757,7 +625,7 @@ export class ChallengeService {
 
   // Helper to update challenge document
   private static updateChallengeDocument(
-    challenge: Document<unknown, any, IChallenge> & IChallenge,
+    challenge: Document<unknown, object, IChallenge> & IChallenge,
     module: string,
     activityType: string,
     count: number,

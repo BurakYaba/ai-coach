@@ -1,21 +1,38 @@
-// @ts-nocheck
-// TEMPORARY FIX: This file needs a thorough refactoring to address type issues.
-// This ts-nocheck directive is used as a temporary measure to get the build to pass.
+// Refactored to address type issues and improve code organization
 
 import { dbConnect } from "@/lib/db";
 import Leaderboard, { ILeaderboard } from "@/models/Leaderboard";
 import GamificationProfile from "@/models/GamificationProfile";
 import UserActivity from "@/models/UserActivity";
-import User from "@/models/User";
+import User, { IUser } from "@/models/User";
 import mongoose, { Document } from "mongoose";
+
+// Common interface for leaderboard entries to avoid duplication
+interface LeaderboardEntry {
+  userId: mongoose.Types.ObjectId;
+  username: string;
+  avatarUrl?: string;
+  value: number;
+  rank: number;
+}
+
+// Common type for leaderboard period
+type LeaderboardPeriod = "weekly" | "monthly" | "all-time";
+
+// Common type for leaderboard category
+type LeaderboardCategory = "xp" | "streak" | "module-specific";
+
+// MongoDB document type helper
+type LeaderboardDocument = Document<unknown, object, ILeaderboard> &
+  ILeaderboard & { _id: mongoose.Types.ObjectId };
 
 export class LeaderboardService {
   // Get leaderboard for a specific type and category
   static async getLeaderboard(
-    type: "weekly" | "monthly" | "all-time",
-    category: "xp" | "streak" | "module-specific",
+    type: LeaderboardPeriod,
+    category: LeaderboardCategory,
     moduleType?: string
-  ): Promise<(Document<unknown, any, ILeaderboard> & ILeaderboard) | null> {
+  ): Promise<LeaderboardDocument | null> {
     await dbConnect();
 
     // For module-specific leaderboards, module type is required
@@ -43,17 +60,17 @@ export class LeaderboardService {
 
   // Generate a new leaderboard
   private static async generateLeaderboard(
-    type: "weekly" | "monthly" | "all-time",
-    category: "xp" | "streak" | "module-specific",
+    type: LeaderboardPeriod,
+    category: LeaderboardCategory,
     moduleType?: string
-  ): Promise<(Document<unknown, any, ILeaderboard> & ILeaderboard) | null> {
+  ): Promise<LeaderboardDocument | null> {
     await dbConnect();
 
     // Calculate the date range for the leaderboard
     const { startDate, expiresAt } = this.calculateDateRange(type);
 
     // Get the leaderboard data based on category
-    let entries;
+    let entries: LeaderboardEntry[];
     if (category === "xp") {
       entries = await this.generateXPLeaderboard(type, startDate);
     } else if (category === "streak") {
@@ -87,7 +104,7 @@ export class LeaderboardService {
   }
 
   // Calculate date range for different leaderboard types
-  private static calculateDateRange(type: "weekly" | "monthly" | "all-time"): {
+  private static calculateDateRange(type: LeaderboardPeriod): {
     startDate: Date;
     expiresAt: Date;
   } {
@@ -126,17 +143,9 @@ export class LeaderboardService {
 
   // Generate XP leaderboard for a specific time period
   private static async generateXPLeaderboard(
-    type: "weekly" | "monthly" | "all-time",
+    type: LeaderboardPeriod,
     startDate: Date
-  ): Promise<
-    Array<{
-      userId: mongoose.Types.ObjectId;
-      username: string;
-      avatarUrl?: string;
-      value: number;
-      rank: number;
-    }>
-  > {
+  ): Promise<LeaderboardEntry[]> {
     // If weekly or monthly, get XP earned in that period from user activities
     if (type === "weekly" || type === "monthly") {
       // Aggregate XP earned during the period by user
@@ -161,13 +170,15 @@ export class LeaderboardService {
       ]);
 
       // Get user details for each entry
-      const entries = await Promise.all(
+      const entries: LeaderboardEntry[] = await Promise.all(
         xpEarnedByUser.map(async (entry, index) => {
           const user = await User.findById(entry._id);
           return {
             userId: entry._id,
-            username: user ? user.username || user.email : "Unknown User",
-            avatarUrl: user?.avatarUrl,
+            username: user
+              ? user.name || (user.email as string)
+              : "Unknown User",
+            avatarUrl: user?.image,
             value: entry.totalXP,
             rank: index + 1,
           };
@@ -182,13 +193,15 @@ export class LeaderboardService {
         .limit(50);
 
       // Get user details for each profile
-      const entries = await Promise.all(
+      const entries: LeaderboardEntry[] = await Promise.all(
         topProfiles.map(async (profile, index) => {
           const user = await User.findById(profile.userId);
           return {
             userId: profile.userId,
-            username: user ? user.username || user.email : "Unknown User",
-            avatarUrl: user?.avatarUrl,
+            username: user
+              ? user.name || (user.email as string)
+              : "Unknown User",
+            avatarUrl: user?.image,
             value: profile.stats.totalXP,
             rank: index + 1,
           };
@@ -201,13 +214,7 @@ export class LeaderboardService {
 
   // Generate streak leaderboard
   private static async generateStreakLeaderboard(): Promise<
-    Array<{
-      userId: mongoose.Types.ObjectId;
-      username: string;
-      avatarUrl?: string;
-      value: number;
-      rank: number;
-    }>
+    LeaderboardEntry[]
   > {
     // Get top 50 users by streak
     const topStreaks = await GamificationProfile.find()
@@ -215,13 +222,13 @@ export class LeaderboardService {
       .limit(50);
 
     // Get user details for each profile
-    const entries = await Promise.all(
+    const entries: LeaderboardEntry[] = await Promise.all(
       topStreaks.map(async (profile, index) => {
         const user = await User.findById(profile.userId);
         return {
           userId: profile.userId,
-          username: user ? user.username || user.email : "Unknown User",
-          avatarUrl: user?.avatarUrl,
+          username: user ? user.name || (user.email as string) : "Unknown User",
+          avatarUrl: user?.image,
           value: profile.streak.current,
           rank: index + 1,
         };
@@ -234,17 +241,9 @@ export class LeaderboardService {
   // Generate module-specific leaderboard
   private static async generateModuleLeaderboard(
     moduleType: string,
-    type: "weekly" | "monthly" | "all-time",
+    type: LeaderboardPeriod,
     startDate: Date
-  ): Promise<
-    Array<{
-      userId: mongoose.Types.ObjectId;
-      username: string;
-      avatarUrl?: string;
-      value: number;
-      rank: number;
-    }>
-  > {
+  ): Promise<LeaderboardEntry[]> {
     if (type === "weekly" || type === "monthly") {
       // Count module activities in the given period
       const moduleActivities = await UserActivity.aggregate([
@@ -269,13 +268,15 @@ export class LeaderboardService {
       ]);
 
       // Get user details for each entry
-      const entries = await Promise.all(
+      const entries: LeaderboardEntry[] = await Promise.all(
         moduleActivities.map(async (entry, index) => {
           const user = await User.findById(entry._id);
           return {
             userId: entry._id,
-            username: user ? user.username || user.email : "Unknown User",
-            avatarUrl: user?.avatarUrl,
+            username: user
+              ? user.name || (user.email as string)
+              : "Unknown User",
+            avatarUrl: user?.image,
             value: entry.activityCount,
             rank: index + 1,
           };
@@ -292,7 +293,7 @@ export class LeaderboardService {
         .limit(50);
 
       // Get user details for each profile
-      const entries = await Promise.all(
+      const entries: LeaderboardEntry[] = await Promise.all(
         profiles.map(async (profile, index) => {
           const user = await User.findById(profile.userId);
           const moduleActivityCount =
@@ -302,8 +303,10 @@ export class LeaderboardService {
 
           return {
             userId: profile.userId,
-            username: user ? user.username || user.email : "Unknown User",
-            avatarUrl: user?.avatarUrl,
+            username: user
+              ? user.name || (user.email as string)
+              : "Unknown User",
+            avatarUrl: user?.image,
             value:
               typeof moduleActivityCount === "number" ? moduleActivityCount : 0,
             rank: index + 1,
@@ -317,8 +320,8 @@ export class LeaderboardService {
 
   // Refresh a specific leaderboard
   static async refreshLeaderboard(
-    type: "weekly" | "monthly" | "all-time",
-    category: "xp" | "streak" | "module-specific",
+    type: LeaderboardPeriod,
+    category: LeaderboardCategory,
     moduleType?: string
   ): Promise<boolean> {
     await dbConnect();
