@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { BookOpen, Plus, Check } from 'lucide-react';
-import Link from 'next/link';
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { toast } from 'sonner';
+import { BookOpen, Plus, Check } from "lucide-react";
+import Link from "next/link";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import { toast } from "sonner";
 
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+} from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 
 interface VocabularyWord {
   word: string;
@@ -41,7 +41,7 @@ export function VocabularyPanel({
   addedToBank = [],
   onAddToBank,
 }: VocabularyPanelProps) {
-  const [filter, setFilter] = useState<'all' | 'reviewed' | 'remaining'>('all');
+  const [filter, setFilter] = useState<"all" | "reviewed" | "remaining">("all");
   const [addedToBankLocal, setAddedToBankLocal] = useState<
     Record<string, boolean>
   >({});
@@ -65,8 +65,8 @@ export function VocabularyPanel({
   // Memoize filtered vocabulary to prevent unnecessary recalculations
   const filteredVocabulary = useMemo(() => {
     return vocabulary.filter(word => {
-      if (filter === 'reviewed') return reviewedWords.includes(word.word);
-      if (filter === 'remaining') return !reviewedWords.includes(word.word);
+      if (filter === "reviewed") return reviewedWords.includes(word.word);
+      if (filter === "remaining") return !reviewedWords.includes(word.word);
       return true;
     });
   }, [vocabulary, reviewedWords, filter]);
@@ -78,15 +78,15 @@ export function VocabularyPanel({
 
   // Memoize difficulty color function
   const getDifficultyColor = useCallback((difficulty: number) => {
-    if (difficulty <= 3) return 'bg-green-100 text-green-800';
-    if (difficulty <= 7) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
+    if (difficulty <= 3) return "bg-green-100 text-green-800";
+    if (difficulty <= 7) return "bg-yellow-100 text-yellow-800";
+    return "bg-red-100 text-red-800";
   }, []);
 
   // Filter handlers
-  const setAllFilter = useCallback(() => setFilter('all'), []);
-  const setReviewedFilter = useCallback(() => setFilter('reviewed'), []);
-  const setRemainingFilter = useCallback(() => setFilter('remaining'), []);
+  const setAllFilter = useCallback(() => setFilter("all"), []);
+  const setReviewedFilter = useCallback(() => setFilter("reviewed"), []);
+  const setRemainingFilter = useCallback(() => setFilter("remaining"), []);
 
   // Track accordion state changes and mark words as reviewed when opened
   useEffect(() => {
@@ -98,7 +98,7 @@ export function VocabularyPanel({
     // Check for newly opened accordions and mark words as reviewed
     if (newlyOpened.length > 0) {
       newlyOpened.forEach(item => {
-        const index = parseInt(item.replace('item-', ''));
+        const index = parseInt(item.replace("item-", ""));
         if (isNaN(index) || index < 0 || index >= filteredVocabulary.length)
           return;
 
@@ -120,10 +120,10 @@ export function VocabularyPanel({
       try {
         setIsAddingToBank(prev => ({ ...prev, [word.word]: true }));
 
-        const response = await fetch('/api/vocabulary', {
-          method: 'POST',
+        const response = await fetch("/api/vocabulary", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
             word: {
@@ -132,13 +132,13 @@ export function VocabularyPanel({
               context: [word.context],
               examples: word.examples,
               difficulty: word.difficulty,
-              partOfSpeech: 'other', // Default
-              pronunciation: '', // Required field
+              partOfSpeech: "other", // Default
+              pronunciation: "", // Required field
               tags: [],
               source: {
-                type: 'reading',
-                id: sessionId || '000000000000000000000000', // Use a valid ObjectId format if no sessionId is provided
-                title: sessionId ? 'Reading Session' : 'Manual Addition',
+                type: "reading",
+                id: sessionId || "000000000000000000000000", // Use a valid ObjectId format if no sessionId is provided
+                title: sessionId ? "Reading Session" : "Manual Addition",
               },
             },
           }),
@@ -162,11 +162,11 @@ export function VocabularyPanel({
             }
             toast.info(`"${word.word}" already exists in your vocabulary bank`);
           } else {
-            throw new Error(data.error || 'Failed to add to vocabulary bank');
+            throw new Error(data.error || "Failed to add to vocabulary bank");
           }
         }
       } catch (error) {
-        console.error('Error adding to vocabulary bank:', error);
+        console.error("Error adding to vocabulary bank:", error);
         toast.error(`Failed to add "${word.word}" to vocabulary bank`);
       } finally {
         setIsAddingToBank(prev => ({ ...prev, [word.word]: false }));
@@ -205,21 +205,21 @@ export function VocabularyPanel({
         </div>
         <div className="flex gap-2 mb-4">
           <Badge
-            variant={filter === 'all' ? 'default' : 'outline'}
+            variant={filter === "all" ? "default" : "outline"}
             className="cursor-pointer"
             onClick={setAllFilter}
           >
             All ({vocabulary.length})
           </Badge>
           <Badge
-            variant={filter === 'reviewed' ? 'default' : 'outline'}
+            variant={filter === "reviewed" ? "default" : "outline"}
             className="cursor-pointer"
             onClick={setReviewedFilter}
           >
             Reviewed ({reviewedWords.length})
           </Badge>
           <Badge
-            variant={filter === 'remaining' ? 'default' : 'outline'}
+            variant={filter === "remaining" ? "default" : "outline"}
             className="cursor-pointer"
             onClick={setRemainingFilter}
           >
@@ -288,7 +288,7 @@ export function VocabularyPanel({
                     className="w-full"
                   >
                     {isAddingToBank[word.word] ? (
-                      'Adding...'
+                      "Adding..."
                     ) : isWordAddedToBank(word.word) ? (
                       <>
                         <Check className="mr-2 h-4 w-4" />

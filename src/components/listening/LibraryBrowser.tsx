@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { format } from 'date-fns';
-import { PlayCircle, Clock, BookOpen, Bookmark, Search } from 'lucide-react';
-import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { format } from "date-fns";
+import { PlayCircle, Clock, BookOpen, Bookmark, Search } from "lucide-react";
+import Link from "next/link";
+import { useState, useEffect } from "react";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -14,19 +14,19 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Pagination } from '@/components/ui/pagination';
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Pagination } from "@/components/ui/pagination";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { toast } from '@/hooks/use-toast';
-import { formatDuration } from '@/lib/utils';
+} from "@/components/ui/select";
+import { toast } from "@/hooks/use-toast";
+import { formatDuration } from "@/lib/utils";
 
 interface LibraryItem {
   _id: string;
@@ -46,20 +46,20 @@ export function LibraryBrowser() {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [levelFilter, setLevelFilter] = useState<string>('all');
-  const [contentTypeFilter, setContentTypeFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [contentTypeFilter, setContentTypeFilter] = useState<string>("all");
 
   const fetchLibraryItems = async () => {
     setLoading(true);
     try {
       let url = `/api/library?page=${currentPage}&limit=8`;
 
-      if (levelFilter && levelFilter !== 'all') {
+      if (levelFilter && levelFilter !== "all") {
         url += `&level=${encodeURIComponent(levelFilter)}`;
       }
 
-      if (contentTypeFilter && contentTypeFilter !== 'all') {
+      if (contentTypeFilter && contentTypeFilter !== "all") {
         url += `&contentType=${encodeURIComponent(contentTypeFilter)}`;
       }
 
@@ -70,15 +70,15 @@ export function LibraryBrowser() {
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch library items');
+        throw new Error("Failed to fetch library items");
       }
 
       const data = await response.json();
       setItems(data.sessions);
       setTotalPages(data.pagination.pages);
     } catch (err) {
-      console.error('Error fetching library items:', err);
-      setError('Failed to load library items');
+      console.error("Error fetching library items:", err);
+      setError("Failed to load library items");
     } finally {
       setLoading(false);
     }
@@ -91,14 +91,14 @@ export function LibraryBrowser() {
   // Function to get background color based on level
   const getLevelColor = (level: string) => {
     const colors: Record<string, string> = {
-      A1: 'bg-green-100',
-      A2: 'bg-green-200',
-      B1: 'bg-blue-100',
-      B2: 'bg-blue-200',
-      C1: 'bg-purple-100',
-      C2: 'bg-purple-200',
+      A1: "bg-green-100",
+      A2: "bg-green-200",
+      B1: "bg-blue-100",
+      B2: "bg-blue-200",
+      C1: "bg-purple-100",
+      C2: "bg-purple-200",
     };
-    return colors[level] || 'bg-gray-100';
+    return colors[level] || "bg-gray-100";
   };
 
   if (loading && items.length === 0) {

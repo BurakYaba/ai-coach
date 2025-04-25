@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { Award, Zap, BookOpen } from 'lucide-react';
-import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { Award, Zap, BookOpen } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 
-import { DailyGrammarChallenge } from '@/components/grammar/DailyGrammarChallenge';
-import { GrammarFlashcards } from '@/components/grammar/GrammarFlashcards';
-import GrammarIssuesList from '@/components/grammar/GrammarIssuesList';
-import GrammarLessonsList from '@/components/grammar/GrammarLessonsList';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { DailyGrammarChallenge } from "@/components/grammar/DailyGrammarChallenge";
+import { GrammarFlashcards } from "@/components/grammar/GrammarFlashcards";
+import GrammarIssuesList from "@/components/grammar/GrammarIssuesList";
+import GrammarLessonsList from "@/components/grammar/GrammarLessonsList";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -17,9 +17,9 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/hooks/use-toast";
 
 interface GrammarBadge {
   name: string;
@@ -30,7 +30,7 @@ interface GrammarBadge {
 
 export default function GrammarPage() {
   const { data: session } = useSession();
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [badges, setBadges] = useState<GrammarBadge[]>([]);
   const [userStats, setUserStats] = useState({
@@ -48,9 +48,9 @@ export default function GrammarPage() {
 
   const fetchUserProgress = async () => {
     try {
-      const response = await fetch('/api/user/grammar-progress');
+      const response = await fetch("/api/user/grammar-progress");
       if (!response.ok) {
-        throw new Error('Failed to fetch user grammar progress');
+        throw new Error("Failed to fetch user grammar progress");
       }
       const data = await response.json();
 
@@ -61,7 +61,7 @@ export default function GrammarPage() {
         challengeStreak: data.challengeStreak || 0,
       });
     } catch (error) {
-      console.error('Error fetching user progress:', error);
+      console.error("Error fetching user progress:", error);
     }
   };
 
@@ -69,9 +69,9 @@ export default function GrammarPage() {
   const generateLesson = async () => {
     if (!session?.user?.id) {
       toast({
-        title: 'Authentication required',
-        description: 'Please sign in to generate grammar lessons',
-        variant: 'destructive',
+        title: "Authentication required",
+        description: "Please sign in to generate grammar lessons",
+        variant: "destructive",
       });
       return;
     }
@@ -80,10 +80,10 @@ export default function GrammarPage() {
 
     try {
       // Fetch the most common error category for this user
-      const issuesResponse = await fetch('/api/grammar/issues?limit=50');
+      const issuesResponse = await fetch("/api/grammar/issues?limit=50");
 
       if (!issuesResponse.ok) {
-        throw new Error('Failed to fetch grammar issues');
+        throw new Error("Failed to fetch grammar issues");
       }
 
       const issuesData = await issuesResponse.json();
@@ -91,10 +91,10 @@ export default function GrammarPage() {
 
       if (issues.length === 0) {
         toast({
-          title: 'No grammar issues found',
+          title: "No grammar issues found",
           description:
-            'Complete some writing or speaking exercises first to collect grammar issues',
-          variant: 'default',
+            "Complete some writing or speaking exercises first to collect grammar issues",
+          variant: "default",
         });
         return;
       }
@@ -113,9 +113,9 @@ export default function GrammarPage() {
       });
 
       // Find the most common category
-      let topCategory = '';
+      let topCategory = "";
       let topCount = 0;
-      let level = 'B1'; // Default level if none found
+      let level = "B1"; // Default level if none found
 
       Object.entries(categoryCounts).forEach(([category, data]) => {
         if (data.count > topCount) {
@@ -126,10 +126,10 @@ export default function GrammarPage() {
       });
 
       // Generate a lesson for the most common category
-      const generateResponse = await fetch('/api/grammar/lessons', {
-        method: 'POST',
+      const generateResponse = await fetch("/api/grammar/lessons", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           category: topCategory,
@@ -138,27 +138,27 @@ export default function GrammarPage() {
       });
 
       if (!generateResponse.ok) {
-        throw new Error('Failed to generate grammar lesson');
+        throw new Error("Failed to generate grammar lesson");
       }
 
       const generateData = await generateResponse.json();
 
       toast({
-        title: 'Grammar lesson created',
+        title: "Grammar lesson created",
         description: `New lesson created: ${generateData.lesson.title}`,
       });
 
       // Switch to lessons tab
-      setActiveTab('lessons');
+      setActiveTab("lessons");
 
       // Refresh user progress
       fetchUserProgress();
     } catch (error: any) {
-      console.error('Error generating lesson:', error);
+      console.error("Error generating lesson:", error);
       toast({
-        title: 'Error generating lesson',
-        description: error.message || 'Something went wrong',
-        variant: 'destructive',
+        title: "Error generating lesson",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
       });
     } finally {
       setIsGenerating(false);
@@ -167,14 +167,14 @@ export default function GrammarPage() {
 
   const getBadgeColor = (level: string) => {
     switch (level) {
-      case 'bronze':
-        return 'bg-orange-50 text-orange-700 border-orange-200';
-      case 'silver':
-        return 'bg-slate-100 text-slate-700 border-slate-300';
-      case 'gold':
-        return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case "bronze":
+        return "bg-orange-50 text-orange-700 border-orange-200";
+      case "silver":
+        return "bg-slate-100 text-slate-700 border-slate-300";
+      case "gold":
+        return "bg-yellow-50 text-yellow-700 border-yellow-200";
       default:
-        return '';
+        return "";
     }
   };
 
@@ -190,7 +190,7 @@ export default function GrammarPage() {
           </p>
         </div>
         <Button size="lg" onClick={generateLesson} disabled={isGenerating}>
-          {isGenerating ? 'Generating...' : 'Generate Lesson'}
+          {isGenerating ? "Generating..." : "Generate Lesson"}
         </Button>
       </div>
 
@@ -208,7 +208,7 @@ export default function GrammarPage() {
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-8">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
@@ -227,12 +227,6 @@ export default function GrammarPage() {
                   <span>Lessons Completed:</span>
                   <span className="font-medium">
                     {userStats.lessonsCompleted}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Challenge Streak:</span>
-                  <span className="font-medium">
-                    {userStats.challengeStreak} days
                   </span>
                 </div>
               </CardContent>
@@ -260,34 +254,7 @@ export default function GrammarPage() {
                 </div>
               </CardFooter>
             </Card>
-
-            <Card className="md:col-span-2">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-primary" />
-                  Daily Challenge
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <DailyGrammarChallenge />
-              </CardContent>
-            </Card>
           </div>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-primary" />
-                Grammar Flashcards
-              </CardTitle>
-              <CardDescription>
-                Review grammar rules with spaced repetition
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <GrammarFlashcards />
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="issues" className="space-y-4">

@@ -1,25 +1,25 @@
-import { AlertCircle } from 'lucide-react';
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { Suspense } from 'react';
+import { AlertCircle } from "lucide-react";
+import { Metadata } from "next";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { Suspense } from "react";
 
-import { LibraryBrowser } from '@/components/listening/LibraryBrowser';
-import { ListeningStats } from '@/components/listening/ListeningStats';
+import { LibraryBrowser } from "@/components/listening/LibraryBrowser";
+import { ListeningStats } from "@/components/listening/ListeningStats";
 import {
   SessionList,
   SessionSkeleton,
-} from '@/components/listening/SessionList';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { authOptions } from '@/lib/auth';
+} from "@/components/listening/SessionList";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { authOptions } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: 'Listening Practice | Language Coach',
-  description: 'Improve your listening skills with personalized audio content',
+  title: "Listening Practice | Language Coach",
+  description: "Improve your listening skills with personalized audio content",
 };
 
 function LibraryBrowserSkeleton() {
@@ -68,7 +68,7 @@ export default async function ListeningDashboardPage({
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect('/login');
+    redirect("/login");
   }
 
   // Handle success and error messages from URL parameters
@@ -78,27 +78,27 @@ export default async function ListeningDashboardPage({
   // Set error message based on URL parameter
   if (searchParams.error) {
     switch (searchParams.error) {
-      case 'invalid-id':
-        errorMessage = 'Invalid session ID. Please try again.';
+      case "invalid-id":
+        errorMessage = "Invalid session ID. Please try again.";
         break;
-      case 'not-found':
-        errorMessage = 'Listening session not found.';
+      case "not-found":
+        errorMessage = "Listening session not found.";
         break;
-      case 'delete-failed':
-        errorMessage = 'Failed to delete listening session. Please try again.';
+      case "delete-failed":
+        errorMessage = "Failed to delete listening session. Please try again.";
         break;
       default:
-        errorMessage = 'An error occurred. Please try again.';
+        errorMessage = "An error occurred. Please try again.";
     }
   }
 
   // Set success message based on URL parameter
-  if (searchParams.success === 'deleted') {
-    successMessage = 'Listening session deleted successfully.';
+  if (searchParams.success === "deleted") {
+    successMessage = "Listening session deleted successfully.";
   }
 
   // Determine default tab (can be controlled via URL parameter)
-  const defaultTab = searchParams.tab || 'library';
+  const defaultTab = searchParams.tab || "library";
 
   return (
     <div className="container mx-auto py-6">

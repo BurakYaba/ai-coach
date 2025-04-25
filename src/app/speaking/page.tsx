@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { Info } from 'lucide-react';
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { useState } from 'react';
+import { Info } from "lucide-react";
+import { Metadata } from "next";
+import Link from "next/link";
+import { useState } from "react";
 
-import { FreeConversation } from '@/components/speaking/FreeConversation';
-import { TurnBasedConversation } from '@/components/speaking/TurnBasedConversation';
-import { Button } from '@/components/ui/button';
+import { FreeConversation } from "@/components/speaking/FreeConversation";
+import { TurnBasedConversation } from "@/components/speaking/TurnBasedConversation";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,19 +15,19 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
+} from "@/components/ui/tooltip";
 
 export default function SpeakingPage() {
   const [conversationMode, setConversationMode] = useState<
-    'realtime' | 'turn-based'
-  >('realtime');
+    "realtime" | "turn-based"
+  >("realtime");
 
   return (
     <div className="container mx-auto py-10">
@@ -60,24 +60,24 @@ export default function SpeakingPage() {
                     <div className="bg-secondary rounded-md p-1 flex">
                       <Button
                         variant={
-                          conversationMode === 'realtime' ? 'default' : 'ghost'
+                          conversationMode === "realtime" ? "default" : "ghost"
                         }
                         size="sm"
                         className="rounded-md"
-                        onClick={() => setConversationMode('realtime')}
+                        onClick={() => setConversationMode("realtime")}
                         aria-label="Realtime conversation mode"
                       >
                         Realtime
                       </Button>
                       <Button
                         variant={
-                          conversationMode === 'turn-based'
-                            ? 'default'
-                            : 'ghost'
+                          conversationMode === "turn-based"
+                            ? "default"
+                            : "ghost"
                         }
                         size="sm"
                         className="rounded-md"
-                        onClick={() => setConversationMode('turn-based')}
+                        onClick={() => setConversationMode("turn-based")}
                         aria-label="Turn-based conversation mode"
                       >
                         Turn-based
@@ -109,7 +109,7 @@ export default function SpeakingPage() {
               </div>
             </CardHeader>
             <CardContent>
-              {conversationMode === 'realtime' ? (
+              {conversationMode === "realtime" ? (
                 <FreeConversation />
               ) : (
                 <TurnBasedConversation />

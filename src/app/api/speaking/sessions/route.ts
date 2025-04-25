@@ -1,19 +1,19 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
 
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import SpeakingSession from '@/models/SpeakingSession';
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import SpeakingSession from "@/models/SpeakingSession";
 
 // This tells Next.js that this is a dynamic route that shouldn't be statically optimized
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
     // Check if user is authenticated
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Connect to database
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
     // Parse pagination parameters
     const url = new URL(req.url);
-    const pageParam = url.searchParams.get('page');
+    const pageParam = url.searchParams.get("page");
     const page = pageParam ? parseInt(pageParam) : 1;
     const limit = 8; // 2 rows x 4 columns
     const skip = (page - 1) * limit;
@@ -54,9 +54,9 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching speaking sessions:', error);
+    console.error("Error fetching speaking sessions:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

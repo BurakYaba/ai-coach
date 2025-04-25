@@ -1,18 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
 
-import { authOptions } from '@/lib/auth';
+import { authOptions } from "@/lib/auth";
 import {
   analyzeSessionRecordings,
   SessionAnalysisResult,
-} from '@/lib/azure-speech';
-import { deleteCloudinaryFiles } from '@/lib/cloudinary';
-import dbConnect from '@/lib/db';
-import { getSessionAudioUrls } from '@/lib/session-helpers';
-import SpeakingSession from '@/models/SpeakingSession';
+} from "@/lib/azure-speech";
+import { deleteCloudinaryFiles } from "@/lib/cloudinary";
+import dbConnect from "@/lib/db";
+import { getSessionAudioUrls } from "@/lib/session-helpers";
+import SpeakingSession from "@/models/SpeakingSession";
 
 // Dynamic route to avoid static optimization
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Custom process cache for tracking evaluation status
 const processingCache: Record<string, boolean> = {};
@@ -49,8 +49,8 @@ export async function POST(req: NextRequest) {
     let isInternalCall = false;
 
     // Check for internal API key for server-to-server authentication
-    const internalApiKey = req.headers.get('X-Internal-Api-Key');
-    const expectedApiKey = process.env.NEXTAUTH_SECRET || 'internal-api-key';
+    const internalApiKey = req.headers.get("X-Internal-Api-Key");
+    const expectedApiKey = process.env.NEXTAUTH_SECRET || "internal-api-key";
 
     // Authenticate using either the API key or the user session
     if (internalApiKey === expectedApiKey) {
@@ -60,14 +60,14 @@ export async function POST(req: NextRequest) {
       // Authenticate user via NextAuth
       const session = await getServerSession(authOptions);
       if (!session?.user) {
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
       userId = session.user.id;
     }
 
     if (!speakingSessionId) {
       return NextResponse.json(
-        { error: 'Missing speakingSessionId' },
+        { error: "Missing speakingSessionId" },
         { status: 400 }
       );
     }
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
 
     if (!speakingSession) {
       return NextResponse.json(
-        { error: 'Speaking session not found' },
+        { error: "Speaking session not found" },
         { status: 404 }
       );
     }
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
         `Evaluation already in progress for session ${speakingSessionId}, skipping duplicate call`
       );
       return NextResponse.json({
-        message: 'Evaluation already in progress for this session',
+        message: "Evaluation already in progress for this session",
         alreadyProcessing: true,
       });
     }
@@ -111,12 +111,12 @@ export async function POST(req: NextRequest) {
     try {
       // Extract user transcripts for reference text
       const userTranscripts = speakingSession.transcripts.filter(
-        t => t.role === 'user'
+        t => t.role === "user"
       );
 
       if (userTranscripts.length === 0) {
         return NextResponse.json(
-          { error: 'No user speech to evaluate' },
+          { error: "No user speech to evaluate" },
           { status: 400 }
         );
       }
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
             urlsToProcess = sessionAudioUrls;
           }
         } catch (error) {
-          console.error('Error retrieving session audio URLs:', error);
+          console.error("Error retrieving session audio URLs:", error);
         }
 
         // Check metadata audio URLs
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
 
       if (!urlsToProcess.length) {
         return NextResponse.json(
-          { error: 'No audio available for analysis' },
+          { error: "No audio available for analysis" },
           { status: 400 }
         );
       }
@@ -169,10 +169,10 @@ export async function POST(req: NextRequest) {
       }, 30000); // Keep flag for 30 seconds to prevent rapid re-requests
     }
   } catch (error: any) {
-    console.error('Error evaluating speaking session:', error);
+    console.error("Error evaluating speaking session:", error);
     return NextResponse.json(
       {
-        error: 'Failed to evaluate session',
+        error: "Failed to evaluate session",
         details: error.message,
       },
       { status: 500 }
@@ -195,17 +195,24 @@ async function processAudioEvaluation(
 
     if (!hasAzureCredentials) {
       return NextResponse.json(
-        { error: 'Azure Speech credentials not configured' },
+        { error: "Azure Speech credentials not configured" },
         { status: 500 }
       );
     }
+
+    // Set initial progress to 10% - evaluation has started
+    await SpeakingSession.findByIdAndUpdate(
+      speakingSession._id,
+      { evaluationProgress: 10 },
+      { new: true }
+    );
 
     // Using Azure speech utility to evaluate the audio
     // Download audio files from URLs
     const audioBuffers = await Promise.all(
       userTranscripts.map(async (transcript, index) => {
         // Be more flexible with index matching - use available URLs even if they don't match transcript count
-        const audioUrl = audioUrls[index] || audioUrls[0] || '';
+        const audioUrl = audioUrls[index] || audioUrls[0] || "";
         if (!audioUrl) {
           return null;
         }
@@ -228,6 +235,13 @@ async function processAudioEvaluation(
       })
     );
 
+    // Update progress to 20% - audio files downloaded
+    await SpeakingSession.findByIdAndUpdate(
+      speakingSession._id,
+      { evaluationProgress: 20 },
+      { new: true }
+    );
+
     // Filter out any null entries
     const validAudioBuffers = audioBuffers.filter(
       buffer => buffer !== null
@@ -238,12 +252,83 @@ async function processAudioEvaluation(
 
     if (validAudioBuffers.length === 0) {
       return NextResponse.json(
-        { error: 'No valid audio files to analyze' },
+        { error: "No valid audio files to analyze" },
         { status: 400 }
       );
     }
 
-    const results = await analyzeSessionRecordings(validAudioBuffers);
+    // If we have many audio buffers, implement a batching strategy
+    // Process at most 3 audio files at a time to reduce load on Azure
+    let results: SessionAnalysisResult;
+
+    if (validAudioBuffers.length > 3) {
+      console.log(
+        `Processing ${validAudioBuffers.length} audio files in smaller batches`
+      );
+
+      // Process first 3 files to get baseline results
+      const initialBatch = validAudioBuffers.slice(0, 3);
+      results = await analyzeSessionRecordings(initialBatch);
+
+      // Update progress to 40% - first batch of audio files analyzed
+      await SpeakingSession.findByIdAndUpdate(
+        speakingSession._id,
+        { evaluationProgress: 40 },
+        { new: true }
+      );
+
+      // If there are more files, process them in a second batch
+      if (validAudioBuffers.length > 3) {
+        try {
+          // Process remaining files (up to 3 more) after a delay
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+
+          const secondBatch = validAudioBuffers.slice(3, 6);
+          console.log(`Processing second batch of ${secondBatch.length} files`);
+          const secondResults = await analyzeSessionRecordings(secondBatch);
+
+          // Update progress to 60% - second batch of audio files analyzed
+          await SpeakingSession.findByIdAndUpdate(
+            speakingSession._id,
+            { evaluationProgress: 60 },
+            { new: true }
+          );
+
+          // Combine results by averaging scores
+          results = combineAnalysisResults(results, secondResults);
+
+          // If there are still more files, log that we're skipping them
+          if (validAudioBuffers.length > 6) {
+            console.log(
+              `Skipping analysis of ${validAudioBuffers.length - 6} additional files to avoid overloading Azure`
+            );
+          }
+        } catch (batchError) {
+          console.error(
+            "Error processing second batch, continuing with first batch results:",
+            batchError
+          );
+          // Continue with just the first batch results
+        }
+      }
+    } else {
+      // Process all files at once if there are 3 or fewer
+      results = await analyzeSessionRecordings(validAudioBuffers);
+
+      // Update progress to 60% - all audio files analyzed in a single batch
+      await SpeakingSession.findByIdAndUpdate(
+        speakingSession._id,
+        { evaluationProgress: 60 },
+        { new: true }
+      );
+    }
+
+    // Update progress to 80% - analysis complete, saving results
+    await SpeakingSession.findByIdAndUpdate(
+      speakingSession._id,
+      { evaluationProgress: 80 },
+      { new: true }
+    );
 
     // Update the session with assessment results
     // Use a retry approach to handle potential version conflicts
@@ -261,11 +346,12 @@ async function processAudioEvaluation(
           );
           speakingSession = await SpeakingSession.findById(speakingSession._id);
           if (!speakingSession) {
-            throw new Error('Session no longer exists');
+            throw new Error("Session no longer exists");
           }
         }
 
         speakingSession.feedback = results;
+        // Don't set evaluationProgress here as we'll update it to 100% after cleanup
         await speakingSession.save();
         updated = true;
         console.log(
@@ -279,7 +365,7 @@ async function processAudioEvaluation(
           await new Promise(resolve => setTimeout(resolve, 500 * attempts)); // Exponential backoff
         } else {
           console.error(
-            'Failed to update session after multiple attempts:',
+            "Failed to update session after multiple attempts:",
             saveError
           );
           throw saveError; // Re-throw on final attempt
@@ -290,7 +376,7 @@ async function processAudioEvaluation(
     // After successful evaluation, delete the audio files from Cloudinary
     try {
       console.log(
-        'Deleting audio files from Cloudinary after successful evaluation'
+        "Deleting audio files from Cloudinary after successful evaluation"
       );
       const deletionResults = await deleteCloudinaryFiles(audioUrls);
 
@@ -320,19 +406,42 @@ async function processAudioEvaluation(
           // Use findByIdAndUpdate to avoid version conflicts
           await SpeakingSession.findByIdAndUpdate(
             speakingSession._id,
-            { 'metadata.audioUrls': remainingUrls },
+            {
+              "metadata.audioUrls": remainingUrls,
+              evaluationProgress: 100, // Set to 100% - evaluation fully complete
+            },
             { new: true }
           );
 
-          console.log('Updated session metadata to remove deleted audio URLs');
+          console.log(
+            "Updated session metadata to remove deleted audio URLs and marked evaluation as complete"
+          );
         } catch (updateError) {
-          console.error('Error updating session metadata:', updateError);
-          // Continue despite error - we've already deleted the files
+          console.error("Error updating session metadata:", updateError);
+          // Still mark as complete even if metadata update fails
+          await SpeakingSession.findByIdAndUpdate(
+            speakingSession._id,
+            { evaluationProgress: 100 },
+            { new: true }
+          );
         }
+      } else {
+        // Mark as complete even if no URLs were deleted
+        await SpeakingSession.findByIdAndUpdate(
+          speakingSession._id,
+          { evaluationProgress: 100 },
+          { new: true }
+        );
       }
     } catch (deletionError) {
       // Log error but continue - we don't want to fail the evaluation if deletion fails
-      console.error('Error deleting audio files:', deletionError);
+      console.error("Error deleting audio files:", deletionError);
+      // Still mark as complete even if deletion fails
+      await SpeakingSession.findByIdAndUpdate(
+        speakingSession._id,
+        { evaluationProgress: 100 },
+        { new: true }
+      );
     }
 
     return NextResponse.json({
@@ -341,13 +450,88 @@ async function processAudioEvaluation(
       results,
     });
   } catch (analysisError: any) {
-    console.error('Error during speech analysis:', analysisError);
+    console.error("Error during speech analysis:", analysisError);
+    // Mark evaluation as failed with progress at -1
+    try {
+      await SpeakingSession.findByIdAndUpdate(
+        speakingSession._id,
+        { evaluationProgress: -1 }, // Use -1 to indicate error
+        { new: true }
+      );
+    } catch (updateError) {
+      console.error(
+        "Error updating evaluation progress on failure:",
+        updateError
+      );
+    }
     return NextResponse.json(
       {
-        error: 'Failed to analyze speech recordings',
+        error: "Failed to analyze speech recordings",
         details: analysisError.message,
       },
       { status: 500 }
     );
   }
+}
+
+// Helper function to combine multiple analysis results
+function combineAnalysisResults(
+  result1: SessionAnalysisResult,
+  result2: SessionAnalysisResult
+): SessionAnalysisResult {
+  // Combine arrays without using Set spreading
+  const combinedStrengths = [
+    ...(result1.strengths || []),
+    ...(result2.strengths || []),
+  ].filter((value, index, self) => self.indexOf(value) === index);
+
+  const combinedAreasForImprovement = [
+    ...(result1.areasForImprovement || []),
+    ...(result2.areasForImprovement || []),
+  ].filter((value, index, self) => self.indexOf(value) === index);
+
+  return {
+    fluencyScore: Math.round((result1.fluencyScore + result2.fluencyScore) / 2),
+    accuracyScore: Math.round(
+      (result1.accuracyScore + result2.accuracyScore) / 2
+    ),
+    vocabularyScore:
+      result1.vocabularyScore && result2.vocabularyScore
+        ? Math.round((result1.vocabularyScore + result2.vocabularyScore) / 2)
+        : result1.vocabularyScore || result2.vocabularyScore,
+    pronunciationScore: Math.round(
+      (result1.pronunciationScore + result2.pronunciationScore) / 2
+    ),
+    completenessScore:
+      result1.completenessScore && result2.completenessScore
+        ? Math.round(
+            (result1.completenessScore + result2.completenessScore) / 2
+          )
+        : result1.completenessScore || result2.completenessScore,
+    prosodyScore:
+      result1.prosodyScore && result2.prosodyScore
+        ? Math.round((result1.prosodyScore + result2.prosodyScore) / 2)
+        : result1.prosodyScore || result2.prosodyScore,
+    speakingRate:
+      result1.speakingRate && result2.speakingRate
+        ? Math.round((result1.speakingRate + result2.speakingRate) / 2)
+        : result1.speakingRate || result2.speakingRate,
+    overallScore: Math.round((result1.overallScore + result2.overallScore) / 2),
+    // Use the filtered arrays
+    strengths: combinedStrengths,
+    areasForImprovement: combinedAreasForImprovement,
+    suggestions: result1.suggestions || result2.suggestions || "",
+    // Take the most grammar issues from either result
+    grammarIssues:
+      (result1.grammarIssues?.length || 0) >
+      (result2.grammarIssues?.length || 0)
+        ? result1.grammarIssues
+        : result2.grammarIssues,
+    grammarScore:
+      result1.grammarScore && result2.grammarScore
+        ? Math.round((result1.grammarScore + result2.grammarScore) / 2)
+        : result1.grammarScore || result2.grammarScore || 0,
+    // Take mispronunciations from first result
+    mispronunciations: result1.mispronunciations || result2.mispronunciations,
+  };
 }

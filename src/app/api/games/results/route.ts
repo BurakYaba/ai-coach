@@ -45,10 +45,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    // Update user's total points based on game score
-    // This is a simplified implementation
-    user.progress.totalPoints += score;
-
     // Update language level based on performance
     // This is just a simple example - in a real app, you'd have more sophisticated logic
     if (correctAnswers / totalQuestions > 0.8) {

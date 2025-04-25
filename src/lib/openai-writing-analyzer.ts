@@ -1,6 +1,6 @@
-import { OpenAI } from 'openai';
+import { OpenAI } from "openai";
 
-import { IWritingPrompt } from '@/models/WritingPrompt';
+import { IWritingPrompt } from "@/models/WritingPrompt";
 
 // Define interfaces for analysis results
 interface AnalysisScores {
@@ -237,25 +237,25 @@ Provide comprehensive and constructive feedback that helps the student improve.`
 Writing type: ${prompt.type}
 Topic: ${prompt.topic}
 Target length: ${prompt.suggestedLength.min}-${prompt.suggestedLength.max} words (actual: ${wordCount} words)
-Requirements: ${prompt.requirements ? prompt.requirements.join(', ') : 'None specified'}
+Requirements: ${prompt.requirements ? prompt.requirements.join(", ") : "None specified"}
 
 CONTENT:
 ${content}`;
 
     // Call OpenAI API with our prompts
     const completion = await this.openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: "gpt-4o",
       messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
       ],
       temperature: 0.3,
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
     });
 
     // Parse the JSON response
     const analysisData = JSON.parse(
-      completion.choices[0].message.content || '{}'
+      completion.choices[0].message.content || "{}"
     );
 
     // Ensure all required fields exist with fallbacks
@@ -296,60 +296,60 @@ ${content}`;
     const processedFeedback = {
       overallAssessment:
         feedback.overallAssessment ||
-        'This writing shows both strengths and areas for improvement.',
+        "This writing shows both strengths and areas for improvement.",
       assessment:
         feedback.overallAssessment ||
-        'This writing shows both strengths and areas for improvement.',
+        "This writing shows both strengths and areas for improvement.",
       scoreBreakdown: feedback.scoreBreakdown || {
-        grammar: 'Grammar usage is satisfactory.',
-        vocabulary: 'Vocabulary usage is appropriate for the level.',
-        coherence: 'The writing has reasonable structure and flow.',
-        style: 'The writing style is adequate for the purpose.',
+        grammar: "Grammar usage is satisfactory.",
+        vocabulary: "Vocabulary usage is appropriate for the level.",
+        coherence: "The writing has reasonable structure and flow.",
+        style: "The writing style is adequate for the purpose.",
         overall:
-          'Overall, this is a satisfactory piece of writing with room for improvement.',
+          "Overall, this is a satisfactory piece of writing with room for improvement.",
       },
       strengths: this.ensureArrayWithPrefixes(feedback.strengths || [], [
-        'Grammar strength',
-        'Vocabulary strength',
-        'Structure strength',
-        'Content strength',
+        "Grammar strength",
+        "Vocabulary strength",
+        "Structure strength",
+        "Content strength",
       ]),
       areasForImprovement: this.ensureArrayWithPrefixes(
         feedback.areasForImprovement || [],
         [
-          'Grammar improvement',
-          'Vocabulary improvement',
-          'Structure improvement',
-          'Content improvement',
+          "Grammar improvement",
+          "Vocabulary improvement",
+          "Structure improvement",
+          "Content improvement",
         ]
       ),
       suggestionsForImprovement: this.ensureArrayWithPrefixes(
         feedback.suggestionsForImprovement || [],
         [
-          'To enhance vocabulary',
-          'To strengthen structure',
-          'To develop content',
+          "To enhance vocabulary",
+          "To strengthen structure",
+          "To develop content",
         ]
       ),
       improvements: this.ensureArrayWithPrefixes(feedback.improvements || [], [
-        'Vocabulary:',
-        'Structure:',
-        'Content:',
+        "Vocabulary:",
+        "Structure:",
+        "Content:",
       ]),
       suggestions: this.ensureArrayWithPrefixes(
         feedback.suggestionsForImprovement || [],
         [
-          'To enhance vocabulary',
-          'To strengthen structure',
-          'To develop content',
+          "To enhance vocabulary",
+          "To strengthen structure",
+          "To develop content",
         ]
       ),
       detailedAnalysis:
         feedback.detailedAnalysis ||
-        'This writing demonstrates understanding of the topic with some areas that could be strengthened.',
+        "This writing demonstrates understanding of the topic with some areas that could be strengthened.",
       nextSteps:
         feedback.nextSteps ||
-        'Focus on reviewing grammar rules and expanding vocabulary to improve your writing.',
+        "Focus on reviewing grammar rules and expanding vocabulary to improve your writing.",
     };
 
     // Ensure grammar issues exist
@@ -357,12 +357,12 @@ ${content}`;
     if (grammarIssues.length === 0) {
       // Add a placeholder if no issues found
       grammarIssues.push({
-        type: 'General feedback',
-        context: 'Your writing',
+        type: "General feedback",
+        context: "Your writing",
         suggestion:
-          'Overall, your grammar is good with minor areas for improvement.',
+          "Overall, your grammar is good with minor areas for improvement.",
         explanation:
-          'Continue practicing grammar rules to further enhance your writing.',
+          "Continue practicing grammar rules to further enhance your writing.",
       });
     }
 
@@ -371,17 +371,17 @@ ${content}`;
     const processedVocabAnalysis = {
       uniqueWords:
         vocabAnalysis.uniqueWords ||
-        Math.floor(this.countWords(data.content || '') * 0.6),
+        Math.floor(this.countWords(data.content || "") * 0.6),
       wordFrequency: vocabAnalysis.wordFrequency || [],
       suggestions: vocabAnalysis.suggestions || [],
-      level: vocabAnalysis.level || 'Intermediate',
+      level: vocabAnalysis.level || "Intermediate",
       strengths: this.ensureNonEmptyArray(vocabAnalysis.strengths || [], [
-        'You use a variety of vocabulary appropriate for your level.',
-        'Your word choice effectively communicates your ideas.',
+        "You use a variety of vocabulary appropriate for your level.",
+        "Your word choice effectively communicates your ideas.",
       ]),
       improvements: this.ensureNonEmptyArray(vocabAnalysis.improvements || [], [
-        'Try incorporating more advanced vocabulary where appropriate.',
-        'Consider using more specific and precise terms in your writing.',
+        "Try incorporating more advanced vocabulary where appropriate.",
+        "Consider using more specific and precise terms in your writing.",
       ]),
     };
 
@@ -414,37 +414,37 @@ ${content}`;
         if (!hasPrefix) {
           // Add a default item with this prefix
           const defaults: { [key: string]: string } = {
-            'Grammar strength':
-              'You demonstrate understanding of basic grammar rules. For example, most of your sentences have correct subject-verb agreement and appropriate punctuation.',
-            'Vocabulary strength':
-              'You use vocabulary that is appropriate for your level. Your word choices effectively communicate your main ideas without relying too heavily on repetition.',
-            'Structure strength':
-              'Your writing has a logical structure with distinct paragraphs. You have organized your thoughts in a way that helps the reader follow your main points.',
-            'Content strength':
-              'You address the main topic in your writing with relevant ideas. You have included some supporting details that help develop your main points.',
+            "Grammar strength":
+              "You demonstrate understanding of basic grammar rules. For example, most of your sentences have correct subject-verb agreement and appropriate punctuation.",
+            "Vocabulary strength":
+              "You use vocabulary that is appropriate for your level. Your word choices effectively communicate your main ideas without relying too heavily on repetition.",
+            "Structure strength":
+              "Your writing has a logical structure with distinct paragraphs. You have organized your thoughts in a way that helps the reader follow your main points.",
+            "Content strength":
+              "You address the main topic in your writing with relevant ideas. You have included some supporting details that help develop your main points.",
 
-            'Grammar improvement':
-              'Pay closer attention to sentence structure and punctuation. For instance, some sentences would benefit from being split into shorter, clearer statements.',
-            'Vocabulary improvement':
-              'Try to incorporate more varied and precise vocabulary. Some words are repeated frequently, and using synonyms would make your writing more engaging.',
-            'Structure improvement':
+            "Grammar improvement":
+              "Pay closer attention to sentence structure and punctuation. For instance, some sentences would benefit from being split into shorter, clearer statements.",
+            "Vocabulary improvement":
+              "Try to incorporate more varied and precise vocabulary. Some words are repeated frequently, and using synonyms would make your writing more engaging.",
+            "Structure improvement":
               'Work on stronger transitions between paragraphs. Adding linking phrases like "Furthermore," "In addition," or "On the other hand" would improve flow.',
-            'Content improvement':
-              'Develop your ideas with more specific examples and evidence. For instance, including statistics, quotations, or specific scenarios would strengthen your arguments.',
+            "Content improvement":
+              "Develop your ideas with more specific examples and evidence. For instance, including statistics, quotations, or specific scenarios would strengthen your arguments.",
 
-            'To enhance vocabulary':
-              'Keep a vocabulary journal of new words you encounter in your reading. Try to incorporate at least 3-5 new words from this journal in each piece of writing you produce.',
-            'To strengthen structure':
-              'Create an outline before writing to organize your thoughts better. This would help you ensure each paragraph has a clear topic sentence and supporting details.',
-            'To develop content':
-              'Research your topic more thoroughly before writing and take notes on key facts and examples. This will give you more specific material to include in your essays.',
+            "To enhance vocabulary":
+              "Keep a vocabulary journal of new words you encounter in your reading. Try to incorporate at least 3-5 new words from this journal in each piece of writing you produce.",
+            "To strengthen structure":
+              "Create an outline before writing to organize your thoughts better. This would help you ensure each paragraph has a clear topic sentence and supporting details.",
+            "To develop content":
+              "Research your topic more thoroughly before writing and take notes on key facts and examples. This will give you more specific material to include in your essays.",
 
-            'Vocabulary:':
+            "Vocabulary:":
               'Incorporate more academic terms relevant to your topic. Instead of using general words like "good" or "bad," try more precise terms like "beneficial," "advantageous," or "detrimental."',
-            'Structure:':
-              'Use clearer topic sentences at the beginning of each paragraph. For instance, your third paragraph begins with details before stating the main point, which can confuse readers.',
-            'Content:':
-              'Elaborate on your main ideas with more specific examples. In your discussion of environmental impacts, including specific statistics or case studies would strengthen your argument.',
+            "Structure:":
+              "Use clearer topic sentences at the beginning of each paragraph. For instance, your third paragraph begins with details before stating the main point, which can confuse readers.",
+            "Content:":
+              "Elaborate on your main ideas with more specific examples. In your discussion of environmental impacts, including specific statistics or case studies would strengthen your argument.",
           };
 
           result.push(
@@ -455,6 +455,31 @@ ${content}`;
       });
 
       return result;
+    }
+
+    // Even if we have enough items, ensure there's at least one grammar improvement
+    // specifically for the improvements array when it's being used for that purpose
+    if (
+      prefixes.includes("Vocabulary:") ||
+      prefixes.includes("Structure:") ||
+      prefixes.includes("Content:")
+    ) {
+      const hasGrammarItem = array.some(
+        item =>
+          item.toLowerCase().includes("grammar") ||
+          item.toLowerCase().includes("spelling") ||
+          item.toLowerCase().includes("punctuation") ||
+          item.toLowerCase().includes("sentence") ||
+          item.toLowerCase().startsWith("grammar:") ||
+          item.toLowerCase().startsWith("grammar improvement")
+      );
+
+      if (!hasGrammarItem) {
+        // Add a grammar improvement item
+        array.push(
+          "Grammar improvement: Pay attention to punctuation and sentence structure to enhance clarity and readability. Review your use of commas, periods, and other punctuation marks."
+        );
+      }
     }
 
     return array;

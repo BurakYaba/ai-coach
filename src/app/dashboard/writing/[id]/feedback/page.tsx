@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 // Remove the HeroIcons import
 // import {
@@ -7,12 +7,12 @@
 //   CheckCircleIcon,
 //   ArrowTrendingUpIcon,
 // } from '@heroicons/react/24/outline';
-import Link from 'next/link';
-import { useRouter, useParams } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import Link from "next/link";
+import { useRouter, useParams } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,11 +20,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/hooks/use-toast";
 
 interface WritingSession {
   _id: string;
@@ -99,7 +99,7 @@ interface WritingSession {
     timestamp: Date;
     analyzedAt: string;
   };
-  status: 'draft' | 'submitted' | 'analyzed' | 'completed';
+  status: "draft" | "submitted" | "analyzed" | "completed";
 }
 
 // Add the interface definitions for the OpenAI analyzer types
@@ -155,21 +155,21 @@ interface ScoreCardProps {
 // Add ScoreCard component
 const ScoreCard: React.FC<ScoreCardProps> = ({ score, title, description }) => {
   // Calculate color based on score
-  let color = 'bg-gray-100';
-  let textColor = 'text-gray-700';
+  let color = "bg-gray-100";
+  let textColor = "text-gray-700";
 
   if (score >= 90) {
-    color = 'bg-green-100';
-    textColor = 'text-green-700';
+    color = "bg-green-100";
+    textColor = "text-green-700";
   } else if (score >= 75) {
-    color = 'bg-blue-100';
-    textColor = 'text-blue-700';
+    color = "bg-blue-100";
+    textColor = "text-blue-700";
   } else if (score >= 60) {
-    color = 'bg-yellow-100';
-    textColor = 'text-yellow-700';
+    color = "bg-yellow-100";
+    textColor = "text-yellow-700";
   } else if (score > 0) {
-    color = 'bg-red-100';
-    textColor = 'text-red-700';
+    color = "bg-red-100";
+    textColor = "text-red-700";
   }
 
   return (
@@ -260,7 +260,7 @@ const ArrowTrendingUpIcon: React.FC<IconProps> = props => (
 export default function FeedbackPage() {
   const router = useRouter();
   const params = useParams();
-  const sessionId = params.id as string;
+  const sessionId = params?.id as string;
 
   const [session, setSession] = useState<WritingSession | null>(null);
   const [loading, setLoading] = useState(true);
@@ -274,30 +274,30 @@ export default function FeedbackPage() {
   useEffect(() => {
     async function fetchSession() {
       try {
-        console.log('Fetching session data for:', sessionId);
+        console.log("Fetching session data for:", sessionId);
         const response = await fetch(`/api/writing/sessions/${sessionId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch session');
+          throw new Error("Failed to fetch session");
         }
         const data = await response.json();
-        console.log('Session data received:', data.session);
-        console.log('Analysis data:', data.session.analysis);
+        console.log("Session data received:", data.session);
+        console.log("Analysis data:", data.session.analysis);
         setSession(data.session);
 
         // If session is not analyzed, redirect to analyze page
         if (
-          data.session.status !== 'analyzed' &&
-          data.session.status !== 'completed'
+          data.session.status !== "analyzed" &&
+          data.session.status !== "completed"
         ) {
           toast({
-            title: 'Not Analyzed',
-            description: 'This writing session has not been analyzed yet.',
+            title: "Not Analyzed",
+            description: "This writing session has not been analyzed yet.",
           });
           router.push(`/dashboard/writing/${sessionId}/analyze`);
         }
       } catch (error) {
-        console.error('Error fetching writing session:', error);
-        setError('Failed to load writing session');
+        console.error("Error fetching writing session:", error);
+        setError("Failed to load writing session");
       } finally {
         setLoading(false);
       }
@@ -370,17 +370,17 @@ export default function FeedbackPage() {
       const response = await fetch(
         `/api/writing/sessions/${sessionId}/complete`,
         {
-          method: 'POST',
+          method: "POST",
         }
       );
 
       if (!response.ok) {
-        throw new Error('Failed to complete session');
+        throw new Error("Failed to complete session");
       }
 
       toast({
-        title: 'Session Completed',
-        description: 'Your writing session has been marked as completed.',
+        title: "Session Completed",
+        description: "Your writing session has been marked as completed.",
       });
 
       // Refresh session data
@@ -388,11 +388,11 @@ export default function FeedbackPage() {
       const data = await updatedResponse.json();
       setSession(data.session);
     } catch (error) {
-      console.error('Error completing session:', error);
+      console.error("Error completing session:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to complete session. Please try again.',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to complete session. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -435,7 +435,7 @@ export default function FeedbackPage() {
           <CardFooter className="flex justify-between">
             <Button
               variant="outline"
-              onClick={() => router.push('/dashboard/writing')}
+              onClick={() => router.push("/dashboard/writing")}
             >
               Back to Dashboard
             </Button>
@@ -461,7 +461,7 @@ export default function FeedbackPage() {
             <p>Please check the URL or go back to your writing dashboard.</p>
           </CardContent>
           <CardFooter>
-            <Button onClick={() => router.push('/dashboard/writing')}>
+            <Button onClick={() => router.push("/dashboard/writing")}>
               Back to Writing Dashboard
             </Button>
           </CardFooter>
@@ -496,7 +496,7 @@ export default function FeedbackPage() {
             </Button>
             <Button
               variant="outline"
-              onClick={() => router.push('/dashboard/writing')}
+              onClick={() => router.push("/dashboard/writing")}
             >
               Back to Writing Dashboard
             </Button>
@@ -512,14 +512,14 @@ export default function FeedbackPage() {
   // Check if enhanced analysis from OpenAI is available
   const hasEnhancedAnalysis = Boolean(
     analysis &&
-      (typeof analysis.grammarIssues !== 'undefined' ||
-        typeof analysis.vocabularyAnalysis !== 'undefined') &&
+      (typeof analysis.grammarIssues !== "undefined" ||
+        typeof analysis.vocabularyAnalysis !== "undefined") &&
       Array.isArray(analysis.grammarIssues || [])
   );
 
   // Check if there is enhanced feedback available
   const hasEnhancedFeedback = Boolean(
-    analysis && analysis.feedback && typeof analysis.feedback === 'object'
+    analysis && analysis.feedback && typeof analysis.feedback === "object"
   );
 
   return (
@@ -541,7 +541,7 @@ export default function FeedbackPage() {
             </Link>
           </Button>
 
-          {session.status !== 'completed' && (
+          {session.status !== "completed" && (
             <Button onClick={handleComplete}>Mark as Completed</Button>
           )}
         </div>
@@ -556,7 +556,7 @@ export default function FeedbackPage() {
                 {session.prompt.type}: {session.prompt.topic}
               </CardTitle>
               <CardDescription>
-                {new Date(analysis.timestamp).toLocaleDateString()} •{' '}
+                {new Date(analysis.timestamp).toLocaleDateString()} •{" "}
                 {session.submission.finalVersion.wordCount} words
               </CardDescription>
             </div>
@@ -564,16 +564,16 @@ export default function FeedbackPage() {
             <div className="col-span-8">
               <div className="bg-primary/5 p-3 rounded-lg">
                 <p className="text-sm italic text-foreground leading-relaxed">
-                  {analysis.summaryFeedback || 'No summary feedback available.'}
+                  {analysis.summaryFeedback || "No summary feedback available."}
                 </p>
               </div>
             </div>
 
             <div className="col-span-2 flex justify-end items-center gap-2">
               <Badge
-                variant={session.status === 'completed' ? 'default' : 'outline'}
+                variant={session.status === "completed" ? "default" : "outline"}
               >
-                {session.status === 'completed' ? 'Completed' : 'Analyzed'}
+                {session.status === "completed" ? "Completed" : "Analyzed"}
               </Badge>
               <div className="flex items-center gap-1 bg-primary/10 text-primary font-medium px-2 py-1 rounded-md">
                 <span className="text-sm">Score:</span>
@@ -605,9 +605,9 @@ export default function FeedbackPage() {
                     <span className="text-sm">Score:</span>
                     <span className="text-lg font-bold">
                       {hasEnhancedAnalysis &&
-                      typeof analysis.grammarScore !== 'undefined'
+                      typeof analysis.grammarScore !== "undefined"
                         ? analysis.grammarScore
-                        : analysisData.grammar?.score || 'N/A'}
+                        : analysisData.grammar?.score || "N/A"}
                     </span>
                   </div>
                 </div>
@@ -624,7 +624,7 @@ export default function FeedbackPage() {
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground">
                             Showing {currentCardIndex + 1}-
-                            {Math.min(currentCardIndex + 3, totalCards)} of{' '}
+                            {Math.min(currentCardIndex + 3, totalCards)} of{" "}
                             {totalCards}
                           </span>
                         </div>
@@ -636,7 +636,7 @@ export default function FeedbackPage() {
                         className="flex transition-transform duration-300 ease-in-out"
                         style={{
                           transform: `translateX(-${currentCardIndex * (100 / 3)}%)`,
-                          width: '100%',
+                          width: "100%",
                         }}
                       >
                         {analysis.grammarIssues.map(
@@ -644,12 +644,12 @@ export default function FeedbackPage() {
                             <div
                               key={index}
                               className="w-1/3 px-2 flex-shrink-0 box-border"
-                              style={{ maxWidth: 'calc(100% / 3)' }}
+                              style={{ maxWidth: "calc(100% / 3)" }}
                             >
                               <Card className="h-full">
                                 <CardHeader className="pb-2">
                                   <CardTitle className="text-base capitalize truncate">
-                                    {issue.type || 'Unknown'} Error
+                                    {issue.type || "Unknown"} Error
                                   </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-2">
@@ -660,7 +660,7 @@ export default function FeedbackPage() {
                                     <div className="p-2 bg-muted rounded-md">
                                       <p className="text-sm break-words line-clamp-3">
                                         {issue.context ||
-                                          'No context available'}
+                                          "No context available"}
                                       </p>
                                     </div>
                                   </div>
@@ -671,7 +671,7 @@ export default function FeedbackPage() {
                                     <div className="p-2 bg-primary/5 text-primary rounded-md">
                                       <p className="text-sm break-words line-clamp-2">
                                         {issue.suggestion ||
-                                          'No suggestion available'}
+                                          "No suggestion available"}
                                       </p>
                                     </div>
                                   </div>
@@ -681,7 +681,7 @@ export default function FeedbackPage() {
                                     </p>
                                     <p className="text-sm text-muted-foreground break-words line-clamp-3">
                                       {issue.explanation ||
-                                        'No explanation available'}
+                                        "No explanation available"}
                                     </p>
                                   </div>
                                 </CardContent>
@@ -726,7 +726,7 @@ export default function FeedbackPage() {
                               <Card key={index} className="h-full">
                                 <CardHeader className="pb-2">
                                   <CardTitle className="text-base capitalize">
-                                    {error.type || 'Unknown'} Error
+                                    {error.type || "Unknown"} Error
                                   </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-2">
@@ -735,7 +735,7 @@ export default function FeedbackPage() {
                                       Context:
                                     </p>
                                     <p className="p-2 bg-muted rounded-md">
-                                      {error.context || 'No context available'}
+                                      {error.context || "No context available"}
                                     </p>
                                   </div>
                                   <div>
@@ -744,7 +744,7 @@ export default function FeedbackPage() {
                                     </p>
                                     <p className="p-2 bg-primary/5 text-primary rounded-md">
                                       {error.suggestion ||
-                                        'No suggestion available'}
+                                        "No suggestion available"}
                                     </p>
                                   </div>
                                   <div>
@@ -753,7 +753,7 @@ export default function FeedbackPage() {
                                     </p>
                                     <p className="text-sm text-muted-foreground">
                                       {error.explanation ||
-                                        'No explanation available'}
+                                        "No explanation available"}
                                     </p>
                                   </div>
                                 </CardContent>
@@ -778,16 +778,16 @@ export default function FeedbackPage() {
                         analysis.feedback.strengths
                           .filter(
                             s =>
-                              s.toLowerCase().includes('grammar') ||
-                              s.toLowerCase().includes('spelling')
+                              s.toLowerCase().includes("grammar") ||
+                              s.toLowerCase().includes("spelling")
                           )
                           .map((strength, index) => {
                             // Clean the strength text from prefixes
                             const cleanStrength = strength
-                              .replace(/^grammar strength:\s*/i, '')
-                              .replace(/^grammar:\s*/i, '')
-                              .replace(/^spelling strength:\s*/i, '')
-                              .replace(/^spelling:\s*/i, '');
+                              .replace(/^grammar strength:\s*/i, "")
+                              .replace(/^grammar:\s*/i, "")
+                              .replace(/^spelling strength:\s*/i, "")
+                              .replace(/^spelling:\s*/i, "");
 
                             return (
                               <li
@@ -805,10 +805,10 @@ export default function FeedbackPage() {
                           (strength, index) => {
                             // Clean the strength text from prefixes
                             const cleanStrength = strength
-                              .replace(/^grammar strength:\s*/i, '')
-                              .replace(/^grammar:\s*/i, '')
-                              .replace(/^spelling strength:\s*/i, '')
-                              .replace(/^spelling:\s*/i, '');
+                              .replace(/^grammar strength:\s*/i, "")
+                              .replace(/^grammar:\s*/i, "")
+                              .replace(/^spelling strength:\s*/i, "")
+                              .replace(/^spelling:\s*/i, "");
 
                             return (
                               <li
@@ -837,16 +837,16 @@ export default function FeedbackPage() {
                         analysis.feedback.improvements
                           .filter(
                             imp =>
-                              imp.toLowerCase().includes('grammar') ||
-                              imp.toLowerCase().includes('spelling')
+                              imp.toLowerCase().includes("grammar") ||
+                              imp.toLowerCase().includes("spelling")
                           )
                           .map((improvement: string, index: number) => {
                             // Clean the improvement text from prefixes
                             const cleanImprovement = improvement
-                              .replace(/^grammar improvement:\s*/i, '')
-                              .replace(/^grammar:\s*/i, '')
-                              .replace(/^spelling improvement:\s*/i, '')
-                              .replace(/^spelling:\s*/i, '');
+                              .replace(/^grammar improvement:\s*/i, "")
+                              .replace(/^grammar:\s*/i, "")
+                              .replace(/^spelling improvement:\s*/i, "")
+                              .replace(/^spelling:\s*/i, "");
 
                             return (
                               <li
@@ -864,10 +864,10 @@ export default function FeedbackPage() {
                           (improvement, index) => {
                             // Clean the improvement text from prefixes
                             const cleanImprovement = improvement
-                              .replace(/^grammar improvement:\s*/i, '')
-                              .replace(/^grammar:\s*/i, '')
-                              .replace(/^spelling improvement:\s*/i, '')
-                              .replace(/^spelling:\s*/i, '');
+                              .replace(/^grammar improvement:\s*/i, "")
+                              .replace(/^grammar:\s*/i, "")
+                              .replace(/^spelling improvement:\s*/i, "")
+                              .replace(/^spelling:\s*/i, "");
 
                             return (
                               <li
@@ -881,7 +881,29 @@ export default function FeedbackPage() {
                           }
                         )
                       ) : (
-                        <li>No grammar improvements suggested.</li>
+                        <>
+                          <li className="flex items-center gap-2">
+                            <span className="text-amber-500">!</span>
+                            <span>
+                              Review your sentence structures for clarity and
+                              variety.
+                            </span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <span className="text-amber-500">!</span>
+                            <span>
+                              Check for consistent verb tense usage throughout
+                              your writing.
+                            </span>
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <span className="text-amber-500">!</span>
+                            <span>
+                              Pay attention to punctuation, particularly with
+                              commas and periods.
+                            </span>
+                          </li>
+                        </>
                       )}
                     </ul>
                   </div>
@@ -897,15 +919,15 @@ export default function FeedbackPage() {
                   <div>
                     <CardTitle>Vocabulary Usage</CardTitle>
                     <CardDescription>
-                      Estimated level:{' '}
+                      Estimated level:{" "}
                       <Badge variant="outline">
                         {hasEnhancedAnalysis && analysis.vocabularyScore
                           ? analysis.vocabularyScore > 85
-                            ? 'Advanced'
+                            ? "Advanced"
                             : analysis.vocabularyScore > 70
-                              ? 'Intermediate'
-                              : 'Basic'
-                          : analysisData.vocabulary?.level || 'Not assessed'}
+                              ? "Intermediate"
+                              : "Basic"
+                          : analysisData.vocabulary?.level || "Not assessed"}
                       </Badge>
                     </CardDescription>
                   </div>
@@ -913,9 +935,9 @@ export default function FeedbackPage() {
                     <span className="text-sm">Score:</span>
                     <span className="text-lg font-bold">
                       {hasEnhancedAnalysis &&
-                      typeof analysis.vocabularyScore !== 'undefined'
+                      typeof analysis.vocabularyScore !== "undefined"
                         ? analysis.vocabularyScore
-                        : analysisData.vocabulary?.score || 'N/A'}
+                        : analysisData.vocabulary?.score || "N/A"}
                     </span>
                   </div>
                 </div>
@@ -938,7 +960,7 @@ export default function FeedbackPage() {
                               {Math.min(
                                 currentVocabCardIndex + 3,
                                 totalVocabCards
-                              )}{' '}
+                              )}{" "}
                               of {totalVocabCards}
                             </span>
                           </div>
@@ -953,7 +975,7 @@ export default function FeedbackPage() {
                           className="flex transition-transform duration-300 ease-in-out"
                           style={{
                             transform: `translateX(-${currentVocabCardIndex * (100 / 3)}%)`,
-                            width: '100%',
+                            width: "100%",
                           }}
                         >
                           {analysis.vocabularyAnalysis.suggestions.map(
@@ -961,14 +983,14 @@ export default function FeedbackPage() {
                               <div
                                 key={index}
                                 className="w-1/3 px-2 flex-shrink-0 box-border"
-                                style={{ maxWidth: 'calc(100% / 3)' }}
+                                style={{ maxWidth: "calc(100% / 3)" }}
                               >
                                 <Card className="h-full">
                                   <CardHeader className="pb-2">
                                     <CardTitle className="text-base">
                                       <span className="font-mono">
                                         {suggestion.original}
-                                      </span>{' '}
+                                      </span>{" "}
                                       → Alternative options
                                     </CardTitle>
                                   </CardHeader>
@@ -985,7 +1007,7 @@ export default function FeedbackPage() {
                                     </div>
                                     {suggestion.context && (
                                       <p className="text-sm text-muted-foreground">
-                                        Context:{' '}
+                                        Context:{" "}
                                         <span className="italic">
                                           {suggestion.context}
                                         </span>
@@ -1032,15 +1054,15 @@ export default function FeedbackPage() {
                         analysis.feedback.strengths
                           .filter(
                             s =>
-                              s.toLowerCase().includes('vocabulary') ||
-                              s.toLowerCase().includes('word')
+                              s.toLowerCase().includes("vocabulary") ||
+                              s.toLowerCase().includes("word")
                           )
                           .map((strength, index) => {
                             // Clean the strength text from prefixes
                             const cleanStrength = strength
-                              .replace(/^vocabulary strength:\s*/i, '')
-                              .replace(/^vocabulary:\s*/i, '')
-                              .replace(/^word choice:\s*/i, '');
+                              .replace(/^vocabulary strength:\s*/i, "")
+                              .replace(/^vocabulary:\s*/i, "")
+                              .replace(/^word choice:\s*/i, "");
 
                             return (
                               <li
@@ -1058,9 +1080,9 @@ export default function FeedbackPage() {
                           (strength, index) => {
                             // Clean the strength text from prefixes
                             const cleanStrength = strength
-                              .replace(/^vocabulary strength:\s*/i, '')
-                              .replace(/^vocabulary:\s*/i, '')
-                              .replace(/^word choice:\s*/i, '');
+                              .replace(/^vocabulary strength:\s*/i, "")
+                              .replace(/^vocabulary:\s*/i, "")
+                              .replace(/^word choice:\s*/i, "");
 
                             return (
                               <li
@@ -1089,15 +1111,15 @@ export default function FeedbackPage() {
                         analysis.feedback.improvements
                           .filter(
                             imp =>
-                              imp.toLowerCase().includes('vocabulary') ||
-                              imp.toLowerCase().includes('word')
+                              imp.toLowerCase().includes("vocabulary") ||
+                              imp.toLowerCase().includes("word")
                           )
                           .map((improvement, index) => {
                             // Clean the improvement text from prefixes
                             const cleanImprovement = improvement
-                              .replace(/^vocabulary improvement:\s*/i, '')
-                              .replace(/^vocabulary:\s*/i, '')
-                              .replace(/^word choice:\s*/i, '');
+                              .replace(/^vocabulary improvement:\s*/i, "")
+                              .replace(/^vocabulary:\s*/i, "")
+                              .replace(/^word choice:\s*/i, "");
 
                             return (
                               <li
@@ -1115,9 +1137,9 @@ export default function FeedbackPage() {
                           (improvement, index) => {
                             // Clean the improvement text from prefixes
                             const cleanImprovement = improvement
-                              .replace(/^vocabulary improvement:\s*/i, '')
-                              .replace(/^vocabulary:\s*/i, '')
-                              .replace(/^word choice:\s*/i, '');
+                              .replace(/^vocabulary improvement:\s*/i, "")
+                              .replace(/^vocabulary:\s*/i, "")
+                              .replace(/^word choice:\s*/i, "");
 
                             return (
                               <li
@@ -1161,18 +1183,18 @@ export default function FeedbackPage() {
                                   key={index}
                                   className={
                                     index % 2 === 0
-                                      ? 'bg-background'
-                                      : 'bg-muted/50'
+                                      ? "bg-background"
+                                      : "bg-muted/50"
                                   }
                                 >
                                   <td className="p-2 border">
-                                    {item.word || 'N/A'}
+                                    {item.word || "N/A"}
                                   </td>
                                   <td className="p-2 border">
                                     {item.count || 0}
                                   </td>
                                   <td className="p-2 border capitalize">
-                                    {item.category || 'Unknown'}
+                                    {item.category || "Unknown"}
                                   </td>
                                 </tr>
                               )
@@ -1195,9 +1217,9 @@ export default function FeedbackPage() {
                     <span className="text-sm">Score:</span>
                     <span className="text-lg font-bold">
                       {hasEnhancedAnalysis &&
-                      typeof analysis.coherenceScore !== 'undefined'
+                      typeof analysis.coherenceScore !== "undefined"
                         ? analysis.coherenceScore
-                        : analysisData.structure?.score || 'N/A'}
+                        : analysisData.structure?.score || "N/A"}
                     </span>
                   </div>
                 </div>
@@ -1211,22 +1233,22 @@ export default function FeedbackPage() {
                         analysis.feedback.strengths
                           .filter(
                             s =>
-                              s.toLowerCase().includes('structure') ||
-                              s.toLowerCase().includes('organization') ||
-                              s.toLowerCase().includes('coherence') ||
-                              s.toLowerCase().includes('flow') ||
-                              s.toLowerCase().includes('paragraph')
+                              s.toLowerCase().includes("structure") ||
+                              s.toLowerCase().includes("organization") ||
+                              s.toLowerCase().includes("coherence") ||
+                              s.toLowerCase().includes("flow") ||
+                              s.toLowerCase().includes("paragraph")
                           )
                           .map((strength, index) => {
                             // Clean the strength text from prefixes
                             const cleanStrength = strength
-                              .replace(/^structure strength:\s*/i, '')
-                              .replace(/^structure:\s*/i, '')
-                              .replace(/^organization:\s*/i, '')
-                              .replace(/^coherence:\s*/i, '')
-                              .replace(/^paragraph:\s*/i, '')
-                              .replace(/^grammar strength:\s*/i, '')
-                              .replace(/^grammar:\s*/i, '');
+                              .replace(/^structure strength:\s*/i, "")
+                              .replace(/^structure:\s*/i, "")
+                              .replace(/^organization:\s*/i, "")
+                              .replace(/^coherence:\s*/i, "")
+                              .replace(/^paragraph:\s*/i, "")
+                              .replace(/^grammar strength:\s*/i, "")
+                              .replace(/^grammar:\s*/i, "");
 
                             return (
                               <li
@@ -1244,13 +1266,13 @@ export default function FeedbackPage() {
                           (strength, index) => {
                             // Clean the strength text from prefixes
                             const cleanStrength = strength
-                              .replace(/^structure strength:\s*/i, '')
-                              .replace(/^structure:\s*/i, '')
-                              .replace(/^organization:\s*/i, '')
-                              .replace(/^coherence:\s*/i, '')
-                              .replace(/^paragraph:\s*/i, '')
-                              .replace(/^grammar strength:\s*/i, '')
-                              .replace(/^grammar:\s*/i, '');
+                              .replace(/^structure strength:\s*/i, "")
+                              .replace(/^structure:\s*/i, "")
+                              .replace(/^organization:\s*/i, "")
+                              .replace(/^coherence:\s*/i, "")
+                              .replace(/^paragraph:\s*/i, "")
+                              .replace(/^grammar strength:\s*/i, "")
+                              .replace(/^grammar:\s*/i, "");
 
                             return (
                               <li
@@ -1279,20 +1301,20 @@ export default function FeedbackPage() {
                         analysis.feedback.improvements
                           .filter(
                             imp =>
-                              imp.toLowerCase().includes('structure') ||
-                              imp.toLowerCase().includes('organization') ||
-                              imp.toLowerCase().includes('coherence') ||
-                              imp.toLowerCase().includes('flow') ||
-                              imp.toLowerCase().includes('paragraph')
+                              imp.toLowerCase().includes("structure") ||
+                              imp.toLowerCase().includes("organization") ||
+                              imp.toLowerCase().includes("coherence") ||
+                              imp.toLowerCase().includes("flow") ||
+                              imp.toLowerCase().includes("paragraph")
                           )
                           .map((improvement, index) => {
                             // Clean the improvement text from prefixes
                             const cleanImprovement = improvement
-                              .replace(/^structure improvement:\s*/i, '')
-                              .replace(/^structure:\s*/i, '')
-                              .replace(/^organization:\s*/i, '')
-                              .replace(/^coherence:\s*/i, '')
-                              .replace(/^paragraph:\s*/i, '');
+                              .replace(/^structure improvement:\s*/i, "")
+                              .replace(/^structure:\s*/i, "")
+                              .replace(/^organization:\s*/i, "")
+                              .replace(/^coherence:\s*/i, "")
+                              .replace(/^paragraph:\s*/i, "");
 
                             return (
                               <li
@@ -1310,11 +1332,11 @@ export default function FeedbackPage() {
                           (improvement, index) => {
                             // Clean the improvement text from prefixes
                             const cleanImprovement = improvement
-                              .replace(/^structure improvement:\s*/i, '')
-                              .replace(/^structure:\s*/i, '')
-                              .replace(/^organization:\s*/i, '')
-                              .replace(/^coherence:\s*/i, '')
-                              .replace(/^paragraph:\s*/i, '');
+                              .replace(/^structure improvement:\s*/i, "")
+                              .replace(/^structure:\s*/i, "")
+                              .replace(/^organization:\s*/i, "")
+                              .replace(/^coherence:\s*/i, "")
+                              .replace(/^paragraph:\s*/i, "");
 
                             return (
                               <li
@@ -1379,9 +1401,9 @@ export default function FeedbackPage() {
                     <span className="text-sm">Score:</span>
                     <span className="text-lg font-bold">
                       {hasEnhancedAnalysis &&
-                      typeof analysis.styleScore !== 'undefined'
+                      typeof analysis.styleScore !== "undefined"
                         ? analysis.styleScore
-                        : analysisData.content?.score || 'N/A'}
+                        : analysisData.content?.score || "N/A"}
                     </span>
                   </div>
                 </div>
@@ -1395,7 +1417,7 @@ export default function FeedbackPage() {
                         <div className="flex items-center justify-between">
                           <span>Topic Relevance:</span>
                           <span className="font-medium">
-                            {analysisData.content?.relevance || 'N/A'}/100
+                            {analysisData.content?.relevance || "N/A"}/100
                           </span>
                         </div>
                         <Progress
@@ -1411,7 +1433,7 @@ export default function FeedbackPage() {
                         <div className="flex items-center justify-between">
                           <span>Analysis Depth:</span>
                           <span className="font-medium">
-                            {analysisData.content?.depth || 'N/A'}/100
+                            {analysisData.content?.depth || "N/A"}/100
                           </span>
                         </div>
                         <Progress
@@ -1442,20 +1464,20 @@ export default function FeedbackPage() {
                         analysis.feedback.strengths
                           .filter(
                             s =>
-                              s.toLowerCase().includes('content') ||
-                              s.toLowerCase().includes('idea') ||
-                              s.toLowerCase().includes('argument') ||
-                              s.toLowerCase().includes('point') ||
-                              s.toLowerCase().includes('topic')
+                              s.toLowerCase().includes("content") ||
+                              s.toLowerCase().includes("idea") ||
+                              s.toLowerCase().includes("argument") ||
+                              s.toLowerCase().includes("point") ||
+                              s.toLowerCase().includes("topic")
                           )
                           .map((strength, index) => {
                             // Clean the strength text from prefixes
                             const cleanStrength = strength
-                              .replace(/^content strength:\s*/i, '')
-                              .replace(/^content:\s*/i, '')
-                              .replace(/^idea:\s*/i, '')
-                              .replace(/^argument:\s*/i, '')
-                              .replace(/^topic:\s*/i, '');
+                              .replace(/^content strength:\s*/i, "")
+                              .replace(/^content:\s*/i, "")
+                              .replace(/^idea:\s*/i, "")
+                              .replace(/^argument:\s*/i, "")
+                              .replace(/^topic:\s*/i, "");
 
                             return (
                               <li
@@ -1473,11 +1495,11 @@ export default function FeedbackPage() {
                           (strength, index) => {
                             // Clean the strength text from prefixes
                             const cleanStrength = strength
-                              .replace(/^content strength:\s*/i, '')
-                              .replace(/^content:\s*/i, '')
-                              .replace(/^idea:\s*/i, '')
-                              .replace(/^argument:\s*/i, '')
-                              .replace(/^topic:\s*/i, '');
+                              .replace(/^content strength:\s*/i, "")
+                              .replace(/^content:\s*/i, "")
+                              .replace(/^idea:\s*/i, "")
+                              .replace(/^argument:\s*/i, "")
+                              .replace(/^topic:\s*/i, "");
 
                             return (
                               <li
@@ -1506,20 +1528,20 @@ export default function FeedbackPage() {
                         analysis.feedback.improvements
                           .filter(
                             imp =>
-                              imp.toLowerCase().includes('content') ||
-                              imp.toLowerCase().includes('idea') ||
-                              imp.toLowerCase().includes('argument') ||
-                              imp.toLowerCase().includes('point') ||
-                              imp.toLowerCase().includes('topic')
+                              imp.toLowerCase().includes("content") ||
+                              imp.toLowerCase().includes("idea") ||
+                              imp.toLowerCase().includes("argument") ||
+                              imp.toLowerCase().includes("point") ||
+                              imp.toLowerCase().includes("topic")
                           )
                           .map((improvement, index) => {
                             // Clean the improvement text from prefixes
                             const cleanImprovement = improvement
-                              .replace(/^content improvement:\s*/i, '')
-                              .replace(/^content:\s*/i, '')
-                              .replace(/^idea:\s*/i, '')
-                              .replace(/^argument:\s*/i, '')
-                              .replace(/^topic:\s*/i, '');
+                              .replace(/^content improvement:\s*/i, "")
+                              .replace(/^content:\s*/i, "")
+                              .replace(/^idea:\s*/i, "")
+                              .replace(/^argument:\s*/i, "")
+                              .replace(/^topic:\s*/i, "");
 
                             return (
                               <li
@@ -1537,11 +1559,11 @@ export default function FeedbackPage() {
                           (improvement, index) => {
                             // Clean the improvement text from prefixes
                             const cleanImprovement = improvement
-                              .replace(/^content improvement:\s*/i, '')
-                              .replace(/^content:\s*/i, '')
-                              .replace(/^idea:\s*/i, '')
-                              .replace(/^argument:\s*/i, '')
-                              .replace(/^topic:\s*/i, '');
+                              .replace(/^content improvement:\s*/i, "")
+                              .replace(/^content:\s*/i, "")
+                              .replace(/^idea:\s*/i, "")
+                              .replace(/^argument:\s*/i, "")
+                              .replace(/^topic:\s*/i, "");
 
                             return (
                               <li
@@ -1573,14 +1595,14 @@ export default function FeedbackPage() {
                           (suggestion: string, index: number) => {
                             // Clean suggestion prefixes
                             const cleanSuggestion = suggestion
-                              .replace(/^to improve grammar:\s*/i, '')
-                              .replace(/^to enhance vocabulary:\s*/i, '')
-                              .replace(/^to strengthen structure:\s*/i, '')
-                              .replace(/^to develop content:\s*/i, '')
-                              .replace(/^to improve grammar,\s*/i, '')
-                              .replace(/^to enhance vocabulary,\s*/i, '')
-                              .replace(/^to strengthen structure,\s*/i, '')
-                              .replace(/^to develop content,\s*/i, '');
+                              .replace(/^to improve grammar:\s*/i, "")
+                              .replace(/^to enhance vocabulary:\s*/i, "")
+                              .replace(/^to strengthen structure:\s*/i, "")
+                              .replace(/^to develop content:\s*/i, "")
+                              .replace(/^to improve grammar,\s*/i, "")
+                              .replace(/^to enhance vocabulary,\s*/i, "")
+                              .replace(/^to strengthen structure,\s*/i, "")
+                              .replace(/^to develop content,\s*/i, "");
 
                             return (
                               <li key={index} className="text-gray-700">
@@ -1608,7 +1630,7 @@ export default function FeedbackPage() {
           <Link href="/dashboard/writing">Back to Dashboard</Link>
         </Button>
 
-        {session.status !== 'completed' && (
+        {session.status !== "completed" && (
           <Button onClick={handleComplete}>Mark as Completed</Button>
         )}
       </div>

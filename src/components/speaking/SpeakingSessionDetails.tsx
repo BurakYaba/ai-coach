@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   ArrowLeft,
@@ -17,13 +17,13 @@ import {
   GraduationCap,
   AudioLines,
   Volume2,
-} from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -31,7 +31,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Drawer,
   DrawerClose,
@@ -41,24 +41,25 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from '@/components/ui/drawer';
+} from "@/components/ui/drawer";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { DeleteSpeakingSessionButton } from "@/components/speaking/DeleteSpeakingSessionButton";
 
 interface SpeakingSessionDetailsProps {
   sessionId: string;
 }
 
 interface Transcript {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   text: string;
   timestamp: string;
 }
@@ -68,12 +69,12 @@ interface SpeakingSession {
   startTime: string;
   endTime?: string;
   duration?: number;
-  status: 'active' | 'completed' | 'interrupted';
+  status: "active" | "completed" | "interrupted";
   voice: string;
   modelName: string;
   transcripts: Transcript[];
   metadata?: {
-    mode?: 'realtime' | 'turn-based';
+    mode?: "realtime" | "turn-based";
     scenario?: string;
     level?: string;
   };
@@ -115,7 +116,7 @@ export function SpeakingSessionDetails({
   const router = useRouter();
   const [session, setSession] = useState<SpeakingSession | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('conversation');
+  const [activeTab, setActiveTab] = useState("conversation");
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [currentGrammarIssueIndex, setCurrentGrammarIssueIndex] = useState(0);
   const [currentMispronunciationIndex, setCurrentMispronunciationIndex] =
@@ -183,7 +184,7 @@ export function SpeakingSessionDetails({
         const response = await fetch(`/api/speaking/sessions/${sessionId}`);
 
         if (!response.ok) {
-          throw new Error('Failed to fetch session');
+          throw new Error("Failed to fetch session");
         }
 
         const data = await response.json();
@@ -194,11 +195,11 @@ export function SpeakingSessionDetails({
           calculateAnalytics(data.session.transcripts);
         }
       } catch (error) {
-        console.error('Error fetching speaking session:', error);
+        console.error("Error fetching speaking session:", error);
         toast({
-          title: 'Error',
-          description: 'Failed to load speaking session details',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to load speaking session details",
+          variant: "destructive",
         });
       } finally {
         setLoading(false);
@@ -212,9 +213,9 @@ export function SpeakingSessionDetails({
 
   // Calculate conversation analytics
   const calculateAnalytics = (transcripts: Transcript[]) => {
-    const userTranscripts = transcripts.filter(t => t.role === 'user');
+    const userTranscripts = transcripts.filter(t => t.role === "user");
     const assistantTranscripts = transcripts.filter(
-      t => t.role === 'assistant'
+      t => t.role === "assistant"
     );
 
     // Count words
@@ -236,45 +237,45 @@ export function SpeakingSessionDetails({
 
     // Find top words used by user (excluding common words)
     const commonWords = new Set([
-      'the',
-      'a',
-      'an',
-      'and',
-      'is',
-      'are',
-      'to',
-      'of',
-      'for',
-      'in',
-      'on',
-      'at',
-      'by',
-      'with',
-      'about',
-      'that',
-      'this',
-      'i',
-      'you',
-      'we',
-      'they',
-      'it',
-      'have',
-      'has',
-      'had',
-      'do',
-      'does',
-      'did',
-      'can',
-      'could',
-      'will',
-      'would',
-      'yes',
-      'no',
+      "the",
+      "a",
+      "an",
+      "and",
+      "is",
+      "are",
+      "to",
+      "of",
+      "for",
+      "in",
+      "on",
+      "at",
+      "by",
+      "with",
+      "about",
+      "that",
+      "this",
+      "i",
+      "you",
+      "we",
+      "they",
+      "it",
+      "have",
+      "has",
+      "had",
+      "do",
+      "does",
+      "did",
+      "can",
+      "could",
+      "will",
+      "would",
+      "yes",
+      "no",
     ]);
     const wordCount: Record<string, number> = {};
 
     userWords.forEach(word => {
-      const normalizedWord = word.toLowerCase().replace(/[^\w\s]|_/g, '');
+      const normalizedWord = word.toLowerCase().replace(/[^\w\s]|_/g, "");
       if (normalizedWord && !commonWords.has(normalizedWord)) {
         wordCount[normalizedWord] = (wordCount[normalizedWord] || 0) + 1;
       }
@@ -298,13 +299,13 @@ export function SpeakingSessionDetails({
 
   // Format date
   const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
     return new Date(dateString).toLocaleString();
   };
 
   // Format duration
   const formatDuration = (seconds?: number) => {
-    if (!seconds) return 'N/A';
+    if (!seconds) return "N/A";
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}m ${remainingSeconds}s`;
@@ -312,42 +313,42 @@ export function SpeakingSessionDetails({
 
   // Helper function to get a descriptive session type
   const getSessionType = (): string => {
-    if (!session) return 'Speaking Practice';
+    if (!session) return "Speaking Practice";
 
-    if (session.metadata?.mode === 'turn-based') {
-      return 'Turn-Based Conversation';
-    } else if (session.metadata?.mode === 'realtime') {
-      return 'Realtime Conversation';
+    if (session.metadata?.mode === "turn-based") {
+      return "Turn-Based Conversation";
+    } else if (session.metadata?.mode === "realtime") {
+      return "Realtime Conversation";
     }
-    return 'Speaking Practice';
+    return "Speaking Practice";
   };
 
   // Helper function to get a formatted scenario name
   const getScenarioName = (scenario?: string): string => {
-    if (!scenario || scenario === 'free') return 'Free Conversation';
+    if (!scenario || scenario === "free") return "Free Conversation";
 
     // Capitalize first letter and add spaces
     return scenario
-      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+      .replace(/([A-Z])/g, " $1") // Add space before capital letters
       .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
   };
 
   // Function to get status badge
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return (
           <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
             Completed
           </Badge>
         );
-      case 'active':
+      case "active":
         return (
           <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
             Active
           </Badge>
         );
-      case 'interrupted':
+      case "interrupted":
         return (
           <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
             Interrupted
@@ -365,16 +366,16 @@ export function SpeakingSessionDetails({
 
     const content = session.transcripts
       .map(transcript => {
-        const role = transcript.role === 'user' ? 'You' : 'AI';
+        const role = transcript.role === "user" ? "You" : "AI";
         const time = new Date(transcript.timestamp).toLocaleTimeString();
         return `[${time}] ${role}: ${transcript.text}`;
       })
-      .join('\n\n');
+      .join("\n\n");
 
     const title = `Speaking Practice - ${formatDate(session.startTime)}`;
-    const blob = new Blob([`${title}\n\n${content}`], { type: 'text/plain' });
+    const blob = new Blob([`${title}\n\n${content}`], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `speaking-session-${session._id}.txt`;
     document.body.appendChild(a);
@@ -391,19 +392,19 @@ export function SpeakingSessionDetails({
       setIsLoadingAudio(true);
 
       // Fetch the audio from our API
-      const response = await fetch('/api/tts', {
-        method: 'POST',
+      const response = await fetch("/api/tts", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           text: word,
-          voice: 'onyx', // Using a clear, neutral voice
+          voice: "onyx", // Using a clear, neutral voice
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch audio');
+        throw new Error("Failed to fetch audio");
       }
 
       const data = await response.json();
@@ -418,9 +419,9 @@ export function SpeakingSessionDetails({
         audioRef.current.onerror = () => {
           setIsPlayingAudio(false);
           toast({
-            title: 'Error',
-            description: 'Could not play the pronunciation',
-            variant: 'destructive',
+            title: "Error",
+            description: "Could not play the pronunciation",
+            variant: "destructive",
           });
         };
       }
@@ -429,11 +430,11 @@ export function SpeakingSessionDetails({
       audioRef.current.src = data.audioUrl;
       audioRef.current.play();
     } catch (error) {
-      console.error('Error playing pronunciation:', error);
+      console.error("Error playing pronunciation:", error);
       toast({
-        title: 'Error',
-        description: 'Could not load the pronunciation',
-        variant: 'destructive',
+        title: "Error",
+        description: "Could not load the pronunciation",
+        variant: "destructive",
       });
     } finally {
       setIsLoadingAudio(false);
@@ -445,7 +446,7 @@ export function SpeakingSessionDetails({
     return () => {
       if (audioRef.current) {
         audioRef.current.pause();
-        audioRef.current.src = '';
+        audioRef.current.src = "";
       }
     };
   }, []);
@@ -576,16 +577,8 @@ export function SpeakingSessionDetails({
             </div>
           </div>
         </CardContent>
-        <CardFooter>
-          <Button
-            variant="outline"
-            onClick={downloadTranscripts}
-            className="flex items-center gap-2 ml-auto"
-            disabled={!session.transcripts || session.transcripts.length === 0}
-          >
-            <Download className="h-4 w-4" />
-            Download Transcript
-          </Button>
+        <CardFooter className="pt-0">
+          <DeleteSpeakingSessionButton sessionId={sessionId} variant="button" />
         </CardFooter>
       </Card>
 
@@ -610,22 +603,22 @@ export function SpeakingSessionDetails({
                     <div
                       key={index}
                       className={cn(
-                        'flex',
-                        transcript.role === 'user'
-                          ? 'justify-end'
-                          : 'justify-start'
+                        "flex",
+                        transcript.role === "user"
+                          ? "justify-end"
+                          : "justify-start"
                       )}
                     >
                       <div
                         className={cn(
-                          'max-w-[80%] rounded-lg p-4 relative',
-                          transcript.role === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
+                          "max-w-[80%] rounded-lg p-4 relative",
+                          transcript.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted"
                         )}
                       >
                         <div className="text-xs text-muted-foreground mb-1">
-                          {transcript.role === 'user' ? 'You' : 'AI'} •{' '}
+                          {transcript.role === "user" ? "You" : "AI"} •{" "}
                           {new Date(transcript.timestamp).toLocaleTimeString()}
                         </div>
                         <p className="whitespace-pre-wrap">{transcript.text}</p>
@@ -816,7 +809,7 @@ export function SpeakingSessionDetails({
                                 <div className="space-y-4">
                                   <div className="flex justify-between items-center">
                                     <span className="text-sm font-medium">
-                                      Issue {currentGrammarIssueIndex + 1} of{' '}
+                                      Issue {currentGrammarIssueIndex + 1} of{" "}
                                       {session.feedback.grammarIssues.length}
                                     </span>
                                   </div>
@@ -825,7 +818,7 @@ export function SpeakingSessionDetails({
                                       <div className="flex items-center text-red-500">
                                         <AlertCircle className="w-4 h-4 mr-1" />
                                         <span className="font-medium">
-                                          Issue:{' '}
+                                          Issue:{" "}
                                         </span>
                                         <span className="ml-1">
                                           {
@@ -838,7 +831,7 @@ export function SpeakingSessionDetails({
                                       <div className="flex items-center text-green-600">
                                         <CheckCircle className="w-4 h-4 mr-1" />
                                         <span className="font-medium">
-                                          Correction:{' '}
+                                          Correction:{" "}
                                         </span>
                                         <span className="ml-1">
                                           {
@@ -850,7 +843,7 @@ export function SpeakingSessionDetails({
                                       </div>
                                       <div className="text-xs text-muted-foreground">
                                         <span className="font-medium">
-                                          Explanation:{' '}
+                                          Explanation:{" "}
                                         </span>
                                         {
                                           session.feedback.grammarIssues[
@@ -930,7 +923,7 @@ export function SpeakingSessionDetails({
                                 <div className="space-y-4">
                                   <div className="flex justify-between items-center">
                                     <span className="text-sm font-medium">
-                                      Word {currentMispronunciationIndex + 1} of{' '}
+                                      Word {currentMispronunciationIndex + 1} of{" "}
                                       {
                                         session.feedback.mispronunciations
                                           .length
@@ -942,7 +935,7 @@ export function SpeakingSessionDetails({
                                       <div className="flex items-center text-red-500">
                                         <AlertCircle className="w-4 h-4 mr-1" />
                                         <span className="font-medium">
-                                          Word:{' '}
+                                          Word:{" "}
                                         </span>
                                         <span className="ml-1">
                                           {
@@ -979,10 +972,10 @@ export function SpeakingSessionDetails({
                                           ) : (
                                             <Volume2
                                               className={cn(
-                                                'h-4 w-4',
+                                                "h-4 w-4",
                                                 isPlayingAudio
-                                                  ? 'text-primary animate-pulse'
-                                                  : ''
+                                                  ? "text-primary animate-pulse"
+                                                  : ""
                                               )}
                                             />
                                           )}
@@ -993,7 +986,7 @@ export function SpeakingSessionDetails({
                                       </div>
                                       <div className="flex items-center">
                                         <span className="font-medium">
-                                          Score:{' '}
+                                          Score:{" "}
                                         </span>
                                         <span className="ml-1">
                                           {Math.round(
@@ -1012,7 +1005,7 @@ export function SpeakingSessionDetails({
                                         ]?.phonemes?.length > 0 && (
                                           <div>
                                             <span className="font-medium">
-                                              Phonemes:{' '}
+                                              Phonemes:{" "}
                                             </span>
                                             <div className="flex flex-wrap gap-1 mt-1">
                                               {session.feedback.mispronunciations[
@@ -1023,8 +1016,8 @@ export function SpeakingSessionDetails({
                                                     key={idx}
                                                     variant={
                                                       phoneme.score < 70
-                                                        ? 'destructive'
-                                                        : 'outline'
+                                                        ? "destructive"
+                                                        : "outline"
                                                     }
                                                   >
                                                     {phoneme.phoneme} (
@@ -1037,7 +1030,7 @@ export function SpeakingSessionDetails({
                                         )}
                                       <div className="text-xs text-muted-foreground mt-2">
                                         <span className="font-medium">
-                                          Tip:{' '}
+                                          Tip:{" "}
                                         </span>
                                         Listen to native speakers pronounce this
                                         word and practice the specific sounds
@@ -1090,8 +1083,8 @@ export function SpeakingSessionDetails({
                       <Card className="p-2">
                         <div className="text-center">
                           <div className="text-2xl font-bold text-primary">
-                            {session.feedback.fluencyScore || 'N/A'}
-                            {session.feedback.fluencyScore ? '/10' : ''}
+                            {session.feedback.fluencyScore || "N/A"}
+                            {session.feedback.fluencyScore ? "/10" : ""}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             Fluency
@@ -1103,11 +1096,11 @@ export function SpeakingSessionDetails({
                           <div className="text-2xl font-bold text-primary">
                             {session.feedback.pronunciationScore ||
                               session.feedback.vocabularyScore ||
-                              'N/A'}
+                              "N/A"}
                             {session.feedback.pronunciationScore ||
                             session.feedback.vocabularyScore
-                              ? '/10'
-                              : ''}
+                              ? "/10"
+                              : ""}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             Pronunciation
@@ -1117,8 +1110,8 @@ export function SpeakingSessionDetails({
                       <Card className="p-2">
                         <div className="text-center">
                           <div className="text-2xl font-bold text-primary">
-                            {session.feedback.accuracyScore || 'N/A'}
-                            {session.feedback.accuracyScore ? '/10' : ''}
+                            {session.feedback.accuracyScore || "N/A"}
+                            {session.feedback.accuracyScore ? "/10" : ""}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             Accuracy
@@ -1128,8 +1121,8 @@ export function SpeakingSessionDetails({
                       <Card className="p-2">
                         <div className="text-center">
                           <div className="text-2xl font-bold text-primary">
-                            {session.feedback.grammarScore || 'N/A'}
-                            {session.feedback.grammarScore ? '/10' : ''}
+                            {session.feedback.grammarScore || "N/A"}
+                            {session.feedback.grammarScore ? "/10" : ""}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             Grammar
@@ -1163,8 +1156,8 @@ export function SpeakingSessionDetails({
                       <Card className="p-2">
                         <div className="text-center">
                           <div className="text-2xl font-bold text-primary">
-                            {session.feedback.overallScore || 'N/A'}
-                            {session.feedback.overallScore ? '/10' : ''}
+                            {session.feedback.overallScore || "N/A"}
+                            {session.feedback.overallScore ? "/10" : ""}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             Overall
@@ -1239,10 +1232,10 @@ export function SpeakingSessionDetails({
                           No pronunciation assessment available for this
                           session.
                         </p>
-                        {session.status === 'completed' && (
+                        {session.status === "completed" && (
                           <p className="text-sm text-muted-foreground">
-                            Click the "Run Evaluation" button above to analyze
-                            your speaking performance.
+                            The session evaluation is processed automatically
+                            upon completion.
                           </p>
                         )}
                       </div>

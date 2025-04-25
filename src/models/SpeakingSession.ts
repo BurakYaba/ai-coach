@@ -1,4 +1,4 @@
-import mongoose, { Document, Model, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface ISpeakingSession extends Document {
   user: mongoose.Types.ObjectId;
@@ -7,11 +7,13 @@ export interface ISpeakingSession extends Document {
   duration?: number; // in seconds
   voice: string;
   modelName: string;
-  status: 'active' | 'completed' | 'interrupted';
+  status: "active" | "completed" | "interrupted";
+  evaluationProgress?: number; // 0-100 evaluation progress percentage
   transcripts: Array<{
-    role: 'user' | 'assistant';
+    role: "user" | "assistant";
     text: string;
     timestamp: Date;
+    metadata?: any; // Add metadata field for additional analysis
   }>;
   metrics?: {
     userSpeakingTime?: number; // total time user spent speaking (seconds)
@@ -50,7 +52,7 @@ export interface ISpeakingSession extends Document {
     }>;
   };
   metadata?: {
-    mode?: 'realtime' | 'turn-based';
+    mode?: "realtime" | "turn-based";
     scenario?: string;
     level?: string;
     audioUrls?: string[]; // Array of audio recording URLs for this session
@@ -64,7 +66,7 @@ const speakingSessionSchema = new Schema<ISpeakingSession>(
   {
     user: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
       index: true,
     },
@@ -84,26 +86,32 @@ const speakingSessionSchema = new Schema<ISpeakingSession>(
     voice: {
       type: String,
       required: true,
-      enum: ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'],
-      default: 'alloy',
+      enum: ["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
+      default: "alloy",
     },
     modelName: {
       type: String,
       required: true,
-      default: 'gpt-4o-realtime-preview-2024-12-17',
+      default: "gpt-4o-realtime-preview-2024-12-17",
     },
     status: {
       type: String,
       required: true,
-      enum: ['active', 'completed', 'interrupted'],
-      default: 'active',
+      enum: ["active", "completed", "interrupted"],
+      default: "active",
+    },
+    evaluationProgress: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
     },
     transcripts: [
       {
         role: {
           type: String,
           required: true,
-          enum: ['user', 'assistant'],
+          enum: ["user", "assistant"],
         },
         text: {
           type: String,
@@ -113,6 +121,10 @@ const speakingSessionSchema = new Schema<ISpeakingSession>(
           type: Date,
           required: true,
           default: Date.now,
+        },
+        metadata: {
+          type: Schema.Types.Mixed,
+          required: false,
         },
       },
     ],
@@ -259,7 +271,7 @@ const speakingSessionSchema = new Schema<ISpeakingSession>(
     metadata: {
       mode: {
         type: String,
-        enum: ['realtime', 'turn-based'],
+        enum: ["realtime", "turn-based"],
         required: false,
       },
       scenario: {
@@ -293,6 +305,6 @@ speakingSessionSchema.index({ status: 1 });
 
 const SpeakingSession =
   (mongoose.models.SpeakingSession as Model<ISpeakingSession>) ||
-  mongoose.model<ISpeakingSession>('SpeakingSession', speakingSessionSchema);
+  mongoose.model<ISpeakingSession>("SpeakingSession", speakingSessionSchema);
 
 export default SpeakingSession;

@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from "react";
 
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface Question {
   id: string;
-  type: 'multiple-choice' | 'true-false' | 'fill-blank';
+  type: "multiple-choice" | "true-false" | "fill-blank";
   question: string;
   options?: Array<string | { id: string; text: string }>;
   correctAnswer: string;
@@ -42,7 +42,7 @@ export function QuestionPanel({
     return Math.min(answeredCount, questions.length - 1);
   });
 
-  const [selectedAnswer, setSelectedAnswer] = useState<string>('');
+  const [selectedAnswer, setSelectedAnswer] = useState<string>("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [answerIsCorrect, setAnswerIsCorrect] = useState<boolean>(false);
   const [savedAnswers, setSavedAnswers] = useState<Record<number, string>>({});
@@ -68,17 +68,17 @@ export function QuestionPanel({
 
   const getOptionText = useCallback(
     (option: string | { id: string; text: string }): string => {
-      if (typeof option === 'string') {
+      if (typeof option === "string") {
         return option;
       }
-      return option.text || '';
+      return option.text || "";
     },
     []
   );
 
   const getOptionId = useCallback(
     (option: string | { id: string; text: string }, index: number): string => {
-      if (typeof option === 'string') {
+      if (typeof option === "string") {
         return index.toString();
       }
       return option.id || index.toString();
@@ -93,29 +93,29 @@ export function QuestionPanel({
       questionType: string,
       options?: Array<string | { id: string; text: string }>
     ): boolean => {
-      if (questionType === 'multiple-choice' && options) {
+      if (questionType === "multiple-choice" && options) {
         const selectedLetter =
           selectedAnswer.length === 1 && selectedAnswer.match(/[A-Da-d]/)
             ? selectedAnswer.toUpperCase()
-            : '';
+            : "";
 
         const correctLetter =
           correctAnswer.length === 1 && correctAnswer.match(/[A-Da-d]/)
             ? correctAnswer.toUpperCase()
-            : '';
+            : "";
 
         return !!(
           selectedLetter &&
           correctLetter &&
           selectedLetter === correctLetter
         );
-      } else if (questionType === 'true-false') {
+      } else if (questionType === "true-false") {
         const selectedIsTrueValue =
-          selectedAnswer.toLowerCase() === 'true' ||
-          selectedAnswer.toLowerCase() === 'a';
+          selectedAnswer.toLowerCase() === "true" ||
+          selectedAnswer.toLowerCase() === "a";
         const correctIsTrueValue =
-          correctAnswer.toLowerCase() === 'true' ||
-          correctAnswer.toLowerCase() === 'a';
+          correctAnswer.toLowerCase() === "true" ||
+          correctAnswer.toLowerCase() === "a";
         return selectedIsTrueValue === correctIsTrueValue;
       } else {
         return selectedAnswer.toLowerCase() === correctAnswer.toLowerCase();
@@ -164,7 +164,7 @@ export function QuestionPanel({
         setShowFeedback(true);
       }
     } else {
-      setSelectedAnswer('');
+      setSelectedAnswer("");
       setShowFeedback(false);
     }
   }, [
@@ -214,7 +214,7 @@ export function QuestionPanel({
   ]);
 
   const handleNext = useCallback(() => {
-    setSelectedAnswer('');
+    setSelectedAnswer("");
     setShowFeedback(false);
 
     if (currentQuestionIndex < questions.length - 1) {
@@ -224,7 +224,7 @@ export function QuestionPanel({
   }, [questions.length, currentQuestionIndex]);
 
   const handlePrevious = useCallback(() => {
-    setSelectedAnswer('');
+    setSelectedAnswer("");
     setShowFeedback(false);
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(currentQuestionIndex - 1);
@@ -252,7 +252,7 @@ export function QuestionPanel({
           }
         } else {
           // New question
-          setSelectedAnswer('');
+          setSelectedAnswer("");
           setShowFeedback(false);
         }
       }
@@ -273,14 +273,14 @@ export function QuestionPanel({
             key={index}
             variant={
               index === currentQuestionIndex
-                ? 'default'
+                ? "default"
                 : answeredQuestions.has(index)
-                  ? 'outline'
-                  : 'secondary'
+                  ? "outline"
+                  : "secondary"
             }
             size="sm"
             onClick={() => handleQuestionSelect(index)}
-            className={`w-8 h-8 p-0 ${answeredQuestions.has(index) ? 'border-green-500' : ''}`}
+            className={`w-8 h-8 p-0 ${answeredQuestions.has(index) ? "border-green-500" : ""}`}
           >
             {index + 1}
           </Button>
@@ -315,7 +315,7 @@ export function QuestionPanel({
 
         <div className="text-lg font-medium">{currentQuestion.question}</div>
 
-        {currentQuestion.type === 'multiple-choice' && (
+        {currentQuestion.type === "multiple-choice" && (
           <>
             <RadioGroup
               value={selectedAnswer}
@@ -326,7 +326,7 @@ export function QuestionPanel({
             >
               {currentQuestion.options?.map((option, idx) => {
                 const optionId =
-                  typeof option === 'string'
+                  typeof option === "string"
                     ? String.fromCharCode(65 + idx)
                     : option.id;
                 const optionText = getOptionText(option);
@@ -347,7 +347,7 @@ export function QuestionPanel({
           </>
         )}
 
-        {currentQuestion.type === 'true-false' && (
+        {currentQuestion.type === "true-false" && (
           <>
             <RadioGroup
               value={selectedAnswer}
@@ -368,7 +368,7 @@ export function QuestionPanel({
           </>
         )}
 
-        {currentQuestion.type === 'fill-blank' && (
+        {currentQuestion.type === "fill-blank" && (
           <Input
             value={selectedAnswer}
             onChange={e => setSelectedAnswer(e.target.value)}
@@ -378,24 +378,24 @@ export function QuestionPanel({
         )}
 
         {(showFeedback || isCurrentQuestionAnswered) && (
-          <Alert variant={answerIsCorrect ? 'default' : 'destructive'}>
+          <Alert variant={answerIsCorrect ? "default" : "destructive"}>
             <AlertDescription>
               {answerIsCorrect ? (
-                'Correct! '
+                "Correct! "
               ) : (
                 <>
                   Incorrect.
-                  {currentQuestion.type === 'multiple-choice' &&
+                  {currentQuestion.type === "multiple-choice" &&
                   currentQuestion.options ? (
                     <div className="mt-1">
                       <div className="font-normal">
-                        You selected:{' '}
+                        You selected:{" "}
                         <span className="font-semibold">
                           {(() => {
                             const selectedOption = currentQuestion.options.find(
                               opt => {
                                 const optId =
-                                  typeof opt === 'string' ? opt : opt.id;
+                                  typeof opt === "string" ? opt : opt.id;
                                 return (
                                   optId &&
                                   optId.toLowerCase() ===
@@ -405,7 +405,7 @@ export function QuestionPanel({
                             );
 
                             if (selectedOption) {
-                              return typeof selectedOption === 'string'
+                              return typeof selectedOption === "string"
                                 ? selectedOption
                                 : `${selectedOption.id}. ${selectedOption.text}`;
                             }
@@ -416,13 +416,13 @@ export function QuestionPanel({
                       </div>
 
                       <div className="font-normal mt-1">
-                        The correct answer is:{' '}
+                        The correct answer is:{" "}
                         <span className="font-semibold">
                           {(() => {
                             let correctOption = currentQuestion.options.find(
                               opt => {
                                 const optId =
-                                  typeof opt === 'string' ? opt : opt.id;
+                                  typeof opt === "string" ? opt : opt.id;
                                 return (
                                   optId &&
                                   optId.toLowerCase() ===
@@ -468,7 +468,7 @@ export function QuestionPanel({
                             }
 
                             if (correctOption) {
-                              return typeof correctOption === 'string'
+                              return typeof correctOption === "string"
                                 ? correctOption
                                 : `${correctOption.id}. ${correctOption.text}`;
                             }
@@ -487,7 +487,7 @@ export function QuestionPanel({
                               ) {
                                 const option =
                                   currentQuestion.options[optionIndex];
-                                return typeof option === 'string'
+                                return typeof option === "string"
                                   ? option
                                   : `${option.id}. ${option.text}`;
                               }
@@ -503,7 +503,7 @@ export function QuestionPanel({
                     <span className="font-semibold">
                       The correct answer is: {currentQuestion.correctAnswer}
                     </span>
-                  )}{' '}
+                  )}{" "}
                 </>
               )}
               {currentQuestion.explanation && (

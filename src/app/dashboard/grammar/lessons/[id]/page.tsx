@@ -44,7 +44,7 @@ interface GrammarLesson {
 export default function GrammarLessonPage() {
   const router = useRouter();
   const params = useParams();
-  const lessonId = params.id as string;
+  const lessonId = params?.id as string;
 
   const [lesson, setLesson] = useState<GrammarLesson | null>(null);
   const [loading, setLoading] = useState(true);

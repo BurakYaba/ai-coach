@@ -1,10 +1,10 @@
-import * as fs from 'fs';
-import * as os from 'os';
-import * as path from 'path';
-import { promisify } from 'util';
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+import { promisify } from "util";
 
-import * as sdk from 'microsoft-cognitiveservices-speech-sdk';
-import OpenAI from 'openai';
+import * as sdk from "microsoft-cognitiveservices-speech-sdk";
+import OpenAI from "openai";
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -18,8 +18,8 @@ const unlinkPromise = promisify(fs.unlink);
 const mkdtempPromise = promisify(fs.mkdtemp);
 
 // Azure Speech Service configuration
-const SPEECH_KEY = process.env.AZURE_SPEECH_KEY || '';
-const SPEECH_REGION = process.env.AZURE_SPEECH_REGION || '';
+const SPEECH_KEY = process.env.AZURE_SPEECH_KEY || "";
+const SPEECH_REGION = process.env.AZURE_SPEECH_REGION || "";
 
 // Semaphore to limit concurrent Azure speech requests
 // Most Azure tiers allow 3 concurrent transcriptions
@@ -33,57 +33,120 @@ const requestQueue: (() => void)[] = [];
  * @returns The result of the function
  */
 async function withRequestLimit<T>(fn: () => Promise<T>): Promise<T> {
-  // If we can process the request immediately, do so
-  if (currentRequests < MAX_CONCURRENT_REQUESTS) {
-    currentRequests++;
+  const maxRetries = 3;
+  let retryCount = 0;
+  let lastError: any = null;
+
+  const executeWithRetry = async (): Promise<T> => {
     try {
-      return await fn();
-    } finally {
-      currentRequests--;
-      // Process next request in the queue if any
-      if (requestQueue.length > 0) {
-        const nextRequest = requestQueue.shift();
-        if (nextRequest) nextRequest();
-      }
-    }
-  }
-
-  // Otherwise, queue the request
-  return new Promise<T>((resolve, reject) => {
-    requestQueue.push(() => {
-      currentRequests++;
-      fn().then(
-        result => {
+      // If we can process the request immediately, do so
+      if (currentRequests < MAX_CONCURRENT_REQUESTS) {
+        currentRequests++;
+        console.log(
+          `Starting Azure speech request (${currentRequests}/${MAX_CONCURRENT_REQUESTS} active)`
+        );
+        try {
+          return await fn();
+        } finally {
           currentRequests--;
+          console.log(
+            `Completed Azure speech request (${currentRequests}/${MAX_CONCURRENT_REQUESTS} active)`
+          );
           // Process next request in the queue if any
           if (requestQueue.length > 0) {
+            console.log(
+              `Processing next request from queue (${requestQueue.length} remaining)`
+            );
             const nextRequest = requestQueue.shift();
             if (nextRequest) nextRequest();
           }
-          resolve(result);
-        },
-        error => {
-          currentRequests--;
-          // Process next request in the queue if any
-          if (requestQueue.length > 0) {
-            const nextRequest = requestQueue.shift();
-            if (nextRequest) nextRequest();
-          }
-          reject(error);
         }
-      );
-    });
+      }
 
-    // If we've just added the first item to an empty queue and we have room to process,
-    // start processing it immediately
-    if (
-      requestQueue.length === 1 &&
-      currentRequests < MAX_CONCURRENT_REQUESTS
-    ) {
-      const nextRequest = requestQueue.shift();
-      if (nextRequest) nextRequest();
+      // Otherwise, queue the request
+      return new Promise<T>((resolve, reject) => {
+        console.log(
+          `Queuing Azure speech request (queue length: ${requestQueue.length})`
+        );
+        requestQueue.push(() => {
+          currentRequests++;
+          console.log(
+            `Starting queued Azure speech request (${currentRequests}/${MAX_CONCURRENT_REQUESTS} active)`
+          );
+          fn().then(
+            result => {
+              currentRequests--;
+              console.log(
+                `Completed queued Azure speech request (${currentRequests}/${MAX_CONCURRENT_REQUESTS} active)`
+              );
+              // Process next request in the queue if any
+              if (requestQueue.length > 0) {
+                console.log(
+                  `Processing next request from queue (${requestQueue.length} remaining)`
+                );
+                const nextRequest = requestQueue.shift();
+                if (nextRequest) nextRequest();
+              }
+              resolve(result);
+            },
+            error => {
+              currentRequests--;
+              console.log(
+                `Error in queued Azure speech request (${currentRequests}/${MAX_CONCURRENT_REQUESTS} active)`
+              );
+              // Process next request in the queue if any
+              if (requestQueue.length > 0) {
+                console.log(
+                  `Processing next request from queue (${requestQueue.length} remaining)`
+                );
+                const nextRequest = requestQueue.shift();
+                if (nextRequest) nextRequest();
+              }
+              reject(error);
+            }
+          );
+        });
+
+        // If we've just added the first item to an empty queue and we have room to process,
+        // start processing it immediately
+        if (
+          requestQueue.length === 1 &&
+          currentRequests < MAX_CONCURRENT_REQUESTS
+        ) {
+          console.log("Processing first queued request immediately");
+          const nextRequest = requestQueue.shift();
+          if (nextRequest) nextRequest();
+        }
+      });
+    } catch (error: any) {
+      // Detect if this is an Azure concurrent request limit error
+      const isRateLimitError =
+        error.message?.includes("concurrent") ||
+        error.message?.includes("exceeded") ||
+        error.message?.includes("parallel requests") ||
+        error.message?.includes("rate limit");
+
+      if (isRateLimitError && retryCount < maxRetries) {
+        retryCount++;
+        lastError = error;
+        console.warn(
+          `Azure rate limit hit. Retry attempt ${retryCount}/${maxRetries} after backoff`
+        );
+
+        // Implement exponential backoff
+        const backoffMs = Math.pow(2, retryCount) * 1000 + Math.random() * 1000;
+        await new Promise(resolve => setTimeout(resolve, backoffMs));
+
+        // Try again
+        return executeWithRetry();
+      }
+
+      // If we've exhausted retries or it's not a rate limit error, rethrow
+      throw error;
     }
-  });
+  };
+
+  return executeWithRetry();
 }
 
 // Define result type for consistency
@@ -149,14 +212,14 @@ export interface SessionAnalysisResult {
  */
 function createSpeechConfig() {
   if (!SPEECH_KEY || !SPEECH_REGION) {
-    throw new Error('Azure Speech Service credentials not configured');
+    throw new Error("Azure Speech Service credentials not configured");
   }
 
   const speechConfig = sdk.SpeechConfig.fromSubscription(
     SPEECH_KEY,
     SPEECH_REGION
   );
-  speechConfig.speechRecognitionLanguage = 'en-US';
+  speechConfig.speechRecognitionLanguage = "en-US";
   return speechConfig;
 }
 
@@ -173,9 +236,9 @@ export async function performPronunciationAssessment(
   return withRequestLimit(async () => {
     // Create a temporary file to store the audio
     const tempDir = await mkdtempPromise(
-      path.join(os.tmpdir(), 'azure-speech-')
+      path.join(os.tmpdir(), "azure-speech-")
     );
-    const audioPath = path.join(tempDir, 'audio.wav');
+    const audioPath = path.join(tempDir, "audio.wav");
 
     try {
       // Write the audio buffer to a temporary file
@@ -210,7 +273,7 @@ export async function performPronunciationAssessment(
         let pronunciationResults: sdk.PronunciationAssessmentResult | null =
           null;
         let detailedResults: any = null;
-        let recognizedText = '';
+        let recognizedText = "";
         const audioStartTime = Date.now(); // Track when audio processing started
         let audioEndTime: number;
         let wordCount = 0;
@@ -222,7 +285,7 @@ export async function performPronunciationAssessment(
         ) => {
           if (e.result.reason === sdk.ResultReason.RecognizedSpeech) {
             // Store the recognized text for word count calculation
-            recognizedText += ' ' + e.result.text;
+            recognizedText += " " + e.result.text;
             wordCount = recognizedText.trim().split(/\s+/).length;
 
             pronunciationResults = sdk.PronunciationAssessmentResult.fromResult(
@@ -247,7 +310,7 @@ export async function performPronunciationAssessment(
               }
             } catch (error) {
               console.warn(
-                'Could not parse detailed pronunciation data:',
+                "Could not parse detailed pronunciation data:",
                 error
               );
             }
@@ -309,7 +372,7 @@ export async function performPronunciationAssessment(
                   detailedResults &&
                   detailedResults.PronunciationAssessment &&
                   typeof detailedResults.PronunciationAssessment
-                    .ProsodyScore === 'number'
+                    .ProsodyScore === "number"
                 ) {
                   prosodyScore =
                     detailedResults.PronunciationAssessment.ProsodyScore;
@@ -327,7 +390,7 @@ export async function performPronunciationAssessment(
                   wordLevelAssessment,
                 });
               } else {
-                reject(new Error('No pronunciation results returned'));
+                reject(new Error("No pronunciation results returned"));
               }
             },
             (error: unknown) => reject(error)
@@ -349,7 +412,7 @@ export async function performPronunciationAssessment(
         // Try to remove the directory (will fail if not empty, which is fine)
         fs.rmdir(tempDir, () => {});
       } catch (cleanupError) {
-        console.error('Error cleaning up temporary files:', cleanupError);
+        console.error("Error cleaning up temporary files:", cleanupError);
       }
     }
   });
@@ -366,28 +429,28 @@ export async function analyzeGrammar(transcripts: string[]): Promise<{
   accuracyScore: number;
 }> {
   if (!process.env.OPENAI_API_KEY) {
-    console.warn('OpenAI API key not configured, skipping grammar analysis');
+    console.warn("OpenAI API key not configured, skipping grammar analysis");
     return { grammarIssues: [], grammarScore: 0, accuracyScore: 0 };
   }
 
   try {
-    console.log('Analyzing grammar and linguistic accuracy with OpenAI...');
+    console.log("Analyzing grammar and linguistic accuracy with OpenAI...");
 
     // Combine all transcripts into one text for analysis
-    const combinedText = transcripts.join('\n');
+    const combinedText = transcripts.join("\n");
 
     // Skip grammar analysis if text is too short
     if (combinedText.trim().length < 10) {
-      console.log('Text too short for grammar analysis');
+      console.log("Text too short for grammar analysis");
       return { grammarIssues: [], grammarScore: 5, accuracyScore: 5 }; // Neutral scores
     }
 
     // Create a prompt for GPT-4 to analyze grammar and accuracy
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: "gpt-4o",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content: `You are a language assessment expert specializing in English grammar and linguistic accuracy analysis.
 Analyze the provided speech transcription for grammar errors and linguistic accuracy.
 
@@ -411,23 +474,23 @@ If there are no grammar issues, return an empty array for grammarIssues and scor
 Focus on grammar rules, sentence structure, and appropriate word usage.`,
         },
         {
-          role: 'user',
+          role: "user",
           content: `Here is the transcribed speech to analyze for grammar issues and linguistic accuracy:\n\n${combinedText}`,
         },
       ],
       temperature: 0.3,
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
     });
 
     // Parse the response
     const analysisResult = JSON.parse(
-      response.choices[0].message.content || '{}'
+      response.choices[0].message.content || "{}"
     );
 
     console.log(
       `Analysis complete. Found ${
         analysisResult.grammarIssues?.length || 0
-      } issues. Grammar score: ${analysisResult.grammarScore || 'N/A'}, Accuracy score: ${analysisResult.accuracyScore || 'N/A'}`
+      } issues. Grammar score: ${analysisResult.grammarScore || "N/A"}, Accuracy score: ${analysisResult.accuracyScore || "N/A"}`
     );
 
     return {
@@ -436,7 +499,7 @@ Focus on grammar rules, sentence structure, and appropriate word usage.`,
       accuracyScore: analysisResult.accuracyScore || 5, // Default to neutral if not provided
     };
   } catch (error) {
-    console.error('Error analyzing grammar and accuracy:', error);
+    console.error("Error analyzing grammar and accuracy:", error);
     return { grammarIssues: [], grammarScore: 0, accuracyScore: 0 };
   }
 }
@@ -456,16 +519,40 @@ export async function analyzeSessionRecordings(
 ): Promise<SessionAnalysisResult> {
   // Check if we have recordings to analyze
   if (audioBuffers.length === 0) {
-    throw new Error('No recordings to analyze');
+    throw new Error("No recordings to analyze");
   }
 
-  // Process each recording and get assessment results
-  const assessmentPromises = audioBuffers.map(({ buffer, referenceText }) =>
-    performPronunciationAssessment(buffer, referenceText)
+  console.log(
+    `Processing ${audioBuffers.length} audio recordings sequentially`
   );
 
-  // Wait for all assessments to complete
-  const results = await Promise.all(assessmentPromises);
+  // Process recordings sequentially instead of in parallel
+  const results: AssessmentResult[] = [];
+  for (let i = 0; i < audioBuffers.length; i++) {
+    try {
+      console.log(`Processing recording ${i + 1}/${audioBuffers.length}`);
+      const { buffer, referenceText } = audioBuffers[i];
+      const result = await performPronunciationAssessment(
+        buffer,
+        referenceText
+      );
+      results.push(result);
+    } catch (error) {
+      console.error(`Error processing recording ${i + 1}:`, error);
+      // Add a placeholder result with neutral scores to maintain the array length
+      results.push({
+        pronunciationScore: 50,
+        fluencyScore: 50,
+        completenessScore: 50,
+        accuracyScore: 50,
+      });
+    }
+
+    // Add a small delay between processing each recording to avoid overwhelming Azure
+    if (i < audioBuffers.length - 1) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+  }
 
   // Extract all reference texts for grammar analysis
   const referenceTexts = audioBuffers.map(item => item.referenceText);
@@ -492,12 +579,12 @@ export async function analyzeSessionRecordings(
       acc.completenessScoreSum += result.completenessScore;
 
       // Process new metrics if available
-      if (typeof result.prosodyScore === 'number') {
+      if (typeof result.prosodyScore === "number") {
         acc.prosodyScoreSum += result.prosodyScore;
         acc.prosodyScoreCount++;
       }
 
-      if (typeof result.speakingRate === 'number') {
+      if (typeof result.speakingRate === "number") {
         acc.speakingRateSum += result.speakingRate;
         acc.speakingRateCount++;
       }
@@ -583,51 +670,51 @@ export async function analyzeSessionRecordings(
   const areasForImprovement = [];
 
   if (avgPronunciation >= 7) {
-    strengths.push('Clear pronunciation of sounds and words');
+    strengths.push("Clear pronunciation of sounds and words");
   } else if (avgPronunciation <= 4) {
     areasForImprovement.push(
-      'Work on pronouncing individual sounds more clearly'
+      "Work on pronouncing individual sounds more clearly"
     );
   }
 
   if (avgFluency >= 7) {
-    strengths.push('Good speech rhythm and natural flow');
+    strengths.push("Good speech rhythm and natural flow");
   } else if (avgFluency <= 4) {
     areasForImprovement.push(
-      'Practice speaking with more natural rhythm and flow'
+      "Practice speaking with more natural rhythm and flow"
     );
   }
 
   if (accuracyScore >= 7) {
-    strengths.push('Accurate and appropriate word usage');
+    strengths.push("Accurate and appropriate word usage");
   } else if (accuracyScore <= 4) {
     areasForImprovement.push(
-      'Focus on using words more accurately and appropriately'
+      "Focus on using words more accurately and appropriately"
     );
   }
 
   if (avgCompleteness >= 7) {
-    strengths.push('Good completion of thoughts and sentences');
+    strengths.push("Good completion of thoughts and sentences");
   } else if (avgCompleteness <= 4) {
-    areasForImprovement.push('Try to complete your sentences fully');
+    areasForImprovement.push("Try to complete your sentences fully");
   }
 
   // Add grammar-specific feedback
   if (textAnalysis.grammarScore >= 7) {
-    strengths.push('Strong grammatical structure in your responses');
+    strengths.push("Strong grammatical structure in your responses");
   } else if (textAnalysis.grammarScore <= 4) {
     areasForImprovement.push(
-      'Pay more attention to grammar rules and sentence structure'
+      "Pay more attention to grammar rules and sentence structure"
     );
   }
 
   // Add prosody-specific feedback
   if (avgProsody !== undefined) {
     if (avgProsody >= 7) {
-      strengths.push('Excellent intonation and natural speech rhythm');
+      strengths.push("Excellent intonation and natural speech rhythm");
     } else if (avgProsody <= 4) {
       areasForImprovement.push(
-        'Work on your intonation and speech rhythm to sound more natural'
+        "Work on your intonation and speech rhythm to sound more natural"
       );
     }
   }
@@ -636,96 +723,96 @@ export async function analyzeSessionRecordings(
   if (avgSpeakingRate !== undefined) {
     if (avgSpeakingRate > 160) {
       areasForImprovement.push(
-        'Try to slow down your speaking pace for better clarity'
+        "Try to slow down your speaking pace for better clarity"
       );
     } else if (avgSpeakingRate < 100) {
       areasForImprovement.push(
-        'Work on increasing your speaking speed for more natural conversation'
+        "Work on increasing your speaking speed for more natural conversation"
       );
     } else {
-      strengths.push('Good conversational speaking pace');
+      strengths.push("Good conversational speaking pace");
     }
   }
 
   // Generate suggestions based on areas that need improvement
-  let suggestions = '';
+  let suggestions = "";
   if (
     areasForImprovement.includes(
-      'Work on pronouncing individual sounds more clearly'
+      "Work on pronouncing individual sounds more clearly"
     )
   ) {
     suggestions +=
-      'Practice specific sounds that are difficult for you using minimal pairs exercises. ';
+      "Practice specific sounds that are difficult for you using minimal pairs exercises. ";
 
     // Add specific phoneme suggestions if available
     if (mispronunciations.length > 0) {
       const commonMispronounced = mispronunciations
         .slice(0, 3)
         .map(m => m.word)
-        .join(', ');
+        .join(", ");
       suggestions += `Focus especially on words like: ${commonMispronounced}. `;
     }
   }
 
   if (
     areasForImprovement.includes(
-      'Practice speaking with more natural rhythm and flow'
+      "Practice speaking with more natural rhythm and flow"
     )
   ) {
     suggestions +=
-      'Try shadowing exercises where you speak along with native speakers to improve rhythm. ';
+      "Try shadowing exercises where you speak along with native speakers to improve rhythm. ";
   }
 
   if (
     areasForImprovement.includes(
-      'Focus on using words more accurately and appropriately'
+      "Focus on using words more accurately and appropriately"
     )
   ) {
     suggestions +=
-      'Study word collocations and practice using new vocabulary in context. Keep a vocabulary journal. ';
+      "Study word collocations and practice using new vocabulary in context. Keep a vocabulary journal. ";
   }
 
   if (
     areasForImprovement.includes(
-      'Pay more attention to grammar rules and sentence structure'
+      "Pay more attention to grammar rules and sentence structure"
     )
   ) {
     suggestions +=
-      'Review basic grammar rules and practice constructing sentences with correct structure. ';
+      "Review basic grammar rules and practice constructing sentences with correct structure. ";
   }
 
   if (
     areasForImprovement.includes(
-      'Work on your intonation and speech rhythm to sound more natural'
+      "Work on your intonation and speech rhythm to sound more natural"
     )
   ) {
     suggestions +=
-      'Listen to native speakers and practice mimicking their intonation patterns. Record yourself and compare. ';
+      "Listen to native speakers and practice mimicking their intonation patterns. Record yourself and compare. ";
   }
 
   if (
     areasForImprovement.includes(
-      'Try to slow down your speaking pace for better clarity'
+      "Try to slow down your speaking pace for better clarity"
     )
   ) {
     suggestions +=
-      'Practice speaking deliberately and pausing between sentences. Your current pace is too fast at about ' +
+      "Practice speaking deliberately and pausing between sentences. Your current pace is too fast at about " +
       avgSpeakingRate +
-      ' words per minute. ';
+      " words per minute. ";
   } else if (
     areasForImprovement.includes(
-      'Work on increasing your speaking speed for more natural conversation'
+      "Work on increasing your speaking speed for more natural conversation"
     )
   ) {
     suggestions +=
-      'Practice speaking at a slightly faster pace. Your current pace is slow at about ' +
+      "Practice speaking at a slightly faster pace. Your current pace is slow at about " +
       avgSpeakingRate +
-      ' words per minute. ';
+      " words per minute. ";
   }
 
   if (!suggestions) {
     suggestions =
-      'Continue practicing regularly to maintain and improve your speaking skills.';
+      "Continue practicing regularly to maintain and improve your speaking skills.";
   }
 
   return {
@@ -741,11 +828,11 @@ export async function analyzeSessionRecordings(
       mispronunciations.length > 0 ? mispronunciations : undefined,
     overallScore,
     strengths:
-      strengths.length > 0 ? strengths : ['Good overall communication'],
+      strengths.length > 0 ? strengths : ["Good overall communication"],
     areasForImprovement:
       areasForImprovement.length > 0
         ? areasForImprovement
-        : ['Continue practicing consistently'],
+        : ["Continue practicing consistently"],
     suggestions,
   };
 }

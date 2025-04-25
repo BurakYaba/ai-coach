@@ -1,51 +1,63 @@
-import mongoose from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import { dbConnect } from '@/lib/db';
+import { authOptions } from "@/lib/auth";
+import { dbConnect } from "@/lib/db";
+import {
+  getCacheHeaders,
+  handleApiError,
+  getCachedItem,
+  setCacheItem,
+} from "@/lib/reading-utils";
+import ReadingSession from "@/models/ReadingSession";
+import User from "@/models/User";
 
-export const dynamic = 'force-dynamic';
+// Ensure dynamic rendering
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check cache first (stats can be cached for longer periods)
+    const cacheKey = `reading_stats_${session.user.id}`;
+    const cachedStats = getCachedItem(cacheKey);
+    if (cachedStats) {
+      return NextResponse.json(cachedStats, {
+        headers: getCacheHeaders(300), // 5 minute cache
+      });
     }
 
     await dbConnect();
 
-    // Import models
-    const ReadingSession = (await import('@/models/ReadingSession')).default;
-    const User = (await import('@/models/User')).default;
+    // Convert user ID to ObjectId
+    const userId = new mongoose.Types.ObjectId(session.user.id);
 
-    // Get user
-    const user = await User.findById(session.user.id);
+    // Get user data and reading sessions in parallel
+    const [user, sessions] = await Promise.all([
+      // Get user with minimal projection
+      User.findById(session.user.id).select("progress").lean(),
+
+      // Get reading sessions with optimized projection
+      ReadingSession.find({ userId })
+        .select(
+          "title level topic wordCount estimatedReadingTime questions userProgress.completionTime userProgress.questionsAnswered createdAt"
+        )
+        .sort({ createdAt: -1 })
+        .lean(),
+    ]);
 
     if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-
-    // Convert user ID to ObjectId if needed
-    let userId;
-    try {
-      userId = new mongoose.Types.ObjectId(session.user.id);
-    } catch (error) {
-      userId = session.user.id;
-    }
-
-    // Get reading sessions for the user
-    const sessions = await ReadingSession.find({ userId })
-      .select(
-        'title level topic wordCount estimatedReadingTime questions vocabulary userProgress createdAt'
-      )
-      .sort({ createdAt: -1 })
-      .lean();
 
     if (sessions.length === 0) {
-      return NextResponse.json({
+      const emptyStats = {
         stats: {
           totalSessions: 0,
           completedSessions: 0,
@@ -58,80 +70,79 @@ export async function GET(request: NextRequest) {
           streak: 0,
           hasData: false,
         },
+      };
+
+      // Cache empty stats result
+      setCacheItem(cacheKey, emptyStats);
+
+      return NextResponse.json(emptyStats, {
+        headers: getCacheHeaders(300), // 5 minute cache
       });
     }
 
-    // Calculate total sessions
-    const totalSessions = sessions.length;
-
-    // Calculate completed sessions
-    const completedSessions = sessions.filter(
-      session => session.userProgress.completionTime
-    ).length;
-
-    // Calculate sessions in the last week
+    // Calculate dates once for reuse
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-    const sessionsLastWeek = sessions.filter(
-      session => new Date(session.createdAt) >= oneWeekAgo
-    ).length;
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
-    // Calculate comprehension score
+    // Calculate all metrics in a single pass through the sessions array
+    const totalSessions = sessions.length;
+    let completedSessions = 0;
+    let sessionsLastWeek = 0;
     let totalComprehensionScore = 0;
     let totalAnsweredQuestions = 0;
+    let totalWords = 0;
+    let wordsLastMonth = 0;
+    const topicsMap = new Map();
 
     sessions.forEach(session => {
-      if (session.userProgress.questionsAnswered > 0) {
-        // For each session, we need to calculate the comprehension score
-        // based on correct answers, but since we may not track this directly,
-        // we'll estimate it based on progress for now
+      // Count completed sessions
+      if (session.userProgress?.completionTime) {
+        completedSessions++;
+      }
+
+      // Count recent sessions
+      const sessionDate = new Date(session.createdAt);
+      if (sessionDate >= oneWeekAgo) {
+        sessionsLastWeek++;
+      }
+
+      // Calculate comprehension score
+      if (session.userProgress?.questionsAnswered > 0) {
+        // For sessions with answered questions, calculate success rate
         const sessionScore = Math.round(
-          (session.userProgress.questionsAnswered / session.questions.length) *
+          (session.userProgress.questionsAnswered /
+            (session.questions?.length || 1)) *
             100
         );
-
         totalComprehensionScore += sessionScore;
         totalAnsweredQuestions++;
       }
+
+      // Calculate total words
+      totalWords += session.wordCount || 0;
+
+      // Calculate recent words
+      if (sessionDate >= oneMonthAgo) {
+        wordsLastMonth += session.wordCount || 0;
+      }
+
+      // Count topics
+      if (session.topic) {
+        const count = topicsMap.get(session.topic) || 0;
+        topicsMap.set(session.topic, count + 1);
+      }
     });
 
+    // Calculate average comprehension
     const averageComprehension =
       totalAnsweredQuestions > 0
         ? Math.round(totalComprehensionScore / totalAnsweredQuestions)
         : 0;
 
-    // Estimate comprehension change (mock data for now)
-    // In a real implementation, you would compare to historical data
-    const comprehensionChange = 5;
-
-    // Calculate total words
-    let totalWords = 0;
-    sessions.forEach(session => {
-      totalWords += session.wordCount || 0;
-    });
-
-    // Calculate words read in the last month
-    const oneMonthAgo = new Date();
-    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
-    let wordsLastMonth = 0;
-    sessions.forEach(session => {
-      if (new Date(session.createdAt) >= oneMonthAgo) {
-        wordsLastMonth += session.wordCount || 0;
-      }
-    });
-
-    // Calculate topics read
-    const topicsMap = new Map();
-    sessions.forEach(session => {
-      const topic = session.topic;
-      if (topic) {
-        const count = topicsMap.get(topic) || 0;
-        topicsMap.set(topic, count + 1);
-      }
-    });
-
+    // Get top topics
     const topicsRead = Array.from(topicsMap.entries())
       .map(([name, count]) => ({
         name,
@@ -140,29 +151,33 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => b.count - a.count)
       .slice(0, 5);
 
-    // Get streak from user model if available, otherwise default to 0
-    const streak = user.progress?.streak || 0;
+    // Remove streak lookup from user model
+    const streak = 0; // Fixed value instead of getting from user.progress.streak
 
-    // Return the stats
-    return NextResponse.json({
+    // Prepare the stats response
+    const statsResponse = {
       stats: {
         totalSessions,
         completedSessions,
         sessionsLastWeek,
         averageComprehension,
-        comprehensionChange,
+        comprehensionChange: 0, // This would need historical data to calculate
         totalWords,
         wordsLastMonth,
         topicsRead,
         streak,
         hasData: true,
       },
+    };
+
+    // Cache the result
+    setCacheItem(cacheKey, statsResponse);
+
+    // Return with cache headers
+    return NextResponse.json(statsResponse, {
+      headers: getCacheHeaders(300), // 5 minute cache
     });
   } catch (error) {
-    console.error('Error fetching reading stats:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch reading statistics' },
-      { status: 500 }
-    );
+    return handleApiError(error, "Error fetching reading statistics");
   }
 }

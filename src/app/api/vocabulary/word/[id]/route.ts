@@ -1,14 +1,14 @@
-import mongoose from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import memoryCache from '@/lib/cache';
+import { authOptions } from "@/lib/auth";
+import memoryCache from "@/lib/cache";
 import {
   PerformanceRating,
   calculateNextReview,
-} from '@/lib/spaced-repetition';
-import { VocabularyBank } from '@/models/VocabularyBank';
+} from "@/lib/spaced-repetition";
+import { VocabularyBank } from "@/models/VocabularyBank";
 
 // Define the SpacedRepetitionItem type
 interface SpacedRepetitionItem {
@@ -35,11 +35,11 @@ export async function PATCH(
     const session = await getServerSession(authOptions);
 
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (!session.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Try different ways to get the user ID
@@ -47,7 +47,7 @@ export async function PATCH(
 
     if (!userId) {
       return NextResponse.json(
-        { error: 'User ID not found in session' },
+        { error: "User ID not found in session" },
         { status: 400 }
       );
     }
@@ -55,7 +55,7 @@ export async function PATCH(
     // Validate the word ID
     if (!params.id || !mongoose.isValidObjectId(params.id)) {
       return NextResponse.json(
-        { error: 'Invalid word ID format' },
+        { error: "Invalid word ID format" },
         { status: 400 }
       );
     }
@@ -66,23 +66,23 @@ export async function PATCH(
     const body = await req.json();
 
     // Convert ISO date strings to Date objects
-    if (body.lastReviewed && typeof body.lastReviewed === 'string') {
+    if (body.lastReviewed && typeof body.lastReviewed === "string") {
       try {
         body.lastReviewed = new Date(body.lastReviewed);
       } catch (e) {
         return NextResponse.json(
-          { error: 'Invalid lastReviewed date format' },
+          { error: "Invalid lastReviewed date format" },
           { status: 400 }
         );
       }
     }
 
-    if (body.nextReview && typeof body.nextReview === 'string') {
+    if (body.nextReview && typeof body.nextReview === "string") {
       try {
         body.nextReview = new Date(body.nextReview);
       } catch (e) {
         return NextResponse.json(
-          { error: 'Invalid nextReview date format' },
+          { error: "Invalid nextReview date format" },
           { status: 400 }
         );
       }
@@ -95,7 +95,7 @@ export async function PATCH(
         const validEntries = body.reviewHistory.filter(
           (entry: ReviewHistoryEntry) =>
             entry &&
-            typeof entry === 'object' &&
+            typeof entry === "object" &&
             entry.date !== undefined &&
             entry.date !== null &&
             entry.performance !== undefined &&
@@ -104,7 +104,7 @@ export async function PATCH(
 
         body.reviewHistory = validEntries.map((entry: ReviewHistoryEntry) => {
           let dateValue = entry.date;
-          if (typeof entry.date === 'string') {
+          if (typeof entry.date === "string") {
             try {
               dateValue = new Date(entry.date);
               if (isNaN(dateValue.getTime())) {
@@ -122,9 +122,9 @@ export async function PATCH(
 
           // Ensure performance is a valid number between 0-4
           let performanceValue = PerformanceRating.HESITANT; // Default
-          if (typeof entry.performance === 'number') {
+          if (typeof entry.performance === "number") {
             performanceValue = Math.min(4, Math.max(0, entry.performance));
-          } else if (typeof entry.performance === 'string') {
+          } else if (typeof entry.performance === "string") {
             try {
               const parsed = parseInt(entry.performance, 10);
               if (!isNaN(parsed)) {
@@ -138,7 +138,7 @@ export async function PATCH(
           return {
             date: dateValue,
             performance: performanceValue,
-            context: entry.context || 'Review',
+            context: entry.context || "Review",
           };
         });
       } catch (e) {
@@ -151,7 +151,7 @@ export async function PATCH(
 
     if (!vocabBank) {
       return NextResponse.json(
-        { error: 'Vocabulary bank not found' },
+        { error: "Vocabulary bank not found" },
         { status: 404 }
       );
     }
@@ -160,22 +160,22 @@ export async function PATCH(
       (w: { _id: { toString: () => string } }) => w._id.toString() === params.id
     );
     if (wordIndex === -1) {
-      return NextResponse.json({ error: 'Word not found' }, { status: 404 });
+      return NextResponse.json({ error: "Word not found" }, { status: 404 });
     }
 
     // Only allow updating specific fields
     const allowedUpdates = [
-      'definition',
-      'context',
-      'examples',
-      'pronunciation',
-      'partOfSpeech',
-      'difficulty',
-      'mastery',
-      'tags',
-      'nextReview',
-      'lastReviewed',
-      'reviewHistory',
+      "definition",
+      "context",
+      "examples",
+      "pronunciation",
+      "partOfSpeech",
+      "difficulty",
+      "mastery",
+      "tags",
+      "nextReview",
+      "lastReviewed",
+      "reviewHistory",
     ];
 
     const updates: Record<string, unknown> = {};
@@ -186,7 +186,7 @@ export async function PATCH(
     }
 
     // Update review-related fields if mastery is being updated but nextReview is not provided
-    if ('mastery' in updates && !('nextReview' in updates)) {
+    if ("mastery" in updates && !("nextReview" in updates)) {
       updates.lastReviewed = new Date();
 
       // If reviewHistory is being updated and contains a performance rating, use it
@@ -194,7 +194,7 @@ export async function PATCH(
 
       if (body.reviewHistory && body.reviewHistory.length > 0) {
         const latestReview = body.reviewHistory[body.reviewHistory.length - 1];
-        if (typeof latestReview.performance === 'number') {
+        if (typeof latestReview.performance === "number") {
           performance = latestReview.performance;
         }
       }
@@ -205,9 +205,9 @@ export async function PATCH(
       // Extract easiness factor and repetitions from the word if available
       const wordData: SpacedRepetitionItem = {
         mastery:
-          typeof updates.mastery === 'number'
+          typeof updates.mastery === "number"
             ? updates.mastery
-            : typeof updates.mastery === 'string'
+            : typeof updates.mastery === "string"
               ? Number(updates.mastery)
               : currentWord.mastery || 0,
         easinessFactor: currentWord.easinessFactor || 2.5,
@@ -218,34 +218,34 @@ export async function PATCH(
       updates.nextReview = calculateNextReview(performance, wordData);
 
       // Store the easiness factor and repetitions if the model supports it
-      if ('easinessFactor' in currentWord) {
+      if ("easinessFactor" in currentWord) {
         updates.easinessFactor = wordData.easinessFactor;
       }
 
-      if ('repetitions' in currentWord) {
+      if ("repetitions" in currentWord) {
         updates.repetitions = wordData.repetitions;
       }
 
-      if ('interval' in currentWord) {
+      if ("interval" in currentWord) {
         updates.interval = wordData.interval;
       }
 
       // Add review history entry if not already provided
-      if (!('reviewHistory' in updates)) {
+      if (!("reviewHistory" in updates)) {
         const reviewEntry: ReviewHistoryEntry = {
           date:
             updates.lastReviewed instanceof Date
               ? updates.lastReviewed
               : new Date(),
           performance: performance,
-          context: 'Manual review',
+          context: "Manual review",
         };
 
         vocabBank.words[wordIndex].reviewHistory.push(reviewEntry);
       }
     }
     // Handle direct performance rating updates
-    else if ('performance' in body && !('mastery' in updates)) {
+    else if ("performance" in body && !("mastery" in updates)) {
       const performance = Number(body.performance);
       const currentWord = vocabBank.words[wordIndex];
 
@@ -292,7 +292,7 @@ export async function PATCH(
       updates.nextReview = calculateNextReview(performance, wordData);
 
       // Update easiness factor and repetitions
-      if ('easinessFactor' in currentWord) {
+      if ("easinessFactor" in currentWord) {
         // Calculate the new easiness factor (EF)
         const easinessFactor = currentWord.easinessFactor || 2.5;
         const newEF = Math.max(
@@ -303,7 +303,7 @@ export async function PATCH(
         updates.easinessFactor = newEF;
       }
 
-      if ('repetitions' in currentWord) {
+      if ("repetitions" in currentWord) {
         // Calculate new repetitions
         let newRepetitions = currentWord.repetitions || 0;
         if (performance < PerformanceRating.HESITANT) {
@@ -314,12 +314,12 @@ export async function PATCH(
         updates.repetitions = newRepetitions;
       }
 
-      if ('interval' in currentWord) {
+      if ("interval" in currentWord) {
         // Calculate new interval based on performance and repetitions
         const repetitions =
-          typeof updates.repetitions === 'number' ? updates.repetitions : 0;
+          typeof updates.repetitions === "number" ? updates.repetitions : 0;
         const easinessFactor =
-          typeof updates.easinessFactor === 'number'
+          typeof updates.easinessFactor === "number"
             ? updates.easinessFactor
             : 2.5;
         let newInterval = 0;
@@ -345,7 +345,7 @@ export async function PATCH(
       const reviewEntry: ReviewHistoryEntry = {
         date: new Date(),
         performance: performance,
-        context: 'Spaced repetition review',
+        context: "Spaced repetition review",
       };
 
       if (!Array.isArray(vocabBank.words[wordIndex].reviewHistory)) {
@@ -370,7 +370,7 @@ export async function PATCH(
     ) {
       // Ensure all performance ratings are between 0 and 4
       updates.reviewHistory.forEach((entry: ReviewHistoryEntry) => {
-        if (typeof entry.performance === 'number') {
+        if (typeof entry.performance === "number") {
           // Clamp performance to 0-4 range
           entry.performance = Math.min(4, Math.max(0, entry.performance));
         }
@@ -378,16 +378,16 @@ export async function PATCH(
     }
 
     try {
-      console.log('Attempting to save updated vocabulary bank');
+      console.log("Attempting to save updated vocabulary bank");
 
       try {
         // First try the normal save (will likely work in most cases)
         await vocabBank.save();
       } catch (saveError: any) {
         // If we get a version error, fall back to direct update approach
-        if (saveError.name === 'VersionError') {
+        if (saveError.name === "VersionError") {
           console.log(
-            'Version conflict detected, trying direct update approach'
+            "Version conflict detected, trying direct update approach"
           );
 
           // Get the specific word that we just modified
@@ -395,21 +395,21 @@ export async function PATCH(
 
           // Use findOneAndUpdate to update just this specific word
           const result = await VocabularyBank.findOneAndUpdate(
-            { userId, 'words._id': params.id },
+            { userId, "words._id": params.id },
             { $set: { [`words.${wordIndex}`]: wordToUpdate } },
             { new: true }
           );
 
           if (!result) {
-            console.error('Failed to update word after version conflict');
+            console.error("Failed to update word after version conflict");
             return NextResponse.json(
-              { error: 'Failed to update word. Please try again.' },
+              { error: "Failed to update word. Please try again." },
               { status: 409 }
             );
           }
 
           console.log(
-            'Successfully updated word using direct update after version conflict'
+            "Successfully updated word using direct update after version conflict"
           );
         } else {
           // If it's not a version error, rethrow
@@ -426,16 +426,16 @@ export async function PATCH(
         `Invalidated ${cacheKeys.length} cache entries for user ${userId}`
       );
 
-      console.log('Successfully saved vocabulary bank');
+      console.log("Successfully saved vocabulary bank");
       return NextResponse.json(vocabBank.words[wordIndex]);
     } catch (saveError: any) {
-      console.error('Error saving vocabulary bank:', saveError);
+      console.error("Error saving vocabulary bank:", saveError);
 
       // Check for validation errors
-      if (saveError.name === 'ValidationError') {
-        console.error('Validation error details:', saveError.errors);
+      if (saveError.name === "ValidationError") {
+        console.error("Validation error details:", saveError.errors);
         return NextResponse.json(
-          { error: 'Validation error: ' + saveError.message },
+          { error: "Validation error: " + saveError.message },
           { status: 400 }
         );
       }
@@ -443,29 +443,29 @@ export async function PATCH(
       throw saveError; // Re-throw to be caught by the outer catch block
     }
   } catch (error) {
-    console.error('Error updating word:', error);
+    console.error("Error updating word:", error);
 
     // Add more detailed error information
-    let errorMessage = 'Internal server error';
+    let errorMessage = "Internal server error";
     const statusCode = 500;
 
     if (error instanceof Error) {
       errorMessage = error.message;
 
       // Log the full error stack for debugging
-      console.error('Error stack:', error.stack);
+      console.error("Error stack:", error.stack);
     }
 
     // Log the request body for debugging (excluding sensitive data)
     try {
       const body = await req.clone().json();
       // Remove any sensitive fields if needed
-      console.error('Request body that caused error:', {
+      console.error("Request body that caused error:", {
         ...body,
         // Exclude sensitive fields if any
       });
     } catch (e) {
-      console.error('Could not parse request body for error logging');
+      console.error("Could not parse request body for error logging");
     }
 
     return NextResponse.json({ error: errorMessage }, { status: statusCode });
@@ -478,30 +478,30 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log('Processing DELETE request for word ID:', params.id);
+    console.log("Processing DELETE request for word ID:", params.id);
 
     // Use authOptions to get the session
     const session = await getServerSession(authOptions);
-    console.log('Session data:', JSON.stringify(session, null, 2));
+    console.log("Session data:", JSON.stringify(session, null, 2));
 
     if (!session) {
-      console.log('Unauthorized: No session found');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.log("Unauthorized: No session found");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     if (!session.user) {
-      console.log('Unauthorized: No user in session');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.log("Unauthorized: No user in session");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Try different ways to get the user ID
     const userId = session.user.id;
-    console.log('User ID from session:', userId);
+    console.log("User ID from session:", userId);
 
     if (!userId) {
-      console.log('Session user object:', session.user);
+      console.log("Session user object:", session.user);
       return NextResponse.json(
-        { error: 'User ID not found in session' },
+        { error: "User ID not found in session" },
         { status: 400 }
       );
     }
@@ -513,7 +513,7 @@ export async function DELETE(
 
     if (!vocabBank) {
       return NextResponse.json(
-        { error: 'Vocabulary bank not found' },
+        { error: "Vocabulary bank not found" },
         { status: 404 }
       );
     }
@@ -522,18 +522,18 @@ export async function DELETE(
       (w: { _id: { toString: () => string } }) => w._id.toString() === params.id
     );
     if (wordIndex === -1) {
-      return NextResponse.json({ error: 'Word not found' }, { status: 404 });
+      return NextResponse.json({ error: "Word not found" }, { status: 404 });
     }
 
     // Remove the word
     vocabBank.words.splice(wordIndex, 1);
     await vocabBank.save();
 
-    return NextResponse.json({ message: 'Word deleted successfully' });
+    return NextResponse.json({ message: "Word deleted successfully" });
   } catch (error) {
-    console.error('Error deleting word:', error);
+    console.error("Error deleting word:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

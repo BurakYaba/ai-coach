@@ -1,10 +1,47 @@
-import { OpenAI } from 'openai';
-import { v4 as uuidv4 } from 'uuid';
+import { OpenAI } from "openai";
+import { v4 as uuidv4 } from "uuid";
+
+import { normalizeQuestionType } from "@/lib/utils";
 
 // Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  timeout: 55000, // 55 seconds timeout
+  maxRetries: 2, // Reduce retries to avoid long wait times
 });
+
+// Simple in-memory cache for questions and vocabulary
+// This will persist between requests but reset on server restart
+interface CacheEntry {
+  timestamp: number;
+  data: any;
+}
+
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const questionCache = new Map<string, CacheEntry>();
+const vocabularyCache = new Map<string, CacheEntry>();
+
+// Cleanup function to remove old cache entries
+function cleanupCache() {
+  const now = Date.now();
+
+  // Clean question cache
+  Array.from(questionCache.entries()).forEach(([key, entry]) => {
+    if (now - entry.timestamp > CACHE_TTL) {
+      questionCache.delete(key);
+    }
+  });
+
+  // Clean vocabulary cache
+  Array.from(vocabularyCache.entries()).forEach(([key, entry]) => {
+    if (now - entry.timestamp > CACHE_TTL) {
+      vocabularyCache.delete(key);
+    }
+  });
+}
+
+// Run cleanup every hour
+setInterval(cleanupCache, 60 * 60 * 1000);
 
 /**
  * Generate listening comprehension questions based on a transcript and CEFR level
@@ -18,7 +55,7 @@ export async function generateQuestions(
 ): Promise<
   Array<{
     id: string;
-    type: 'multiple-choice' | 'true-false' | 'fill-blank';
+    type: "multiple-choice" | "true-false" | "fill-blank";
     question: string;
     options?: string[];
     correctAnswer: string;
@@ -27,6 +64,18 @@ export async function generateQuestions(
   }>
 > {
   try {
+    // Create a cache key based on first 100 chars of transcript + level
+    // This is a good balance of uniqueness without being too specific
+    const cacheKey = `${transcript.substring(0, 100).trim()}_${level}`;
+
+    // Check cache first
+    if (questionCache.has(cacheKey)) {
+      const cached = questionCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        return cached.data;
+      }
+    }
+
     // Adjust question count and complexity based on level
     const questionCountByLevel = {
       A1: 3,
@@ -40,16 +89,16 @@ export async function generateQuestions(
     const questionCount =
       questionCountByLevel[level as keyof typeof questionCountByLevel] || 5;
 
-    // Generate questions using OpenAI
+    // Generate questions using OpenAI with improved error handling
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: "gpt-4o",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content: `You are an expert language assessment creator specializing in ${level} level listening comprehension questions. Create questions that test different aspects of understanding including main ideas, specific details, inferences, and vocabulary in context. Your response should be in valid JSON format that can be parsed.`,
         },
         {
-          role: 'user',
+          role: "user",
           content: `Create ${questionCount} listening comprehension questions based on this transcript for ${level} level learners. Include a mix of multiple-choice, true-false, and fill-in-the-blank questions. For each question, provide a clear explanation of the answer.
 
 The response should be a valid JSON array with objects having these properties:
@@ -65,7 +114,7 @@ ${transcript}`,
         },
       ],
       temperature: 0.5,
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
     });
 
     let questions = [];
@@ -81,79 +130,37 @@ ${transcript}`,
         }
       }
     } catch (parseError) {
-      console.error('Error parsing questions JSON:', parseError);
+      console.error("Error parsing questions JSON:", parseError);
       return [];
     }
 
     // Validate and assign IDs to each question
-    return questions.map((question: any) => {
-      // Add more debug information
-      console.log(
-        'Processing question from API:',
-        JSON.stringify({
-          raw_type: question.type,
-          normalized_type: validateQuestionType(question.type),
-          has_options: !!question.options,
-          option_count: question.options?.length,
-        })
-      );
-
+    const processedQuestions = questions.map((question: any) => {
       return {
         id: uuidv4(),
-        type: validateQuestionType(question.type),
+        type: normalizeQuestionType(question.type),
         question: question.question,
         options:
-          validateQuestionType(question.type) === 'multiple-choice'
-            ? question.options || ['Option 1', 'Option 2', 'Option 3']
+          normalizeQuestionType(question.type) === "multiple-choice"
+            ? question.options || ["Option 1", "Option 2", "Option 3"]
             : undefined,
         correctAnswer: question.correctAnswer,
-        explanation: question.explanation || 'No explanation provided',
+        explanation: question.explanation || "No explanation provided",
         timestamp: question.timestamp || 0,
       };
     });
+
+    // Save to cache
+    questionCache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: processedQuestions,
+    });
+
+    return processedQuestions;
   } catch (error) {
-    console.error('Error generating questions:', error);
+    console.error("Error generating questions:", error);
     return [];
   }
-}
-
-/**
- * Validate and normalize question type
- * @param type The question type from the API
- * @returns Normalized question type
- */
-function validateQuestionType(
-  type: string
-): 'multiple-choice' | 'true-false' | 'fill-blank' {
-  const normalizedType = type.toLowerCase().trim();
-
-  if (
-    normalizedType === 'multiple-choice' ||
-    normalizedType === 'multiple choice' ||
-    normalizedType === 'multiplechoice'
-  ) {
-    return 'multiple-choice';
-  }
-
-  if (
-    normalizedType === 'true-false' ||
-    normalizedType === 'true/false' ||
-    normalizedType === 'truefalse'
-  ) {
-    return 'true-false';
-  }
-
-  if (
-    normalizedType === 'fill-blank' ||
-    normalizedType === 'fill-in-the-blank' ||
-    normalizedType === 'fillblank' ||
-    normalizedType === 'fill in the blank'
-  ) {
-    return 'fill-blank';
-  }
-
-  // Default to multiple-choice if unrecognized
-  return 'multiple-choice';
 }
 
 /**
@@ -176,6 +183,17 @@ export async function extractVocabulary(
   }>
 > {
   try {
+    // Create a cache key based on first 100 chars of transcript + level
+    const cacheKey = `${transcript.substring(0, 100).trim()}_${level}`;
+
+    // Check cache first
+    if (vocabularyCache.has(cacheKey)) {
+      const cached = vocabularyCache.get(cacheKey);
+      if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        return cached.data;
+      }
+    }
+
     // Adjust vocabulary count based on level
     const vocabCountByLevel = {
       A1: 5,
@@ -189,56 +207,40 @@ export async function extractVocabulary(
     const vocabCount =
       vocabCountByLevel[level as keyof typeof vocabCountByLevel] || 10;
 
-    // Create a normalized version of the transcript for word validation
-    const normalizedTranscript = transcript.toLowerCase();
-    // Create a word list from the transcript
-    const transcriptWords = new Set(
-      normalizedTranscript
-        .replace(/[^\w\s']|_/g, ' ') // Remove punctuation except apostrophes
-        .split(/\s+/)
-        .map(word => word.toLowerCase().trim())
-        .filter(word => word.length > 2) // Keep words longer than 2 chars
-    );
+    // Use a smaller transcript sample to improve performance for vocabulary extraction
+    // We don't need the entire transcript for vocabulary analysis
+    const transcriptSample =
+      transcript.length > 2000
+        ? transcript.substring(0, 2000) + "..."
+        : transcript;
 
-    console.log(`Transcript contains ${transcriptWords.size} unique words`);
-
-    // Generate vocabulary items using OpenAI with a more explicit prompt
+    // Extract vocabulary using OpenAI
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: "gpt-4o",
       messages: [
         {
-          role: 'system',
-          content: `You are an expert language teacher specializing in vocabulary acquisition for ${level} level learners. Your task is to extract vocabulary items that appear EXACTLY in the transcript provided.`,
+          role: "system",
+          content: `You are an expert language educator specializing in vocabulary selection for ${level} level learners. Extract appropriate vocabulary items that would be useful for a language learner to study. Your response should be in valid JSON format.`,
         },
         {
-          role: 'user',
-          content: `Extract ${vocabCount} vocabulary items from this transcript that would be valuable for ${level} level English learners. 
-
-VERY IMPORTANT: You MUST ONLY select words or short phrases that appear EXACTLY in the transcript - do not invent, modify, or suggest words that are not present in the exact transcript text.
-
-Focus on words that are:
-- Actually present in the transcript (this is the most important criterion)
-- Appropriate for ${level} level
-- Useful in everyday contexts
-- Representative of different parts of speech
-- Include some challenging but attainable words
+          role: "user",
+          content: `Extract ${vocabCount} vocabulary items from this transcript that would be useful for ${level} level English learners. 
 
 For each vocabulary item, provide:
-- word: The vocabulary word or phrase EXACTLY as it appears in the transcript
-- definition: A clear, concise definition suitable for ${level} level
-- context: The EXACT sentence from the transcript containing the word
-- examples: 2 additional example sentences using the word
-- difficulty: A number from 1-10 indicating difficulty (relative to the ${level} level)
-- timestamp: Approximate position in the text (as a word count from the beginning)
+- The word or phrase
+- A clear definition
+- The context from the transcript where it appears
+- 2-3 example sentences using the word
+- A difficulty rating (1-10)
 
-Return the data as a valid JSON object with a 'vocabulary' array containing the vocabulary items.
+Return as a JSON array of objects.
 
 Transcript:
-${transcript}`,
+${transcriptSample}`,
         },
       ],
-      temperature: 0.5,
-      response_format: { type: 'json_object' },
+      temperature: 0.3,
+      response_format: { type: "json_object" },
     });
 
     let vocabulary = [];
@@ -246,85 +248,38 @@ ${transcript}`,
       const content = response.choices[0].message.content;
       if (content) {
         const parsed = JSON.parse(content);
-        if (parsed && Array.isArray(parsed.vocabulary)) {
+        if (Array.isArray(parsed.vocabulary)) {
           vocabulary = parsed.vocabulary;
-        } else if (parsed && Array.isArray(parsed)) {
-          vocabulary = parsed;
         } else {
-          // Try to find any array in the response
-          const possibleArrays = Object.values(parsed).filter(
-            (value: unknown) => Array.isArray(value) && value.length > 0
-          ) as any[][];
-
-          if (possibleArrays.length > 0) {
-            // Use the first array found
-            vocabulary = possibleArrays[0];
-          } else {
-            console.warn(
-              'No vocabulary array found in response, using empty array'
-            );
-            vocabulary = [];
-          }
+          vocabulary = parsed;
         }
       }
     } catch (parseError) {
-      console.error('Error parsing vocabulary JSON:', parseError);
+      console.error("Error parsing vocabulary JSON:", parseError);
       return [];
     }
 
-    // Ensure vocabulary is an array before mapping
-    if (!Array.isArray(vocabulary)) {
-      console.warn('Vocabulary is not an array, returning empty array');
-      return [];
-    }
+    // Process and validate vocabulary items
+    const processedVocabulary = vocabulary.map((item: any) => ({
+      word: item.word || "",
+      definition: item.definition || "",
+      context: item.context || "No context provided",
+      examples: Array.isArray(item.examples)
+        ? item.examples
+        : [`Example: ${item.word} is commonly used in conversations.`],
+      difficulty: item.difficulty || 5,
+      timestamp: 0, // Will be calculated later when creating the listening session
+    }));
 
-    // Validate each vocabulary item and ensure the word is in the transcript
-    const validatedVocabulary = vocabulary
-      .map((item: any) => {
-        const word = item.word || '';
-        const normalizedWord = word.toLowerCase().trim();
+    // Save to cache
+    vocabularyCache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: processedVocabulary,
+    });
 
-        // Check if word appears in transcript
-        const wordAppears = normalizedTranscript.includes(normalizedWord);
-
-        console.log(
-          `Vocabulary word "${word}" ${wordAppears ? 'found' : 'NOT FOUND'} in transcript`
-        );
-
-        // Only include words that actually appear in the transcript
-        if (!wordAppears) {
-          return null;
-        }
-
-        return {
-          word: word,
-          definition: item.definition || '',
-          context: item.context || '',
-          examples: Array.isArray(item.examples) ? item.examples : [],
-          difficulty: Number(item.difficulty) || 5,
-          timestamp: item.timestamp || 0,
-        };
-      })
-      .filter(
-        (
-          item
-        ): item is {
-          word: string;
-          definition: string;
-          context: string;
-          examples: string[];
-          difficulty: number;
-          timestamp: number;
-        } => item !== null
-      ); // Remove null items
-
-    console.log(
-      `Validated ${validatedVocabulary.length} vocabulary items from ${vocabulary.length} suggested`
-    );
-
-    return validatedVocabulary;
+    return processedVocabulary;
   } catch (error) {
-    console.error('Error extracting vocabulary:', error);
+    console.error("Error extracting vocabulary:", error);
     return [];
   }
 }

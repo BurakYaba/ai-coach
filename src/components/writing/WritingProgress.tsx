@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 import {
   Card,
@@ -9,9 +9,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface WritingStats {
   totalSessions: number;
@@ -27,7 +27,6 @@ interface WritingStats {
     coherence: number;
     style: number;
   };
-  streak: number;
   hasData: boolean;
 }
 
@@ -38,20 +37,20 @@ export function WritingProgress() {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/writing/stats');
+        const response = await fetch("/api/writing/stats");
 
         if (!response.ok) {
-          throw new Error('Failed to fetch writing statistics');
+          throw new Error("Failed to fetch writing statistics");
         }
 
         const data = await response.json();
         setStats(data.stats);
       } catch (error) {
-        console.error('Error fetching writing statistics:', error);
+        console.error("Error fetching writing statistics:", error);
         toast({
-          title: 'Error',
-          description: 'Failed to load your writing progress data',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to load your writing progress data",
+          variant: "destructive",
         });
       } finally {
         setLoading(false);
@@ -126,7 +125,7 @@ export function WritingProgress() {
             <p className="text-xs text-muted-foreground">
               {stats.sessionsLastWeek > 0
                 ? `+${stats.sessionsLastWeek} from last week`
-                : 'No new sessions this week'}
+                : "No new sessions this week"}
             </p>
           </CardContent>
         </Card>
@@ -154,7 +153,7 @@ export function WritingProgress() {
                 ? `+${stats.scoreChange}% from last month`
                 : stats.scoreChange < 0
                   ? `${stats.scoreChange}% from last month`
-                  : 'No change from last month'}
+                  : "No change from last month"}
             </p>
           </CardContent>
         </Card>
@@ -183,7 +182,7 @@ export function WritingProgress() {
             <p className="text-xs text-muted-foreground">
               {stats.wordsLastMonth > 0
                 ? `+${stats.wordsLastMonth.toLocaleString()} from last month`
-                : 'No new words this month'}
+                : "No new words this month"}
             </p>
           </CardContent>
         </Card>

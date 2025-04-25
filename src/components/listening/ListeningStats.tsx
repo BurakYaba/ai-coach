@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { BarChart, CalendarDays, Clock, Trophy, BookOpen } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useQuery } from "@tanstack/react-query";
+import { BarChart, CalendarDays, Clock, Trophy, BookOpen } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { Badge } from '@/components/ui/badge';
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Define types for the stats data
 interface LevelProgress {
@@ -47,16 +47,16 @@ interface ListeningStatsData {
 }
 
 async function fetchListeningStats(): Promise<ListeningStatsData> {
-  const response = await fetch('/api/listening/stats');
+  const response = await fetch("/api/listening/stats");
   if (!response.ok) {
-    throw new Error('Failed to fetch listening stats');
+    throw new Error("Failed to fetch listening stats");
   }
   return response.json();
 }
 
 export function ListeningStats() {
   const { data, isLoading, error } = useQuery<ListeningStatsData, Error>({
-    queryKey: ['listeningStats'],
+    queryKey: ["listeningStats"],
     queryFn: fetchListeningStats,
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -85,7 +85,7 @@ export function ListeningStats() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           icon={<Clock className="h-4 w-4" />}
           label="Total Listening"
@@ -100,11 +100,6 @@ export function ListeningStats() {
           icon={<BarChart className="h-4 w-4" />}
           label="Completed"
           value={`${overview.completedSessions}/${overview.totalSessions}`}
-        />
-        <StatCard
-          icon={<CalendarDays className="h-4 w-4" />}
-          label="Current Streak"
-          value={`${overview.currentStreak} days`}
         />
       </div>
 
@@ -232,8 +227,8 @@ function StatCard({
 function StatsLoading() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        {[...Array(4)].map((_, i) => (
+      <div className="grid gap-4 md:grid-cols-3">
+        {[...Array(3)].map((_, i) => (
           <div key={i} className="rounded-lg border p-3">
             <Skeleton className="h-10 w-24" />
           </div>

@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import Image from 'next/image';
-import Link from 'next/link';
+import Image from "next/image";
+import Link from "next/link";
 
-import { Button } from '@/components/ui/button';
+import { PlayButton } from "@/components/ui/play-button";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,47 +12,47 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 
 // Game catalog data
 const games = [
   {
-    id: 'word-scramble',
-    title: 'Word Scramble',
+    id: "word-scramble",
+    title: "Word Scramble",
     description:
-      'Unscramble jumbled words to improve your vocabulary and spelling',
-    image: '/images/games/word-scramble.png',
-    level: 'All Levels',
-    skillFocus: 'Vocabulary, Spelling',
+      "Unscramble jumbled words to improve your vocabulary and spelling",
+    image: "/images/games/word-scramble.png",
+    level: "All Levels",
+    skillFocus: "Vocabulary, Spelling",
     available: true,
   },
   {
-    id: 'sentence-builder',
-    title: 'Sentence Builder',
+    id: "sentence-builder",
+    title: "Sentence Builder",
     description:
-      'Arrange words in the correct order to form grammatically correct sentences',
-    image: '/images/games/sentence-builder.png',
-    level: 'A1-C1',
-    skillFocus: 'Grammar, Sentence Structure',
+      "Arrange words in the correct order to form grammatically correct sentences",
+    image: "/images/games/sentence-builder.png",
+    level: "A1-C1",
+    skillFocus: "Grammar, Sentence Structure",
     available: false,
   },
   {
-    id: 'vocabulary-match',
-    title: 'Vocabulary Match',
+    id: "vocabulary-match",
+    title: "Vocabulary Match",
     description:
-      'Match words with their definitions in a memory-style card game',
-    image: '/images/games/vocabulary-match.png',
-    level: 'A1-C2',
-    skillFocus: 'Vocabulary, Comprehension',
+      "Match words with their definitions in a memory-style card game",
+    image: "/images/games/vocabulary-match.png",
+    level: "A1-C2",
+    skillFocus: "Vocabulary, Comprehension",
     available: false,
   },
   {
-    id: 'fill-in-blanks',
-    title: 'Fill the Blanks',
-    description: 'Complete sentences by filling in the missing words',
-    image: '/images/games/fill-blanks.png',
-    level: 'A2-C1',
-    skillFocus: 'Grammar, Vocabulary',
+    id: "fill-in-blanks",
+    title: "Fill the Blanks",
+    description: "Complete sentences by filling in the missing words",
+    image: "/images/games/fill-blanks.png",
+    level: "A2-C1",
+    skillFocus: "Grammar, Vocabulary",
     available: false,
   },
 ];
@@ -108,8 +109,11 @@ export default function GamesPage() {
             </CardContent>
             <CardFooter>
               {game.available ? (
-                <Link href={`/games/${game.id}`} className="w-full">
-                  <Button className="w-full">Play Now</Button>
+                <Link
+                  href={`/games/${game.id}`}
+                  className="w-full flex justify-center"
+                >
+                  <PlayButton>PLAY NOW</PlayButton>
                 </Link>
               ) : (
                 <Button disabled className="w-full">

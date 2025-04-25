@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { format } from 'date-fns';
-import { CircleCheck, Play, Trash2, Volume2 } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { format } from "date-fns";
+import { CircleCheck, Play, Trash2, Volume2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
 import {
   AlertDialog,
@@ -16,9 +16,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -26,7 +26,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -34,11 +34,11 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
-import { formatDuration } from '@/lib/utils';
+} from "@/components/ui/pagination";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
+import { formatDuration } from "@/lib/utils";
 
 interface ListeningSession {
   _id: string;
@@ -73,14 +73,14 @@ interface ListeningSessionsResponse {
 }
 
 interface SessionListProps {
-  filter?: 'all' | 'completed' | 'inprogress';
+  filter?: "all" | "completed" | "inprogress";
 }
 
-export function SessionList({ filter = 'all' }: SessionListProps) {
+export function SessionList({ filter = "all" }: SessionListProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentPage = searchParams?.get('page')
-    ? parseInt(searchParams.get('page')!)
+  const currentPage = searchParams?.get("page")
+    ? parseInt(searchParams.get("page")!)
     : 1;
 
   const [sessions, setSessions] = useState<ListeningSession[]>([]);
@@ -100,12 +100,12 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
         const response = await fetch(
           `/api/listening?page=${currentPage}&filter=${filter}`,
           {
-            method: 'GET',
+            method: "GET",
           }
         );
 
         if (!response.ok) {
-          throw new Error('Failed to fetch sessions');
+          throw new Error("Failed to fetch sessions");
         }
 
         const data = await response.json();
@@ -126,11 +126,11 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
           setPagination(data.pagination);
         }
       } catch (error) {
-        console.error('Error fetching listening sessions:', error);
+        console.error("Error fetching listening sessions:", error);
         toast({
-          title: 'Error',
-          description: 'Failed to load listening sessions',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to load listening sessions",
+          variant: "destructive",
         });
       } finally {
         setLoading(false);
@@ -143,24 +143,24 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
   const handleDelete = async (id: string) => {
     try {
       const response = await fetch(`/api/listening/${id}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete session');
+        throw new Error("Failed to delete session");
       }
 
       setSessions(sessions.filter(session => session._id !== id));
       toast({
-        title: 'Success',
-        description: 'Listening session deleted successfully',
+        title: "Success",
+        description: "Listening session deleted successfully",
       });
     } catch (error) {
-      console.error('Error deleting listening session:', error);
+      console.error("Error deleting listening session:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete listening session',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to delete listening session",
+        variant: "destructive",
       });
     } finally {
       setSessionToDelete(null);
@@ -176,18 +176,18 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <h3 className="text-xl font-semibold mb-2">
-            {filter === 'completed'
-              ? 'No completed sessions yet'
-              : filter === 'inprogress'
-                ? 'No sessions in progress'
-                : 'No listening sessions yet'}
+            {filter === "completed"
+              ? "No completed sessions yet"
+              : filter === "inprogress"
+                ? "No sessions in progress"
+                : "No listening sessions yet"}
           </h3>
           <p className="text-gray-600 mb-4">
-            {filter === 'completed'
-              ? 'Complete listening sessions to see them here.'
-              : filter === 'inprogress'
-                ? 'Start a session from the library to see it here.'
-                : 'Browse the library tab to start your first listening session.'}
+            {filter === "completed"
+              ? "Complete listening sessions to see them here."
+              : filter === "inprogress"
+                ? "Start a session from the library to see it here."
+                : "Browse the library tab to start your first listening session."}
           </p>
           <Button asChild>
             <Link href="/dashboard/listening?tab=library">
@@ -236,14 +236,14 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
           const isCompleted = isMarkedComplete;
 
           // Extract transcript snippet for description
-          const transcript = session.content?.transcript || '';
+          const transcript = session.content?.transcript || "";
           const description =
             transcript
               .split(/\.\s+/)
               .slice(0, 1)
-              .join('. ')
+              .join(". ")
               .substring(0, 100)
-              .trim() + '...';
+              .trim() + "...";
 
           return (
             <Card key={session._id} className="h-full flex flex-col">
@@ -258,10 +258,10 @@ export function SessionList({ filter = 'all' }: SessionListProps) {
                     </CardDescription>
                   </div>
                   <Badge
-                    variant={isCompleted ? 'secondary' : 'default'}
+                    variant={isCompleted ? "secondary" : "default"}
                     className="text-xs"
                   >
-                    {isCompleted ? 'Completed' : 'In Progress'}
+                    {isCompleted ? "Completed" : "In Progress"}
                   </Badge>
                 </div>
               </CardHeader>

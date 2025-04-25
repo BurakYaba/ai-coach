@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { format } from "date-fns";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,7 +13,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -21,17 +21,17 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
-import { Progress } from '@/components/ui/progress';
+} from "@/components/ui/pagination";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface GrammarLesson {
   _id: string;
@@ -62,9 +62,9 @@ export default function GrammarLessonsList() {
   const router = useRouter();
   const [lessons, setLessons] = useState<GrammarLesson[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [levelFilter, setLevelFilter] = useState<string>('all');
-  const [completedFilter, setCompletedFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [completedFilter, setCompletedFilter] = useState<string>("all");
   const [categories, setCategories] = useState<string[]>([]);
   const [levels, setLevels] = useState<string[]>([]);
 
@@ -81,23 +81,23 @@ export default function GrammarLessonsList() {
     setLoading(true);
     try {
       // Build query string based on filters
-      let url = '/api/grammar/lessons?limit=50';
+      let url = "/api/grammar/lessons?limit=50";
 
-      if (categoryFilter !== 'all') {
+      if (categoryFilter !== "all") {
         url += `&category=${encodeURIComponent(categoryFilter)}`;
       }
 
-      if (levelFilter !== 'all') {
+      if (levelFilter !== "all") {
         url += `&ceferLevel=${encodeURIComponent(levelFilter)}`;
       }
 
-      if (completedFilter !== 'all') {
-        url += `&completed=${completedFilter === 'completed'}`;
+      if (completedFilter !== "all") {
+        url += `&completed=${completedFilter === "completed"}`;
       }
 
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Failed to fetch grammar lessons');
+        throw new Error("Failed to fetch grammar lessons");
       }
 
       const data = await response.json();
@@ -117,11 +117,11 @@ export default function GrammarLessonsList() {
       );
       setLevels(uniqueLevels as string[]);
     } catch (error) {
-      console.error('Error fetching grammar lessons:', error);
+      console.error("Error fetching grammar lessons:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load grammar lessons',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load grammar lessons",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -174,7 +174,7 @@ export default function GrammarLessonsList() {
         <p className="text-muted-foreground mb-4">
           No grammar lessons found. Generate lessons from your grammar issues.
         </p>
-        <Button onClick={() => router.push('/dashboard/grammar')}>
+        <Button onClick={() => router.push("/dashboard/grammar")}>
           Back to Grammar Dashboard
         </Button>
       </div>
@@ -230,9 +230,7 @@ export default function GrammarLessonsList() {
         {currentLessons.map(lesson => (
           <Card
             key={lesson._id}
-            className={`h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer ${
-              lesson.completed ? 'border-green-200' : ''
-            }`}
+            className="h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer"
             onClick={() => navigateToLesson(lesson._id)}
           >
             <CardHeader className="pb-2">
@@ -242,61 +240,31 @@ export default function GrammarLessonsList() {
                     {lesson.title}
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    {format(new Date(lesson.createdAt), 'PPP')}
+                    {lesson.content.explanation.length} characters •{" "}
+                    {lesson.content.exercises.length} exercises
                   </CardDescription>
                 </div>
-                {lesson.completed ? (
-                  <Badge
-                    variant="outline"
-                    className="bg-green-50 text-green-700 border-green-200"
-                  >
-                    Completed
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant="outline"
-                    className="bg-blue-50 text-blue-700 border-blue-200"
-                  >
-                    In Progress
-                  </Badge>
-                )}
+                <Badge
+                  variant="outline"
+                  className={
+                    lesson.completed
+                      ? "bg-green-50 text-green-700 border-green-200"
+                      : "bg-blue-50 text-blue-700 border-blue-200"
+                  }
+                >
+                  {lesson.completed ? "Completed" : "In Progress"}
+                </Badge>
               </div>
             </CardHeader>
 
-            <CardContent className="flex-grow space-y-3 pt-0">
+            <CardContent className="flex-grow space-y-3 py-2">
               <p className="text-muted-foreground text-sm line-clamp-2">
                 {lesson.content.explanation.substring(0, 120)}...
               </p>
-
-              <div className="flex flex-wrap gap-2 text-xs">
-                <Badge className="bg-primary/10 text-primary border-primary/20">
-                  {lesson.category}
-                </Badge>
-                <Badge className="bg-secondary/10 text-secondary border-secondary/20">
-                  {lesson.ceferLevel}
-                </Badge>
-              </div>
-
-              <div className="flex flex-wrap gap-3 text-xs">
-                <div>
-                  <span className="font-medium">Examples: </span>
-                  {lesson.content.examples.length}
-                </div>
-                <div>
-                  <span className="font-medium">Exercises: </span>
-                  {lesson.content.exercises.length}
-                </div>
-              </div>
             </CardContent>
 
-            <CardFooter className="pt-2">
+            <CardFooter className="flex flex-col gap-3 pt-2">
               <div className="w-full">
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span>{lesson.completed ? 'Completed' : 'Progress'}</span>
-                  {lesson.score !== undefined && (
-                    <span className="font-medium">{lesson.score}%</span>
-                  )}
-                </div>
                 <Progress
                   value={
                     lesson.completed
@@ -307,6 +275,18 @@ export default function GrammarLessonsList() {
                   }
                   className="h-1.5"
                 />
+              </div>
+
+              <div className="w-full flex justify-between items-center">
+                <div className="flex gap-2">
+                  <Badge variant="outline">{lesson.ceferLevel}</Badge>
+                  <Badge variant="outline" className="capitalize">
+                    {lesson.category}
+                  </Badge>
+                </div>
+                <Button variant="default" size="sm" className="text-xs h-7">
+                  {lesson.completed ? "Review Lesson" : "Continue Reading"}
+                </Button>
               </div>
             </CardFooter>
           </Card>

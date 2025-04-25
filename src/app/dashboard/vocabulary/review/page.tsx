@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   AlertCircle,
@@ -9,14 +9,14 @@ import {
   ThumbsDown,
   ThumbsUp,
   X,
-} from 'lucide-react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+} from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -24,13 +24,13 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useLocalStorage } from '@/hooks/use-local-storage';
-import { useToast } from '@/hooks/use-toast';
-import { useWordsForReview, useUpdateWordReview } from '@/hooks/use-vocabulary';
-import { PerformanceRating } from '@/lib/spaced-repetition';
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useToast } from "@/hooks/use-toast";
+import { useWordsForReview, useUpdateWordReview } from "@/hooks/use-vocabulary";
+import { PerformanceRating } from "@/lib/spaced-repetition";
 
 export default function VocabularyReviewPage() {
   const router = useRouter();
@@ -39,7 +39,7 @@ export default function VocabularyReviewPage() {
   const { status } = useSession({
     required: true,
     onUnauthenticated() {
-      router.push('/login');
+      router.push("/login");
     },
   });
 
@@ -56,7 +56,7 @@ export default function VocabularyReviewPage() {
     improved: number;
     mastered: number;
     sessionId: string; // Add a unique session ID to track different review sessions
-  }>('vocabulary-review-session', {
+  }>("vocabulary-review-session", {
     currentIndex: 0,
     reviewedWords: [],
     improved: 0,
@@ -89,8 +89,8 @@ export default function VocabularyReviewPage() {
 
   // Reset session if needed - either from URL param or on initial load
   useEffect(() => {
-    const resetParam = searchParams.get('reset');
-    const shouldReset = resetParam === 'true';
+    const resetParam = searchParams?.get("reset");
+    const shouldReset = resetParam === "true";
 
     // Check if we need to reset the session
     if (
@@ -113,8 +113,10 @@ export default function VocabularyReviewPage() {
 
       // Remove the reset parameter from the URL if it exists
       if (shouldReset) {
-        const newParams = new URLSearchParams(searchParams);
-        newParams.delete('reset');
+        const newParams = new URLSearchParams(
+          searchParams ? searchParams.toString() : ""
+        );
+        newParams.delete("reset");
         router.replace(`/dashboard/vocabulary/review?${newParams.toString()}`);
       }
     }
@@ -125,22 +127,22 @@ export default function VocabularyReviewPage() {
     if (reviewSession.currentIndex >= words.length) return;
 
     // Check if the user is authenticated
-    if (status === 'loading') {
+    if (status === "loading") {
       toast({
-        title: 'Please wait',
-        description: 'Checking your authentication status...',
-        variant: 'default',
+        title: "Please wait",
+        description: "Checking your authentication status...",
+        variant: "default",
       });
       return;
     }
 
-    if (status !== 'authenticated') {
+    if (status !== "authenticated") {
       toast({
-        title: 'Authentication Error',
-        description: 'You must be logged in to update vocabulary words.',
-        variant: 'destructive',
+        title: "Authentication Error",
+        description: "You must be logged in to update vocabulary words.",
+        variant: "destructive",
       });
-      router.push('/login');
+      router.push("/login");
       return;
     }
 
@@ -175,18 +177,18 @@ export default function VocabularyReviewPage() {
         setReviewComplete(true);
       }
     } catch (err) {
-      console.error('Failed to update word:', err);
+      console.error("Failed to update word:", err);
 
       // Extract more detailed error message if available
-      let errorMessage = 'Failed to update word. Please try again.';
+      let errorMessage = "Failed to update word. Please try again.";
       if (err instanceof Error) {
         errorMessage = err.message;
       }
 
       toast({
-        title: 'Error updating word review',
+        title: "Error updating word review",
         description: errorMessage,
-        variant: 'destructive',
+        variant: "destructive",
       });
     }
   };
@@ -198,7 +200,7 @@ export default function VocabularyReviewPage() {
 
   // Handle going back to the vocabulary dashboard
   const handleBackToDashboard = () => {
-    router.push('/dashboard/vocabulary');
+    router.push("/dashboard/vocabulary");
   };
 
   // Handle starting a new review session
@@ -220,7 +222,7 @@ export default function VocabularyReviewPage() {
     setReviewComplete(false);
 
     // Force a refresh of the review data
-    router.push('/dashboard/vocabulary/review?reset=true');
+    router.push("/dashboard/vocabulary/review?reset=true");
   };
 
   if (isLoading) {

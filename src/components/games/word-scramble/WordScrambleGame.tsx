@@ -1,11 +1,12 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import dynamic from "next/dynamic";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 // Dynamic import for Phaser
 
-import { Button } from '@/components/ui/button';
+import { PlayButton } from "@/components/ui/play-button";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,23 +14,23 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/hooks/use-toast";
 
-import { GameWord } from '../models';
+import { GameWord } from "../models";
 
-import { vocabularyLists } from './vocabulary';
+import { vocabularyLists } from "./vocabulary";
 
 // Dynamically import only PhaserGame component
-const PhaserGame = dynamic(() => import('../PhaserGame'), { ssr: false });
+const PhaserGame = dynamic(() => import("../PhaserGame"), { ssr: false });
 
 interface WordScrambleGameProps {
   onComplete?: (
@@ -44,8 +45,8 @@ export default function WordScrambleGame({
 }: WordScrambleGameProps) {
   const { data: session } = useSession();
   const [difficulty, setDifficulty] = useState<
-    'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
-  >('A1');
+    "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
+  >("A1");
   const [timeLimit, setTimeLimit] = useState(60); // seconds
   const [wordCount, setWordCount] = useState(5); // Default to 5 words
   const [gameStarted, setGameStarted] = useState(false);
@@ -56,11 +57,11 @@ export default function WordScrambleGame({
     correctAnswers: number;
     totalQuestions: number;
   } | null>(null);
-  const [activeTab, setActiveTab] = useState('start');
+  const [activeTab, setActiveTab] = useState("start");
 
   // Function to select random words from vocabulary lists based on difficulty and word count
   const getRandomWords = (
-    difficulty: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2',
+    difficulty: "A1" | "A2" | "B1" | "B2" | "C1" | "C2",
     count: number
   ): GameWord[] => {
     // Get the list of words for the selected difficulty
@@ -83,7 +84,7 @@ export default function WordScrambleGame({
 
     setGameResult({ score, correctAnswers, totalQuestions });
     setGameStarted(false);
-    setActiveTab('start');
+    setActiveTab("start");
 
     if (onComplete) {
       onComplete(score, correctAnswers, totalQuestions);
@@ -102,13 +103,13 @@ export default function WordScrambleGame({
     totalQuestions: number
   ) => {
     try {
-      const response = await fetch('/api/games/results', {
-        method: 'POST',
+      const response = await fetch("/api/games/results", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          gameId: 'word-scramble',
+          gameId: "word-scramble",
           score,
           correctAnswers,
           totalQuestions,
@@ -118,19 +119,19 @@ export default function WordScrambleGame({
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save game result');
+        throw new Error("Failed to save game result");
       }
 
       toast({
-        title: 'Progress saved!',
-        description: 'Your game result has been saved.',
+        title: "Progress saved!",
+        description: "Your game result has been saved.",
       });
     } catch (error) {
-      console.error('Error saving game result:', error);
+      console.error("Error saving game result:", error);
       toast({
-        title: 'Failed to save progress',
-        description: 'There was an error saving your game result.',
-        variant: 'destructive',
+        title: "Failed to save progress",
+        description: "There was an error saving your game result.",
+        variant: "destructive",
       });
     }
   };
@@ -143,15 +144,15 @@ export default function WordScrambleGame({
     // If no words available, display an error
     if (words.length === 0) {
       toast({
-        title: 'No words available',
-        description: 'No words found for the selected difficulty level.',
-        variant: 'destructive',
+        title: "No words available",
+        description: "No words found for the selected difficulty level.",
+        variant: "destructive",
       });
       return;
     }
 
     // Perform dynamic imports for game creation
-    Promise.all([import('phaser'), import('./WordScrambleScene')])
+    Promise.all([import("phaser"), import("./WordScrambleScene")])
       .then(([Phaser, SceneModule]) => {
         // Get references to the imported modules
         const PhaserInstance = Phaser.default;
@@ -162,7 +163,7 @@ export default function WordScrambleGame({
           type: PhaserInstance.AUTO,
           width: 800,
           height: 600,
-          backgroundColor: '#f7f9fc',
+          backgroundColor: "#f7f9fc",
           scale: {
             mode: PhaserInstance.Scale.FIT,
             autoCenter: PhaserInstance.Scale.CENTER_BOTH,
@@ -175,7 +176,7 @@ export default function WordScrambleGame({
             }),
           ],
           physics: {
-            default: 'arcade',
+            default: "arcade",
             arcade: {
               gravity: { y: 0, x: 0 },
               debug: false,
@@ -186,14 +187,14 @@ export default function WordScrambleGame({
         setGameConfig(config);
         setGameStarted(true);
         setGameResult(null);
-        setActiveTab('game');
+        setActiveTab("game");
       })
       .catch(error => {
-        console.error('Error loading game components:', error);
+        console.error("Error loading game components:", error);
         toast({
-          title: 'Game Error',
-          description: 'Failed to start the game. Please try again.',
-          variant: 'destructive',
+          title: "Game Error",
+          description: "Failed to start the game. Please try again.",
+          variant: "destructive",
         });
       });
   };
@@ -230,10 +231,10 @@ export default function WordScrambleGame({
               <span
                 className={
                   percentage >= 80
-                    ? 'text-green-600'
+                    ? "text-green-600"
                     : percentage >= 50
-                      ? 'text-amber-600'
-                      : 'text-red-600'
+                      ? "text-amber-600"
+                      : "text-red-600"
                 }
               >
                 {percentage}%
@@ -241,10 +242,8 @@ export default function WordScrambleGame({
             </div>
           </div>
         </CardContent>
-        <CardFooter>
-          <Button onClick={startGame} className="w-full">
-            Play Again
-          </Button>
+        <CardFooter className="flex justify-center">
+          <PlayButton onClick={startGame}>PLAY AGAIN</PlayButton>
         </CardFooter>
       </Card>
     );
@@ -268,7 +267,7 @@ export default function WordScrambleGame({
               <Select
                 value={difficulty}
                 onValueChange={(
-                  value: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
+                  value: "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
                 ) => setDifficulty(value)}
               >
                 <SelectTrigger id="difficulty-select">
@@ -334,9 +333,7 @@ export default function WordScrambleGame({
         </div>
 
         <div className="flex justify-center">
-          <Button onClick={startGame} size="lg">
-            Start Game
-          </Button>
+          <PlayButton onClick={startGame}>START GAME</PlayButton>
         </div>
       </div>
     );

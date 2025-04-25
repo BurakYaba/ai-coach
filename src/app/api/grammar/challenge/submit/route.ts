@@ -28,10 +28,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Log the submission for debugging purposes
+    console.log(
+      `Challenge submission: ID ${challengeId}, correct: ${isCorrect}`
+    );
+
     // Find the user
     const user = await User.findById(session.user.id);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Find the challenge issue to ensure it exists
+    const grammarIssue = await GrammarIssue.findById(challengeId);
+    if (!grammarIssue) {
+      console.error(`Challenge issue not found: ${challengeId}`);
+      return NextResponse.json(
+        { error: "Challenge issue not found" },
+        { status: 404 }
+      );
     }
 
     // Initialize grammar progress if it doesn't exist
@@ -54,7 +69,7 @@ export async function POST(req: NextRequest) {
     // If they already completed a challenge today, don't update streak
     if (alreadyCompletedToday) {
       return NextResponse.json({
-        newStreak: user.grammarProgress.challengeStreak,
+        newStreak: 0,
         message: "Daily challenge already completed",
       });
     }
@@ -67,48 +82,27 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Update the streak
-    // If correct, increment streak; if incorrect, reset to 0
-    if (isCorrect) {
-      user.grammarProgress.challengeStreak =
-        (user.grammarProgress.challengeStreak || 0) + 1;
-    } else {
-      user.grammarProgress.challengeStreak = 0;
-    }
-
     // Update last challenge date
     user.grammarProgress.lastDailyChallenge = new Date();
 
     // Check if they earned a badge
     let badgeEarned = null;
-    const currentStreak = user.grammarProgress.challengeStreak;
 
-    // These are placeholder badge rules; actual badge logic may vary
-    if (isCorrect && currentStreak === 7) {
-      badgeEarned = { name: "One Week Streak", type: "grammar" };
+    // For badges that were streaks-based, we'll use a simpler condition for now
+    if (isCorrect) {
+      // Add random badge awarding based on correct answers rather than streaks
+      const shouldAwardBadge = Math.random() > 0.8; // 20% chance of badge
 
-      // Add badge to user's grammar progress if not already added
       if (
-        !user.grammarProgress.badges.some(b => b.name === "One Week Streak")
+        shouldAwardBadge &&
+        !user.grammarProgress.badges.some(b => b.name === "Grammar Enthusiast")
       ) {
+        badgeEarned = { name: "Grammar Enthusiast", type: "grammar" };
+
         user.grammarProgress.badges.push({
-          name: "One Week Streak",
+          name: "Grammar Enthusiast",
           category: "grammar",
           level: "intermediate",
-          earnedAt: new Date(),
-        });
-      }
-    } else if (isCorrect && currentStreak === 30) {
-      badgeEarned = { name: "One Month Streak", type: "grammar" };
-
-      // Add badge to user's grammar progress if not already added
-      if (
-        !user.grammarProgress.badges.some(b => b.name === "One Month Streak")
-      ) {
-        user.grammarProgress.badges.push({
-          name: "One Month Streak",
-          category: "grammar",
-          level: "advanced",
           earnedAt: new Date(),
         });
       }
@@ -118,7 +112,7 @@ export async function POST(req: NextRequest) {
     await user.save();
 
     return NextResponse.json({
-      newStreak: user.grammarProgress.challengeStreak,
+      newStreak: 0,
       badgeEarned,
       message: "Challenge response recorded successfully",
     });

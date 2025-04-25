@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 import {
   Card,
@@ -9,10 +9,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface ReadingStats {
   totalSessions: number;
@@ -39,20 +39,20 @@ export function ReadingProgressPage() {
       try {
         setLoading(true);
 
-        const response = await fetch('/api/reading/stats');
+        const response = await fetch("/api/reading/stats");
         if (!response.ok) {
-          throw new Error('Failed to fetch reading statistics');
+          throw new Error("Failed to fetch reading statistics");
         }
 
         const data = await response.json();
         setStats(data.stats);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching reading statistics:', error);
+        console.error("Error fetching reading statistics:", error);
         toast({
-          title: 'Error',
-          description: 'Failed to load your reading progress data',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to load your reading progress data",
+          variant: "destructive",
         });
         setLoading(false);
       }
@@ -103,7 +103,7 @@ export function ReadingProgressPage() {
   return (
     <div className="space-y-6">
       {/* Overview Stats */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 lg:grid-cols-3">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
@@ -121,20 +121,6 @@ export function ReadingProgressPage() {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
-              Current Streak
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.streak} days</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {stats.sessionsLastWeek} sessions this week
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
               Comprehension Score
             </CardTitle>
           </CardHeader>
@@ -143,7 +129,7 @@ export function ReadingProgressPage() {
               {stats.averageComprehension}%
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {stats.comprehensionChange > 0 ? '+' : ''}
+              {stats.comprehensionChange > 0 ? "+" : ""}
               {stats.comprehensionChange}% from last month
             </p>
           </CardContent>
@@ -221,8 +207,8 @@ export function ReadingProgressPage() {
 function ReadingProgressSkeleton() {
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3 lg:grid-cols-3">
+        {Array.from({ length: 3 }).map((_, i) => (
           <Card key={i}>
             <CardHeader className="pb-2">
               <Skeleton className="h-5 w-[120px]" />

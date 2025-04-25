@@ -4,13 +4,13 @@ import mongoose, {
   Model,
   FilterQuery,
   UpdateQuery,
-} from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+} from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import { dbConnect } from '@/lib/db';
-import WritingSession, { IWritingSession } from '@/models/WritingSession';
+import { authOptions } from "@/lib/auth";
+import { dbConnect } from "@/lib/db";
+import WritingSession, { IWritingSession } from "@/models/WritingSession";
 
 interface IUserProgress extends Document {
   userId: string;
@@ -50,7 +50,7 @@ export async function POST(
     // Check authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Connect to database
@@ -59,7 +59,7 @@ export async function POST(
     // Validate ID
     if (!mongoose.isValidObjectId(params.id)) {
       return NextResponse.json(
-        { error: 'Invalid session ID' },
+        { error: "Invalid session ID" },
         { status: 400 }
       );
     }
@@ -70,22 +70,22 @@ export async function POST(
     // Check if session exists
     if (!writingSession) {
       return NextResponse.json(
-        { error: 'Writing session not found' },
+        { error: "Writing session not found" },
         { status: 404 }
       );
     }
 
     // Check if user owns the session
     if (writingSession.userId.toString() !== session.user.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // Check if session can be marked as completed
-    if (writingSession.status !== 'analyzed') {
+    if (writingSession.status !== "analyzed") {
       return NextResponse.json(
         {
           error:
-            'Session must be analyzed before it can be marked as completed',
+            "Session must be analyzed before it can be marked as completed",
           currentStatus: writingSession.status,
         },
         { status: 400 }
@@ -93,30 +93,30 @@ export async function POST(
     }
 
     // Update status to completed
-    writingSession.status = 'completed';
+    writingSession.status = "completed";
     await writingSession.save();
 
     return NextResponse.json({
       success: true,
-      message: 'Session marked as completed',
+      message: "Session marked as completed",
       session: writingSession,
     });
   } catch (error) {
-    console.error('Error marking session as completed:', error);
+    console.error("Error marking session as completed:", error);
     if (error instanceof mongoose.Error.ValidationError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.message },
+        { error: "Validation error", details: error.message },
         { status: 400 }
       );
     }
     if (error instanceof Error) {
       return NextResponse.json(
-        { error: 'Failed to complete session', details: error.message },
+        { error: "Failed to complete session", details: error.message },
         { status: 500 }
       );
     }
     return NextResponse.json(
-      { error: 'Failed to complete session' },
+      { error: "Failed to complete session" },
       { status: 500 }
     );
   }
@@ -129,12 +129,12 @@ async function updateUserProgress(
   try {
     // Get current date for tracking
     const today = new Date();
-    const dateString = today.toISOString().split('T')[0]; // YYYY-MM-DD format
+    const dateString = today.toISOString().split("T")[0]; // YYYY-MM-DD format
 
     // Check if UserProgress model exists, if not, we'll create it
     let UserProgress: Model<IUserProgress>;
     try {
-      UserProgress = mongoose.model<IUserProgress>('UserProgress');
+      UserProgress = mongoose.model<IUserProgress>("UserProgress");
     } catch (e) {
       // Define the schema if the model doesn't exist
       const UserProgressSchema = new Schema<IUserProgress>({
@@ -147,7 +147,7 @@ async function updateUserProgress(
             {
               sessionId: {
                 type: Schema.Types.ObjectId,
-                ref: 'WritingSession',
+                ref: "WritingSession",
               },
               type: String,
               topic: String,
@@ -161,7 +161,7 @@ async function updateUserProgress(
       });
 
       UserProgress = mongoose.model<IUserProgress>(
-        'UserProgress',
+        "UserProgress",
         UserProgressSchema
       );
     }
@@ -169,7 +169,7 @@ async function updateUserProgress(
     // Check if UserStats model exists, if not, we'll create it
     let UserStats: Model<IUserStats>;
     try {
-      UserStats = mongoose.model<IUserStats>('UserStats');
+      UserStats = mongoose.model<IUserStats>("UserStats");
     } catch (e) {
       // Define the schema if the model doesn't exist
       const UserStatsSchema = new Schema<IUserStats>({
@@ -183,7 +183,7 @@ async function updateUserProgress(
         },
       });
 
-      UserStats = mongoose.model<IUserStats>('UserStats', UserStatsSchema);
+      UserStats = mongoose.model<IUserStats>("UserStats", UserStatsSchema);
     }
 
     // Update or create user progress document
@@ -198,68 +198,40 @@ async function updateUserProgress(
       { userId } as FilterQuery<IUserProgress>,
       {
         $inc: {
-          'writing.completed': 1,
-          'writing.totalWords': wordCount,
+          "writing.completed": 1,
+          "writing.totalWords": wordCount,
           ...byDateUpdate,
         },
       } as UpdateQuery<IUserProgress>,
       { upsert: true }
     );
 
-    // Get user's current streak
+    // Get userStats or create if it doesn't exist
     const userStats = await UserStats.findOne({
       userId,
     } as FilterQuery<IUserStats>);
 
     if (userStats) {
-      const lastActiveDate = userStats.lastActiveDate
-        ? new Date(userStats.lastActiveDate)
-        : null;
-      const yesterday = new Date(today);
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      // Format dates to compare just the date part (YYYY-MM-DD)
-      const yesterdayString = yesterday.toISOString().split('T')[0];
-      const lastActiveDateString = lastActiveDate
-        ? lastActiveDate.toISOString().split('T')[0]
-        : null;
-
-      let newStreak = userStats.streak || 0;
-
-      // If last active date was yesterday, increment streak
-      if (lastActiveDateString === yesterdayString) {
-        newStreak += 1;
-      }
-      // If last active date was today, keep streak the same
-      else if (lastActiveDateString === dateString) {
-        // Do nothing, streak remains the same
-      }
-      // Otherwise, reset streak to 1 (today)
-      else {
-        newStreak = 1;
-      }
-
-      // Update user stats
+      // Update user stats - streak calculation removed
       await UserStats.findOneAndUpdate(
         { userId } as FilterQuery<IUserStats>,
         {
           $set: {
             lastActiveDate: today,
-            streak: newStreak,
-            'writing.lastCompleted': today,
+            "writing.lastCompleted": today,
           },
           $inc: {
-            'writing.totalCompleted': 1,
+            "writing.totalCompleted": 1,
           },
         } as UpdateQuery<IUserStats>
       );
     } else {
-      // Create new user stats document
+      // Create new user stats document - default streak value used
       await UserStats.create({
         userId,
         createdAt: new Date(),
         lastActiveDate: today,
-        streak: 1,
+        streak: 0, // Default value instead of calculating
         writing: {
           lastCompleted: today,
           totalCompleted: 1,

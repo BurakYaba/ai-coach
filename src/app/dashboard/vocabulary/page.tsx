@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   AlertCircle,
@@ -10,21 +10,21 @@ import {
   Heart,
   FlipHorizontal,
   BookOpenCheck,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useState, useEffect, useMemo } from 'react';
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useState, useEffect, useMemo } from "react";
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -32,16 +32,16 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/pagination";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
 import {
   useVocabularyBank,
   useToggleWordFavorite,
   type VocabularyWord,
-} from '@/hooks/use-vocabulary';
+} from "@/hooks/use-vocabulary";
 
 export default function VocabularyDashboard() {
   const router = useRouter();
@@ -49,11 +49,11 @@ export default function VocabularyDashboard() {
   useSession({
     required: true,
     onUnauthenticated() {
-      router.push('/login');
+      router.push("/login");
     },
   });
 
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState("all");
   const [filteredWords, setFilteredWords] = useState<VocabularyWord[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const wordsPerPage = 8;
@@ -77,7 +77,7 @@ export default function VocabularyDashboard() {
     const now = new Date();
 
     switch (activeTab) {
-      case 'review':
+      case "review":
         setFilteredWords(
           vocabularyBank.words.filter(word => {
             const nextReview = new Date(word.nextReview);
@@ -85,17 +85,19 @@ export default function VocabularyDashboard() {
           })
         );
         break;
-      case 'mastered':
+      case "mastered":
         setFilteredWords(
-          vocabularyBank.words.filter(word => word.mastery >= 80)
+          vocabularyBank.words.filter(word => word.mastery >= 90)
         );
         break;
-      case 'learning':
+      case "learning":
         setFilteredWords(
-          vocabularyBank.words.filter(word => word.mastery < 80)
+          vocabularyBank.words.filter(
+            word => word.mastery > 0 && word.mastery < 90
+          )
         );
         break;
-      case 'all':
+      case "all":
       default:
         setFilteredWords([...vocabularyBank.words]);
         break;
@@ -115,30 +117,30 @@ export default function VocabularyDashboard() {
   }, [filteredWords, currentPage, wordsPerPage]);
 
   const handleStartReview = () => {
-    router.push('/dashboard/vocabulary/review');
+    router.push("/dashboard/vocabulary/review");
   };
 
   const handleRefresh = () => {
     toast({
-      title: 'Refreshing data...',
-      description: 'Fetching your latest vocabulary data.',
+      title: "Refreshing data...",
+      description: "Fetching your latest vocabulary data.",
     });
 
     refetch()
       .then(() => {
         toast({
-          title: 'Data refreshed',
-          description: 'Your vocabulary data is now up to date.',
+          title: "Data refreshed",
+          description: "Your vocabulary data is now up to date.",
         });
       })
       .catch(error => {
         toast({
-          title: 'Refresh failed',
+          title: "Refresh failed",
           description:
             error instanceof Error
               ? error.message
-              : 'Failed to refresh data. Please try again.',
-          variant: 'destructive',
+              : "Failed to refresh data. Please try again.",
+          variant: "destructive",
         });
       });
   };
@@ -202,7 +204,7 @@ export default function VocabularyDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push('/dashboard/reading')}>
+            <Button onClick={() => router.push("/dashboard/reading")}>
               Go to Reading Sessions
             </Button>
           </CardContent>
@@ -239,7 +241,7 @@ export default function VocabularyDashboard() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => router.push('/dashboard/vocabulary/flashcards')}
+            onClick={() => router.push("/dashboard/vocabulary/flashcards")}
             className="flex items-center gap-1"
           >
             <FlipHorizontal className="h-4 w-4" />
@@ -382,25 +384,25 @@ export default function VocabularyDashboard() {
                         ) : (
                           <Heart
                             className={`h-4 w-4 ${
-                              word.tags?.includes('favorite')
-                                ? 'fill-red-500 text-red-500'
-                                : 'text-muted-foreground'
+                              word.tags?.includes("favorite")
+                                ? "fill-red-500 text-red-500"
+                                : "text-muted-foreground"
                             }`}
                           />
                         )}
                         <span className="sr-only">
-                          {word.tags?.includes('favorite')
-                            ? 'Remove from favorites'
-                            : 'Add to favorites'}
+                          {word.tags?.includes("favorite")
+                            ? "Remove from favorites"
+                            : "Add to favorites"}
                         </span>
                       </Button>
                       <Badge
                         variant={
                           word.mastery >= 90
-                            ? 'default'
+                            ? "default"
                             : word.mastery >= 50
-                              ? 'secondary'
-                              : 'outline'
+                              ? "secondary"
+                              : "outline"
                         }
                         className="text-xs"
                       >
@@ -422,7 +424,7 @@ export default function VocabularyDashboard() {
                   <div className="flex flex-wrap gap-1 mt-2">
                     {word.tags &&
                       word.tags
-                        .filter(tag => tag !== 'favorite')
+                        .filter(tag => tag !== "favorite")
                         .map((tag, i) => (
                           <Badge key={i} variant="outline" className="text-xs">
                             {tag}
@@ -452,7 +454,7 @@ export default function VocabularyDashboard() {
                             {word.relationships.synonyms?.length > 2 && (
                               <Badge variant="secondary" className="text-xs">
                                 +
-                                {(word.relationships.synonyms?.length || 0) - 2}{' '}
+                                {(word.relationships.synonyms?.length || 0) - 2}{" "}
                                 more
                               </Badge>
                             )}
@@ -478,7 +480,7 @@ export default function VocabularyDashboard() {
                             {word.relationships.antonyms?.length > 2 && (
                               <Badge variant="secondary" className="text-xs">
                                 +
-                                {(word.relationships.antonyms?.length || 0) - 2}{' '}
+                                {(word.relationships.antonyms?.length || 0) - 2}{" "}
                                 more
                               </Badge>
                             )}

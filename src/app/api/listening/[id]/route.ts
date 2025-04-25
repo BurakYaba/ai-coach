@@ -1,11 +1,14 @@
-import mongoose from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import { deleteCloudinaryFile } from '@/lib/cloudinary';
-import dbConnect from '@/lib/db';
-import ListeningSession from '@/models/ListeningSession';
+import { authOptions } from "@/lib/auth";
+import { deleteCloudinaryFile } from "@/lib/cloudinary";
+import dbConnect from "@/lib/db";
+import ListeningSession from "@/models/ListeningSession";
+
+// Set default cache control headers
+const DEFAULT_REVALIDATE_SECONDS = 60; // 1 minute
 
 // GET /api/listening/[id] - Get a specific listening session
 export async function GET(
@@ -13,47 +16,56 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Authenticate user
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    await dbConnect();
-
-    // Validate session ID
-    const { id } = params;
-    if (!id || !mongoose.isValidObjectId(id)) {
+    // Check if the request ID is valid
+    if (!params.id || !mongoose.Types.ObjectId.isValid(params.id)) {
       return NextResponse.json(
-        { error: 'Invalid session ID' },
+        { error: "Invalid session ID format" },
         { status: 400 }
       );
     }
 
-    // Get session by ID
-    const listeningSession = await ListeningSession.findById(id);
+    // Authenticate user
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    // Check if session exists
+    await dbConnect();
+
+    // Use lean() for better performance since we don't need instance methods
+    const listeningSession = await ListeningSession.findById(params.id).lean();
+
     if (!listeningSession) {
       return NextResponse.json(
-        { error: 'Listening session not found' },
+        { error: "Listening session not found" },
         { status: 404 }
       );
     }
 
-    // Check if session belongs to the user
-    if (listeningSession.userId.toString() !== session.user.id) {
+    // Security check: ensure the session belongs to the current user
+    if (
+      listeningSession &&
+      (listeningSession as any).userId.toString() !== session.user.id &&
+      !(listeningSession as any).isPublic
+    ) {
       return NextResponse.json(
-        { error: 'You do not have access to this session' },
+        { error: "You do not have permission to access this session" },
         { status: 403 }
       );
     }
 
-    return NextResponse.json(listeningSession);
+    // Set cache headers for better performance
+    const headers = new Headers();
+    headers.set("Cache-Control", `s-maxage=${DEFAULT_REVALIDATE_SECONDS}`);
+
+    return NextResponse.json(listeningSession, { headers });
   } catch (error) {
-    console.error('Error fetching listening session:', error);
+    console.error("Error fetching listening session:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: "Failed to fetch listening session",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
@@ -65,89 +77,97 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Authenticate user
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    await dbConnect();
-
-    // Validate session ID
-    const { id } = params;
-    if (!id || !mongoose.isValidObjectId(id)) {
+    // Check if the request ID is valid
+    if (!params.id || !mongoose.Types.ObjectId.isValid(params.id)) {
       return NextResponse.json(
-        { error: 'Invalid session ID' },
+        { error: "Invalid session ID format" },
         { status: 400 }
       );
     }
 
-    // Get session by ID
-    const listeningSession = await ListeningSession.findById(id);
+    // Authenticate user
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    // Check if session exists
+    await dbConnect();
+
+    // Find the session first to verify ownership
+    const listeningSession = await ListeningSession.findById(params.id);
     if (!listeningSession) {
       return NextResponse.json(
-        { error: 'Listening session not found' },
+        { error: "Listening session not found" },
         { status: 404 }
       );
     }
 
-    // Check if session belongs to the user
+    // Security check: ensure the session belongs to the current user
     if (listeningSession.userId.toString() !== session.user.id) {
       return NextResponse.json(
-        { error: 'You do not have access to this session' },
+        { error: "You do not have permission to update this session" },
         { status: 403 }
       );
     }
 
-    // Get update data from request body
-    const updateData = await req.json();
-    const { userProgress, completionTime } = updateData;
+    const body = await req.json();
 
-    console.log(
-      'PATCH endpoint received update data:',
-      JSON.stringify(updateData)
-    );
-
-    // Update only allowed fields (primarily userProgress)
-    const updateFields: any = {};
-
-    if (userProgress) {
-      // Merge with existing progress data instead of replacing
-      updateFields['userProgress'] = {
-        ...listeningSession.userProgress.toObject(),
-        ...userProgress,
-      };
-
-      console.log(
-        'PATCH endpoint merged userProgress:',
-        JSON.stringify(updateFields['userProgress'])
+    // Validate update data
+    if (!body) {
+      return NextResponse.json(
+        { error: "No update data provided" },
+        { status: 400 }
       );
-
-      // If completionTime is provided, add it
-      if (completionTime) {
-        updateFields['userProgress'].completionTime = new Date(completionTime);
-      }
     }
 
-    // Update the session
-    const updatedSession = await ListeningSession.findByIdAndUpdate(
-      id,
-      { $set: updateFields },
-      { new: true, runValidators: true }
-    );
+    try {
+      // Only allow specific fields to be updated for security
+      const allowedUpdateFields = ["userProgress", "title", "notes"];
+      const updates: Record<string, any> = {};
 
-    console.log(
-      'PATCH endpoint updated session with comprehensionScore:',
-      updatedSession.userProgress.comprehensionScore
-    );
+      // Extract only allowed fields for update
+      for (const field of allowedUpdateFields) {
+        if (field in body) {
+          updates[field] = body[field];
+        }
+      }
 
-    return NextResponse.json(updatedSession);
+      // If updating userProgress, merge with existing instead of overwriting
+      if ("userProgress" in updates) {
+        updates.userProgress = {
+          ...listeningSession.userProgress,
+          ...updates.userProgress,
+        };
+      }
+
+      // Use findByIdAndUpdate for atomic update with validations
+      const updatedSession = await ListeningSession.findByIdAndUpdate(
+        params.id,
+        { $set: updates },
+        { new: true, runValidators: true }
+      ).lean();
+
+      return NextResponse.json(updatedSession);
+    } catch (updateError) {
+      console.error("Error updating listening session:", updateError);
+      return NextResponse.json(
+        {
+          error: "Failed to update listening session",
+          message:
+            updateError instanceof Error
+              ? updateError.message
+              : "Unknown error",
+        },
+        { status: 500 }
+      );
+    }
   } catch (error) {
-    console.error('Error updating listening session:', error);
+    console.error("Error in PATCH listening session:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: "Internal server error",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }
@@ -159,63 +179,61 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Authenticate user
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    await dbConnect();
-
-    // Validate session ID
-    const { id } = params;
-    if (!id || !mongoose.isValidObjectId(id)) {
+    // Check if the request ID is valid
+    if (!params.id || !mongoose.Types.ObjectId.isValid(params.id)) {
       return NextResponse.json(
-        { error: 'Invalid session ID' },
+        { error: "Invalid session ID format" },
         { status: 400 }
       );
     }
 
-    // Get session by ID
-    const listeningSession = await ListeningSession.findById(id);
+    // Authenticate user
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    // Check if session exists
+    await dbConnect();
+
+    // Find the session first to verify ownership
+    const listeningSession = await ListeningSession.findById(params.id);
     if (!listeningSession) {
       return NextResponse.json(
-        { error: 'Listening session not found' },
+        { error: "Listening session not found" },
         { status: 404 }
       );
     }
 
-    // Check if session belongs to the user
+    // Security check: ensure the session belongs to the current user
     if (listeningSession.userId.toString() !== session.user.id) {
       return NextResponse.json(
-        { error: 'You do not have access to this session' },
+        { error: "You do not have permission to delete this session" },
         { status: 403 }
       );
     }
 
-    // Delete associated audio file from Cloudinary if it exists
-    if (listeningSession.content.cloudinaryPublicId) {
-      try {
-        await deleteCloudinaryFile(
-          listeningSession.content.cloudinaryPublicId,
-          'video'
-        );
-      } catch (cloudinaryError) {
-        console.error('Error deleting Cloudinary file:', cloudinaryError);
-        // Continue with session deletion even if Cloudinary delete fails
-      }
+    // Check if this is a library item
+    if (listeningSession.isLibrary) {
+      return NextResponse.json(
+        { error: "Library items cannot be deleted" },
+        { status: 400 }
+      );
     }
 
     // Delete the session
-    await ListeningSession.findByIdAndDelete(id);
+    await ListeningSession.findByIdAndDelete(params.id);
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({
+      success: true,
+      message: "Session deleted successfully",
+    });
   } catch (error) {
-    console.error('Error deleting listening session:', error);
+    console.error("Error deleting listening session:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      {
+        error: "Failed to delete listening session",
+        message: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

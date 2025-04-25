@@ -1,34 +1,34 @@
-'use client';
+"use client";
 
-import { AlertCircle, ArrowLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { AlertCircle, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
-} from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import FlashcardView from '@/components/vocabulary/FlashcardView';
-import { useVocabularyBank, type VocabularyWord } from '@/hooks/use-vocabulary';
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import FlashcardView from "@/components/vocabulary/FlashcardView";
+import { useVocabularyBank, type VocabularyWord } from "@/hooks/use-vocabulary";
 
 export default function VocabularyFlashcardsPage() {
   const router = useRouter();
   const { status } = useSession({
     required: true,
     onUnauthenticated() {
-      router.push('/login');
+      router.push("/login");
     },
   });
 
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState("all");
   const [filteredWords, setFilteredWords] = useState<VocabularyWord[]>([]);
   const [isComplete, setIsComplete] = useState(false);
 
@@ -41,7 +41,7 @@ export default function VocabularyFlashcardsPage() {
     const now = new Date();
 
     switch (activeTab) {
-      case 'review':
+      case "review":
         setFilteredWords(
           vocabularyBank.words.filter(word => {
             const nextReview = new Date(word.nextReview);
@@ -49,17 +49,19 @@ export default function VocabularyFlashcardsPage() {
           })
         );
         break;
-      case 'mastered':
+      case "mastered":
         setFilteredWords(
-          vocabularyBank.words.filter(word => word.mastery >= 80)
+          vocabularyBank.words.filter(word => word.mastery >= 90)
         );
         break;
-      case 'learning':
+      case "learning":
         setFilteredWords(
-          vocabularyBank.words.filter(word => word.mastery < 80)
+          vocabularyBank.words.filter(
+            word => word.mastery > 0 && word.mastery < 90
+          )
         );
         break;
-      case 'all':
+      case "all":
       default:
         setFilteredWords([...vocabularyBank.words]);
         break;
@@ -67,7 +69,7 @@ export default function VocabularyFlashcardsPage() {
   }, [activeTab, vocabularyBank]);
 
   const handleBackToDashboard = () => {
-    router.push('/dashboard/vocabulary');
+    router.push("/dashboard/vocabulary");
   };
 
   const handleComplete = () => {
@@ -144,7 +146,7 @@ export default function VocabularyFlashcardsPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push('/dashboard/reading')}>
+            <Button onClick={() => router.push("/dashboard/reading")}>
               Go to Reading Sessions
             </Button>
           </CardContent>
@@ -211,12 +213,17 @@ export default function VocabularyFlashcardsPage() {
               </TabsTrigger>
               <TabsTrigger value="mastered">
                 Mastered (
-                {vocabularyBank.words.filter(word => word.mastery >= 80).length}
+                {vocabularyBank.words.filter(word => word.mastery >= 90).length}
                 )
               </TabsTrigger>
               <TabsTrigger value="learning">
                 Learning (
-                {vocabularyBank.words.filter(word => word.mastery < 80).length})
+                {
+                  vocabularyBank.words.filter(
+                    word => word.mastery > 0 && word.mastery < 90
+                  ).length
+                }
+                )
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -232,7 +239,7 @@ export default function VocabularyFlashcardsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button onClick={() => setActiveTab('all')}>
+                <Button onClick={() => setActiveTab("all")}>
                   View All Words
                 </Button>
               </CardContent>

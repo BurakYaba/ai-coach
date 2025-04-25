@@ -1,16 +1,27 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { OpenAI } from 'openai';
+import crypto from "crypto";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { OpenAI } from "openai";
+
+import {
+  handleApiError,
+  getReadingComplexityScore,
+  getCachedItem,
+  setCacheItem,
+} from "@/lib/reading-utils";
 
 // Add retry and timeout configuration
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  timeout: 50000, // 50 seconds timeout
+  timeout: 45000, // 45 seconds timeout (lowered to avoid Vercel timeout issues)
   maxRetries: 3, // Retry failed requests up to 3 times
 });
 
+// Ongoing requests tracking to prevent duplicates
+const activeGenerations = new Map();
+
 // Types Definition
-type Level = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+type Level = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 
 interface QuestionOption {
   id: string;
@@ -19,7 +30,7 @@ interface QuestionOption {
 
 interface Question {
   id: string;
-  type: 'multiple-choice' | 'true-false' | 'fill-blank';
+  type: "multiple-choice" | "true-false" | "fill-blank";
   question: string;
   options: QuestionOption[];
   correctAnswer: string;
@@ -51,6 +62,7 @@ interface ContentResponse {
     estimatedVocabularySize: number;
     wordCount: number;
     actualWordCount?: number;
+    lengthCategory?: string;
   };
 }
 
@@ -61,7 +73,7 @@ interface UnifiedResponse {
   questions: Question[];
 }
 
-// CEFR level-specific instructions
+// CEFR level-specific instructions moved to a constant object
 const levelInstructions: Record<Level, string> = {
   A1: `
     - Use only the most basic and frequent vocabulary (around 500-800 words)
@@ -122,81 +134,154 @@ const levelInstructions: Record<Level, string> = {
   `,
 };
 
+// Clean up function for the activeGenerations map
+function cleanupActiveGenerations() {
+  const now = Date.now();
+  for (const [key, startTime] of Array.from(activeGenerations.entries())) {
+    // Remove entries older than 5 minutes
+    if (now - startTime > 5 * 60 * 1000) {
+      activeGenerations.delete(key);
+    }
+  }
+}
+
+// Run cleanup every minute
+setInterval(cleanupActiveGenerations, 60 * 1000);
+
+// Main API handler
 export async function POST(req: NextRequest) {
+  const generationKey = crypto.randomUUID();
+
   try {
     // Authentication check
     const session = await getServerSession();
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Parse request data
-    const {
-      level,
-      topic,
-      targetLength,
-      questionTypes,
-      questionCount = 5,
-    } = await req.json();
+    // Parse request data with validation
+    const body = await req.json();
+    let { level, topic, targetLength, questionTypes, questionCount = 5 } = body;
 
-    if (!level || !topic || !targetLength) {
+    // Validate required fields
+    if (!level || !topic) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields: level or topic" },
         { status: 400 }
       );
     }
+
+    // Normalize targetLength if present, otherwise default to "medium"
+    if (targetLength === undefined || targetLength === null) {
+      targetLength = "medium";
+    }
+
+    // Validate level is a valid CEFR level
+    if (!["A1", "A2", "B1", "B2", "C1", "C2"].includes(level)) {
+      return NextResponse.json(
+        { error: "Invalid CEFR level. Must be one of: A1, A2, B1, B2, C1, C2" },
+        { status: 400 }
+      );
+    }
+
+    // Create a cache key based on request parameters
+    const cacheKey = `reading_gen_${level}_${topic}_${targetLength}_${questionCount}`;
+
+    // Check cache first
+    const cachedResponse = getCachedItem(cacheKey);
+    if (cachedResponse) {
+      return NextResponse.json(cachedResponse);
+    }
+
+    // Check if there's already a similar request in progress
+    const requestKey = `${level}_${topic}_${targetLength}`;
+    if (activeGenerations.has(requestKey)) {
+      return NextResponse.json(
+        {
+          error: "A similar generation request is already in progress",
+          retryAfter: 15,
+        },
+        { status: 429 }
+      );
+    }
+
+    // Mark request as in progress
+    activeGenerations.set(requestKey, Date.now());
 
     // Get level instructions
     const instructions =
       levelInstructions[level as Level] || levelInstructions.B1;
 
-    // Step 1: Generate the reading content first
-    console.log('Generating reading content...');
-    const contentData = await generateContent(
-      level,
-      topic,
-      targetLength,
-      instructions
-    );
-
-    // If content generation fails, return early
-    if (!contentData) {
-      return NextResponse.json(
-        { error: 'Failed to generate reading content' },
-        { status: 500 }
-      );
-    }
-
-    // Step 2: Generate vocabulary, grammar, and questions in parallel
-    console.log('Generating vocabulary, grammar, and questions...');
-
-    // Limit requested question count
-    const limitedQuestionCount = Math.min(10, Math.max(1, questionCount));
-
-    const [vocabularyData, grammarData, questionsData] = await Promise.all([
-      generateVocabulary(contentData.content, level),
-      generateGrammar(contentData.content, level),
-      generateQuestions(
-        contentData.content,
+    try {
+      // Step 1: Generate the reading content first
+      const contentData = await generateContent(
         level,
-        questionTypes,
-        limitedQuestionCount
-      ),
-    ]);
+        topic,
+        targetLength,
+        instructions
+      );
 
-    // Return the unified response
-    return NextResponse.json({
-      content: contentData,
-      vocabulary: vocabularyData,
-      grammar: grammarData,
-      questions: questionsData,
-    } as UnifiedResponse);
+      // If content generation fails, return early
+      if (!contentData) {
+        activeGenerations.delete(requestKey);
+        return NextResponse.json(
+          { error: "Failed to generate reading content" },
+          { status: 500 }
+        );
+      }
+
+      // Step 2: Generate vocabulary, grammar, and questions in parallel
+      // Limit requested question count
+      const limitedQuestionCount = Math.min(10, Math.max(1, questionCount));
+
+      // Use Promise.allSettled to continue even if some parts fail
+      const [vocabularyResult, grammarResult, questionsResult] =
+        await Promise.allSettled([
+          generateVocabulary(contentData.content, level),
+          generateGrammar(contentData.content, level),
+          generateQuestions(
+            contentData.content,
+            level,
+            questionTypes,
+            limitedQuestionCount
+          ),
+        ]);
+
+      // Extract results with fallbacks
+      const vocabularyData =
+        vocabularyResult.status === "fulfilled" ? vocabularyResult.value : [];
+
+      const grammarData =
+        grammarResult.status === "fulfilled" ? grammarResult.value : [];
+
+      const questionsData =
+        questionsResult.status === "fulfilled"
+          ? questionsResult.value
+          : generateDefaultQuestions(limitedQuestionCount);
+
+      // Create the unified response
+      const response: UnifiedResponse = {
+        content: contentData,
+        vocabulary: vocabularyData,
+        grammar: grammarData,
+        questions: questionsData,
+      };
+
+      // Cache the response for future use (valid for 24 hours)
+      setCacheItem(cacheKey, response);
+
+      // Remove from active generations
+      activeGenerations.delete(requestKey);
+
+      // Return the unified response
+      return NextResponse.json(response);
+    } catch (innerError) {
+      // Remove from active generations in case of error
+      activeGenerations.delete(requestKey);
+      throw innerError; // Re-throw to be caught by outer catch block
+    }
   } catch (error) {
-    console.error('Error in unified reading generation:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate reading session content' },
-      { status: 500 }
-    );
+    return handleApiError(error, "Error in unified reading generation");
   }
 }
 
@@ -204,118 +289,173 @@ export async function POST(req: NextRequest) {
 async function generateContent(
   level: string,
   topic: string,
-  targetLength: number,
+  targetLength: string | number,
   instructions: string
 ): Promise<ContentResponse | null> {
   try {
-    // Define word count range based on target length
-    let minWords: number;
-    let maxWords: number;
+    // Define standardized length categories and multipliers
+    const wordCountMultiplier: Record<string, number> = {
+      short: 0.6,
+      medium: 1.0,
+      long: 1.5,
+    };
 
-    if (targetLength === 150) {
-      // Short
-      minWords = 100;
-      maxWords = 150;
-    } else if (targetLength === 200) {
-      // Medium
-      minWords = 150;
-      maxWords = 200;
-    } else if (targetLength === 300) {
-      // Long
-      minWords = 250;
-      maxWords = 300;
-    } else if (targetLength === 400) {
-      // Very Long
-      minWords = 300;
-      maxWords = 400;
+    // Base word counts by level - these are calibrated to produce reasonable lengths
+    const baseWordCounts: Record<string, number> = {
+      A1: 150,
+      A2: 200,
+      B1: 250,
+      B2: 300,
+      C1: 400,
+      C2: 500,
+    };
+
+    // Normalize the targetLength parameter to a standard string value
+    let lengthCategory: string;
+
+    if (typeof targetLength === "string") {
+      // Convert to lowercase for case-insensitive matching
+      const normalizedLength = targetLength.toLowerCase();
+      // Check if it's one of our predefined categories
+      if (["short", "medium", "long"].includes(normalizedLength)) {
+        lengthCategory = normalizedLength;
+      } else {
+        // Default to medium if string is invalid
+        console.warn(
+          `Invalid targetLength string: "${targetLength}". Using "medium" instead.`
+        );
+        lengthCategory = "medium";
+      }
+    } else if (typeof targetLength === "number") {
+      // For backward compatibility - normalize numeric values to categories
+      if (targetLength <= 150) {
+        lengthCategory = "short";
+      } else if (targetLength <= 300) {
+        lengthCategory = "medium";
+      } else {
+        lengthCategory = "long";
+      }
     } else {
       // Default fallback
-      minWords = Math.floor(targetLength * 0.8);
-      maxWords = targetLength;
+      lengthCategory = "medium";
     }
 
-    // Create the prompt
-    const prompt = `Generate an engaging reading passage about ${topic}.
+    // Get the base count for this level or use default
+    const baseCount = baseWordCounts[level] || baseWordCounts.B1;
 
-IMPORTANT: Generate text between ${minWords} and ${maxWords} words. The content MUST be within this word count range.
+    // Apply the multiplier
+    const multiplier = wordCountMultiplier[lengthCategory] || 1.0;
 
-IMPORTANT: This content MUST strictly conform to CEFR ${level} language level specifications.
+    // Calculate final target word count
+    const targetWordCount = Math.round(baseCount * multiplier);
 
-${instructions}
+    // Log for debugging
+    console.debug(
+      `Generating ${level} ${lengthCategory} article: targeting ${targetWordCount} words`
+    );
 
-Target length: ${minWords}-${maxWords} words. DO NOT end the passage until you've reached at least ${minWords} words.
+    // Create a prompt for OpenAI with strict word count emphasis
+    const prompt = `
+      Create an engaging ${level} level (CEFR) reading passage about "${topic}".
+      
+      IMPORTANT: The text MUST be EXACTLY ${targetWordCount} words (±10%). This is critical.
+      
+      Response format:
+      1. Title: An engaging, concise title
+      2. Content: The reading passage text
+      
+      Content guidelines:
+      ${instructions}
+      
+      Length requirements:
+      - The passage MUST be ${targetWordCount} words (±10%)
+      - Count the words carefully before submitting
+      - Do NOT go over or under this limit by more than 10%
+      
+      Additional requirements:
+      - Include a clear beginning, middle, and end
+      - Make it interesting and relevant to the topic
+      - If appropriate, include dialogue with proper formatting
+      - Do not include any meta information, just the title and content
+      
+      Remember this is for language learning, so the content should be rich but accessible for ${level} level students.
+    `.trim();
 
-The passage should be informative, engaging, and suitable for language learners at EXACTLY the CEFR ${level} level.
-Include a title for the passage.
-
-Format the response as a VALID JSON object with:
-{
-  "title": "The title of the passage",
-  "content": "The main text content which must be between ${minWords} and ${maxWords} words",
-  "metadata": {
-    "cefr_level": "${level}",
-    "complexity": 7, // A number from 1-10 indicating text complexity
-    "topicRelevance": 9, // A number from 1-10 indicating how well it matches the requested topic
-    "grammarPatterns": ["Present Simple", "Past Simple", "Comparative Adjectives"], // List of main grammar patterns used
-    "estimatedVocabularySize": "Approximate number of unique words required to understand this text",
-    "wordCount": 180 // The actual number of words in your generated text (count them!)
-  }
-}`;
-
-    // Get model response with timeout handling
-    const model =
-      process.env.USE_GPT4_FOR_CONTENT === 'true' ? 'gpt-4o' : 'gpt-3.5-turbo';
-    console.log(`Using model: ${model} for content generation`);
-
-    // Add a timeout promise to race against the OpenAI call
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('OpenAI request timed out')), 45000); // 45 sec timeout
-    });
-
-    const completionPromise = openai.chat.completions.create({
-      model: model,
+    // Generate content with OpenAI
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content:
-            'You are an expert language teacher who creates engaging reading passages for language learners. You are extremely precise about following length requirements.',
+            "You are an expert language educator who creates engaging, level-appropriate reading materials for language learners. You always follow word count instructions EXACTLY.",
         },
-        { role: 'user', content: prompt },
+        { role: "user", content: prompt },
       ],
       temperature: 0.7,
-      response_format: { type: 'json_object' },
+      max_tokens: 2000,
     });
 
-    // Race the OpenAI request against the timeout
-    const completion = (await Promise.race([
-      completionPromise,
-      timeoutPromise,
-    ])) as any;
+    // Extract the response content
+    const generatedText = response.choices[0].message.content || "";
 
-    // Extract and validate response
-    const content = completion.choices[0].message.content;
-    if (!content) {
-      throw new Error('No content received from AI');
-    }
+    // Parse the response to extract title and content
+    let title = "";
+    let content = "";
 
-    const response = JSON.parse(content) as ContentResponse;
+    // Common title patterns in the response
+    const titlePattern = /^(?:Title:|#)\s*(.+?)(?:\n|$)/m;
+    const titleMatch = generatedText.match(titlePattern);
 
-    // Validate required fields
-    if (!response.title || !response.content || !response.metadata) {
-      throw new Error('Invalid content format received from AI');
+    if (titleMatch && titleMatch[1]) {
+      title = titleMatch[1].trim();
+      // Remove the title line from the content
+      content = generatedText.replace(titlePattern, "").trim();
+    } else {
+      // If no title pattern found, use the first line as title
+      const lines = generatedText.trim().split("\n");
+      title = lines[0].replace(/^#\s*/, "").trim();
+      content = lines.slice(1).join("\n").trim();
     }
 
     // Calculate actual word count
-    const actualWordCount = response.content
-      .split(/\s+/)
-      .filter(word => word.length > 0).length;
-    response.metadata.actualWordCount = actualWordCount;
+    const actualWordCount = content.split(/\s+/).filter(Boolean).length;
 
-    return response;
+    // Create analysis metadata
+    const metadata = {
+      cefr_level: level,
+      complexity: getReadingComplexityScore(level),
+      topicRelevance: 10, // Default to maximum (could be improved with analysis)
+      grammarPatterns: [], // Will be filled in by grammar generation
+      estimatedVocabularySize: estimateVocabSize(level),
+      wordCount: targetWordCount,
+      actualWordCount,
+      lengthCategory,
+    };
+
+    return {
+      title,
+      content,
+      metadata,
+    };
   } catch (error) {
-    console.error('Error generating content:', error);
+    console.error("Error generating content:", error);
     return null;
   }
+}
+
+// Estimate vocabulary size based on CEFR level
+function estimateVocabSize(level: string): number {
+  const vocabSizes = {
+    A1: 800,
+    A2: 1500,
+    B1: 2500,
+    B2: 4000,
+    C1: 6000,
+    C2: 8000,
+  };
+
+  return vocabSizes[level as keyof typeof vocabSizes] || 2500;
 }
 
 // Function to generate vocabulary
@@ -361,28 +501,28 @@ Guidelines for different CEFR levels:
 IMPORTANT: Select approximately 10-15 words that are level-appropriate for CEFR ${level} learners.`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: "gpt-3.5-turbo",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content:
             'You are an expert language teacher specializing in vocabulary instruction. Always respond with valid JSON that includes a "vocabulary" array.',
         },
-        { role: 'user', content: prompt },
+        { role: "user", content: prompt },
       ],
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
     });
 
-    const response = JSON.parse(completion.choices[0].message.content || '{}');
+    const response = JSON.parse(completion.choices[0].message.content || "{}");
 
     if (!response.vocabulary || !Array.isArray(response.vocabulary)) {
       // Return default vocabulary if response is invalid
       return [
         {
-          word: 'example',
-          definition: 'a representative sample of something',
-          context: 'This is an example sentence.',
-          examples: ['This word is an example of a vocabulary item.'],
+          word: "example",
+          definition: "a representative sample of something",
+          context: "This is an example sentence.",
+          examples: ["This word is an example of a vocabulary item."],
           difficulty: 3,
         },
       ];
@@ -390,14 +530,14 @@ IMPORTANT: Select approximately 10-15 words that are level-appropriate for CEFR 
 
     return response.vocabulary;
   } catch (error) {
-    console.error('Error generating vocabulary:', error);
+    console.error("Error generating vocabulary:", error);
     // Return default vocabulary on error
     return [
       {
-        word: 'example',
-        definition: 'a representative sample of something',
-        context: 'This is an example sentence.',
-        examples: ['This word is an example of a vocabulary item.'],
+        word: "example",
+        definition: "a representative sample of something",
+        context: "This is an example sentence.",
+        examples: ["This word is an example of a vocabulary item."],
         difficulty: 3,
       },
     ];
@@ -443,30 +583,30 @@ Guidelines for different CEFR levels:
 IMPORTANT: Select grammar patterns that match the CEFR ${level} level - not too simple or too complex for the target learners.`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: "gpt-3.5-turbo",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content:
             'You are an expert language teacher who specializes in grammar instruction and analysis. Always respond with valid JSON that includes a "patterns" array.',
         },
-        { role: 'user', content: prompt },
+        { role: "user", content: prompt },
       ],
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
     });
 
-    const response = JSON.parse(completion.choices[0].message.content || '{}');
+    const response = JSON.parse(completion.choices[0].message.content || "{}");
 
     if (!response.patterns || !Array.isArray(response.patterns)) {
       // Return default grammar patterns if response is invalid
       return [
         {
-          pattern: 'Simple Present Tense',
+          pattern: "Simple Present Tense",
           explanation:
-            'Used to describe habits, general truths, and current states',
+            "Used to describe habits, general truths, and current states",
           examples: [
-            'Water boils at 100 degrees Celsius.',
-            'She works in a bank.',
+            "Water boils at 100 degrees Celsius.",
+            "She works in a bank.",
           ],
         },
       ];
@@ -474,16 +614,16 @@ IMPORTANT: Select grammar patterns that match the CEFR ${level} level - not too 
 
     return response.patterns;
   } catch (error) {
-    console.error('Error generating grammar patterns:', error);
+    console.error("Error generating grammar patterns:", error);
     // Return default grammar patterns on error
     return [
       {
-        pattern: 'Simple Present Tense',
+        pattern: "Simple Present Tense",
         explanation:
-          'Used to describe habits, general truths, and current states',
+          "Used to describe habits, general truths, and current states",
         examples: [
-          'Water boils at 100 degrees Celsius.',
-          'She works in a bank.',
+          "Water boils at 100 degrees Celsius.",
+          "She works in a bank.",
         ],
       },
     ];
@@ -499,23 +639,23 @@ async function generateQuestions(
 ): Promise<Question[]> {
   try {
     // Generate question types text
-    let questionTypeText = '';
+    let questionTypeText = "";
     if (questionTypes && Array.isArray(questionTypes)) {
       const typeNames = questionTypes.map(t => {
         const typeName =
-          t.type === 'multiple-choice'
-            ? 'multiple-choice question'
-            : t.type === 'true-false'
-              ? 'true/false question'
-              : t.type === 'fill-blank'
+          t.type === "multiple-choice"
+            ? "multiple-choice question"
+            : t.type === "true-false"
+              ? "true/false question"
+              : t.type === "fill-blank"
                 ? 'fill-in-the-blank question (use type "fill-blank")'
-                : 'question';
+                : "question";
 
-        return `- ${t.count || 1} ${typeName}${t.count > 1 ? 's' : ''}`;
+        return `- ${t.count || 1} ${typeName}${t.count > 1 ? "s" : ""}`;
       });
 
       if (typeNames.length > 0) {
-        questionTypeText = `Include the following question types:\n${typeNames.join('\n')}\n\n`;
+        questionTypeText = `Include the following question types:\n${typeNames.join("\n")}\n\n`;
       }
     }
 
@@ -574,21 +714,21 @@ IMPORTANT:
 Make sure all questions refer specifically to information in the text.`;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: "gpt-3.5-turbo",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content:
             'You are an expert language teacher specializing in creating reading comprehension questions. Always respond with valid JSON that includes a "questions" array with EXACTLY the number of questions requested, no more and no less.',
         },
-        { role: 'user', content: prompt },
+        { role: "user", content: prompt },
       ],
       temperature: 0.7,
       max_tokens: 2500,
-      response_format: { type: 'json_object' },
+      response_format: { type: "json_object" },
     });
 
-    const response = JSON.parse(completion.choices[0].message.content || '{}');
+    const response = JSON.parse(completion.choices[0].message.content || "{}");
 
     if (!response.questions || !Array.isArray(response.questions)) {
       // Return default questions if response is invalid
@@ -600,22 +740,22 @@ Make sure all questions refer specifically to information in the text.`;
       .slice(0, questionCount)
       .map((question: any, index: number) => {
         // For true-false questions, ensure options are correctly formatted
-        if (question.type === 'true-false') {
+        if (question.type === "true-false") {
           question.options = [
-            { id: 'A', text: 'True' },
-            { id: 'B', text: 'False' },
+            { id: "A", text: "True" },
+            { id: "B", text: "False" },
           ];
           // Normalize correctAnswer to A or B
           question.correctAnswer =
-            question.correctAnswer.toLowerCase() === 'true' ||
-            question.correctAnswer === 'A'
-              ? 'A'
-              : 'B';
+            question.correctAnswer.toLowerCase() === "true" ||
+            question.correctAnswer === "A"
+              ? "A"
+              : "B";
         }
 
         // For multiple-choice, ensure IDs are A, B, C, D
         if (
-          question.type === 'multiple-choice' &&
+          question.type === "multiple-choice" &&
           Array.isArray(question.options)
         ) {
           question.options = question.options.map(
@@ -624,7 +764,7 @@ Make sure all questions refer specifically to information in the text.`;
               return {
                 id: letter,
                 text:
-                  typeof opt === 'string'
+                  typeof opt === "string"
                     ? opt
                     : opt.text || `Option ${letter}`,
               };
@@ -648,7 +788,7 @@ Make sure all questions refer specifically to information in the text.`;
               question.correctAnswer = question.options[optionIndex].id;
             } else {
               // Default to A if no match found
-              question.correctAnswer = 'A';
+              question.correctAnswer = "A";
             }
           }
 
@@ -664,7 +804,7 @@ Make sure all questions refer specifically to information in the text.`;
           correctAnswer: question.correctAnswer,
           explanation:
             question.explanation ||
-            'This is the correct answer based on the text.',
+            "This is the correct answer based on the text.",
         };
       });
 
@@ -678,7 +818,7 @@ Make sure all questions refer specifically to information in the text.`;
 
     return validatedQuestions;
   } catch (error) {
-    console.error('Error generating questions:', error);
+    console.error("Error generating questions:", error);
     // Return default questions on error
     return generateDefaultQuestions(questionCount);
   }
@@ -689,16 +829,16 @@ function generateDefaultQuestions(count: number): Question[] {
   const questions: Question[] = [];
 
   const defaultQuestions = [
-    'What is the main idea of this passage?',
-    'What can be inferred from the passage?',
-    'According to the text, which statement is accurate?',
-    'What is the primary purpose of this text?',
-    'What conclusion can be drawn from the passage?',
-    'Which of the following best summarizes the text?',
-    'What point is the author trying to make?',
-    'How does the author develop the main argument?',
-    'What evidence does the author provide to support the main claim?',
-    'What would be an appropriate title for this passage?',
+    "What is the main idea of this passage?",
+    "What can be inferred from the passage?",
+    "According to the text, which statement is accurate?",
+    "What is the primary purpose of this text?",
+    "What conclusion can be drawn from the passage?",
+    "Which of the following best summarizes the text?",
+    "What point is the author trying to make?",
+    "How does the author develop the main argument?",
+    "What evidence does the author provide to support the main claim?",
+    "What would be an appropriate title for this passage?",
   ];
 
   for (let i = 0; i < count; i++) {
@@ -706,23 +846,23 @@ function generateDefaultQuestions(count: number): Question[] {
 
     questions.push({
       id: String(i + 1),
-      type: 'multiple-choice',
+      type: "multiple-choice",
       question: questionText,
       options: [
         {
-          id: 'A',
-          text: 'Option A - likely the correct answer based on context',
+          id: "A",
+          text: "Option A - likely the correct answer based on context",
         },
-        { id: 'B', text: 'Option B - a plausible but incorrect choice' },
-        { id: 'C', text: 'Option C - an obviously wrong choice' },
+        { id: "B", text: "Option B - a plausible but incorrect choice" },
+        { id: "C", text: "Option C - an obviously wrong choice" },
         {
-          id: 'D',
-          text: 'Option D - a distracting option that seems possible',
+          id: "D",
+          text: "Option D - a distracting option that seems possible",
         },
       ],
-      correctAnswer: 'A',
+      correctAnswer: "A",
       explanation:
-        'This is the most reasonable answer based on the information provided in the text.',
+        "This is the most reasonable answer based on the information provided in the text.",
     });
   }
 

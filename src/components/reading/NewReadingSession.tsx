@@ -1,59 +1,59 @@
-'use client';
+"use client";
 
-import { Loader2, AlertCircle } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState, useCallback, useRef, memo } from 'react';
-import { toast } from 'sonner';
+import { Loader2, AlertCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, useCallback, useRef, memo } from "react";
+import { toast } from "sonner";
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 // Memoize static arrays to prevent unnecessary re-renders
 const topics = [
-  'Technology',
-  'Science',
-  'Environment',
-  'Health',
-  'Education',
-  'Travel',
-  'Food and Cuisine',
-  'Arts and Culture',
-  'Sports',
-  'Business',
-  'History',
-  'Psychology',
-  'Social Media',
-  'Space Exploration',
-  'Climate Change',
+  "Technology",
+  "Science",
+  "Environment",
+  "Health",
+  "Education",
+  "Travel",
+  "Food and Cuisine",
+  "Arts and Culture",
+  "Sports",
+  "Business",
+  "History",
+  "Psychology",
+  "Social Media",
+  "Space Exploration",
+  "Climate Change",
 ];
 
 // Language levels with CEFR standards
 const levels = [
-  { value: 'A1', label: 'Beginner (A1)' },
-  { value: 'A2', label: 'Elementary (A2)' },
-  { value: 'B1', label: 'Intermediate (B1)' },
-  { value: 'B2', label: 'Upper Intermediate (B2)' },
-  { value: 'C1', label: 'Advanced (C1)' },
-  { value: 'C2', label: 'Proficient (C2)' },
+  { value: "A1", label: "Beginner (A1)" },
+  { value: "A2", label: "Elementary (A2)" },
+  { value: "B1", label: "Intermediate (B1)" },
+  { value: "B2", label: "Upper Intermediate (B2)" },
+  { value: "C1", label: "Advanced (C1)" },
+  { value: "C2", label: "Proficient (C2)" },
 ];
 
 // Text length options
 const textLengths = [
-  { value: 'short', label: 'Short (100-150 words)' },
-  { value: 'medium', label: 'Medium (150-200 words)' },
-  { value: 'long', label: 'Long (250-300 words)' },
-  { value: 'veryLong', label: 'Very Long (300-400 words)' },
+  { value: "short", label: "Short (100-150 words)" },
+  { value: "medium", label: "Medium (150-200 words)" },
+  { value: "long", label: "Long (250-300 words)" },
+  { value: "veryLong", label: "Very Long (300-400 words)" },
 ];
 
 // Question count options
@@ -66,9 +66,9 @@ interface QuestionType {
 }
 
 const questionTypes: QuestionType[] = [
-  { value: 'multiple-choice', label: 'Multiple Choice' },
-  { value: 'true-false', label: 'True/False' },
-  { value: 'fill-blank', label: 'Fill in the Blanks' },
+  { value: "multiple-choice", label: "Multiple Choice" },
+  { value: "true-false", label: "True/False" },
+  { value: "fill-blank", label: "Fill in the Blanks" },
 ];
 
 // Length to words mapping for reference
@@ -128,14 +128,14 @@ interface GrammarResponse {
 export const NewReadingSession = memo(function NewReadingSession() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingStep, setLoadingStep] = useState<string>('');
+  const [loadingStep, setLoadingStep] = useState<string>("");
   const [params, setParams] = useState<GenerationParams>({
     topic: topics[0],
-    level: 'B1',
-    length: 'medium',
-    interests: '',
+    level: "B1",
+    length: "medium",
+    interests: "",
     questionCount: 5,
-    questionTypes: ['multiple-choice', 'true-false'],
+    questionTypes: ["multiple-choice", "true-false"],
   });
   const [error, setError] = useState<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -148,7 +148,7 @@ export const NewReadingSession = memo(function NewReadingSession() {
         // Reset state
         setError(null);
         setIsLoading(true);
-        setLoadingStep('Generating content...');
+        setLoadingStep("Generating content...");
 
         // Abort any ongoing request
         if (abortControllerRef.current) {
@@ -177,9 +177,9 @@ export const NewReadingSession = memo(function NewReadingSession() {
         }));
 
         // Call the unified API endpoint with timeout handling
-        const unifiedResponse = await fetch('/api/reading/generate/unified', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const unifiedResponse = await fetch("/api/reading/generate/unified", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           signal: abortControllerRef.current.signal,
           body: JSON.stringify({
             level: apiLevel,
@@ -198,12 +198,12 @@ export const NewReadingSession = memo(function NewReadingSession() {
           // Check for specific error status codes
           if (unifiedResponse.status === 504) {
             throw new Error(
-              'The request timed out. Please try again with a shorter content length or simpler topic.'
+              "The request timed out. Please try again with a shorter content length or simpler topic."
             );
           }
 
           // Try to get error details from the response
-          let errorMessage = 'Failed to generate reading session content';
+          let errorMessage = "Failed to generate reading session content";
           try {
             const errorData = await unifiedResponse.json();
             if (errorData.error) {
@@ -224,7 +224,7 @@ export const NewReadingSession = memo(function NewReadingSession() {
         const vocabulary = { vocabulary: unifiedData.vocabulary || [] };
         const grammar = { patterns: unifiedData.grammar || [] };
 
-        setLoadingStep('Creating reading session...');
+        setLoadingStep("Creating reading session...");
 
         // Calculate word count and estimated reading time
         const wordCount = content.content.split(/\s+/).length;
@@ -234,25 +234,25 @@ export const NewReadingSession = memo(function NewReadingSession() {
         const transformedQuestions = questions.questions.map(
           (question: Question) => {
             // Ensure question has a type, default to multiple-choice if missing
-            let questionType = question.type || 'multiple-choice';
+            let questionType = question.type || "multiple-choice";
 
             // Normalize question type to match what the schema expects
             // Convert 'fill-in-the-blank' to 'fill-blank'
-            if (questionType === 'fill-in-the-blank') {
-              questionType = 'fill-blank';
+            if (questionType === "fill-in-the-blank") {
+              questionType = "fill-blank";
             }
 
             // Transform options from {id, text} objects to string[] if needed
             let options: string[] | null = null;
             if (question.options) {
               if (
-                typeof question.options[0] === 'object' &&
+                typeof question.options[0] === "object" &&
                 question.options[0] !== null
               ) {
                 // If options are objects with id and text, extract just the text
                 options = question.options.map(
                   (opt: { id?: string; text?: string } | string) =>
-                    typeof opt === 'object' && 'text' in opt && opt.text
+                    typeof opt === "object" && "text" in opt && opt.text
                       ? opt.text
                       : String(opt)
                 );
@@ -286,15 +286,15 @@ export const NewReadingSession = memo(function NewReadingSession() {
                 ? word.examples
                 : [`Example usage of "${word.word}".`],
               difficulty:
-                typeof word.difficulty === 'number' ? word.difficulty : 3,
+                typeof word.difficulty === "number" ? word.difficulty : 3,
             };
           }
         );
 
         // Create reading session
-        const sessionResponse = await fetch('/api/reading/sessions', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const sessionResponse = await fetch("/api/reading/sessions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: content.title,
             content: content.content,
@@ -307,31 +307,31 @@ export const NewReadingSession = memo(function NewReadingSession() {
             estimatedReadingTime: estimatedReadingTime,
             aiAnalysis: {
               readingLevel:
-                apiLevel === 'A1'
+                apiLevel === "A1"
                   ? 1
-                  : apiLevel === 'A2'
+                  : apiLevel === "A2"
                     ? 2
-                    : apiLevel === 'B1'
+                    : apiLevel === "B1"
                       ? 3
-                      : apiLevel === 'B2'
+                      : apiLevel === "B2"
                         ? 5
-                        : apiLevel === 'C1'
+                        : apiLevel === "C1"
                           ? 7
-                          : apiLevel === 'C2'
+                          : apiLevel === "C2"
                             ? 9
                             : 3,
               complexityScore:
-                apiLevel === 'A1'
+                apiLevel === "A1"
                   ? 1
-                  : apiLevel === 'A2'
+                  : apiLevel === "A2"
                     ? 2
-                    : apiLevel === 'B1'
+                    : apiLevel === "B1"
                       ? 4
-                      : apiLevel === 'B2'
+                      : apiLevel === "B2"
                         ? 6
-                        : apiLevel === 'C1'
+                        : apiLevel === "C1"
                           ? 8
-                          : apiLevel === 'C2'
+                          : apiLevel === "C2"
                             ? 10
                             : 4,
               topicRelevance: content.metadata?.topicRelevance || 8,
@@ -342,30 +342,30 @@ export const NewReadingSession = memo(function NewReadingSession() {
 
         if (!sessionResponse.ok) {
           const errorText = await sessionResponse.text();
-          console.error('Session creation error:', errorText);
+          console.error("Session creation error:", errorText);
           throw new Error(`Failed to create reading session: ${errorText}`);
         }
 
         const session = await sessionResponse.json();
 
-        toast.success('Your reading session has been created.');
+        toast.success("Your reading session has been created.");
         router.push(`/dashboard/reading/${session._id}`);
       } catch (error: any) {
         setIsLoading(false);
-        setLoadingStep('');
+        setLoadingStep("");
         // Handle abort/timeout errors specially
-        if (error.name === 'AbortError') {
+        if (error.name === "AbortError") {
           const errorMessage =
-            'Request timed out. Please try again with a shorter content length or simpler topic.';
+            "Request timed out. Please try again with a shorter content length or simpler topic.";
           setError(errorMessage);
           toast.error(errorMessage);
         } else {
           const errorMessage =
-            error.message || 'Failed to create reading session';
+            error.message || "Failed to create reading session";
           setError(errorMessage);
           toast.error(errorMessage);
         }
-        console.error('Error creating reading session:', error);
+        console.error("Error creating reading session:", error);
       }
     },
     [params, router]
@@ -551,10 +551,10 @@ export const NewReadingSession = memo(function NewReadingSession() {
             {isLoading ? (
               <div className="flex items-center space-x-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>{loadingStep || 'Generating...'}</span>
+                <span>{loadingStep || "Generating..."}</span>
               </div>
             ) : (
-              'Generate Reading Session'
+              "Generate Reading Session"
             )}
           </Button>
         </div>
@@ -565,13 +565,13 @@ export const NewReadingSession = memo(function NewReadingSession() {
             <ul className="space-y-2 text-sm">
               <li className="flex items-center space-x-2">
                 <div
-                  className={`h-2 w-2 rounded-full ${loadingStep.includes('Generating reading') ? 'bg-primary animate-pulse' : loadingStep === '' ? 'bg-muted-foreground' : 'bg-green-500'}`}
+                  className={`h-2 w-2 rounded-full ${loadingStep.includes("Generating reading") ? "bg-primary animate-pulse" : loadingStep === "" ? "bg-muted-foreground" : "bg-green-500"}`}
                 ></div>
                 <span>Generating reading content and materials</span>
               </li>
               <li className="flex items-center space-x-2">
                 <div
-                  className={`h-2 w-2 rounded-full ${loadingStep.includes('Creating reading') ? 'bg-primary animate-pulse' : loadingStep === '' || !loadingStep.includes('Creating reading') ? 'bg-muted-foreground' : 'bg-green-500'}`}
+                  className={`h-2 w-2 rounded-full ${loadingStep.includes("Creating reading") ? "bg-primary animate-pulse" : loadingStep === "" || !loadingStep.includes("Creating reading") ? "bg-muted-foreground" : "bg-green-500"}`}
                 ></div>
                 <span>Saving reading session</span>
               </li>

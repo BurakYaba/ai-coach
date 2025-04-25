@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useRouter, useParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useRouter, useParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -11,10 +11,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface WritingSession {
   _id: string;
@@ -31,13 +31,13 @@ interface WritingSession {
       wordCount: number;
     };
   };
-  status: 'draft' | 'submitted' | 'analyzed' | 'completed';
+  status: "draft" | "submitted" | "analyzed" | "completed";
 }
 
 export default function AnalyzeWritingPage() {
   const router = useRouter();
   const params = useParams();
-  const sessionId = params.id as string;
+  const sessionId = params?.id as string;
 
   const [session, setSession] = useState<WritingSession | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,31 +51,31 @@ export default function AnalyzeWritingPage() {
       try {
         const response = await fetch(`/api/writing/sessions/${sessionId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch session');
+          throw new Error("Failed to fetch session");
         }
         const data = await response.json();
         setSession(data.session);
 
         // If session is already analyzed, redirect to feedback page
         if (
-          data.session.status === 'analyzed' ||
-          data.session.status === 'completed'
+          data.session.status === "analyzed" ||
+          data.session.status === "completed"
         ) {
           router.push(`/dashboard/writing/${sessionId}/feedback`);
         }
 
         // If session is not submitted, redirect to writing page
-        if (data.session.status !== 'submitted') {
+        if (data.session.status !== "submitted") {
           toast({
-            title: 'Not Submitted',
+            title: "Not Submitted",
             description:
-              'This writing session has not been submitted for analysis yet.',
+              "This writing session has not been submitted for analysis yet.",
           });
           router.push(`/dashboard/writing/${sessionId}`);
         }
       } catch (error) {
-        console.error('Error fetching writing session:', error);
-        setError('Failed to load writing session');
+        console.error("Error fetching writing session:", error);
+        setError("Failed to load writing session");
       } finally {
         setLoading(false);
       }
@@ -86,7 +86,7 @@ export default function AnalyzeWritingPage() {
 
   // Start analysis with progress simulation
   useEffect(() => {
-    if (session?.status === 'submitted' && !analyzing && !error) {
+    if (session?.status === "submitted" && !analyzing && !error) {
       startAnalysis();
     }
   }, [session, analyzing, error]);
@@ -125,7 +125,7 @@ export default function AnalyzeWritingPage() {
       const response = await fetch(
         `/api/writing/sessions/${sessionId}/analyze`,
         {
-          method: 'POST',
+          method: "POST",
         }
       );
 
@@ -135,7 +135,7 @@ export default function AnalyzeWritingPage() {
         // Check if it's a timeout error (status 504)
         if (response.status === 504) {
           throw new Error(
-            'Analysis timed out. Your essay might be too long or our servers are experiencing high load.'
+            "Analysis timed out. Your essay might be too long or our servers are experiencing high load."
           );
         }
 
@@ -144,7 +144,7 @@ export default function AnalyzeWritingPage() {
           throw new Error(errorData.error);
         }
 
-        throw new Error('Failed to analyze writing');
+        throw new Error("Failed to analyze writing");
       }
 
       // Set progress to 100% and redirect to feedback page
@@ -155,11 +155,11 @@ export default function AnalyzeWritingPage() {
         router.push(`/dashboard/writing/${sessionId}/feedback`);
       }, 1000);
     } catch (error) {
-      console.error('Error analyzing writing:', error);
+      console.error("Error analyzing writing:", error);
       setError(
         error instanceof Error
           ? error.message
-          : 'Failed to analyze writing. Please try again.'
+          : "Failed to analyze writing. Please try again."
       );
       setAnalyzing(false);
     }
@@ -211,16 +211,16 @@ export default function AnalyzeWritingPage() {
               Analysis Error
             </CardTitle>
             <CardDescription>
-              {error.includes('timed out')
-                ? 'The analysis took too long to complete.'
-                : 'There was an error analyzing your writing.'}
+              {error.includes("timed out")
+                ? "The analysis took too long to complete."
+                : "There was an error analyzing your writing."}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <p className="text-sm">{error}</p>
 
-              {error.includes('timed out') && (
+              {error.includes("timed out") && (
                 <div className="bg-muted p-4 rounded-md text-sm space-y-2">
                   <p className="font-medium">Suggestions:</p>
                   <ul className="list-disc list-inside space-y-1">
@@ -250,7 +250,7 @@ export default function AnalyzeWritingPage() {
             <div className="space-x-2">
               <Button
                 variant="outline"
-                onClick={() => router.push('/dashboard/writing')}
+                onClick={() => router.push("/dashboard/writing")}
               >
                 Writing Dashboard
               </Button>
@@ -287,7 +287,7 @@ export default function AnalyzeWritingPage() {
             <p>Please check the URL or go back to your writing dashboard.</p>
           </CardContent>
           <CardFooter>
-            <Button onClick={() => router.push('/dashboard/writing')}>
+            <Button onClick={() => router.push("/dashboard/writing")}>
               Back to Writing Dashboard
             </Button>
           </CardFooter>
@@ -326,13 +326,13 @@ export default function AnalyzeWritingPage() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div
-                className={`w-4 h-4 rounded-full ${progress >= 20 ? 'bg-primary' : 'bg-muted'}`}
+                className={`w-4 h-4 rounded-full ${progress >= 20 ? "bg-primary" : "bg-muted"}`}
               ></div>
               <span
                 className={
                   progress >= 20
-                    ? 'text-primary font-medium'
-                    : 'text-muted-foreground'
+                    ? "text-primary font-medium"
+                    : "text-muted-foreground"
                 }
               >
                 Checking grammar and spelling
@@ -341,13 +341,13 @@ export default function AnalyzeWritingPage() {
 
             <div className="flex items-center gap-2">
               <div
-                className={`w-4 h-4 rounded-full ${progress >= 40 ? 'bg-primary' : 'bg-muted'}`}
+                className={`w-4 h-4 rounded-full ${progress >= 40 ? "bg-primary" : "bg-muted"}`}
               ></div>
               <span
                 className={
                   progress >= 40
-                    ? 'text-primary font-medium'
-                    : 'text-muted-foreground'
+                    ? "text-primary font-medium"
+                    : "text-muted-foreground"
                 }
               >
                 Analyzing vocabulary usage
@@ -356,13 +356,13 @@ export default function AnalyzeWritingPage() {
 
             <div className="flex items-center gap-2">
               <div
-                className={`w-4 h-4 rounded-full ${progress >= 60 ? 'bg-primary' : 'bg-muted'}`}
+                className={`w-4 h-4 rounded-full ${progress >= 60 ? "bg-primary" : "bg-muted"}`}
               ></div>
               <span
                 className={
                   progress >= 60
-                    ? 'text-primary font-medium'
-                    : 'text-muted-foreground'
+                    ? "text-primary font-medium"
+                    : "text-muted-foreground"
                 }
               >
                 Evaluating coherence and structure
@@ -371,13 +371,13 @@ export default function AnalyzeWritingPage() {
 
             <div className="flex items-center gap-2">
               <div
-                className={`w-4 h-4 rounded-full ${progress >= 80 ? 'bg-primary' : 'bg-muted'}`}
+                className={`w-4 h-4 rounded-full ${progress >= 80 ? "bg-primary" : "bg-muted"}`}
               ></div>
               <span
                 className={
                   progress >= 80
-                    ? 'text-primary font-medium'
-                    : 'text-muted-foreground'
+                    ? "text-primary font-medium"
+                    : "text-muted-foreground"
                 }
               >
                 Generating personalized feedback
@@ -386,13 +386,13 @@ export default function AnalyzeWritingPage() {
 
             <div className="flex items-center gap-2">
               <div
-                className={`w-4 h-4 rounded-full ${progress >= 100 ? 'bg-primary' : 'bg-muted'}`}
+                className={`w-4 h-4 rounded-full ${progress >= 100 ? "bg-primary" : "bg-muted"}`}
               ></div>
               <span
                 className={
                   progress >= 100
-                    ? 'text-primary font-medium'
-                    : 'text-muted-foreground'
+                    ? "text-primary font-medium"
+                    : "text-muted-foreground"
                 }
               >
                 Analysis complete

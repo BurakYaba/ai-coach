@@ -1,13 +1,14 @@
-'use client';
+"use client";
 
-import { Calendar, Clock, Mic } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { Calendar, Clock, Mic } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { DeleteSpeakingSessionButton } from "@/components/speaking/DeleteSpeakingSessionButton";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,7 +16,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -23,35 +24,65 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/pagination";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface SpeakingSession {
   _id: string;
   startTime: string;
   endTime?: string;
   duration?: number;
-  status: 'active' | 'completed' | 'interrupted';
+  status: "active" | "completed" | "interrupted";
   voice: string;
   modelName: string;
   transcripts?: Array<{
-    role: 'user' | 'assistant';
+    role: "user" | "assistant";
     text: string;
     timestamp: Date;
   }>;
   metadata?: {
-    mode?: 'realtime' | 'turn-based';
+    mode?: "realtime" | "turn-based";
     scenario?: string;
     level?: string;
+  };
+  feedback?: {
+    fluencyScore?: number;
+    accuracyScore?: number;
+    vocabularyScore?: number;
+    pronunciationScore?: number;
+    completenessScore?: number;
+    grammarScore?: number;
+    prosodyScore?: number;
+    speakingRate?: number;
+    overallScore?: number;
+    strengths?: string[];
+    areasForImprovement?: string[];
+    suggestions?: string;
+    grammarIssues?: Array<{
+      text: string;
+      issue: string;
+      correction: string;
+      explanation: string;
+    }>;
+    mispronunciations?: Array<{
+      word: string;
+      phonemes?: Array<{
+        phoneme: string;
+        score: number;
+      }>;
+      pronunciationScore: number;
+      offset: number;
+      duration: number;
+    }>;
   };
 }
 
 export default function SpeakingDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentPage = searchParams?.get('page')
-    ? parseInt(searchParams.get('page')!)
+  const currentPage = searchParams?.get("page")
+    ? parseInt(searchParams.get("page")!)
     : 1;
   const { data: session } = useSession();
   const [sessions, setSessions] = useState<SpeakingSession[]>([]);
@@ -63,42 +94,44 @@ export default function SpeakingDashboard() {
     limit: 8,
   });
 
-  useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        setLoading(true);
+  // Function to fetch sessions data
+  const fetchSessions = async () => {
+    try {
+      setLoading(true);
 
-        const response = await fetch(
-          `/api/speaking/sessions?page=${currentPage}`
-        );
-        if (!response.ok) {
-          throw new Error('Failed to fetch speaking sessions');
-        }
-
-        const data = await response.json();
-        setSessions(data.sessions);
-        if (data.pagination) {
-          setPagination(data.pagination);
-        }
-      } catch (error) {
-        console.error('Error fetching speaking sessions:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load speaking sessions. Please try again.',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
+      const response = await fetch(
+        `/api/speaking/sessions?page=${currentPage}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch speaking sessions");
       }
-    };
 
+      const data = await response.json();
+      setSessions(data.sessions);
+      if (data.pagination) {
+        setPagination(data.pagination);
+      }
+    } catch (error) {
+      console.error("Error fetching speaking sessions:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load speaking sessions. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Initial fetch when component mounts or page changes
+  useEffect(() => {
     if (session?.user) {
       fetchSessions();
     }
   }, [session, currentPage]);
 
   const formatDuration = (seconds?: number): string => {
-    if (!seconds) return 'N/A';
+    if (!seconds) return "N/A";
 
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -107,26 +140,26 @@ export default function SpeakingDashboard() {
   };
 
   const formatDate = (dateString?: string): string => {
-    if (!dateString) return 'N/A';
+    if (!dateString) return "N/A";
 
     return new Date(dateString).toLocaleString();
   };
 
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, session: SpeakingSession) => {
     switch (status) {
-      case 'completed':
+      case "completed":
         return (
           <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
             Completed
           </Badge>
         );
-      case 'active':
+      case "active":
         return (
           <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
             Active
           </Badge>
         );
-      case 'interrupted':
+      case "interrupted":
         return (
           <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
             Interrupted
@@ -139,21 +172,21 @@ export default function SpeakingDashboard() {
 
   // Helper function to get a more descriptive session type
   const getSessionType = (session: SpeakingSession): string => {
-    if (session.metadata?.mode === 'turn-based') {
-      return 'Turn-Based Conversation';
-    } else if (session.metadata?.mode === 'realtime') {
-      return 'Realtime Conversation';
+    if (session.metadata?.mode === "turn-based") {
+      return "Turn-Based Conversation";
+    } else if (session.metadata?.mode === "realtime") {
+      return "Realtime Conversation";
     }
-    return 'Speaking Practice';
+    return "Speaking Practice";
   };
 
   // Helper function to get a formatted scenario name
   const getScenarioName = (scenario?: string): string => {
-    if (!scenario || scenario === 'free') return 'Free Conversation';
+    if (!scenario || scenario === "free") return "Free Conversation";
 
     // Capitalize first letter and add spaces
     return scenario
-      .replace(/([A-Z])/g, ' $1') // Add space before capital letters
+      .replace(/([A-Z])/g, " $1") // Add space before capital letters
       .replace(/^./, str => str.toUpperCase()); // Capitalize first letter
   };
 
@@ -177,7 +210,7 @@ export default function SpeakingDashboard() {
       0
     );
     const completedSessions = sessions.filter(
-      s => s.status === 'completed'
+      s => s.status === "completed"
     ).length;
     const avgDuration = totalTime / sessions.length;
 
@@ -198,7 +231,7 @@ export default function SpeakingDashboard() {
     sessions.forEach(session => {
       if (session.transcripts) {
         session.transcripts.forEach(transcript => {
-          if (transcript.role === 'user' && transcript.text) {
+          if (transcript.role === "user" && transcript.text) {
             // Count words in user transcripts
             totalWords += transcript.text.split(/\s+/).filter(Boolean).length;
           }
@@ -323,7 +356,7 @@ export default function SpeakingDashboard() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm">
-                    Status: {getStatusBadge(sessions[0].status)}
+                    Status: {getStatusBadge(sessions[0].status, sessions[0])}
                   </span>
                 </div>
                 <div className="flex items-center">
@@ -403,7 +436,7 @@ export default function SpeakingDashboard() {
                         {formatDate(session.startTime)}
                       </CardDescription>
                     </div>
-                    {getStatusBadge(session.status)}
+                    {getStatusBadge(session.status, session)}
                   </div>
                 </CardHeader>
                 <CardContent className="flex-grow pb-3 pt-0">
@@ -436,7 +469,7 @@ export default function SpeakingDashboard() {
                     )}
                   </div>
                 </CardContent>
-                <CardFooter className="pt-0">
+                <CardFooter className="pt-0 flex flex-col gap-2">
                   <Button
                     variant="secondary"
                     className="w-full"
@@ -447,6 +480,7 @@ export default function SpeakingDashboard() {
                   >
                     View Details
                   </Button>
+                  <DeleteSpeakingSessionButton sessionId={session._id} />
                 </CardFooter>
               </Card>
             ))}

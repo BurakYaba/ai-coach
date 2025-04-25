@@ -1,12 +1,13 @@
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
 
-import DashboardHeader from '@/components/dashboard/header';
-import { authOptions } from '@/lib/auth';
+import DashboardHeader from "@/components/dashboard/header";
+import NotificationManager from "@/components/notifications/NotificationManager";
+import { authOptions } from "@/lib/auth";
 
 // Improves performance by reducing re-renders
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export default async function DashboardLayout({
   children,
@@ -16,7 +17,7 @@ export default async function DashboardLayout({
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect('/login');
+    redirect("/login");
   }
 
   return (
@@ -30,6 +31,8 @@ export default async function DashboardLayout({
       <DashboardHeader user={session.user} />
       <main className="flex-1">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Notification Manager - handles browser notifications */}
+          <NotificationManager />
           {children}
         </div>
       </main>

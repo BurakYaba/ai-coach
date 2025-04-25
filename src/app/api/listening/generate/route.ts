@@ -1,4 +1,8 @@
 import crypto from "crypto";
+import fs from "fs";
+import os from "os";
+import path from "path";
+import { promisify } from "util";
 
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
@@ -8,15 +12,26 @@ import { OpenAI } from "openai";
 import {
   createMultiSpeakerAudio,
   estimateAudioDuration,
+  parseTranscriptBySpeaker,
 } from "@/lib/audio-processor";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import { generateQuestions, extractVocabulary } from "@/lib/question-generator";
-import { normalizeQuestionType } from "@/lib/utils";
+import {
+  normalizeQuestionType,
+  getLevelScore,
+  calculateComplexity,
+} from "@/lib/utils";
 import ListeningSession from "@/models/ListeningSession";
 
 // Force dynamic rendering to handle server-side requests properly
 export const dynamic = "force-dynamic";
+
+// File system promisified functions
+const mkdtemp = promisify(fs.mkdtemp);
+const writeFile = promisify(fs.writeFile);
+const unlink = promisify(fs.unlink);
+const rmdir = promisify(fs.rmdir);
 
 // Initialize OpenAI with improved timeout handling
 const openai = new OpenAI({
@@ -25,6 +40,9 @@ const openai = new OpenAI({
   maxRetries: 3,
 });
 
+// Track ongoing generations to prevent duplicate requests
+const ongoingGenerations = new Map();
+
 // POST /api/listening/generate - Generate listening content
 export async function POST(req: NextRequest) {
   // Set a controller to handle timeouts more gracefully
@@ -32,6 +50,9 @@ export async function POST(req: NextRequest) {
   const timeoutId = setTimeout(() => {
     controller.abort();
   }, 55000); // 55 second timeout
+
+  // Create a temporary directory for processing files if needed
+  let tempDir = null;
 
   try {
     const session = await getServerSession(authOptions);
@@ -57,6 +78,24 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    // Create a generation key to prevent duplicate requests
+    const generationKey = `${userId}-${level}-${topic}-${contentType}-${targetLength}`;
+
+    // Check if this exact generation is already in progress
+    if (ongoingGenerations.has(generationKey)) {
+      clearTimeout(timeoutId);
+      return NextResponse.json(
+        {
+          error: "A similar generation is already in progress",
+          retryAfter: 30, // Suggest retry after 30 seconds
+        },
+        { status: 429 }
+      );
+    }
+
+    // Mark this generation as in progress
+    ongoingGenerations.set(generationKey, new Date());
 
     // Determine word count based on level and target length
     const wordCounts = {
@@ -102,9 +141,15 @@ export async function POST(req: NextRequest) {
     const speakerCount =
       speakerCountMap[contentType as keyof typeof speakerCountMap] || 2;
 
-    // Content generation process
+    // Create temporary directory if needed for file operations
+    tempDir = await mkdtemp(path.join(os.tmpdir(), "listening-"));
+
+    // Content generation process with better error handling
     try {
       // Step 1: Generate transcript using OpenAI
+      console.log(
+        `Generating ${level} ${contentType} transcript on topic "${topic}"...`
+      );
       const transcript = await generateTranscript(
         level,
         topic,
@@ -116,6 +161,13 @@ export async function POST(req: NextRequest) {
       // Check if operation was aborted due to timeout
       if (controller.signal.aborted) {
         clearTimeout(timeoutId);
+        ongoingGenerations.delete(generationKey);
+
+        // Clean up temp dir if it exists
+        if (tempDir) {
+          await rmdir(tempDir, { recursive: true }).catch(console.error);
+        }
+
         return NextResponse.json(
           {
             error:
@@ -126,12 +178,23 @@ export async function POST(req: NextRequest) {
         );
       }
 
+      // Parse transcript to analyze speaker segments (optional enhancement)
+      const segments = parseTranscriptBySpeaker(transcript);
+
       // Step 2: Create multi-speaker audio from transcript
+      console.log("Generating audio from transcript...");
       const audioResult = await createMultiSpeakerAudio(transcript);
 
       // Check if operation was aborted due to timeout after audio generation
       if (controller.signal.aborted) {
         clearTimeout(timeoutId);
+        ongoingGenerations.delete(generationKey);
+
+        // Clean up temp dir if it exists
+        if (tempDir) {
+          await rmdir(tempDir, { recursive: true }).catch(console.error);
+        }
+
         return NextResponse.json(
           {
             error:
@@ -142,29 +205,30 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Step 3: Generate questions
-      const questions = await generateQuestions(transcript, level);
+      // Run the following steps in parallel for better performance
+      const [questionsPromise, vocabularyPromise, titlePromise] =
+        await Promise.allSettled([
+          // Step 3: Generate questions in parallel
+          generateQuestions(transcript, level),
 
-      // Step 4: Extract vocabulary
-      const vocabulary = await extractVocabulary(transcript, level);
+          // Step 4: Extract vocabulary in parallel
+          extractVocabulary(transcript, level),
 
-      // Step 5: Generate title
-      const title = await generateTitle(transcript, topic, level);
+          // Step 5: Generate title in parallel
+          generateTitle(transcript, topic, level),
+        ]);
 
-      // After generating the transcript and creating the audio
-      // const segments = parseTranscriptBySpeaker(transcript); // Not used in this file
-      // The following is unused and can be commented out
-      // const speakers = segments.map(
-      //   (segment: {
-      //     speakerIndex: number;
-      //     speakerName: string;
-      //     detectedGender: 'male' | 'female' | 'unknown';
-      //   }) => ({
-      //     speakerIndex: segment.speakerIndex,
-      //     speakerName: segment.speakerName,
-      //     detectedGender: segment.detectedGender,
-      //   })
-      // );
+      // Extract results with fallbacks
+      const questions =
+        questionsPromise.status === "fulfilled" ? questionsPromise.value : [];
+
+      const vocabulary =
+        vocabularyPromise.status === "fulfilled" ? vocabularyPromise.value : [];
+
+      const title =
+        titlePromise.status === "fulfilled"
+          ? titlePromise.value
+          : `${topic} ${contentType} (${level})`;
 
       // Step 6: Create listening session with careful error handling
       try {
@@ -175,10 +239,39 @@ export async function POST(req: NextRequest) {
             q.type || "multiple-choice"
           );
 
-          // For debugging
-          console.log(
-            `Processing question ${index}: type=${normalizedType}, question="${q.question.substring(0, 30)}..."`
-          );
+          // Calculate a more informed timestamp based on word position if possible
+          let timestamp = 0;
+          try {
+            // Find the first few words of the question in the transcript
+            const questionWords = q.question
+              .split(" ")
+              .slice(0, 3)
+              .join(" ")
+              .toLowerCase();
+            const transcriptLower = transcript.toLowerCase();
+            const position = transcriptLower.indexOf(questionWords);
+
+            if (position !== -1) {
+              // Calculate approximate timestamp based on word position
+              const wordsBefore = transcript
+                .substring(0, position)
+                .split(/\s+/).length;
+              const totalWords = transcript.split(/\s+/).length;
+              timestamp = Math.floor(
+                (wordsBefore / totalWords) * audioResult.duration
+              );
+            } else {
+              // Fallback to evenly distributed timestamps
+              timestamp = Math.floor(
+                (index / questions.length) * audioResult.duration
+              );
+            }
+          } catch (err) {
+            // Fallback to evenly distributed timestamps
+            timestamp = Math.floor(
+              (index / questions.length) * audioResult.duration
+            );
+          }
 
           return {
             id: crypto.randomUUID
@@ -192,41 +285,51 @@ export async function POST(req: NextRequest) {
                 : undefined,
             correctAnswer: q.correctAnswer,
             explanation: q.explanation || "Explanation not provided",
-            timestamp: Math.floor(Math.random() * audioResult.duration), // Random timestamp for now
+            timestamp: timestamp,
           };
         });
 
         // Prepare vocabulary with timestamps and difficulty
         const timestampedVocabulary = vocabulary.map(
           (v: any, index: number) => {
-            // For debugging
-            console.log(
-              `Processing vocabulary ${index}: word="${v.word}", examples=${Array.isArray(v.examples) ? v.examples.length : "none"}`
-            );
+            // Try to find the word in the transcript for timestamp
+            let timestamp = 0;
+            try {
+              const wordPosition = transcript
+                .toLowerCase()
+                .indexOf(v.word.toLowerCase());
+              if (wordPosition !== -1) {
+                // Calculate timestamp based on word position
+                const wordsBefore = transcript
+                  .substring(0, wordPosition)
+                  .split(/\s+/).length;
+                const totalWords = transcript.split(/\s+/).length;
+                timestamp = Math.floor(
+                  (wordsBefore / totalWords) * audioResult.duration
+                );
+              } else {
+                // Fallback to evenly distributed timestamps
+                timestamp = Math.floor(
+                  (index / vocabulary.length) * audioResult.duration
+                );
+              }
+            } catch (err) {
+              // Fallback to evenly distributed timestamps
+              timestamp = Math.floor(
+                (index / vocabulary.length) * audioResult.duration
+              );
+            }
 
             return {
-              word: v.word || "",
-              definition: v.definition || "",
-              context: v.context || "No example provided",
-              examples:
-                Array.isArray(v.examples) && v.examples.length > 0
-                  ? v.examples
-                  : [
-                      `Example: ${v.word} is commonly used in everyday conversation.`,
-                      `Example: You can practice using ${v.word} in different contexts.`,
-                    ],
-              difficulty: Math.floor(Math.random() * 5) + 1, // Random difficulty between 1-5
-              timestamp: Math.floor(Math.random() * audioResult.duration), // Random timestamp for now
+              ...v,
+              timestamp,
+              // Default difficulty based on level if not provided
+              difficulty: v.difficulty || calculateComplexity(level) / 2,
             };
           }
         );
 
-        // Calculate listening level based on CEFR level
-        const listeningLevel = getLevelScore(level);
-
-        // Get suggested next topics
-        const suggestedTopics = await suggestNextTopics(topic, level);
-
+        // Step 7: Create the listening session
         const listeningSession = await ListeningSession.create({
           userId: userObjectId,
           title,
@@ -238,7 +341,7 @@ export async function POST(req: NextRequest) {
           level,
           topic,
           contentType,
-          duration: audioResult.duration || estimateAudioDuration(transcript),
+          duration: audioResult.duration,
           questions: timestampedQuestions,
           vocabulary: timestampedVocabulary,
           userProgress: {
@@ -251,83 +354,99 @@ export async function POST(req: NextRequest) {
             replays: [],
           },
           aiAnalysis: {
-            listeningLevel: listeningLevel,
+            listeningLevel: getLevelScore(level),
             complexityScore: calculateComplexity(level),
-            topicRelevance: 1, // Default value
-            suggestedNextTopics: suggestedTopics,
+            topicRelevance: 10, // Default to maximum relevance
+            suggestedNextTopics: [], // We could generate these in the future
           },
+          // This is a user-generated session, not a library item
+          isLibrary: false,
         });
 
-        return NextResponse.json(listeningSession, { status: 201 });
-      } catch (dbError) {
-        console.error("Database error creating listening session:", dbError);
+        // Clean up
         clearTimeout(timeoutId);
-        return NextResponse.json(
-          {
-            error: "Failed to create listening session",
-            details: (dbError as Error).message,
-            modelError: true,
-            retryable: true,
-          },
-          { status: 400 }
-        );
-      }
-    } catch (processingError) {
-      clearTimeout(timeoutId);
+        ongoingGenerations.delete(generationKey);
 
-      // Check if the operation was aborted due to timeout
-      if (controller.signal.aborted) {
+        // Clean up temp dir if it exists
+        if (tempDir) {
+          await rmdir(tempDir, { recursive: true }).catch(console.error);
+        }
+
+        return NextResponse.json(listeningSession);
+      } catch (sessionError) {
+        console.error("Error creating listening session:", sessionError);
+        clearTimeout(timeoutId);
+        ongoingGenerations.delete(generationKey);
+
+        // Clean up temp dir if it exists
+        if (tempDir) {
+          await rmdir(tempDir, { recursive: true }).catch(console.error);
+        }
+
         return NextResponse.json(
           {
-            error:
-              "Content generation timed out. Please try again with simpler parameters.",
+            error: "Failed to save listening session",
             details:
-              "The operation took too long to complete. Try using a shorter content length or different topic.",
-            retryable: true,
-            stage: "timeout",
+              sessionError instanceof Error
+                ? sessionError.message
+                : "Unknown error",
+            url: audioResult.url, // Still return the generated audio URL so it's not lost
           },
-          { status: 504 }
+          { status: 500 }
         );
       }
+    } catch (genError) {
+      console.error("Content generation error:", genError);
+      clearTimeout(timeoutId);
+      ongoingGenerations.delete(generationKey);
 
-      console.error("Error processing content:", processingError);
+      // Clean up temp dir if it exists
+      if (tempDir) {
+        await rmdir(tempDir, { recursive: true }).catch(console.error);
+      }
+
       return NextResponse.json(
         {
-          error: "Error generating content",
-          details: (processingError as Error).message,
-          stage: "content_processing",
-          retryable: true,
+          error: "Failed to generate content",
+          details:
+            genError instanceof Error ? genError.message : "Unknown error",
         },
         { status: 500 }
       );
     }
   } catch (error) {
+    console.error("Top-level error in listening generation:", error);
     clearTimeout(timeoutId);
-    console.error("Error generating listening content:", error);
 
-    // Check if the operation was aborted due to timeout
-    if (controller.signal.aborted) {
-      return NextResponse.json(
-        {
-          error: "Operation timed out. Please try again.",
-          details:
-            "The request took too long to process. Try again or choose different parameters.",
-          retryable: true,
-        },
-        { status: 504 }
-      );
+    // Clean up temp dir if it exists
+    if (tempDir) {
+      await rmdir(tempDir, { recursive: true }).catch(console.error);
     }
 
     return NextResponse.json(
       {
-        error: "Error generating listening content",
-        details: (error as Error).message,
-        retryable: true,
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
   }
 }
+
+// Clean up old entries in the ongoingGenerations map
+function cleanupOngoingGenerations() {
+  const now = new Date();
+  // Use Array.from to convert the Map entries to an array first
+  Array.from(ongoingGenerations.entries()).forEach(([key, startTime]) => {
+    // Remove entries older than 5 minutes
+    if (now.getTime() - startTime.getTime() > 5 * 60 * 1000) {
+      ongoingGenerations.delete(key);
+    }
+  });
+}
+
+// Run cleanup every minute
+setInterval(cleanupOngoingGenerations, 60 * 1000);
 
 // Helper function to generate transcript using OpenAI
 async function generateTranscript(
@@ -510,30 +629,4 @@ async function suggestNextTopics(
       `${topic} in different contexts`,
     ];
   }
-}
-
-// Helper function to convert CEFR level to numeric score (1-10 scale)
-function getLevelScore(level: string): number {
-  const levelScores: Record<string, number> = {
-    A1: 1,
-    A2: 2,
-    B1: 4,
-    B2: 6,
-    C1: 8,
-    C2: 10,
-  };
-  return levelScores[level] || 5; // Default to mid-level (5) if unknown
-}
-
-// Helper function to calculate complexity based on level (1-10 scale)
-function calculateComplexity(level: string): number {
-  const levelComplexity: Record<string, number> = {
-    A1: 1,
-    A2: 3,
-    B1: 5,
-    B2: 7,
-    C1: 9,
-    C2: 10,
-  };
-  return levelComplexity[level] || 5; // Default to mid-level (5) if unknown
 }

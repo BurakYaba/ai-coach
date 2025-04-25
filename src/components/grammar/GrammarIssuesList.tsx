@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { format } from 'date-fns';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { format } from "date-fns";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,15 +13,15 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Pagination,
   PaginationContent,
@@ -29,20 +29,20 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
+} from "@/components/ui/pagination";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface GrammarIssue {
   _id: string;
-  sourceModule: 'writing' | 'speaking';
+  sourceModule: "writing" | "speaking";
   issue: {
     type: string;
     text: string;
@@ -59,9 +59,9 @@ export default function GrammarIssuesList() {
   const router = useRouter();
   const [issues, setIssues] = useState<GrammarIssue[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categoryFilter, setCategoryFilter] = useState<string>('all');
-  const [levelFilter, setLevelFilter] = useState<string>('all');
-  const [resolvedFilter, setResolvedFilter] = useState<string>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [levelFilter, setLevelFilter] = useState<string>("all");
+  const [resolvedFilter, setResolvedFilter] = useState<string>("all");
   const [selectedIssues, setSelectedIssues] = useState<string[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [levels, setLevels] = useState<string[]>([]);
@@ -83,23 +83,23 @@ export default function GrammarIssuesList() {
     setLoading(true);
     try {
       // Build the query string based on filters
-      let url = '/api/grammar/issues?limit=50';
+      let url = "/api/grammar/issues?limit=50";
 
-      if (categoryFilter !== 'all') {
+      if (categoryFilter !== "all") {
         url += `&category=${encodeURIComponent(categoryFilter)}`;
       }
 
-      if (levelFilter !== 'all') {
+      if (levelFilter !== "all") {
         url += `&ceferLevel=${encodeURIComponent(levelFilter)}`;
       }
 
-      if (resolvedFilter !== 'all') {
-        url += `&resolved=${resolvedFilter === 'resolved'}`;
+      if (resolvedFilter !== "all") {
+        url += `&resolved=${resolvedFilter === "resolved"}`;
       }
 
       const response = await fetch(url);
       if (!response.ok) {
-        throw new Error('Failed to fetch grammar issues');
+        throw new Error("Failed to fetch grammar issues");
       }
 
       const data = await response.json();
@@ -119,11 +119,11 @@ export default function GrammarIssuesList() {
       );
       setLevels(uniqueLevels as string[]);
     } catch (error) {
-      console.error('Error fetching grammar issues:', error);
+      console.error("Error fetching grammar issues:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load grammar issues',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load grammar issues",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -133,18 +133,18 @@ export default function GrammarIssuesList() {
   const markIssuesResolved = async (resolved: boolean) => {
     if (selectedIssues.length === 0) {
       toast({
-        title: 'No issues selected',
-        description: 'Please select at least one issue to mark as resolved',
-        variant: 'default',
+        title: "No issues selected",
+        description: "Please select at least one issue to mark as resolved",
+        variant: "default",
       });
       return;
     }
 
     try {
-      const response = await fetch('/api/grammar/issues', {
-        method: 'PATCH',
+      const response = await fetch("/api/grammar/issues", {
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           issueIds: selectedIssues,
@@ -153,13 +153,13 @@ export default function GrammarIssuesList() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update issues');
+        throw new Error("Failed to update issues");
       }
 
       const data = await response.json();
 
       toast({
-        title: 'Success',
+        title: "Success",
         description: `${data.modifiedCount} issues updated`,
       });
 
@@ -168,11 +168,11 @@ export default function GrammarIssuesList() {
       // Clear selection
       setSelectedIssues([]);
     } catch (error) {
-      console.error('Error updating issues:', error);
+      console.error("Error updating issues:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update issues',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update issues",
+        variant: "destructive",
       });
     }
   };
@@ -180,9 +180,9 @@ export default function GrammarIssuesList() {
   const generateLessonFromSelected = async () => {
     if (selectedIssues.length === 0) {
       toast({
-        title: 'No issues selected',
-        description: 'Please select at least one issue to generate a lesson',
-        variant: 'default',
+        title: "No issues selected",
+        description: "Please select at least one issue to generate a lesson",
+        variant: "default",
       });
       return;
     }
@@ -212,10 +212,10 @@ export default function GrammarIssuesList() {
         (a, b) => b[1] - a[1]
       )[0][0];
 
-      const response = await fetch('/api/grammar/lessons/generate', {
-        method: 'POST',
+      const response = await fetch("/api/grammar/lessons/generate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           issueIds: selectedIssues,
@@ -225,24 +225,24 @@ export default function GrammarIssuesList() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to generate lesson');
+        throw new Error("Failed to generate lesson");
       }
 
       const data = await response.json();
 
       toast({
-        title: 'Lesson created',
+        title: "Lesson created",
         description: `New lesson created: ${data.lesson.title}`,
       });
 
       // Navigate to the lesson
       router.push(`/dashboard/grammar/lessons/${data.lesson._id}`);
     } catch (error: any) {
-      console.error('Error generating lesson:', error);
+      console.error("Error generating lesson:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to generate lesson',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to generate lesson",
+        variant: "destructive",
       });
     }
   };
@@ -274,14 +274,14 @@ export default function GrammarIssuesList() {
     return resolved ? (
       <Badge
         variant="outline"
-        className="bg-green-50 text-green-700 border-green-200"
+        className="bg-green-50 text-green-700 border-green-200 transition-colors group-hover:bg-green-100"
       >
         Resolved
       </Badge>
     ) : (
       <Badge
         variant="outline"
-        className="bg-orange-50 text-orange-700 border-orange-200"
+        className="bg-orange-50 text-orange-700 border-orange-200 transition-colors group-hover:bg-orange-100"
       >
         Unresolved
       </Badge>
@@ -332,7 +332,7 @@ export default function GrammarIssuesList() {
           No grammar issues found. Complete some writing or speaking exercises
           to collect grammar issues.
         </p>
-        <Button onClick={() => router.push('/dashboard/writing')}>
+        <Button onClick={() => router.push("/dashboard/writing")}>
           Try Writing Practice
         </Button>
       </div>
@@ -354,8 +354,8 @@ export default function GrammarIssuesList() {
           />
           <label htmlFor="select-all" className="text-sm font-medium">
             {selectedIssues.length > 0
-              ? `Selected ${selectedIssues.length} ${selectedIssues.length === 1 ? 'issue' : 'issues'}`
-              : 'Select all'}
+              ? `Selected ${selectedIssues.length} ${selectedIssues.length === 1 ? "issue" : "issues"}`
+              : "Select all"}
           </label>
         </div>
 
@@ -428,30 +428,36 @@ export default function GrammarIssuesList() {
         {currentIssues.map(issue => (
           <Card
             key={issue._id}
-            className={`h-full flex flex-col ${
-              selectedIssues.includes(issue._id) ? 'border-primary' : ''
+            className={`h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer group ${
+              selectedIssues.includes(issue._id) ? "border-primary" : ""
             }`}
+            onClick={() => viewExplanation(issue)}
           >
-            <CardHeader className="pb-3">
+            <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-base mb-1 flex items-center gap-2">
-                    <Checkbox
-                      checked={selectedIssues.includes(issue._id)}
-                      onClick={() => toggleIssueSelection(issue._id)}
-                      className="mr-1"
-                    />
-                    <span className="capitalize">{issue.category}</span>
-                  </CardTitle>
-                  <CardDescription className="text-xs">
-                    {format(new Date(issue.createdAt), 'PPP')}
-                  </CardDescription>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={selectedIssues.includes(issue._id)}
+                    onClick={e => {
+                      e.stopPropagation();
+                      toggleIssueSelection(issue._id);
+                    }}
+                    className="mr-1"
+                  />
+                  <div>
+                    <CardTitle className="text-base mb-1 capitalize">
+                      {issue.issue.type}
+                    </CardTitle>
+                    <CardDescription className="text-xs text-muted-foreground">
+                      {issue.issue.text.length} characters • {issue.category}
+                    </CardDescription>
+                  </div>
                 </div>
                 {getStatusBadge(issue.resolved)}
               </div>
             </CardHeader>
 
-            <CardContent className="flex-grow space-y-3 pt-0">
+            <CardContent className="flex-grow space-y-3 py-2">
               <div>
                 <p className="text-muted-foreground text-sm mb-1">
                   <span className="line-through">{issue.issue.text}</span>
@@ -460,30 +466,40 @@ export default function GrammarIssuesList() {
                   {issue.issue.correction}
                 </p>
               </div>
-
-              <div className="flex flex-wrap gap-2 text-xs">
-                <Badge variant="outline" className="text-xs">
-                  {issue.ceferLevel}
-                </Badge>
-                <Badge variant="outline" className="text-xs">
-                  {issue.sourceModule}
-                </Badge>
-                <div>
-                  <span className="font-medium">Type: </span>
-                  {issue.issue.type}
-                </div>
-              </div>
             </CardContent>
 
-            <CardFooter className="pt-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-muted-foreground w-full justify-start hover:bg-transparent hover:text-foreground p-0"
-                onClick={() => viewExplanation(issue)}
-              >
-                View explanation
-              </Button>
+            <CardFooter className="flex flex-col gap-3 pt-2">
+              <div className="w-full">
+                <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={`h-full ${issue.resolved ? "bg-green-500" : "bg-orange-500"}`}
+                    style={{ width: issue.resolved ? "100%" : "0%" }}
+                  ></div>
+                </div>
+              </div>
+
+              <div className="w-full flex justify-between items-center">
+                <div className="flex gap-2">
+                  <Badge variant="outline" className="text-xs">
+                    {issue.ceferLevel}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs capitalize">
+                    {issue.sourceModule}
+                  </Badge>
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs text-muted-foreground hover:text-foreground hover:bg-amber-100 px-3 py-1 h-auto rounded"
+                  onClick={e => {
+                    e.stopPropagation();
+                    viewExplanation(issue);
+                  }}
+                >
+                  View explanation
+                </Button>
+              </div>
             </CardFooter>
           </Card>
         ))}
@@ -500,7 +516,7 @@ export default function GrammarIssuesList() {
           </DialogHeader>
           <DialogDescription className="space-y-2">
             {selectedExplanation?.explanation
-              .split('\n')
+              .split("\n")
               .map((paragraph, i) => <p key={i}>{paragraph}</p>)}
           </DialogDescription>
         </DialogContent>

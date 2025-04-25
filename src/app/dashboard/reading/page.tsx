@@ -1,24 +1,24 @@
-import { AlertCircle } from 'lucide-react';
-import { Metadata } from 'next';
-import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { Suspense } from 'react';
+import { AlertCircle } from "lucide-react";
+import { Metadata } from "next";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { Suspense } from "react";
 
-import { ReadingProgressPage } from '@/components/reading/ReadingProgressPage';
-import { ReadingSessionList } from '@/components/reading/ReadingSessionList';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { authOptions } from '@/lib/auth';
+import { ReadingProgressPage } from "@/components/reading/ReadingProgressPage";
+import { ReadingSessionList } from "@/components/reading/ReadingSessionList";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { authOptions } from "@/lib/auth";
 
 export const metadata: Metadata = {
-  title: 'Reading Practice',
-  description: 'Improve your English reading skills with AI-powered content.',
+  title: "Reading Practice",
+  description: "Improve your English reading skills with AI-powered content.",
 };
 
 // Add dynamic = 'force-dynamic' to ensure page is not statically cached
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default async function ReadingPage({
   searchParams,
@@ -28,7 +28,7 @@ export default async function ReadingPage({
   const session = await getServerSession(authOptions);
 
   if (!session?.user) {
-    redirect('/login');
+    redirect("/login");
   }
 
   // Handle success and error messages from URL parameters
@@ -38,23 +38,23 @@ export default async function ReadingPage({
   // Set error message based on URL parameter
   if (searchParams.error) {
     switch (searchParams.error) {
-      case 'invalid-id':
-        errorMessage = 'Invalid session ID. Please try again.';
+      case "invalid-id":
+        errorMessage = "Invalid session ID. Please try again.";
         break;
-      case 'not-found':
-        errorMessage = 'Reading session not found.';
+      case "not-found":
+        errorMessage = "Reading session not found.";
         break;
-      case 'delete-failed':
-        errorMessage = 'Failed to delete reading session. Please try again.';
+      case "delete-failed":
+        errorMessage = "Failed to delete reading session. Please try again.";
         break;
       default:
-        errorMessage = 'An error occurred. Please try again.';
+        errorMessage = "An error occurred. Please try again.";
     }
   }
 
   // Set success message based on URL parameter
-  if (searchParams.success === 'deleted') {
-    successMessage = 'Reading session deleted successfully.';
+  if (searchParams.success === "deleted") {
+    successMessage = "Reading session deleted successfully.";
   }
 
   return (

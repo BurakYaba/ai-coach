@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import { dbConnect } from '@/lib/db';
-import { OpenAIWritingAnalyzer } from '@/lib/openai-writing-analyzer';
-import GrammarIssue from '@/models/GrammarIssue';
-import WritingSession, { IWritingSession } from '@/models/WritingSession';
+import { authOptions } from "@/lib/auth";
+import { dbConnect } from "@/lib/db";
+import { OpenAIWritingAnalyzer } from "@/lib/openai-writing-analyzer";
+import GrammarIssue from "@/models/GrammarIssue";
+import WritingSession, { IWritingSession } from "@/models/WritingSession";
 
 // Set to force-dynamic to handle server-side requests properly
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Initialize the OpenAI Analyzer
 const openaiAnalyzer = new OpenAIWritingAnalyzer();
@@ -21,7 +21,7 @@ export async function POST(
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(
-        { error: 'You must be logged in to analyze a writing session' },
+        { error: "You must be logged in to analyze a writing session" },
         { status: 401 }
       );
     }
@@ -31,7 +31,7 @@ export async function POST(
     const { id } = params;
     if (!id) {
       return NextResponse.json(
-        { error: 'Invalid session ID' },
+        { error: "Invalid session ID" },
         { status: 400 }
       );
     }
@@ -43,14 +43,14 @@ export async function POST(
 
     if (!writingSession) {
       return NextResponse.json(
-        { error: 'Writing session not found' },
+        { error: "Writing session not found" },
         { status: 404 }
       );
     }
 
-    if (writingSession.status !== 'submitted') {
+    if (writingSession.status !== "submitted") {
       return NextResponse.json(
-        { error: 'Writing session must be submitted before analysis' },
+        { error: "Writing session must be submitted before analysis" },
         { status: 400 }
       );
     }
@@ -68,7 +68,7 @@ export async function POST(
       clearTimeout(timeoutId);
 
       writingSession.analysis = analysis;
-      writingSession.status = 'analyzed';
+      writingSession.status = "analyzed";
       writingSession.analyzedAt = new Date();
 
       // Store any grammar issues identified in the analysis
@@ -81,12 +81,12 @@ export async function POST(
         analysis.details.grammar.errorList.length > 0
       ) {
         // Determine CEFR level based on vocabulary complexity or user level
-        let ceferLevel = 'B1'; // Default level
+        let ceferLevel = "B1"; // Default level
 
         // If vocabulary level is available in the analysis, use it
         if (analysis.details.vocabulary && analysis.details.vocabulary.level) {
           const vocabLevel = analysis.details.vocabulary.level.toUpperCase();
-          if (['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].includes(vocabLevel)) {
+          if (["A1", "A2", "B1", "B2", "C1", "C2"].includes(vocabLevel)) {
             ceferLevel = vocabLevel;
           }
         }
@@ -96,7 +96,7 @@ export async function POST(
           (error: any) => {
             return GrammarIssue.create({
               userId: writingSession.userId,
-              sourceModule: 'writing',
+              sourceModule: "writing",
               sourceSessionId: writingSession._id,
               issue: {
                 type: error.type,
@@ -105,7 +105,7 @@ export async function POST(
                 explanation: error.explanation,
               },
               ceferLevel: ceferLevel,
-              category: error.type.split(' ')[0].toLowerCase(), // Extract category from error type
+              category: error.type.split(" ")[0].toLowerCase(), // Extract category from error type
               resolved: false,
             });
           }
@@ -124,14 +124,14 @@ export async function POST(
       // Clear the timeout
       clearTimeout(timeoutId);
 
-      console.error('Analysis error:', analysisError);
+      console.error("Analysis error:", analysisError);
 
       // Check if the operation was aborted due to timeout
       if (controller.signal.aborted) {
         return NextResponse.json(
           {
             error:
-              'Analysis timed out. The essay may be too long or our servers are experiencing high load.',
+              "Analysis timed out. The essay may be too long or our servers are experiencing high load.",
             retryable: true,
           },
           { status: 504 }
@@ -144,20 +144,20 @@ export async function POST(
           error:
             analysisError instanceof Error
               ? analysisError.message
-              : 'Failed to analyze writing',
+              : "Failed to analyze writing",
           retryable: true,
         },
         { status: 500 }
       );
     }
   } catch (error) {
-    console.error('Unexpected error in writing analysis route:', error);
+    console.error("Unexpected error in writing analysis route:", error);
     return NextResponse.json(
       {
         error:
           error instanceof Error
             ? error.message
-            : 'An unexpected error occurred',
+            : "An unexpected error occurred",
         retryable: true,
       },
       { status: 500 }
@@ -168,21 +168,21 @@ export async function POST(
 async function analyzeWriting(writingSession: IWritingSession) {
   // Extract content and prompt information
   const { submission, prompt } = writingSession;
-  const content = submission.content || '';
+  const content = submission.content || "";
   const promptType = prompt.type;
   const promptTopic = prompt.topic;
   const targetLength = prompt.targetLength || 0;
   const actualLength = submission.finalVersion?.wordCount || 0;
 
-  console.log('Using OpenAI for writing analysis...');
+  console.log("Using OpenAI for writing analysis...");
 
   // Check for user's language level in their profile, fallback to 'intermediate'
   // In a real app, you would fetch this from the user's profile
-  const userLevel = 'intermediate';
+  const userLevel = "intermediate";
 
   // Pass the prompt structure in the format expected by the analyzer
   const writingPrompt = {
-    text: prompt.text || '',
+    text: prompt.text || "",
     type: promptType,
     topic: promptTopic,
     targetLength: targetLength,
@@ -201,7 +201,7 @@ async function analyzeWriting(writingSession: IWritingSession) {
       level: userLevel,
     });
 
-    console.log('OpenAI analysis successful');
+    console.log("OpenAI analysis successful");
 
     // Assessment of the length requirement
     const lengthAssessment = assessLength(actualLength, targetLength);
@@ -235,29 +235,67 @@ async function analyzeWriting(writingSession: IWritingSession) {
           errorList: openAIAnalysis.grammarIssues,
           suggestions: openAIAnalysis.feedback.improvements.filter(
             item =>
-              item.toLowerCase().includes('grammar') ||
-              item.toLowerCase().includes('spelling') ||
-              item.toLowerCase().includes('punctuation') ||
-              item.toLowerCase().includes('sentence') ||
-              item.toLowerCase().startsWith('grammar:')
+              item.toLowerCase().includes("grammar") ||
+              item.toLowerCase().includes("spelling") ||
+              item.toLowerCase().includes("punctuation") ||
+              item.toLowerCase().includes("sentence") ||
+              item.toLowerCase().startsWith("grammar:")
           ),
           strengths: openAIAnalysis.feedback.strengths.filter(
             item =>
-              item.toLowerCase().includes('grammar') ||
-              item.toLowerCase().includes('spelling') ||
-              item.toLowerCase().includes('punctuation') ||
-              item.toLowerCase().includes('sentence') ||
-              item.toLowerCase().startsWith('grammar strength')
+              item.toLowerCase().includes("grammar") ||
+              item.toLowerCase().includes("spelling") ||
+              item.toLowerCase().includes("punctuation") ||
+              item.toLowerCase().includes("sentence") ||
+              item.toLowerCase().startsWith("grammar strength")
           ),
-          improvements: openAIAnalysis.feedback.improvements.filter(
-            item =>
-              item.toLowerCase().includes('grammar') ||
-              item.toLowerCase().includes('spelling') ||
-              item.toLowerCase().includes('punctuation') ||
-              item.toLowerCase().includes('sentence') ||
-              item.toLowerCase().startsWith('grammar:') ||
-              item.toLowerCase().startsWith('grammar improvement')
-          ),
+          improvements: (() => {
+            // Filter grammar-related improvements
+            const grammarImprovements = [
+              // First try to get improvements from areasForImprovement (new format)
+              ...(openAIAnalysis.feedback.areasForImprovement || []),
+              // Then try from regular improvements (old format)
+              ...(openAIAnalysis.feedback.improvements || []),
+            ].filter(
+              item =>
+                item.toLowerCase().includes("grammar") ||
+                item.toLowerCase().includes("spelling") ||
+                item.toLowerCase().includes("punctuation") ||
+                item.toLowerCase().includes("sentence") ||
+                item.toLowerCase().includes("verb") ||
+                item.toLowerCase().includes("tense") ||
+                item.toLowerCase().includes("article") ||
+                item.toLowerCase().includes("preposition") ||
+                item.toLowerCase().startsWith("grammar:") ||
+                item.toLowerCase().startsWith("grammar improvement")
+            );
+
+            // If no grammar improvements found, add default ones based on grammarIssues
+            if (grammarImprovements.length === 0) {
+              // Check if there are grammar issues to reference
+              if (
+                openAIAnalysis.grammarIssues &&
+                openAIAnalysis.grammarIssues.length > 0
+              ) {
+                // Create improvements based on the top grammar issues
+                return openAIAnalysis.grammarIssues
+                  .slice(0, 3)
+                  .map(
+                    issue =>
+                      `Grammar improvement: ${issue.type} - ${issue.explanation}`
+                  );
+              }
+
+              // If no specific issues, return general grammar improvement suggestions
+              return [
+                "Grammar improvement: Review your use of punctuation, particularly commas and periods, to ensure proper sentence structure.",
+                "Grammar improvement: Pay attention to subject-verb agreement throughout your writing.",
+                "Grammar improvement: Check for consistent verb tense usage across paragraphs.",
+              ];
+            }
+
+            return grammarImprovements;
+          })(),
         },
         vocabulary: {
           score: openAIAnalysis.vocabularyScore,
@@ -267,20 +305,20 @@ async function analyzeWriting(writingSession: IWritingSession) {
             openAIAnalysis.vocabularyAnalysis.strengths ||
             openAIAnalysis.feedback.strengths.filter(
               item =>
-                item.toLowerCase().includes('vocabulary') ||
-                item.toLowerCase().includes('word') ||
-                item.toLowerCase().includes('term') ||
-                item.toLowerCase().startsWith('vocabulary strength')
+                item.toLowerCase().includes("vocabulary") ||
+                item.toLowerCase().includes("word") ||
+                item.toLowerCase().includes("term") ||
+                item.toLowerCase().startsWith("vocabulary strength")
             ),
           improvements:
             openAIAnalysis.vocabularyAnalysis.improvements ||
             openAIAnalysis.feedback.improvements.filter(
               item =>
-                item.toLowerCase().includes('vocabulary') ||
-                item.toLowerCase().includes('word') ||
-                item.toLowerCase().includes('term') ||
-                item.toLowerCase().startsWith('vocabulary:') ||
-                item.toLowerCase().startsWith('vocabulary improvement')
+                item.toLowerCase().includes("vocabulary") ||
+                item.toLowerCase().includes("word") ||
+                item.toLowerCase().includes("term") ||
+                item.toLowerCase().startsWith("vocabulary:") ||
+                item.toLowerCase().startsWith("vocabulary improvement")
             ),
           wordFrequency: openAIAnalysis.vocabularyAnalysis.wordFrequency,
         },
@@ -288,22 +326,22 @@ async function analyzeWriting(writingSession: IWritingSession) {
           score: openAIAnalysis.coherenceScore,
           strengths: openAIAnalysis.feedback.strengths.filter(
             item =>
-              item.toLowerCase().includes('structure') ||
-              item.toLowerCase().includes('organization') ||
-              item.toLowerCase().includes('coherence') ||
-              item.toLowerCase().includes('flow') ||
-              item.toLowerCase().includes('paragraph') ||
-              item.toLowerCase().startsWith('structure strength')
+              item.toLowerCase().includes("structure") ||
+              item.toLowerCase().includes("organization") ||
+              item.toLowerCase().includes("coherence") ||
+              item.toLowerCase().includes("flow") ||
+              item.toLowerCase().includes("paragraph") ||
+              item.toLowerCase().startsWith("structure strength")
           ),
           improvements: openAIAnalysis.feedback.improvements.filter(
             item =>
-              item.toLowerCase().includes('structure') ||
-              item.toLowerCase().includes('organization') ||
-              item.toLowerCase().includes('coherence') ||
-              item.toLowerCase().includes('flow') ||
-              item.toLowerCase().includes('paragraph') ||
-              item.toLowerCase().startsWith('structure:') ||
-              item.toLowerCase().startsWith('structure improvement')
+              item.toLowerCase().includes("structure") ||
+              item.toLowerCase().includes("organization") ||
+              item.toLowerCase().includes("coherence") ||
+              item.toLowerCase().includes("flow") ||
+              item.toLowerCase().includes("paragraph") ||
+              item.toLowerCase().startsWith("structure:") ||
+              item.toLowerCase().startsWith("structure improvement")
           ),
         },
         content: {
@@ -312,31 +350,31 @@ async function analyzeWriting(writingSession: IWritingSession) {
           depth: Math.min(100, openAIAnalysis.vocabularyScore + 5),
           strengths: openAIAnalysis.feedback.strengths.filter(
             item =>
-              item.toLowerCase().includes('content') ||
-              item.toLowerCase().includes('idea') ||
-              item.toLowerCase().includes('argument') ||
-              item.toLowerCase().includes('point') ||
-              item.toLowerCase().includes('topic') ||
-              item.toLowerCase().startsWith('content strength')
+              item.toLowerCase().includes("content") ||
+              item.toLowerCase().includes("idea") ||
+              item.toLowerCase().includes("argument") ||
+              item.toLowerCase().includes("point") ||
+              item.toLowerCase().includes("topic") ||
+              item.toLowerCase().startsWith("content strength")
           ),
           improvements: openAIAnalysis.feedback.improvements.filter(
             item =>
-              item.toLowerCase().includes('content') ||
-              item.toLowerCase().includes('idea') ||
-              item.toLowerCase().includes('argument') ||
-              item.toLowerCase().includes('point') ||
-              item.toLowerCase().includes('topic') ||
-              item.toLowerCase().startsWith('content:') ||
-              item.toLowerCase().startsWith('content improvement')
+              item.toLowerCase().includes("content") ||
+              item.toLowerCase().includes("idea") ||
+              item.toLowerCase().includes("argument") ||
+              item.toLowerCase().includes("point") ||
+              item.toLowerCase().includes("topic") ||
+              item.toLowerCase().startsWith("content:") ||
+              item.toLowerCase().startsWith("content improvement")
           ),
         },
       },
       timestamp: new Date(),
     };
   } catch (error) {
-    console.error('Error during writing analysis:', error);
+    console.error("Error during writing analysis:", error);
     throw new Error(
-      `Failed to analyze writing: ${error instanceof Error ? error.message : 'Unknown error'}`
+      `Failed to analyze writing: ${error instanceof Error ? error.message : "Unknown error"}`
     );
   }
 }
@@ -355,19 +393,19 @@ function assessLength(
     ((actualLength - targetLength) / targetLength) * 100;
 
   if (percentDifference < -30) {
-    assessment = 'too short';
+    assessment = "too short";
     feedback = `Your submission is significantly shorter than the target length of approximately ${targetLength} words. Consider expanding your ideas with more details and examples.`;
   } else if (percentDifference < -10) {
-    assessment = 'slightly short';
+    assessment = "slightly short";
     feedback = `Your submission is slightly shorter than the target length of approximately ${targetLength} words. You might want to develop some of your points further.`;
   } else if (percentDifference < 10) {
-    assessment = 'appropriate';
+    assessment = "appropriate";
     feedback = `Your submission meets the target length requirement of approximately ${targetLength} words.`;
   } else if (percentDifference < 30) {
-    assessment = 'slightly long';
+    assessment = "slightly long";
     feedback = `Your submission is slightly longer than the target length of approximately ${targetLength} words, but still acceptable.`;
   } else {
-    assessment = 'too long';
+    assessment = "too long";
     feedback = `Your submission is significantly longer than the target length of approximately ${targetLength} words. Consider making your writing more concise by removing redundancies.`;
   }
 

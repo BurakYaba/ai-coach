@@ -1,7 +1,8 @@
-'use client';
+"use client";
 
-import { DashboardNav } from './nav';
-import { UserNav } from './user-nav';
+import { DashboardNav } from "./nav";
+import { UserNav } from "./user-nav";
+import { XpProgress } from "./xp-progress";
 
 interface DashboardHeaderProps {
   user: {
@@ -24,6 +25,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
           </div>
         </div>
         <div className="flex items-center space-x-4">
+          <XpProgress />
           <UserNav user={user} />
         </div>
       </div>

@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import ReadingSession from '@/models/ReadingSession';
-import { VocabularyBank } from '@/models/VocabularyBank';
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import ReadingSession from "@/models/ReadingSession";
+import { VocabularyBank } from "@/models/VocabularyBank";
 
 // Define interface for reading session request data
 interface ReadingSessionData {
@@ -56,22 +56,22 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Parse query parameters
     const url = new URL(req.url);
-    const limit = parseInt(url.searchParams.get('limit') || '10');
-    const page = parseInt(url.searchParams.get('page') || '1');
-    const status = url.searchParams.get('status');
-    const level = url.searchParams.get('level');
-    const topic = url.searchParams.get('topic');
+    const limit = parseInt(url.searchParams.get("limit") || "8");
+    const page = parseInt(url.searchParams.get("page") || "1");
+    const status = url.searchParams.get("status");
+    const level = url.searchParams.get("level");
+    const topic = url.searchParams.get("topic");
 
     // Create filter based on query parameters
     const filter: FilterOptions = { userId: session.user.id };
 
     if (status) {
-      filter.status = status.split(',');
+      filter.status = status.split(",");
     }
 
     if (level) {
@@ -90,7 +90,7 @@ export async function GET(req: NextRequest) {
     const [sessions, total] = await Promise.all([
       ReadingSession.find(filter)
         .select(
-          'title level topic wordCount estimatedReadingTime questions vocabulary userProgress createdAt'
+          "title level topic wordCount estimatedReadingTime questions vocabulary userProgress createdAt"
         )
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -103,7 +103,7 @@ export async function GET(req: NextRequest) {
 
     // Set cache headers
     const headers = new Headers();
-    headers.set('Cache-Control', 'max-age=10');
+    headers.set("Cache-Control", "max-age=10");
 
     return NextResponse.json(
       {
@@ -118,10 +118,10 @@ export async function GET(req: NextRequest) {
       { headers }
     );
   } catch (error) {
-    console.error('Error in GET /api/reading/sessions:', error);
+    console.error("Error in GET /api/reading/sessions:", error);
     return NextResponse.json(
       {
-        error: 'Failed to fetch reading sessions',
+        error: "Failed to fetch reading sessions",
         details: (error as Error).message,
       },
       { status: 500 }
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const data = (await req.json()) as ReadingSessionData;
@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
     // Validate required fields
     if (!data.title || !data.content || !data.level || !data.topic) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -153,12 +153,12 @@ export async function POST(req: NextRequest) {
 
     // Map CEFR level to model enum values
     const levelMap: Record<string, string> = {
-      A1: 'A1',
-      A2: 'A2',
-      B1: 'B1',
-      B2: 'B2',
-      C1: 'C1',
-      C2: 'C2',
+      A1: "A1",
+      A2: "A2",
+      B1: "B1",
+      B2: "B2",
+      C1: "C1",
+      C2: "C2",
     };
 
     // Calculate word count if not provided
@@ -166,26 +166,26 @@ export async function POST(req: NextRequest) {
 
     // Calculate estimated reading time if not provided
     const estimatedReadingTime =
-      data.estimatedReadingTime || Math.ceil((wordCount / 200) * 60); // Average reading speed: 200 words per minute
+      data.estimatedReadingTime || Math.ceil(wordCount / 200); // Average reading speed: 200 words per minute
 
     // Ensure questions array exists
     const questions = data.questions
       ? data.questions.map((q: any) => {
           // Ensure the question has a valid type
-          let questionType = q.type || 'multiple-choice';
+          let questionType = q.type || "multiple-choice";
 
           // Fix the 'fill-in-the-blank' to match the enum value 'fill-blank'
-          if (questionType === 'fill-in-the-blank') {
-            questionType = 'fill-blank';
+          if (questionType === "fill-in-the-blank") {
+            questionType = "fill-blank";
           }
 
           // Ensure options are correctly formatted as string array
           let options = null;
           if (q.options) {
             if (Array.isArray(q.options) && q.options.length > 0) {
-              if (typeof q.options[0] === 'object' && q.options[0] !== null) {
+              if (typeof q.options[0] === "object" && q.options[0] !== null) {
                 options = q.options.map((opt: any) =>
-                  typeof opt === 'object' && opt.text ? opt.text : String(opt)
+                  typeof opt === "object" && opt.text ? opt.text : String(opt)
                 );
               } else if (Array.isArray(q.options)) {
                 options = q.options.map((opt: any) => String(opt));
@@ -200,15 +200,15 @@ export async function POST(req: NextRequest) {
             question: q.question || `Question about ${data.topic}`,
             // Ensure the type is one of the allowed enum values
             type:
-              questionType === 'fill-in-the-blank'
-                ? 'fill-blank'
+              questionType === "fill-in-the-blank"
+                ? "fill-blank"
                 : questionType,
             // Properly format options as array of strings
             options: options || [],
             // Ensure correctAnswer is present
-            correctAnswer: q.correctAnswer || 'A',
+            correctAnswer: q.correctAnswer || "A",
             // Ensure explanation is present
-            explanation: q.explanation || 'Explanation not provided',
+            explanation: q.explanation || "Explanation not provided",
           };
         })
       : [];
@@ -216,34 +216,34 @@ export async function POST(req: NextRequest) {
     // Create default AI analysis if not provided
     const aiAnalysis = data.aiAnalysis || {
       readingLevel:
-        levelMap[data.level] === 'A1'
+        levelMap[data.level] === "A1"
           ? 1
-          : levelMap[data.level] === 'A2'
+          : levelMap[data.level] === "A2"
             ? 2
-            : levelMap[data.level] === 'B1'
+            : levelMap[data.level] === "B1"
               ? 3
-              : levelMap[data.level] === 'B2'
+              : levelMap[data.level] === "B2"
                 ? 5
-                : levelMap[data.level] === 'C1'
+                : levelMap[data.level] === "C1"
                   ? 7
-                  : levelMap[data.level] === 'C2'
+                  : levelMap[data.level] === "C2"
                     ? 9
                     : 3,
       complexityScore:
-        levelMap[data.level] === 'A1'
+        levelMap[data.level] === "A1"
           ? 1
-          : levelMap[data.level] === 'A2'
+          : levelMap[data.level] === "A2"
             ? 2
-            : levelMap[data.level] === 'B1'
+            : levelMap[data.level] === "B1"
               ? 4
-              : levelMap[data.level] === 'B2'
+              : levelMap[data.level] === "B2"
                 ? 6
-                : levelMap[data.level] === 'C1'
+                : levelMap[data.level] === "C1"
                   ? 8
-                  : levelMap[data.level] === 'C2'
+                  : levelMap[data.level] === "C2"
                     ? 10
                     : 4,
-      topicRelevance: data.level === 'A1' || data.level === 'A2' ? 7 : 8,
+      topicRelevance: data.level === "A1" || data.level === "A2" ? 7 : 8,
       suggestedNextTopics: Array.isArray(data.topic)
         ? data.topic
         : [data.topic],
@@ -259,7 +259,7 @@ export async function POST(req: NextRequest) {
         `Reading session includes ${data.vocabulary.length} vocabulary words`
       );
     } else {
-      console.log('No vocabulary words included in this reading session');
+      console.log("No vocabulary words included in this reading session");
     }
 
     // Ensure vocabulary items have all required fields
@@ -271,7 +271,7 @@ export async function POST(req: NextRequest) {
           examples: Array.isArray(word.examples)
             ? word.examples
             : [`Example usage of "${word.word}".`],
-          difficulty: typeof word.difficulty === 'number' ? word.difficulty : 3,
+          difficulty: typeof word.difficulty === "number" ? word.difficulty : 3,
         }))
       : [];
 
@@ -281,11 +281,11 @@ export async function POST(req: NextRequest) {
       content: data.content,
       questions: questions,
       vocabulary: vocabulary,
-      level: levelMap[data.level] || 'B1', // Use CEFR level directly, default to B1 if mapping fails
-      topic: data.topic || 'General',
+      level: levelMap[data.level] || "B1", // Use CEFR level directly, default to B1 if mapping fails
+      topic: data.topic || "General",
       wordCount: wordCount,
       estimatedReadingTime: estimatedReadingTime,
-      status: 'active',
+      status: "active",
       userProgress: {
         completed: false,
         timeSpent: 0,
@@ -313,13 +313,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(readingSession);
   } catch (error) {
-    console.error('Error in POST /api/reading/sessions:', error);
+    console.error("Error in POST /api/reading/sessions:", error);
 
     // Check for MongoDB validation errors
-    if ((error as any).name === 'ValidationError') {
+    if ((error as any).name === "ValidationError") {
       return NextResponse.json(
         {
-          error: 'Validation error',
+          error: "Validation error",
           details: (error as any).message,
           fields: Object.keys((error as any).errors || {}),
         },
@@ -329,7 +329,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error: 'Failed to create reading session',
+        error: "Failed to create reading session",
         details: (error as Error).message,
       },
       { status: 500 }

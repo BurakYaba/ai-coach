@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import { VocabularyBank } from '@/models/VocabularyBank';
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import { VocabularyBank } from "@/models/VocabularyBank";
 
 // Define types for vocabulary items
 interface VocabularyItem {
@@ -27,7 +27,7 @@ export async function GET(_req: NextRequest) {
     // Get session and validate user
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
@@ -39,7 +39,7 @@ export async function GET(_req: NextRequest) {
 
     if (!vocabBank) {
       return NextResponse.json(
-        { words: [], message: 'No vocabulary bank found' },
+        { words: [], message: "No vocabulary bank found" },
         { status: 200 }
       );
     }
@@ -48,7 +48,7 @@ export async function GET(_req: NextRequest) {
   } catch (error) {
     // Log error and return error response
     return NextResponse.json(
-      { error: 'Failed to fetch vocabulary' },
+      { error: "Failed to fetch vocabulary" },
       { status: 500 }
     );
   }
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     // Get session and validate user
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const data = await req.json();
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
 
     if (!word) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
           },
           settings: {
             dailyWordGoal: 5,
-            reviewFrequency: 'spaced',
+            reviewFrequency: "spaced",
             notificationsEnabled: true,
           },
         },
@@ -112,7 +112,7 @@ export async function POST(req: NextRequest) {
 
     if (wordExists) {
       return NextResponse.json(
-        { error: 'Word already exists in vocabulary bank' },
+        { error: "Word already exists in vocabulary bank" },
         { status: 409 }
       );
     }
@@ -132,7 +132,7 @@ export async function POST(req: NextRequest) {
           performance: 0,
           context: word.source?.title
             ? `Added from ${word.source.type}: ${word.source.title}`
-            : 'Manually added',
+            : "Manually added",
         },
       ],
     });
@@ -145,10 +145,10 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     // Check for validation errors
-    if ((error as ValidationError).name === 'ValidationError') {
+    if ((error as ValidationError).name === "ValidationError") {
       return NextResponse.json(
         {
-          error: 'Validation error',
+          error: "Validation error",
           details: (error as ValidationError).message,
         },
         { status: 400 }
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: 'Failed to add word to vocabulary bank' },
+      { error: "Failed to add word to vocabulary bank" },
       { status: 500 }
     );
   }

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useRouter, useParams } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useRouter, useParams } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
 
 import {
   AlertDialog,
@@ -13,9 +13,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -23,11 +23,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
 
 interface WritingSession {
   _id: string;
@@ -45,7 +45,7 @@ interface WritingSession {
       wordCount: number;
     };
   };
-  status: 'draft' | 'submitted' | 'analyzed' | 'completed';
+  status: "draft" | "submitted" | "analyzed" | "completed";
   timeTracking: {
     startTime: string;
     endTime?: string;
@@ -61,10 +61,10 @@ interface WritingSession {
 export default function WritingSessionPage() {
   const router = useRouter();
   const params = useParams();
-  const sessionId = params.id as string;
+  const sessionId = params?.id as string;
 
   const [session, setSession] = useState<WritingSession | null>(null);
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState("");
   const [wordCount, setWordCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -83,15 +83,15 @@ export default function WritingSessionPage() {
       try {
         const response = await fetch(`/api/writing/sessions/${sessionId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch session');
+          throw new Error("Failed to fetch session");
         }
         const data = await response.json();
         setSession(data.session);
-        setContent(data.session.submission.content || '');
+        setContent(data.session.submission.content || "");
         setElapsedTime(data.session.timeTracking.totalTime || 0);
 
         // If session is not in draft status, don't start the timer
-        if (data.session.status !== 'draft') {
+        if (data.session.status !== "draft") {
           setIsActive(false);
         } else {
           // Start the timer automatically
@@ -99,11 +99,11 @@ export default function WritingSessionPage() {
           currentPeriodStartRef.current = Date.now();
         }
       } catch (error) {
-        console.error('Error fetching writing session:', error);
+        console.error("Error fetching writing session:", error);
         toast({
-          title: 'Error',
-          description: 'Failed to load writing session',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to load writing session",
+          variant: "destructive",
         });
       } finally {
         setLoading(false);
@@ -172,9 +172,9 @@ export default function WritingSessionPage() {
     setSaving(true);
     try {
       const response = await fetch(`/api/writing/sessions/${sessionId}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           content,
@@ -182,21 +182,21 @@ export default function WritingSessionPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save content');
+        throw new Error("Failed to save content");
       }
 
       lastSaveRef.current = Date.now();
 
       toast({
-        title: 'Saved',
-        description: 'Your writing has been saved',
+        title: "Saved",
+        description: "Your writing has been saved",
       });
     } catch (error) {
-      console.error('Error saving content:', error);
+      console.error("Error saving content:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to save your writing',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to save your writing",
+        variant: "destructive",
       });
     } finally {
       setSaving(false);
@@ -214,9 +214,9 @@ export default function WritingSessionPage() {
 
     try {
       await fetch(`/api/writing/sessions/${sessionId}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           timeTracking: {
@@ -231,7 +231,7 @@ export default function WritingSessionPage() {
 
       currentPeriodStartRef.current = null;
     } catch (error) {
-      console.error('Error saving time tracking:', error);
+      console.error("Error saving time tracking:", error);
     }
   };
 
@@ -266,12 +266,12 @@ export default function WritingSessionPage() {
 
       // Update status to submitted
       const response = await fetch(`/api/writing/sessions/${sessionId}`, {
-        method: 'PATCH',
+        method: "PATCH",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          status: 'submitted',
+          status: "submitted",
           timeTracking: {
             endTime: new Date().toISOString(),
             totalTime: elapsedTime,
@@ -280,7 +280,7 @@ export default function WritingSessionPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit writing');
+        throw new Error("Failed to submit writing");
       }
 
       const data = await response.json();
@@ -291,15 +291,15 @@ export default function WritingSessionPage() {
       router.push(`/dashboard/writing/${sessionId}/analyze`);
 
       toast({
-        title: 'Submitted',
-        description: 'Your writing has been submitted for analysis',
+        title: "Submitted",
+        description: "Your writing has been submitted for analysis",
       });
     } catch (error) {
-      console.error('Error submitting writing:', error);
+      console.error("Error submitting writing:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to submit your writing',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to submit your writing",
+        variant: "destructive",
       });
     } finally {
       setSubmitting(false);
@@ -313,7 +313,7 @@ export default function WritingSessionPage() {
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
 
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   if (loading) {
@@ -358,7 +358,7 @@ export default function WritingSessionPage() {
             <p>Please check the URL or go back to your writing dashboard.</p>
           </CardContent>
           <CardFooter>
-            <Button onClick={() => router.push('/dashboard/writing')}>
+            <Button onClick={() => router.push("/dashboard/writing")}>
               Back to Writing Dashboard
             </Button>
           </CardFooter>
@@ -367,7 +367,7 @@ export default function WritingSessionPage() {
     );
   }
 
-  const isEditable = session.status === 'draft';
+  const isEditable = session.status === "draft";
   const progressPercentage = Math.min(
     100,
     Math.round((wordCount / session.prompt.targetLength) * 100)
@@ -381,7 +381,7 @@ export default function WritingSessionPage() {
             {session.prompt.type}: {session.prompt.topic}
           </h1>
           <p className="text-muted-foreground">
-            {isEditable ? 'Draft in progress' : 'Submitted for analysis'}
+            {isEditable ? "Draft in progress" : "Submitted for analysis"}
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -393,10 +393,10 @@ export default function WritingSessionPage() {
           </div>
           {isEditable && (
             <Button
-              variant={isActive ? 'destructive' : 'default'}
+              variant={isActive ? "destructive" : "default"}
               onClick={toggleTimer}
             >
-              {isActive ? 'Pause' : 'Resume'}
+              {isActive ? "Pause" : "Resume"}
             </Button>
           )}
         </div>
@@ -430,11 +430,11 @@ export default function WritingSessionPage() {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <div className="text-sm">
-                Word Count: <span className="font-medium">{wordCount}</span> /{' '}
+                Word Count: <span className="font-medium">{wordCount}</span> /{" "}
                 {session.prompt.targetLength}
               </div>
               <Badge
-                variant={progressPercentage >= 100 ? 'default' : 'outline'}
+                variant={progressPercentage >= 100 ? "default" : "outline"}
               >
                 {progressPercentage}%
               </Badge>
@@ -456,7 +456,7 @@ export default function WritingSessionPage() {
               onClick={saveContent}
               disabled={saving || !isEditable}
             >
-              {saving ? 'Saving...' : 'Save Draft'}
+              {saving ? "Saving..." : "Save Draft"}
             </Button>
 
             {isEditable ? (
@@ -494,7 +494,7 @@ export default function WritingSessionPage() {
                       onClick={submitWriting}
                       disabled={submitting}
                     >
-                      {submitting ? 'Submitting...' : 'Submit'}
+                      {submitting ? "Submitting..." : "Submit"}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

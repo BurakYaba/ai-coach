@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { IReadingSession } from '@/models/ReadingSession';
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { IReadingSession } from "@/models/ReadingSession";
 
-import { GrammarPanel } from './GrammarPanel';
-import { QuestionPanel } from './QuestionPanel';
-import { ReadingContent } from './ReadingContent';
-import { ReadingProgress } from './ReadingProgress';
-import { VocabularyPanel } from './VocabularyPanel';
+import { GrammarPanel } from "./GrammarPanel";
+import { QuestionPanel } from "./QuestionPanel";
+import { ReadingContent } from "./ReadingContent";
+import { ReadingProgress } from "./ReadingProgress";
+import { VocabularyPanel } from "./VocabularyPanel";
 
 interface ReadingSessionProps {
   sessionId: string;
@@ -22,7 +22,7 @@ export function ReadingSession({ sessionId }: ReadingSessionProps) {
   const [session, setSession] = useState<IReadingSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('reading');
+  const [activeTab, setActiveTab] = useState("reading");
   const [progress, setProgress] = useState({
     timeSpent: 0,
     questionsAnswered: 0,
@@ -41,7 +41,7 @@ export function ReadingSession({ sessionId }: ReadingSessionProps) {
     const fetchSession = async () => {
       try {
         const response = await fetch(`/api/reading/sessions/${sessionId}`);
-        if (!response.ok) throw new Error('Failed to fetch session');
+        if (!response.ok) throw new Error("Failed to fetch session");
         const data = await response.json();
         setSession(data);
         setProgress({
@@ -54,8 +54,8 @@ export function ReadingSession({ sessionId }: ReadingSessionProps) {
           vocabularyBankAdded: data.userProgress.vocabularyBankAdded || [],
         });
       } catch (error) {
-        setError('Failed to load reading session');
-        console.error('Error fetching session:', error);
+        setError("Failed to load reading session");
+        console.error("Error fetching session:", error);
       } finally {
         setLoading(false);
       }
@@ -91,26 +91,26 @@ export function ReadingSession({ sessionId }: ReadingSessionProps) {
     // Use a debounced function to avoid too many updates
     const saveProgress = async () => {
       try {
-        console.log('Saving reading session progress...');
+        console.log("Saving reading session progress...");
         const response = await fetch(`/api/reading/sessions/${sessionId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            'userProgress.timeSpent': progress.timeSpent,
-            'userProgress.questionsAnswered': progress.questionsAnswered,
-            'userProgress.correctAnswers': progress.correctAnswers,
-            'userProgress.vocabularyReviewed': progress.vocabularyReviewed,
-            'userProgress.comprehensionScore': progress.comprehensionScore,
-            'userProgress.userAnswers': progress.userAnswers,
-            'userProgress.vocabularyBankAdded': progress.vocabularyBankAdded,
+            "userProgress.timeSpent": progress.timeSpent,
+            "userProgress.questionsAnswered": progress.questionsAnswered,
+            "userProgress.correctAnswers": progress.correctAnswers,
+            "userProgress.vocabularyReviewed": progress.vocabularyReviewed,
+            "userProgress.comprehensionScore": progress.comprehensionScore,
+            "userProgress.userAnswers": progress.userAnswers,
+            "userProgress.vocabularyBankAdded": progress.vocabularyBankAdded,
           }),
         });
-        if (!response.ok) throw new Error('Failed to save progress');
+        if (!response.ok) throw new Error("Failed to save progress");
 
         // Reset the flag after saving
         setShouldUpdateProgress(false);
       } catch (error) {
-        console.error('Error saving progress:', error);
+        console.error("Error saving progress:", error);
         // Reset the flag even if there's an error
         setShouldUpdateProgress(false);
       }
@@ -126,30 +126,30 @@ export function ReadingSession({ sessionId }: ReadingSessionProps) {
 
     try {
       const response = await fetch(`/api/reading/sessions/${sessionId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          'userProgress.completionTime': new Date().toISOString(),
-          'userProgress.timeSpent': progress.timeSpent,
-          'userProgress.questionsAnswered': progress.questionsAnswered,
-          'userProgress.correctAnswers': progress.correctAnswers,
-          'userProgress.vocabularyReviewed': progress.vocabularyReviewed,
-          'userProgress.comprehensionScore': progress.comprehensionScore,
-          'userProgress.userAnswers': progress.userAnswers,
-          'userProgress.vocabularyBankAdded': progress.vocabularyBankAdded,
+          "userProgress.completionTime": new Date().toISOString(),
+          "userProgress.timeSpent": progress.timeSpent,
+          "userProgress.questionsAnswered": progress.questionsAnswered,
+          "userProgress.correctAnswers": progress.correctAnswers,
+          "userProgress.vocabularyReviewed": progress.vocabularyReviewed,
+          "userProgress.comprehensionScore": progress.comprehensionScore,
+          "userProgress.userAnswers": progress.userAnswers,
+          "userProgress.vocabularyBankAdded": progress.vocabularyBankAdded,
         }),
       });
-      if (!response.ok) throw new Error('Failed to complete session');
-      router.push('/dashboard');
+      if (!response.ok) throw new Error("Failed to complete session");
+      router.push("/dashboard/reading");
     } catch (error) {
-      console.error('Error completing session:', error);
-      setError('Failed to complete session');
+      console.error("Error completing session:", error);
+      setError("Failed to complete session");
     }
   }, [session, sessionId, progress, router]);
 
   // Handle word click - memoize to prevent unnecessary re-renders
   const handleWordClick = useCallback((word: string) => {
-    setActiveTab('vocabulary');
+    setActiveTab("vocabulary");
     setProgress(prev => ({
       ...prev,
       vocabularyReviewed: Array.from(

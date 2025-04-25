@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -19,25 +19,25 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 // Form schema with validation
 const formSchema = z.object({
-  level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
-  topic: z.string().min(3, 'Topic must be at least 3 characters'),
-  contentType: z.enum(['monologue', 'dialogue', 'interview', 'news']),
-  targetLength: z.enum(['short', 'medium', 'long']).default('medium'),
+  level: z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]),
+  topic: z.string().min(3, "Topic must be at least 3 characters"),
+  contentType: z.enum(["monologue", "dialogue", "interview", "news"]),
+  targetLength: z.enum(["short", "medium", "long"]).default("medium"),
 });
 
 export default function GenerateListeningPage() {
@@ -49,10 +49,10 @@ export default function GenerateListeningPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      level: 'B1',
-      topic: '',
-      contentType: 'dialogue',
-      targetLength: 'medium' as 'short' | 'medium' | 'long',
+      level: "B1",
+      topic: "",
+      contentType: "dialogue",
+      targetLength: "medium" as "short" | "medium" | "long",
     },
   });
 
@@ -62,10 +62,10 @@ export default function GenerateListeningPage() {
 
     try {
       // Call the API to generate listening content
-      const response = await fetch('/api/listening/generate', {
-        method: 'POST',
+      const response = await fetch("/api/listening/generate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(values),
       });
@@ -74,11 +74,11 @@ export default function GenerateListeningPage() {
 
       if (!response.ok) {
         let errorMessage =
-          responseData.error || 'Failed to generate listening content';
+          responseData.error || "Failed to generate listening content";
 
         // Add details if available
         if (responseData.details) {
-          console.error('Error details:', responseData.details);
+          console.error("Error details:", responseData.details);
           // Check if it's a model validation error
           if (responseData.modelError) {
             errorMessage = `Schema validation error: ${responseData.details}`;
@@ -92,21 +92,21 @@ export default function GenerateListeningPage() {
       const session = responseData;
 
       toast({
-        title: 'Success!',
-        description: 'Your listening content has been generated.',
+        title: "Success!",
+        description: "Your listening content has been generated.",
       });
 
       // Redirect to the new session
       router.push(`/dashboard/listening/${session._id}`);
     } catch (error) {
-      console.error('Error generating content:', error);
+      console.error("Error generating content:", error);
       toast({
-        title: 'Error',
+        title: "Error",
         description:
           error instanceof Error
             ? error.message
-            : 'Failed to generate listening content',
-        variant: 'destructive',
+            : "Failed to generate listening content",
+        variant: "destructive",
       });
       setIsGenerating(false);
     }
@@ -235,15 +235,15 @@ export default function GenerateListeningPage() {
                     <div className="flex flex-col space-y-3">
                       <div
                         className={cn(
-                          'flex items-center space-x-2 rounded-md border p-3',
-                          field.value === 'short' &&
-                            'border-primary bg-primary/10'
+                          "flex items-center space-x-2 rounded-md border p-3",
+                          field.value === "short" &&
+                            "border-primary bg-primary/10"
                         )}
                       >
                         <FormControl>
                           <input
                             type="radio"
-                            checked={field.value === 'short'}
+                            checked={field.value === "short"}
                             value="short"
                             onChange={e => field.onChange(e.target.value)}
                             className="h-4 w-4 text-primary"
@@ -258,15 +258,15 @@ export default function GenerateListeningPage() {
                       </div>
                       <div
                         className={cn(
-                          'flex items-center space-x-2 rounded-md border p-3',
-                          field.value === 'medium' &&
-                            'border-primary bg-primary/10'
+                          "flex items-center space-x-2 rounded-md border p-3",
+                          field.value === "medium" &&
+                            "border-primary bg-primary/10"
                         )}
                       >
                         <FormControl>
                           <input
                             type="radio"
-                            checked={field.value === 'medium'}
+                            checked={field.value === "medium"}
                             value="medium"
                             onChange={e => field.onChange(e.target.value)}
                             className="h-4 w-4 text-primary"
@@ -281,15 +281,15 @@ export default function GenerateListeningPage() {
                       </div>
                       <div
                         className={cn(
-                          'flex items-center space-x-2 rounded-md border p-3',
-                          field.value === 'long' &&
-                            'border-primary bg-primary/10'
+                          "flex items-center space-x-2 rounded-md border p-3",
+                          field.value === "long" &&
+                            "border-primary bg-primary/10"
                         )}
                       >
                         <FormControl>
                           <input
                             type="radio"
-                            checked={field.value === 'long'}
+                            checked={field.value === "long"}
                             value="long"
                             onChange={e => field.onChange(e.target.value)}
                             className="h-4 w-4 text-primary"
@@ -320,7 +320,7 @@ export default function GenerateListeningPage() {
                       Generating...
                     </>
                   ) : (
-                    'Generate Content'
+                    "Generate Content"
                   )}
                 </Button>
               </div>

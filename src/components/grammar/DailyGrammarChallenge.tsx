@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { format } from 'date-fns';
-import { RotateCw, Award, TrendingUp } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { format } from "date-fns";
+import { RotateCw, Award, TrendingUp } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,10 +15,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface DailyChallengeData {
   _id: string;
@@ -41,7 +41,9 @@ export function DailyGrammarChallenge() {
   const [challengeData, setChallengeData] = useState<DailyChallengeData | null>(
     null
   );
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState<number | null>(
+    null
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const [streak, setStreak] = useState(0);
@@ -57,19 +59,19 @@ export function DailyGrammarChallenge() {
   const fetchDailyChallenge = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/grammar/challenge/daily');
+      const response = await fetch("/api/grammar/challenge/daily");
       if (!response.ok) {
-        throw new Error('Failed to fetch daily challenge');
+        throw new Error("Failed to fetch daily challenge");
       }
       const data = await response.json();
       setChallengeData(data.challenge);
       setHasCompletedToday(data.hasCompletedToday || false);
     } catch (error) {
-      console.error('Error fetching daily challenge:', error);
+      console.error("Error fetching daily challenge:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load daily grammar challenge',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load daily grammar challenge",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -78,33 +80,33 @@ export function DailyGrammarChallenge() {
 
   const fetchUserStreak = async () => {
     try {
-      const response = await fetch('/api/user/grammar-progress');
+      const response = await fetch("/api/user/grammar-progress");
       if (!response.ok) {
-        throw new Error('Failed to fetch user grammar progress');
+        throw new Error("Failed to fetch user grammar progress");
       }
       const data = await response.json();
       setStreak(data.challengeStreak || 0);
     } catch (error) {
-      console.error('Error fetching user streak:', error);
+      console.error("Error fetching user streak:", error);
     }
   };
 
   const handleSubmit = async () => {
-    if (!selectedOption || !challengeData) return;
+    if (selectedOptionIndex === null || !challengeData) return;
 
     setIsSubmitting(true);
 
     try {
-      // Determine if answer is correct
+      // Determine if answer is correct based on index not value
       const isAnswerCorrect =
-        selectedOption === challengeData.options[challengeData.correctOption];
+        selectedOptionIndex === challengeData.correctOption;
       setIsCorrect(isAnswerCorrect);
 
       // Update user's progress
-      const response = await fetch('/api/grammar/challenge/submit', {
-        method: 'POST',
+      const response = await fetch("/api/grammar/challenge/submit", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           challengeId: challengeData._id,
@@ -113,7 +115,7 @@ export function DailyGrammarChallenge() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit challenge response');
+        throw new Error("Failed to submit challenge response");
       }
 
       const data = await response.json();
@@ -123,27 +125,27 @@ export function DailyGrammarChallenge() {
       if (isAnswerCorrect) {
         if (data.badgeEarned) {
           toast({
-            title: '🏆 New Badge Earned!',
+            title: "🏆 New Badge Earned!",
             description: `You've earned the "${data.badgeEarned.name}" badge!`,
           });
         } else {
           toast({
-            title: 'Correct!',
-            description: 'Great job! Keep up the good work!',
+            title: "Correct!",
+            description: "Great job! Keep up the good work!",
           });
         }
       } else {
         toast({
-          title: 'Not quite right',
-          description: 'Review the explanation and try again tomorrow!',
+          title: "Not quite right",
+          description: "Review the explanation and try again tomorrow!",
         });
       }
     } catch (error) {
-      console.error('Error submitting challenge response:', error);
+      console.error("Error submitting challenge response:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to submit your answer',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to submit your answer",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -152,7 +154,7 @@ export function DailyGrammarChallenge() {
 
   const resetChallenge = () => {
     fetchDailyChallenge();
-    setSelectedOption(null);
+    setSelectedOptionIndex(null);
     setIsCorrect(null);
   };
 
@@ -196,7 +198,7 @@ export function DailyGrammarChallenge() {
         <CardFooter className="flex justify-center">
           <Button
             variant="outline"
-            onClick={() => router.push('/dashboard/writing')}
+            onClick={() => router.push("/dashboard/writing")}
           >
             Try Writing Practice
           </Button>
@@ -214,14 +216,10 @@ export function DailyGrammarChallenge() {
             <CardDescription>
               {hasCompletedToday
                 ? "You've completed today's challenge!"
-                : 'Solve a daily grammar challenge to improve your skills'}
+                : "Solve a daily grammar challenge to improve your skills"}
             </CardDescription>
           </div>
           <div className="flex items-center gap-1">
-            <Badge variant="outline" className="flex gap-1 items-center">
-              <TrendingUp className="h-3 w-3" />
-              <span>Streak: {streak} days</span>
-            </Badge>
             <Badge
               variant="outline"
               className="bg-blue-50 text-blue-700 border-blue-200"
@@ -256,26 +254,32 @@ export function DailyGrammarChallenge() {
           <div>
             <h3 className="font-medium mb-2">Choose the correct version:</h3>
             <RadioGroup
-              value={selectedOption || ''}
-              onValueChange={setSelectedOption}
+              value={
+                selectedOptionIndex !== null
+                  ? selectedOptionIndex.toString()
+                  : ""
+              }
+              onValueChange={value =>
+                setSelectedOptionIndex(parseInt(value, 10))
+              }
               disabled={isCorrect !== null || hasCompletedToday}
               className="space-y-3"
             >
-              {challengeData.options.map((option, index) => (
+              {challengeData?.options.map((option, index) => (
                 <div
                   key={index}
                   className={`flex items-center space-x-2 p-3 border rounded-md ${
                     isCorrect !== null && index === challengeData.correctOption
-                      ? 'bg-green-50 border-green-200'
+                      ? "bg-green-50 border-green-200"
                       : isCorrect !== null &&
-                          selectedOption === option &&
+                          selectedOptionIndex === index &&
                           index !== challengeData.correctOption
-                        ? 'bg-red-50 border-red-200'
-                        : 'hover:bg-muted/50'
+                        ? "bg-red-50 border-red-200"
+                        : "hover:bg-muted/50"
                   }`}
                 >
                   <RadioGroupItem
-                    value={option}
+                    value={index.toString()}
                     id={`option-${index}`}
                     className="mr-1"
                   />
@@ -307,9 +311,9 @@ export function DailyGrammarChallenge() {
         {!hasCompletedToday && isCorrect === null ? (
           <Button
             onClick={handleSubmit}
-            disabled={!selectedOption || isSubmitting}
+            disabled={selectedOptionIndex === null || isSubmitting}
           >
-            {isSubmitting ? 'Checking...' : 'Submit Answer'}
+            {isSubmitting ? "Checking..." : "Submit Answer"}
           </Button>
         ) : (
           <>
@@ -317,8 +321,8 @@ export function DailyGrammarChallenge() {
               <RotateCw className="h-4 w-4 mr-1" /> Refresh
             </Button>
             <div className="text-xs text-muted-foreground">
-              Next challenge available{' '}
-              {format(new Date().setHours(0, 0, 0, 0) + 86400000, 'PPP')}
+              Next challenge available{" "}
+              {format(new Date().setHours(0, 0, 0, 0) + 86400000, "PPP")}
             </div>
           </>
         )}

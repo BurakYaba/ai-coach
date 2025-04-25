@@ -1,11 +1,11 @@
-import mongoose from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import { dbConnect } from '@/lib/db';
-import { OpenAIWritingAnalyzer } from '@/lib/openai-writing-analyzer';
-import WritingSession from '@/models/WritingSession';
+import { authOptions } from "@/lib/auth";
+import { dbConnect } from "@/lib/db";
+import { OpenAIWritingAnalyzer } from "@/lib/openai-writing-analyzer";
+import WritingSession from "@/models/WritingSession";
 
 // GET /api/writing/sessions/[id] - Get a specific writing session
 export async function GET(
@@ -15,7 +15,7 @@ export async function GET(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
@@ -26,7 +26,7 @@ export async function GET(
 
     if (!writingSession) {
       return NextResponse.json(
-        { error: 'Writing session not found' },
+        { error: "Writing session not found" },
         { status: 404 }
       );
     }
@@ -38,7 +38,7 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     return NextResponse.json(
-      { error: 'Failed to fetch writing session' },
+      { error: "Failed to fetch writing session" },
       { status: 500 }
     );
   }
@@ -53,7 +53,7 @@ export async function PATCH(
     // Check authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Connect to database
@@ -62,7 +62,7 @@ export async function PATCH(
     // Validate ID
     if (!mongoose.isValidObjectId(params.id)) {
       return NextResponse.json(
-        { error: 'Invalid session ID' },
+        { error: "Invalid session ID" },
         { status: 400 }
       );
     }
@@ -73,14 +73,14 @@ export async function PATCH(
     // Check if session exists
     if (!writingSession) {
       return NextResponse.json(
-        { error: 'Writing session not found' },
+        { error: "Writing session not found" },
         { status: 404 }
       );
     }
 
     // Check if user owns the session
     if (writingSession.userId.toString() !== session.user.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // Parse request body
@@ -135,7 +135,7 @@ export async function PATCH(
       writingSession.status = body.status;
 
       // If submitting, add final version
-      if (body.status === 'submitted' && writingSession.submission.content) {
+      if (body.status === "submitted" && writingSession.submission.content) {
         writingSession.submission.finalVersion = {
           content: writingSession.submission.content,
           submittedAt: new Date(),
@@ -153,13 +153,13 @@ export async function PATCH(
     // Handle validation errors
     if (error instanceof mongoose.Error.ValidationError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { error: "Validation error", details: error.errors },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: 'Failed to update writing session' },
+      { error: "Failed to update writing session" },
       { status: 500 }
     );
   }
@@ -174,7 +174,7 @@ export async function POST(
     // Check authentication
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Connect to database
@@ -183,7 +183,7 @@ export async function POST(
     // Validate ID
     if (!mongoose.isValidObjectId(params.id)) {
       return NextResponse.json(
-        { error: 'Invalid session ID' },
+        { error: "Invalid session ID" },
         { status: 400 }
       );
     }
@@ -194,20 +194,20 @@ export async function POST(
     // Check if session exists
     if (!writingSession) {
       return NextResponse.json(
-        { error: 'Writing session not found' },
+        { error: "Writing session not found" },
         { status: 404 }
       );
     }
 
     // Check if user owns the session
     if (writingSession.userId.toString() !== session.user.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     // Check if session is in submitted status
-    if (writingSession.status !== 'submitted') {
+    if (writingSession.status !== "submitted") {
       return NextResponse.json(
-        { error: 'Session must be submitted before analysis' },
+        { error: "Session must be submitted before analysis" },
         { status: 400 }
       );
     }
@@ -215,14 +215,14 @@ export async function POST(
     // Check if content exists
     if (!writingSession.submission.finalVersion?.content) {
       return NextResponse.json(
-        { error: 'No content to analyze' },
+        { error: "No content to analyze" },
         { status: 400 }
       );
     }
 
     // Get user's language level
-    const user = await mongoose.model('User').findById(session.user.id);
-    const level = user?.languageLevel || 'intermediate';
+    const user = await mongoose.model("User").findById(session.user.id);
+    const level = user?.languageLevel || "intermediate";
 
     // Get prompt details
     const promptType = writingSession.prompt.type;
@@ -264,7 +264,7 @@ export async function POST(
       improvements:
         analysis.feedback.areasForImprovement || analysis.feedback.improvements,
       lengthAssessment: {
-        assessment: 'appropriate',
+        assessment: "appropriate",
         feedback: `Your submission meets the target length requirement of approximately ${writingSession.prompt.targetLength} words.`,
       },
       details: {
@@ -273,28 +273,28 @@ export async function POST(
           errorList: analysis.grammarIssues,
           suggestions: analysis.feedback.improvements.filter(
             item =>
-              item.toLowerCase().includes('grammar') ||
-              item.toLowerCase().includes('spelling') ||
-              item.toLowerCase().includes('punctuation') ||
-              item.toLowerCase().includes('sentence') ||
-              item.toLowerCase().startsWith('grammar:')
+              item.toLowerCase().includes("grammar") ||
+              item.toLowerCase().includes("spelling") ||
+              item.toLowerCase().includes("punctuation") ||
+              item.toLowerCase().includes("sentence") ||
+              item.toLowerCase().startsWith("grammar:")
           ),
           strengths: analysis.feedback.strengths.filter(
             item =>
-              item.toLowerCase().includes('grammar') ||
-              item.toLowerCase().includes('spelling') ||
-              item.toLowerCase().includes('punctuation') ||
-              item.toLowerCase().includes('sentence') ||
-              item.toLowerCase().startsWith('grammar strength')
+              item.toLowerCase().includes("grammar") ||
+              item.toLowerCase().includes("spelling") ||
+              item.toLowerCase().includes("punctuation") ||
+              item.toLowerCase().includes("sentence") ||
+              item.toLowerCase().startsWith("grammar strength")
           ),
           improvements: analysis.feedback.improvements.filter(
             item =>
-              item.toLowerCase().includes('grammar') ||
-              item.toLowerCase().includes('spelling') ||
-              item.toLowerCase().includes('punctuation') ||
-              item.toLowerCase().includes('sentence') ||
-              item.toLowerCase().startsWith('grammar:') ||
-              item.toLowerCase().startsWith('grammar improvement')
+              item.toLowerCase().includes("grammar") ||
+              item.toLowerCase().includes("spelling") ||
+              item.toLowerCase().includes("punctuation") ||
+              item.toLowerCase().includes("sentence") ||
+              item.toLowerCase().startsWith("grammar:") ||
+              item.toLowerCase().startsWith("grammar improvement")
           ),
         },
         vocabulary: {
@@ -304,20 +304,20 @@ export async function POST(
             analysis.vocabularyAnalysis.strengths ||
             analysis.feedback.strengths.filter(
               item =>
-                item.toLowerCase().includes('vocabulary') ||
-                item.toLowerCase().includes('word') ||
-                item.toLowerCase().includes('term') ||
-                item.toLowerCase().startsWith('vocabulary strength')
+                item.toLowerCase().includes("vocabulary") ||
+                item.toLowerCase().includes("word") ||
+                item.toLowerCase().includes("term") ||
+                item.toLowerCase().startsWith("vocabulary strength")
             ),
           improvements:
             analysis.vocabularyAnalysis.improvements ||
             analysis.feedback.improvements.filter(
               item =>
-                item.toLowerCase().includes('vocabulary') ||
-                item.toLowerCase().includes('word') ||
-                item.toLowerCase().includes('term') ||
-                item.toLowerCase().startsWith('vocabulary:') ||
-                item.toLowerCase().startsWith('vocabulary improvement')
+                item.toLowerCase().includes("vocabulary") ||
+                item.toLowerCase().includes("word") ||
+                item.toLowerCase().includes("term") ||
+                item.toLowerCase().startsWith("vocabulary:") ||
+                item.toLowerCase().startsWith("vocabulary improvement")
             ),
           wordFrequency: analysis.vocabularyAnalysis.wordFrequency,
         },
@@ -325,22 +325,22 @@ export async function POST(
           score: analysis.coherenceScore,
           strengths: analysis.feedback.strengths.filter(
             item =>
-              item.toLowerCase().includes('structure') ||
-              item.toLowerCase().includes('organization') ||
-              item.toLowerCase().includes('coherence') ||
-              item.toLowerCase().includes('flow') ||
-              item.toLowerCase().includes('paragraph') ||
-              item.toLowerCase().startsWith('structure strength')
+              item.toLowerCase().includes("structure") ||
+              item.toLowerCase().includes("organization") ||
+              item.toLowerCase().includes("coherence") ||
+              item.toLowerCase().includes("flow") ||
+              item.toLowerCase().includes("paragraph") ||
+              item.toLowerCase().startsWith("structure strength")
           ),
           improvements: analysis.feedback.improvements.filter(
             item =>
-              item.toLowerCase().includes('structure') ||
-              item.toLowerCase().includes('organization') ||
-              item.toLowerCase().includes('coherence') ||
-              item.toLowerCase().includes('flow') ||
-              item.toLowerCase().includes('paragraph') ||
-              item.toLowerCase().startsWith('structure:') ||
-              item.toLowerCase().startsWith('structure improvement')
+              item.toLowerCase().includes("structure") ||
+              item.toLowerCase().includes("organization") ||
+              item.toLowerCase().includes("coherence") ||
+              item.toLowerCase().includes("flow") ||
+              item.toLowerCase().includes("paragraph") ||
+              item.toLowerCase().startsWith("structure:") ||
+              item.toLowerCase().startsWith("structure improvement")
           ),
         },
         content: {
@@ -349,22 +349,22 @@ export async function POST(
           depth: Math.min(100, analysis.vocabularyScore + 5),
           strengths: analysis.feedback.strengths.filter(
             item =>
-              item.toLowerCase().includes('content') ||
-              item.toLowerCase().includes('idea') ||
-              item.toLowerCase().includes('argument') ||
-              item.toLowerCase().includes('point') ||
-              item.toLowerCase().includes('topic') ||
-              item.toLowerCase().startsWith('content strength')
+              item.toLowerCase().includes("content") ||
+              item.toLowerCase().includes("idea") ||
+              item.toLowerCase().includes("argument") ||
+              item.toLowerCase().includes("point") ||
+              item.toLowerCase().includes("topic") ||
+              item.toLowerCase().startsWith("content strength")
           ),
           improvements: analysis.feedback.improvements.filter(
             item =>
-              item.toLowerCase().includes('content') ||
-              item.toLowerCase().includes('idea') ||
-              item.toLowerCase().includes('argument') ||
-              item.toLowerCase().includes('point') ||
-              item.toLowerCase().includes('topic') ||
-              item.toLowerCase().startsWith('content:') ||
-              item.toLowerCase().startsWith('content improvement')
+              item.toLowerCase().includes("content") ||
+              item.toLowerCase().includes("idea") ||
+              item.toLowerCase().includes("argument") ||
+              item.toLowerCase().includes("point") ||
+              item.toLowerCase().includes("topic") ||
+              item.toLowerCase().startsWith("content:") ||
+              item.toLowerCase().startsWith("content improvement")
           ),
         },
       },
@@ -372,7 +372,7 @@ export async function POST(
     };
 
     // Update status
-    writingSession.status = 'analyzed';
+    writingSession.status = "analyzed";
 
     // Save changes
     await writingSession.save();
@@ -382,9 +382,9 @@ export async function POST(
       analysis,
     });
   } catch (error) {
-    console.error('Error analyzing writing session:', error);
+    console.error("Error analyzing writing session:", error);
     return NextResponse.json(
-      { error: 'Failed to analyze writing session' },
+      { error: "Failed to analyze writing session" },
       { status: 500 }
     );
   }
@@ -398,7 +398,7 @@ export async function DELETE(
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
@@ -409,20 +409,20 @@ export async function DELETE(
 
     if (!writingSession) {
       return NextResponse.json(
-        { error: 'Writing session not found' },
+        { error: "Writing session not found" },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
-      message: 'Writing session deleted successfully',
+      message: "Writing session deleted successfully",
     });
   } catch (error) {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     return NextResponse.json(
-      { error: 'Failed to delete writing session' },
+      { error: "Failed to delete writing session" },
       { status: 500 }
     );
   }

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from "react";
 
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 interface VocabularyWord {
   word: string;
@@ -98,11 +98,11 @@ export function ReadingContent({
         </div>
         <div className="space-x-2">
           <Button variant="outline" size="sm" onClick={toggleTextToSpeech}>
-            {isTextToSpeechEnabled ? 'Disable' : 'Enable'} Text-to-Speech
+            {isTextToSpeechEnabled ? "Disable" : "Enable"} Text-to-Speech
           </Button>
           {isTextToSpeechEnabled && (
             <Button variant="outline" size="sm" onClick={toggleSpeaking}>
-              {isSpeaking ? 'Stop' : 'Play'}
+              {isSpeaking ? "Stop" : "Play"}
             </Button>
           )}
         </div>
@@ -112,7 +112,7 @@ export function ReadingContent({
         className="prose max-w-none"
         style={{
           fontSize: `${fontSize}px`,
-          lineHeight: '1.8',
+          lineHeight: "1.8",
         }}
       >
         {content}

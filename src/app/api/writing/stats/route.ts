@@ -1,15 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import { dbConnect } from '@/lib/db';
-import WritingSession from '@/models/WritingSession';
+import { authOptions } from "@/lib/auth";
+import { dbConnect } from "@/lib/db";
+import WritingSession from "@/models/WritingSession";
 
 export async function GET(_req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest) {
     const stats = {
       totalSessions: writingSessions.length,
       completedSessions: writingSessions.filter(
-        session => session.status === 'completed'
+        session => session.status === "completed"
       ).length,
       sessionsLastWeek: 0, // Will calculate below
       averageScore: 0,
@@ -36,14 +36,14 @@ export async function GET(_req: NextRequest) {
         coherence: 0,
         style: 0,
       },
-      streak: 0, // Will calculate below
+      streak: 0, // Fixed value instead of calculating
       hasData: writingSessions.length > 0,
       lastSession: writingSessions.length > 0 ? writingSessions[0] : null,
     };
 
     if (writingSessions.length > 0) {
       const completedSessions = writingSessions.filter(
-        session => session.status === 'completed'
+        session => session.status === "completed"
       );
 
       // Calculate average score
@@ -143,10 +143,6 @@ export async function GET(_req: NextRequest) {
           stats.scoreChange = Math.round(recentAvg - olderAvg);
         }
       }
-
-      // Calculate writing streak (consecutive days with completed sessions)
-      // For simplicity, we'll just set this to the number of completed sessions for now
-      stats.streak = completedSessions.length;
     }
 
     return NextResponse.json({ stats });
@@ -155,7 +151,7 @@ export async function GET(_req: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
     return NextResponse.json(
-      { error: 'Failed to fetch writing stats' },
+      { error: "Failed to fetch writing stats" },
       { status: 500 }
     );
   }

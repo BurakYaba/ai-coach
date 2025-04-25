@@ -1,15 +1,15 @@
-import mongoose from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import ListeningSession from '@/models/ListeningSession';
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import ListeningSession from "@/models/ListeningSession";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 // Define CEFR levels since we can't import from the missing module
-const CEFRLevels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const CEFRLevels = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 // Define interfaces for our data structures
 interface TopicCount {
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
     // Authenticate user
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
@@ -53,11 +53,11 @@ export async function GET(req: NextRequest) {
     // Get completed sessions (sessions with completionTime)
     const completedSessions = await ListeningSession.find({
       ...baseQuery,
-      'userProgress.completionTime': { $exists: true },
+      "userProgress.completionTime": { $exists: true },
     });
 
     // Additional debugging: Inspect raw data of completed sessions
-    console.log('RAW COMPLETED SESSIONS DATA:');
+    console.log("RAW COMPLETED SESSIONS DATA:");
     completedSessions.forEach((session, index) => {
       console.log(`Session ${index + 1} ID:`, session._id);
       console.log(`Session ${index + 1} Title:`, session.title);
@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
           isLibrary: { $ne: true },
         },
       },
-      { $group: { _id: null, total: { $sum: '$duration' } } },
+      { $group: { _id: null, total: { $sum: "$duration" } } },
     ]);
 
     const totalTimeInMinutes =
@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
     let averageScore = 0;
     if (totalCompletedSessions > 0) {
       // Add debug logging
-      console.log('Found completed sessions:', totalCompletedSessions);
+      console.log("Found completed sessions:", totalCompletedSessions);
       completedSessions.forEach((session, index) => {
         console.log(
           `Session ${index + 1} comprehensionScore:`,
@@ -111,15 +111,15 @@ export async function GET(req: NextRequest) {
 
       const totalScore = completedSessions.reduce((sum, session) => {
         const score = session.userProgress?.comprehensionScore || 0;
-        console.log('Adding score:', score);
+        console.log("Adding score:", score);
         return sum + score;
       }, 0);
 
       averageScore =
         Math.round((totalScore / totalCompletedSessions) * 100) / 100;
-      console.log('Calculated average score:', averageScore);
+      console.log("Calculated average score:", averageScore);
     } else {
-      console.log('No completed sessions found');
+      console.log("No completed sessions found");
     }
 
     // Calculate library-specific statistics
@@ -138,7 +138,7 @@ export async function GET(req: NextRequest) {
           completed: {
             $sum: {
               $cond: [
-                { $ifNull: ['$userProgress.completionTime', false] },
+                { $ifNull: ["$userProgress.completionTime", false] },
                 1,
                 0,
               ],
@@ -176,7 +176,7 @@ export async function GET(req: NextRequest) {
     );
 
     // Calculate progress by content type
-    const contentTypes = ['monologue', 'dialogue', 'interview', 'news'];
+    const contentTypes = ["monologue", "dialogue", "interview", "news"];
     const progressByContentType = await Promise.all(
       contentTypes.map(async (type: string) => {
         const sessionsOfType = await ListeningSession.find({
@@ -201,39 +201,12 @@ export async function GET(req: NextRequest) {
     );
 
     // Get streak data
-    // A day is considered active if the user completed at least one session
-    const uniqueActiveDays = new Set<string>();
-    completedSessions.forEach(session => {
-      if (session.userProgress.completionTime) {
-        const date = new Date(session.userProgress.completionTime);
-        uniqueActiveDays.add(
-          `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
-        );
-      }
-    });
-
-    // Current streak calculation
-    let currentStreak = 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    for (let i = 0; i < 100; i++) {
-      // Limit to avoid infinite loop
-      const checkDate = new Date(today);
-      checkDate.setDate(today.getDate() - i);
-      const dateKey = `${checkDate.getFullYear()}-${checkDate.getMonth()}-${checkDate.getDate()}`;
-
-      if (uniqueActiveDays.has(dateKey)) {
-        currentStreak++;
-      } else if (i > 0) {
-        // Skip today if not active
-        break;
-      }
-    }
+    // Streak calculation removed
+    const currentStreak = 0; // Fixed value instead of calculating
 
     // Calculate most common topics
     const topicCounts: Record<string, number> = {};
-    const sessions = await ListeningSession.find(baseQuery).select('topic');
+    const sessions = await ListeningSession.find(baseQuery).select("topic");
 
     sessions.forEach(session => {
       const topic = session.topic;
@@ -259,7 +232,7 @@ export async function GET(req: NextRequest) {
       },
       {
         $group: {
-          _id: '$category',
+          _id: "$category",
           count: { $sum: 1 },
         },
       },
@@ -289,9 +262,9 @@ export async function GET(req: NextRequest) {
       commonCategories,
     });
   } catch (error) {
-    console.error('Error fetching listening statistics:', error);
+    console.error("Error fetching listening statistics:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

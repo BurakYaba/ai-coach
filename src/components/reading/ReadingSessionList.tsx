@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { format } from 'date-fns';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { format } from "date-fns";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
 
-import { DeleteSessionButton } from '@/components/reading/DeleteSessionButton';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { DeleteSessionButton } from "@/components/reading/DeleteSessionButton";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -15,7 +15,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -23,10 +23,10 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
-} from '@/components/ui/pagination';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/pagination";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface ReadingSession {
   _id: string;
@@ -58,8 +58,8 @@ interface ReadingSessionsResponse {
 export function ReadingSessionList() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentPage = searchParams?.get('page')
-    ? parseInt(searchParams.get('page')!)
+  const currentPage = searchParams?.get("page")
+    ? parseInt(searchParams.get("page")!)
     : 1;
 
   const [sessions, setSessions] = useState<ReadingSession[]>([]);
@@ -78,23 +78,23 @@ export function ReadingSessionList() {
         const response = await fetch(
           `/api/reading/sessions?page=${currentPage}`,
           {
-            method: 'GET',
+            method: "GET",
           }
         );
 
         if (!response.ok) {
-          throw new Error('Failed to fetch sessions');
+          throw new Error("Failed to fetch sessions");
         }
 
         const data: ReadingSessionsResponse = await response.json();
         setSessions(data.sessions);
         setPagination(data.pagination);
       } catch (error) {
-        console.error('Error fetching reading sessions:', error);
+        console.error("Error fetching reading sessions:", error);
         toast({
-          title: 'Error',
-          description: 'Failed to load reading sessions',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to load reading sessions",
+          variant: "destructive",
         });
       } finally {
         setLoading(false);
@@ -138,21 +138,21 @@ export function ReadingSessionList() {
                     {session.title}
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    {session.wordCount} words • {session.estimatedReadingTime}{' '}
+                    {session.wordCount} words • {session.estimatedReadingTime}{" "}
                     min read
                   </CardDescription>
                 </div>
                 <Badge
                   variant={
                     session.userProgress.completionTime
-                      ? 'secondary'
-                      : 'default'
+                      ? "secondary"
+                      : "default"
                   }
                   className="text-xs"
                 >
                   {session.userProgress.completionTime
-                    ? 'Completed'
-                    : 'In Progress'}
+                    ? "Completed"
+                    : "In Progress"}
                 </Badge>
               </div>
             </CardHeader>
@@ -197,8 +197,8 @@ export function ReadingSessionList() {
               <Button asChild variant="secondary" className="w-full h-9">
                 <Link href={`/dashboard/reading/${session._id.toString()}`}>
                   {session.userProgress.completionTime
-                    ? 'Review Session'
-                    : 'Continue Reading'}
+                    ? "Review Session"
+                    : "Continue Reading"}
                 </Link>
               </Button>
               <DeleteSessionButton sessionId={session._id.toString()} />

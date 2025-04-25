@@ -1,21 +1,21 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -24,26 +24,26 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/components/ui/use-toast';
+} from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
-  level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
+  level: z.enum(["A1", "A2", "B1", "B2", "C1", "C2"]),
   topic: z.string().min(2, {
-    message: 'Topic must be at least 2 characters.',
+    message: "Topic must be at least 2 characters.",
   }),
-  contentType: z.enum(['monologue', 'dialogue', 'interview', 'news']),
-  targetLength: z.enum(['short', 'medium', 'long']),
+  contentType: z.enum(["monologue", "dialogue", "interview", "news"]),
+  targetLength: z.enum(["short", "medium", "long"]),
 });
 
 export default function CreateListeningSessionPage() {
@@ -53,26 +53,26 @@ export default function CreateListeningSessionPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Parse the preset parameter if available
-  const presetParam = searchParams.get('preset');
+  const presetParam = searchParams?.get("preset");
   let preset: any = null;
 
   if (presetParam) {
     try {
       preset = JSON.parse(decodeURIComponent(presetParam));
     } catch (e) {
-      console.error('Failed to parse preset parameter:', e);
+      console.error("Failed to parse preset parameter:", e);
     }
   }
 
   // Default form values
   const defaultValues = {
-    level: preset?.level || 'B1',
-    topic: preset?.topic || '',
-    contentType: preset?.contentType || 'dialogue',
-    targetLength: (preset?.targetLength || 'medium') as
-      | 'short'
-      | 'medium'
-      | 'long',
+    level: preset?.level || "B1",
+    topic: preset?.topic || "",
+    contentType: preset?.contentType || "dialogue",
+    targetLength: (preset?.targetLength || "medium") as
+      | "short"
+      | "medium"
+      | "long",
   };
 
   // Initialize form
@@ -86,10 +86,10 @@ export default function CreateListeningSessionPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/listening/generate', {
-        method: 'POST',
+      const response = await fetch("/api/listening/generate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(values),
       });
@@ -101,7 +101,7 @@ export default function CreateListeningSessionPage() {
         // Handle specific status codes
         if (response.status === 504) {
           throw new Error(
-            'The request timed out. This might be due to high server load or the complexity of your request. Please try again with shorter content length.'
+            "The request timed out. This might be due to high server load or the complexity of your request. Please try again with shorter content length."
           );
         }
 
@@ -111,42 +111,42 @@ export default function CreateListeningSessionPage() {
         }
 
         // Fallback error message
-        throw new Error('Failed to generate listening session');
+        throw new Error("Failed to generate listening session");
       }
 
       const data = await response.json();
 
       toast({
-        title: 'Success!',
-        description: 'Your listening practice has been created.',
+        title: "Success!",
+        description: "Your listening practice has been created.",
       });
 
       // Redirect to the new session
       router.push(`/dashboard/listening/${data._id}`);
     } catch (error) {
-      console.error('Error creating session:', error);
+      console.error("Error creating session:", error);
 
       // Determine if error is retryable
       const isTimeout =
         error instanceof Error &&
-        (error.message.includes('timed out') ||
-          error.message.includes('timeout'));
+        (error.message.includes("timed out") ||
+          error.message.includes("timeout"));
 
       toast({
-        title: 'Error',
+        title: "Error",
         description:
-          error instanceof Error ? error.message : 'Failed to create session',
-        variant: 'destructive',
+          error instanceof Error ? error.message : "Failed to create session",
+        variant: "destructive",
         action: isTimeout ? (
           <Button
             variant="outline"
             onClick={() => {
               // Suggest simpler parameters for timeout errors
-              form.setValue('targetLength', 'short');
+              form.setValue("targetLength", "short");
               toast({
-                title: 'Tip',
+                title: "Tip",
                 description:
-                  'Try with shorter content length for faster processing.',
+                  "Try with shorter content length for faster processing.",
               });
             }}
           >
@@ -263,28 +263,28 @@ export default function CreateListeningSessionPage() {
                           label="Dialogue"
                           description="Conversation between two or more people"
                           name={field.name}
-                          checked={field.value === 'dialogue'}
+                          checked={field.value === "dialogue"}
                         />
                         <ContentTypeOption
                           value="monologue"
                           label="Monologue"
                           description="Single speaker talking on a subject"
                           name={field.name}
-                          checked={field.value === 'monologue'}
+                          checked={field.value === "monologue"}
                         />
                         <ContentTypeOption
                           value="interview"
                           label="Interview"
                           description="Questions and answers between interviewer and interviewee"
                           name={field.name}
-                          checked={field.value === 'interview'}
+                          checked={field.value === "interview"}
                         />
                         <ContentTypeOption
                           value="news"
                           label="News"
                           description="Formal news-style report or broadcast"
                           name={field.name}
-                          checked={field.value === 'news'}
+                          checked={field.value === "news"}
                         />
                       </RadioGroup>
                     </FormControl>
@@ -345,7 +345,7 @@ export default function CreateListeningSessionPage() {
                       Generating Content...
                     </>
                   ) : (
-                    'Generate Listening Content'
+                    "Generate Listening Content"
                   )}
                 </Button>
               </div>
@@ -376,8 +376,8 @@ function ContentTypeOption({
       htmlFor={`content-${value}`}
       className={`flex cursor-pointer flex-col rounded-lg border p-4 ${
         checked
-          ? 'border-primary bg-primary/5'
-          : 'border-gray-200 hover:border-gray-300'
+          ? "border-primary bg-primary/5"
+          : "border-gray-200 hover:border-gray-300"
       }`}
     >
       <div className="flex items-start space-x-2">

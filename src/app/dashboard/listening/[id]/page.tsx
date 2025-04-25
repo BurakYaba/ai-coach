@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   ArrowLeft,
@@ -13,42 +13,42 @@ import {
   Repeat,
   Volume2,
   VolumeX,
-} from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 import {
   Accordion,
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
-} from '@/components/ui/accordion';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+} from "@/components/ui/accordion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Slider } from '@/components/ui/slider';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
-import { cn, formatTime, normalizeQuestionType } from '@/lib/utils';
+} from "@/components/ui/collapsible";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Slider } from "@/components/ui/slider";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
+import { cn, formatTime, normalizeQuestionType } from "@/lib/utils";
 
 // Fetch listening session from API
 async function fetchListeningSession(id: string) {
   const response = await fetch(`/api/listening/${id}`);
   if (!response.ok) {
-    throw new Error('Failed to fetch listening session');
+    throw new Error("Failed to fetch listening session");
   }
   return response.json();
 }
@@ -56,15 +56,15 @@ async function fetchListeningSession(id: string) {
 // Update session progress
 async function updateSessionProgress(id: string, progress: any) {
   const response = await fetch(`/api/listening/${id}`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ userProgress: progress }),
   });
 
   if (!response.ok) {
-    throw new Error('Failed to update session progress');
+    throw new Error("Failed to update session progress");
   }
 
   return response.json();
@@ -73,15 +73,15 @@ async function updateSessionProgress(id: string, progress: any) {
 // Submit answers and get feedback
 async function submitAnswers(id: string, answers: string[]) {
   const response = await fetch(`/api/listening/${id}/feedback`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({ answers }),
   });
 
   if (!response.ok) {
-    throw new Error('Failed to submit answers');
+    throw new Error("Failed to submit answers");
   }
 
   return response.json();
@@ -106,7 +106,7 @@ export default function ListeningSessionPage({
   const [volume, setVolume] = useState(100);
   const [isMuted, setIsMuted] = useState(false);
   const [showTranscript, setShowTranscript] = useState(false);
-  const [activeTab, setActiveTab] = useState('listen');
+  const [activeTab, setActiveTab] = useState("listen");
 
   const [answers, setAnswers] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -128,7 +128,7 @@ export default function ListeningSessionPage({
   const loadSession = async () => {
     try {
       const data = await fetchListeningSession(params.id);
-      console.log('Loaded session data:', {
+      console.log("Loaded session data:", {
         title: data.title,
         questionTypes: data.questions
           ? data.questions.map((q: any) => q.type)
@@ -144,11 +144,11 @@ export default function ListeningSessionPage({
 
       setSession(data);
       // Initialize answers array with empty strings
-      setAnswers(new Array(data.questions?.length || 0).fill(''));
+      setAnswers(new Array(data.questions?.length || 0).fill(""));
     } catch (err) {
-      console.error('Error loading session:', err);
+      console.error("Error loading session:", err);
       setError(
-        err instanceof Error ? err : new Error('Failed to load session')
+        err instanceof Error ? err : new Error("Failed to load session")
       );
     } finally {
       setIsLoading(false);
@@ -177,14 +177,14 @@ export default function ListeningSessionPage({
       setIsPlaying(false);
     };
 
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('durationchange', handleDurationChange);
-    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener("timeupdate", handleTimeUpdate);
+    audio.addEventListener("durationchange", handleDurationChange);
+    audio.addEventListener("ended", handleEnded);
 
     return () => {
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('durationchange', handleDurationChange);
-      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener("timeupdate", handleTimeUpdate);
+      audio.removeEventListener("durationchange", handleDurationChange);
+      audio.removeEventListener("ended", handleEnded);
     };
   }, []);
 
@@ -256,19 +256,19 @@ export default function ListeningSessionPage({
 
     try {
       // Create an array with just the current question's answer
-      const answersToSubmit = new Array(session.questions.length).fill('');
+      const answersToSubmit = new Array(session.questions.length).fill("");
       answersToSubmit[currentQuestionIndex] = answers[currentQuestionIndex];
 
       const result = await submitAnswers(params.id, answersToSubmit);
 
       // Log the raw feedback result
-      console.log('Feedback result:', JSON.stringify(result));
+      console.log("Feedback result:", JSON.stringify(result));
 
       // Extract the result for the current question
       const currentQuestionResult = result.answers?.[currentQuestionIndex];
 
       console.log(
-        'Current question result:',
+        "Current question result:",
         JSON.stringify(currentQuestionResult)
       );
 
@@ -334,7 +334,7 @@ export default function ListeningSessionPage({
       ) {
         updateData.completionTime = new Date().toISOString();
         console.log(
-          'Setting completion time as all content has been completed'
+          "Setting completion time as all content has been completed"
         );
       }
 
@@ -380,12 +380,12 @@ export default function ListeningSessionPage({
       //   }
       // }
     } catch (err) {
-      console.error('Error submitting answer:', err);
+      console.error("Error submitting answer:", err);
       toast({
-        title: 'Error',
+        title: "Error",
         description:
-          err instanceof Error ? err.message : 'Failed to submit answer',
-        variant: 'destructive',
+          err instanceof Error ? err.message : "Failed to submit answer",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -498,7 +498,7 @@ export default function ListeningSessionPage({
             if (audioRef.current) {
               const loadedDuration = audioRef.current.duration;
               setDuration(loadedDuration);
-              console.log('Audio duration loaded:', {
+              console.log("Audio duration loaded:", {
                 loadedDuration,
                 isFinite: isFinite(loadedDuration),
                 formatted: formatTime(loadedDuration),
@@ -523,7 +523,7 @@ export default function ListeningSessionPage({
         <div className="mb-4">
           <div className="flex items-center justify-between">
             <div className="text-sm font-medium">
-              {formatTime(currentTime)} /{' '}
+              {formatTime(currentTime)} /{" "}
               {formatTime(
                 duration && isFinite(duration) && duration > 0
                   ? duration
@@ -599,7 +599,7 @@ export default function ListeningSessionPage({
             ) : (
               <Play className="h-6 w-6 pl-1" />
             )}
-            <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
+            <span className="sr-only">{isPlaying ? "Pause" : "Play"}</span>
           </Button>
 
           <Button
@@ -607,7 +607,7 @@ export default function ListeningSessionPage({
             onClick={() => setShowTranscript(!showTranscript)}
           >
             <BookOpen className="mr-2 h-4 w-4" />
-            {showTranscript ? 'Hide' : 'Show'} Transcript
+            {showTranscript ? "Hide" : "Show"} Transcript
           </Button>
         </div>
       </div>
@@ -681,7 +681,7 @@ export default function ListeningSessionPage({
                   />
                 </div>
                 <span className="text-sm text-gray-600">
-                  {session.userProgress?.vocabularyReviewed?.length || 0} of{' '}
+                  {session.userProgress?.vocabularyReviewed?.length || 0} of{" "}
                   {session.vocabulary?.length || 0} words reviewed
                 </span>
               </div>
@@ -709,7 +709,7 @@ export default function ListeningSessionPage({
                 // Find newly opened accordions and mark words as reviewed
                 if (values.length > 0) {
                   const newlyOpenedItems = values.filter(value => {
-                    const index = parseInt(value.replace('item-', ''));
+                    const index = parseInt(value.replace("item-", ""));
                     if (
                       isNaN(index) ||
                       index < 0 ||
@@ -729,7 +729,7 @@ export default function ListeningSessionPage({
                     ];
 
                     newlyOpenedItems.forEach(item => {
-                      const index = parseInt(item.replace('item-', ''));
+                      const index = parseInt(item.replace("item-", ""));
                       if (
                         !isNaN(index) &&
                         index >= 0 &&
@@ -767,7 +767,7 @@ export default function ListeningSessionPage({
                       ) {
                         updateData.completionTime = new Date().toISOString();
                         console.log(
-                          'Setting completion time as all content has been completed'
+                          "Setting completion time as all content has been completed"
                         );
                       }
 
@@ -798,7 +798,7 @@ export default function ListeningSessionPage({
                         <span className="font-semibold">{item.word}</span>
                         <Badge
                           variant="secondary"
-                          className={`${item.difficulty <= 3 ? 'bg-green-100 text-green-800' : item.difficulty <= 7 ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}
+                          className={`${item.difficulty <= 3 ? "bg-green-100 text-green-800" : item.difficulty <= 7 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800"}`}
                         >
                           Level {item.difficulty}
                         </Badge>
@@ -855,7 +855,7 @@ export default function ListeningSessionPage({
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold">Comprehension Questions</h2>
                 <span className="text-sm text-gray-600">
-                  Question {currentQuestionIndex + 1} of{' '}
+                  Question {currentQuestionIndex + 1} of{" "}
                   {session.questions?.length || 0}
                 </span>
               </div>
@@ -891,14 +891,14 @@ export default function ListeningSessionPage({
                           key={idx}
                           variant={
                             currentQuestionIndex === idx
-                              ? 'default'
+                              ? "default"
                               : isAnswered
-                                ? 'outline'
-                                : 'secondary'
+                                ? "outline"
+                                : "secondary"
                           }
                           size="sm"
                           onClick={() => setCurrentQuestionIndex(idx)}
-                          className={`w-10 h-10 p-0 ${isAnswered ? 'border-green-500' : ''}`}
+                          className={`w-10 h-10 p-0 ${isAnswered ? "border-green-500" : ""}`}
                         >
                           {idx + 1}
                         </Button>
@@ -916,9 +916,9 @@ export default function ListeningSessionPage({
                   {/* Multiple choice options */}
                   {normalizeQuestionType(
                     session.questions[currentQuestionIndex]?.type
-                  ) === 'multiple-choice' && (
+                  ) === "multiple-choice" && (
                     <RadioGroup
-                      value={answers[currentQuestionIndex] || ''}
+                      value={answers[currentQuestionIndex] || ""}
                       onValueChange={value =>
                         handleAnswerChange(currentQuestionIndex, value)
                       }
@@ -957,9 +957,9 @@ export default function ListeningSessionPage({
                   {/* True/False options */}
                   {normalizeQuestionType(
                     session.questions[currentQuestionIndex]?.type
-                  ) === 'true-false' && (
+                  ) === "true-false" && (
                     <RadioGroup
-                      value={answers[currentQuestionIndex] || ''}
+                      value={answers[currentQuestionIndex] || ""}
                       onValueChange={value =>
                         handleAnswerChange(currentQuestionIndex, value)
                       }
@@ -993,9 +993,9 @@ export default function ListeningSessionPage({
                   {/* Fill in the blank */}
                   {normalizeQuestionType(
                     session.questions[currentQuestionIndex]?.type
-                  ) === 'fill-blank' && (
+                  ) === "fill-blank" && (
                     <Input
-                      value={answers[currentQuestionIndex] || ''}
+                      value={answers[currentQuestionIndex] || ""}
                       onChange={e =>
                         handleAnswerChange(currentQuestionIndex, e.target.value)
                       }
@@ -1022,8 +1022,8 @@ export default function ListeningSessionPage({
                             session.questions[currentQuestionIndex].id
                           ] ===
                           session.questions[currentQuestionIndex].correctAnswer
-                            ? 'bg-green-50 border-green-200'
-                            : 'bg-red-50 border-red-200'
+                            ? "bg-green-50 border-green-200"
+                            : "bg-red-50 border-red-200"
                         }`}
                       >
                         <AlertDescription>
@@ -1033,8 +1033,8 @@ export default function ListeningSessionPage({
                             ] ===
                             session.questions[currentQuestionIndex]
                               .correctAnswer
-                              ? 'Correct!'
-                              : 'Incorrect'}
+                              ? "Correct!"
+                              : "Incorrect"}
                           </div>
                           <div>
                             <span className="font-semibold">Your answer: </span>
@@ -1046,7 +1046,7 @@ export default function ListeningSessionPage({
                           </div>
                           <div className="mt-2">
                             <span className="font-semibold">
-                              The correct answer:{' '}
+                              The correct answer:{" "}
                             </span>
                             {
                               session.questions[currentQuestionIndex]
@@ -1057,7 +1057,7 @@ export default function ListeningSessionPage({
                             .explanation && (
                             <div className="mt-2">
                               <span className="font-semibold">
-                                Explanation:{' '}
+                                Explanation:{" "}
                               </span>
                               {
                                 session.questions[currentQuestionIndex]
@@ -1092,7 +1092,7 @@ export default function ListeningSessionPage({
                           </div>
                           <div className="mt-2">
                             <span className="font-semibold">
-                              The correct answer:{' '}
+                              The correct answer:{" "}
                             </span>
                             {
                               session.questions[currentQuestionIndex]
@@ -1103,7 +1103,7 @@ export default function ListeningSessionPage({
                             .explanation && (
                             <div className="mt-2">
                               <span className="font-semibold">
-                                Explanation:{' '}
+                                Explanation:{" "}
                               </span>
                               {
                                 session.questions[currentQuestionIndex]
@@ -1147,7 +1147,7 @@ export default function ListeningSessionPage({
                           Submitting...
                         </>
                       ) : (
-                        'Submit Answer'
+                        "Submit Answer"
                       )}
                     </Button>
                   )}
@@ -1213,11 +1213,11 @@ export default function ListeningSessionPage({
                               <p
                                 className={
                                   item.isCorrect
-                                    ? 'text-green-600 dark:text-green-400'
-                                    : 'text-red-600 dark:text-red-400'
+                                    ? "text-green-600 dark:text-green-400"
+                                    : "text-red-600 dark:text-red-400"
                                 }
                               >
-                                {item.userAnswer || '(No answer)'}
+                                {item.userAnswer || "(No answer)"}
                               </p>
                             </div>
                             <div className="rounded-lg bg-gray-50 p-3">

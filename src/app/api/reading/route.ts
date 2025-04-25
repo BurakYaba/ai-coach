@@ -1,11 +1,15 @@
-import mongoose from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import ReadingSession from '@/models/ReadingSession';
-import { VocabularyBank } from '@/models/VocabularyBank';
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import { getCacheHeaders, handleApiError } from "@/lib/reading-utils";
+import ReadingSession from "@/models/ReadingSession";
+import { VocabularyBank } from "@/models/VocabularyBank";
+
+// Ensure dynamic behavior for these API routes
+export const dynamic = "force-dynamic";
 
 // GET /api/reading - Get all reading sessions for the current user
 export async function GET(req: NextRequest) {
@@ -13,88 +17,85 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
 
-    // Replace console.log statements with more appropriate logging mechanism in production
-
-    // Replace 'any' types with proper type annotations for parsedStats
-
-    // Ensure we have a valid user ID
-    const userId = session.user.id;
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID not found in session' },
-        { status: 400 }
-      );
-    }
-
     // Convert string ID to MongoDB ObjectId
-    const userObjectId = new mongoose.Types.ObjectId(userId);
+    const userObjectId = new mongoose.Types.ObjectId(session.user.id);
 
+    // Parse query parameters with proper validation
     const searchParams = req.nextUrl.searchParams;
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const level = searchParams.get('level');
-    const topic = searchParams.get('topic');
+    const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+    const limit = Math.min(
+      50,
+      Math.max(1, parseInt(searchParams.get("limit") || "8", 10))
+    );
+    const level = searchParams.get("level");
+    const topic = searchParams.get("topic");
 
-    const query: any = { userId: userObjectId };
+    // Build query with proper typing
+    const query: mongoose.FilterQuery<typeof ReadingSession> = {
+      userId: userObjectId,
+    };
+
+    // Add optional filters when present
     if (level) query.level = level;
     if (topic) query.topic = topic;
 
-    const totalSessions = await ReadingSession.countDocuments(query);
-    const sessions = await ReadingSession.find(query)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
+    // Execute queries in parallel for better performance
+    const [totalSessions, sessions] = await Promise.all([
+      ReadingSession.countDocuments(query),
+      ReadingSession.find(query)
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean(), // Use lean for better performance when we don't need Mongoose methods
+    ]);
 
-    return NextResponse.json({
-      sessions,
-      pagination: {
-        total: totalSessions,
-        pages: Math.ceil(totalSessions / limit),
-        current: page,
-        limit,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching reading sessions:', error);
+    // Set cache headers for better performance (1 minute cache)
+    const headers = getCacheHeaders(60);
+
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
+      {
+        sessions,
+        pagination: {
+          total: totalSessions,
+          pages: Math.ceil(totalSessions / limit),
+          current: page,
+          limit,
+        },
+      },
+      { headers }
     );
+  } catch (error) {
+    return handleApiError(error, "Error fetching reading sessions");
   }
 }
 
 // POST /api/reading - Create a new reading session
 export async function POST(req: NextRequest) {
   try {
-    console.log('Processing POST request to /api/reading');
-
     // Connect to the database first
     await dbConnect();
 
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      console.warn('Unauthorized attempt to create a reading session');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Ensure we have a valid user ID
     const userId = session.user.id;
     if (!userId) {
-      console.warn('User ID not found in session');
       return NextResponse.json(
-        { error: 'User ID not found in session' },
+        { error: "User ID not found in session" },
         { status: 400 }
       );
     }
 
     // Convert string ID to MongoDB ObjectId
     const userObjectId = new mongoose.Types.ObjectId(userId);
-    console.log(`Creating reading session for user: ${userId}`);
 
     const body = await req.json();
     const {
@@ -108,16 +109,20 @@ export async function POST(req: NextRequest) {
       aiAnalysis,
     } = body;
 
-    // Log vocabulary words for debugging
-    console.log(
-      `Reading session includes ${vocabulary?.length || 0} vocabulary words`
-    );
+    // Validate required fields
+    if (!title || !content || !level || !topic) {
+      return NextResponse.json(
+        { error: "Missing required fields: title, content, level, or topic" },
+        { status: 400 }
+      );
+    }
 
     // Calculate word count and estimated reading time
     const words = content.trim().split(/\s+/);
     const wordCount = words.length;
     const estimatedReadingTime = Math.ceil(wordCount / 200); // Average reading speed of 200 words per minute
 
+    // Create reading session with proper error handling
     const readingSession = await ReadingSession.create({
       userId: userObjectId,
       title,
@@ -126,10 +131,15 @@ export async function POST(req: NextRequest) {
       topic,
       wordCount,
       estimatedReadingTime,
-      questions,
-      vocabulary,
-      grammarFocus,
-      aiAnalysis,
+      questions: questions || [],
+      vocabulary: vocabulary || [],
+      grammarFocus: grammarFocus || [],
+      aiAnalysis: aiAnalysis || {
+        readingLevel: 5,
+        complexityScore: 5,
+        topicRelevance: 10,
+        suggestedNextTopics: [],
+      },
       userProgress: {
         startTime: new Date(),
         timeSpent: 0,
@@ -139,28 +149,8 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.log(`Created reading session with ID: ${readingSession._id}`);
-
-    // Add new vocabulary words to the user's vocabulary bank
-    if (vocabulary && vocabulary.length > 0) {
-      // We're no longer automatically adding vocabulary to the bank
-      // Users will add words manually from the VocabularyPanel
-      console.log(
-        `Reading session created with ${vocabulary.length} vocabulary words. Words can be added to vocabulary bank manually.`
-      );
-    } else {
-      console.log('No vocabulary words to add from this reading session');
-    }
-
     return NextResponse.json(readingSession, { status: 201 });
   } catch (error) {
-    console.error('Error creating reading session:', error);
-    return NextResponse.json(
-      {
-        error: 'Internal server error',
-        details: (error as Error).message,
-      },
-      { status: 500 }
-    );
+    return handleApiError(error, "Error creating reading session");
   }
 }

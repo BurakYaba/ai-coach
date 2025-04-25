@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import {
   PlayCircle,
@@ -6,12 +6,12 @@ import {
   Clock,
   BookOpen,
   Headphones,
-} from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+} from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -19,12 +19,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { toast } from '@/hooks/use-toast';
-import { formatDuration } from '@/lib/utils';
+} from "@/components/ui/card";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { toast } from "@/hooks/use-toast";
+import { formatDuration } from "@/lib/utils";
 
-import { Badge } from '../ui/badge';
+import { Badge } from "../ui/badge";
 
 interface LibraryItemProps {
   id: string;
@@ -79,14 +79,14 @@ export function LibraryItemView({ id }: LibraryItemProps) {
         const response = await fetch(`/api/library/${id}`);
 
         if (!response.ok) {
-          throw new Error('Failed to fetch library item');
+          throw new Error("Failed to fetch library item");
         }
 
         const data = await response.json();
         setItem(data);
       } catch (err) {
-        console.error('Error fetching library item:', err);
-        setError('Failed to load the listening exercise');
+        console.error("Error fetching library item:", err);
+        setError("Failed to load the listening exercise");
       } finally {
         setLoading(false);
       }
@@ -101,10 +101,10 @@ export function LibraryItemView({ id }: LibraryItemProps) {
     setStartingSession(true);
     try {
       // Create a new session from the library item
-      const response = await fetch('/api/listening/session', {
-        method: 'POST',
+      const response = await fetch("/api/listening/session", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           title: item.title,
@@ -122,7 +122,7 @@ export function LibraryItemView({ id }: LibraryItemProps) {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create session');
+        throw new Error("Failed to create session");
       }
 
       const data = await response.json();
@@ -132,13 +132,13 @@ export function LibraryItemView({ id }: LibraryItemProps) {
 
       // This is optional but helps ensure the dashboard page is refreshed
       // when navigating back to it in the future
-      router.prefetch('/dashboard/listening?tab=inprogress');
+      router.prefetch("/dashboard/listening?tab=inprogress");
     } catch (err) {
-      console.error('Error starting session:', err);
+      console.error("Error starting session:", err);
       toast({
-        title: 'Error',
-        description: 'Failed to start the listening session',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to start the listening session",
+        variant: "destructive",
       });
       setStartingSession(false);
     }
@@ -147,14 +147,14 @@ export function LibraryItemView({ id }: LibraryItemProps) {
   // Function to get badge color based on level
   const getLevelColor = (level: string) => {
     const colors: Record<string, string> = {
-      A1: 'bg-green-100 text-green-800',
-      A2: 'bg-green-200 text-green-800',
-      B1: 'bg-blue-100 text-blue-800',
-      B2: 'bg-blue-200 text-blue-800',
-      C1: 'bg-purple-100 text-purple-800',
-      C2: 'bg-purple-200 text-purple-800',
+      A1: "bg-green-100 text-green-800",
+      A2: "bg-green-200 text-green-800",
+      B1: "bg-blue-100 text-blue-800",
+      B2: "bg-blue-200 text-blue-800",
+      C1: "bg-purple-100 text-purple-800",
+      C2: "bg-purple-200 text-purple-800",
     };
-    return colors[level] || 'bg-gray-100 text-gray-800';
+    return colors[level] || "bg-gray-100 text-gray-800";
   };
 
   if (loading) {
@@ -170,7 +170,7 @@ export function LibraryItemView({ id }: LibraryItemProps) {
       <div className="text-center py-12">
         <h3 className="text-lg font-medium mb-2">Error Loading Exercise</h3>
         <p className="text-muted-foreground mb-6">
-          {error || 'Item not found'}
+          {error || "Item not found"}
         </p>
         <Button asChild>
           <Link href="/dashboard/listening?tab=library">
@@ -184,9 +184,9 @@ export function LibraryItemView({ id }: LibraryItemProps) {
 
   // Preview the first 50 words of content
   const contentPreview =
-    typeof item.content === 'string'
-      ? item.content.split(' ').slice(0, 50).join(' ') + '...'
-      : item.content.transcript.split(' ').slice(0, 50).join(' ') + '...';
+    typeof item.content === "string"
+      ? item.content.split(" ").slice(0, 50).join(" ") + "..."
+      : item.content.transcript.split(" ").slice(0, 50).join(" ") + "...";
 
   return (
     <div className="space-y-6">

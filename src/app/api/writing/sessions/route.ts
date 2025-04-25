@@ -1,17 +1,17 @@
-import mongoose from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
 
-import { authOptions } from '@/lib/auth';
-import { dbConnect } from '@/lib/db';
-import WritingSession from '@/models/WritingSession';
+import { authOptions } from "@/lib/auth";
+import { dbConnect } from "@/lib/db";
+import WritingSession from "@/models/WritingSession";
 
 // GET /api/writing/sessions - Get all writing sessions for the user
 export async function GET(_req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
@@ -25,7 +25,7 @@ export async function GET(_req: NextRequest) {
 
       // Find sessions that match by string comparison (in case of ObjectId/string mismatch)
       const matchingSessions = allSessions.filter(s => {
-        const sessionUserId = s.userId ? s.userId.toString() : '';
+        const sessionUserId = s.userId ? s.userId.toString() : "";
         return sessionUserId === userIdStr;
       });
 
@@ -62,9 +62,9 @@ export async function GET(_req: NextRequest) {
       return NextResponse.json({ sessions: writingSessions });
     }
   } catch (error: any) {
-    console.error('Error fetching writing sessions:', error);
+    console.error("Error fetching writing sessions:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch writing sessions', details: error.message },
+      { error: "Failed to fetch writing sessions", details: error.message },
       { status: 500 }
     );
   }
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
 
     if (!promptData) {
       return NextResponse.json(
-        { error: 'Missing prompt data object' },
+        { error: "Missing prompt data object" },
         { status: 400 }
       );
     }
@@ -99,14 +99,14 @@ export async function POST(req: NextRequest) {
       !promptData.targetLength
     ) {
       return NextResponse.json(
-        { error: 'Missing required fields in prompt' },
+        { error: "Missing required fields in prompt" },
         { status: 400 }
       );
     }
 
     // Validate and potentially swap type and topic if they're mixed up
     let { type, topic } = promptData;
-    const validTypes = ['essay', 'letter', 'story', 'argument'];
+    const validTypes = ["essay", "letter", "story", "argument"];
 
     // If type is not valid but is actually a topic, and topic is a valid type, swap them
     if (!validTypes.includes(type) && validTypes.includes(topic)) {
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
 
     // If type is still invalid, default to essay
     if (!validTypes.includes(type)) {
-      type = 'essay';
+      type = "essay";
     }
 
     // Ensure requirements is an array (even if empty)
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
     } else {
       // Filter to ensure only strings in requirements
       promptData.requirements = promptData.requirements.filter(
-        (r: any) => typeof r === 'string'
+        (r: any) => typeof r === "string"
       );
     }
 
@@ -148,9 +148,9 @@ export async function POST(req: NextRequest) {
         targetLength: Number(promptData.targetLength),
         requirements: promptData.requirements,
       },
-      status: 'draft',
+      status: "draft",
       submission: {
-        content: '',
+        content: "",
         drafts: [],
       },
       timeTracking: {
@@ -166,20 +166,20 @@ export async function POST(req: NextRequest) {
     const writingSession = await WritingSession.create(sessionData);
 
     return NextResponse.json(
-      { session: writingSession, message: 'Session created successfully' },
+      { session: writingSession, message: "Session created successfully" },
       { status: 201 }
     );
   } catch (error: any) {
     // Handle validation errors
     if (error instanceof mongoose.Error.ValidationError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { error: "Validation error", details: error.errors },
         { status: 400 }
       );
     }
 
     return NextResponse.json(
-      { error: 'Failed to create writing session', details: error.message },
+      { error: "Failed to create writing session", details: error.message },
       { status: 500 }
     );
   }
