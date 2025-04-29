@@ -1,8 +1,8 @@
-import { User } from 'next-auth';
+import { User } from "next-auth";
 
-// Extend the User type to include optional role
+// Extend the User type with compatibility for next-auth User
 interface UserWithRole extends User {
-  role?: string;
+  role: string;
 }
 
 /**
@@ -11,7 +11,7 @@ interface UserWithRole extends User {
  * @returns True if the user is an admin, false otherwise
  */
 export function isAdmin(user?: UserWithRole | null): boolean {
-  return user?.role === 'admin';
+  return user?.role === "admin";
 }
 
 /**
@@ -30,7 +30,7 @@ export function canAccessUserData(
   if (!currentUserId) return false;
 
   // Admin can access all user data
-  if (currentUserRole === 'admin') return true;
+  if (currentUserRole === "admin") return true;
 
   // Users can access their own data
   return currentUserId === targetUserId;

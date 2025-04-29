@@ -1,12 +1,13 @@
-import mongoose from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import OpenAI from 'openai';
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import OpenAI from "openai";
 
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import { normalizeQuestionType } from '@/lib/utils';
-import ListeningSession from '@/models/ListeningSession';
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import { normalizeQuestionType } from "@/lib/utils";
+import ListeningSession from "@/models/ListeningSession";
+import { GamificationService } from "@/lib/gamification/gamification-service";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -21,7 +22,7 @@ export async function POST(
     // Authenticate user
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
@@ -30,7 +31,7 @@ export async function POST(
     const { id } = params;
     if (!id || !mongoose.isValidObjectId(id)) {
       return NextResponse.json(
-        { error: 'Invalid session ID' },
+        { error: "Invalid session ID" },
         { status: 400 }
       );
     }
@@ -41,7 +42,7 @@ export async function POST(
     // Check if session exists
     if (!listeningSession) {
       return NextResponse.json(
-        { error: 'Listening session not found' },
+        { error: "Listening session not found" },
         { status: 404 }
       );
     }
@@ -49,7 +50,7 @@ export async function POST(
     // Check if session belongs to the user
     if (listeningSession.userId.toString() !== session.user.id) {
       return NextResponse.json(
-        { error: 'You do not have access to this session' },
+        { error: "You do not have access to this session" },
         { status: 403 }
       );
     }
@@ -59,7 +60,7 @@ export async function POST(
 
     if (!answers || !Array.isArray(answers)) {
       return NextResponse.json(
-        { error: 'Invalid answers format' },
+        { error: "Invalid answers format" },
         { status: 400 }
       );
     }
@@ -69,8 +70,8 @@ export async function POST(
 
     // Calculate results and generate feedback
     const questionFeedback = questions.map((question: any, index: number) => {
-      const userAnswer = answers[index] || '';
-      const correctAnswer = question.correctAnswer || '';
+      const userAnswer = answers[index] || "";
+      const correctAnswer = question.correctAnswer || "";
 
       // Add detailed debugging for answer evaluation
       console.log(`Evaluating question ${index + 1}:`);
@@ -92,7 +93,7 @@ export async function POST(
         userAnswer,
         correctAnswer,
         isCorrect,
-        explanation: question.explanation || 'No explanation provided',
+        explanation: question.explanation || "No explanation provided",
       };
     });
 
@@ -110,18 +111,18 @@ export async function POST(
     );
 
     // Generate overall feedback based on score
-    let overallFeedback = '';
+    let overallFeedback = "";
     if (score >= 90) {
       overallFeedback =
-        'Excellent work! You have a great understanding of the content.';
+        "Excellent work! You have a great understanding of the content.";
     } else if (score >= 70) {
-      overallFeedback = 'Good job! You understood most of the content.';
+      overallFeedback = "Good job! You understood most of the content.";
     } else if (score >= 50) {
       overallFeedback =
         "You're making progress. Keep practicing to improve your comprehension.";
     } else {
       overallFeedback =
-        'This was challenging. Try reviewing the transcript and vocabulary to better understand the content.';
+        "This was challenging. Try reviewing the transcript and vocabulary to better understand the content.";
     }
 
     // Update user progress in database
@@ -143,13 +144,18 @@ export async function POST(
       updatedProgress.vocabularyReviewed?.length ===
       listeningSession.vocabulary?.length;
 
+    // Check if this session is being completed now (wasn't completed before)
+    const wasCompletedBefore = !!listeningSession.userProgress.completionTime;
+
     // Set completionTime only when the session is 100% complete
+    let isNowCompleted = false;
     if (allQuestionsAnswered && allVocabularyReviewed) {
       updatedProgress.completionTime = new Date();
-      console.log('Setting completion time as all content has been completed');
+      isNowCompleted = !wasCompletedBefore;
+      console.log("Setting completion time as all content has been completed");
     } else {
       console.log(
-        'Not setting completion time as content is not fully completed:',
+        "Not setting completion time as content is not fully completed:",
         {
           questionsAnswered: updatedProgress.questionsAnswered,
           totalQuestions: questions.length,
@@ -162,7 +168,7 @@ export async function POST(
     console.log(`Saving user progress with comprehensionScore: ${score}`);
 
     // Debug log the object being saved
-    console.log('User progress object:', {
+    console.log("User progress object:", {
       questionsAnswered: updatedProgress.questionsAnswered,
       correctAnswers: updatedProgress.correctAnswers,
       comprehensionScore: updatedProgress.comprehensionScore,
@@ -173,10 +179,48 @@ export async function POST(
       $set: { userProgress: updatedProgress },
     });
 
+    // Award XP for gamification if the session is completed now
+    if (isNowCompleted) {
+      console.log(`Session ${id} completed, awarding XP`);
+      try {
+        // Award XP for completing the session
+        await GamificationService.awardXP(
+          session.user.id,
+          "listening",
+          "complete_session",
+          {
+            sessionId: id,
+            timeSpent: listeningSession.userProgress.timeSpent || 0,
+            score: score,
+          }
+        );
+
+        // Award XP for correct answers
+        if (correctCount > 0) {
+          await GamificationService.awardXP(
+            session.user.id,
+            "listening",
+            "correct_answer",
+            {
+              sessionId: id,
+              count: correctCount,
+            }
+          );
+        }
+
+        console.log(
+          `Successfully awarded XP for completed listening session ${id}`
+        );
+      } catch (error) {
+        console.error(`Error awarding XP for listening session ${id}:`, error);
+        // Don't fail the request if gamification fails
+      }
+    }
+
     // Verify the update by fetching the updated document
     const updatedSession = await ListeningSession.findById(id);
     console.log(
-      'Verified saved comprehensionScore:',
+      "Verified saved comprehensionScore:",
       updatedSession.userProgress.comprehensionScore
     );
 
@@ -200,16 +244,15 @@ export async function POST(
           userAnswer: item.userAnswer,
           correctAnswer: item.correctAnswer,
           isCorrect: item.isCorrect,
-          correct: item.isCorrect, // Add 'correct' property for backward compatibility
           explanation: item.explanation,
         })
       ),
       overallFeedback,
     });
   } catch (error) {
-    console.error('Error submitting answers:', error);
+    console.error("Error processing feedback:", error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: "Failed to process feedback" },
       { status: 500 }
     );
   }
@@ -224,7 +267,7 @@ function compareAnswers(
   if (!userAnswer) return false;
 
   // Add detailed debug logging
-  console.log('COMPARE ANSWERS DEBUG:');
+  console.log("COMPARE ANSWERS DEBUG:");
   console.log(`- User answer raw: "${userAnswer}"`);
   console.log(`- Correct answer raw: "${correctAnswer}"`);
   console.log(`- Question type: ${type}`);
@@ -234,26 +277,26 @@ function compareAnswers(
   console.log(`- Normalized question type: ${questionType}`);
 
   // For multiple choice, do direct comparison
-  if (questionType === 'multiple-choice') {
+  if (questionType === "multiple-choice") {
     const result = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
     console.log(`- Multiple choice comparison result: ${result}`);
     return result;
   }
 
   // For true-false, be more flexible with comparison
-  if (questionType === 'true-false') {
+  if (questionType === "true-false") {
     // Convert both answers to lowercase for consistent comparison
     const userAnswerLower = userAnswer.toLowerCase();
     const correctAnswerLower = correctAnswer.toLowerCase();
 
     // Normalize answers - check if they represent the same boolean value
     // regardless of format (true/false, True/False, A/B)
-    const isUserTrue = userAnswerLower === 'true' || userAnswerLower === 'a';
-    const isUserFalse = userAnswerLower === 'false' || userAnswerLower === 'b';
+    const isUserTrue = userAnswerLower === "true" || userAnswerLower === "a";
+    const isUserFalse = userAnswerLower === "false" || userAnswerLower === "b";
     const isCorrectTrue =
-      correctAnswerLower === 'true' || correctAnswerLower === 'a';
+      correctAnswerLower === "true" || correctAnswerLower === "a";
     const isCorrectFalse =
-      correctAnswerLower === 'false' || correctAnswerLower === 'b';
+      correctAnswerLower === "false" || correctAnswerLower === "b";
 
     console.log(`- Is user answer true? ${isUserTrue}`);
     console.log(`- Is user answer false? ${isUserFalse}`);
@@ -269,13 +312,13 @@ function compareAnswers(
   }
 
   // For fill-blank, be more lenient with comparison
-  if (questionType === 'fill-blank') {
+  if (questionType === "fill-blank") {
     // Normalize answers by trimming, lowercasing, and removing extra spaces
-    const normalizedUser = userAnswer.toLowerCase().trim().replace(/\s+/g, ' ');
+    const normalizedUser = userAnswer.toLowerCase().trim().replace(/\s+/g, " ");
     const normalizedCorrect = correctAnswer
       .toLowerCase()
       .trim()
-      .replace(/\s+/g, ' ');
+      .replace(/\s+/g, " ");
 
     // Check if answers match exactly after normalization
     if (normalizedUser === normalizedCorrect) return true;
@@ -287,8 +330,8 @@ function compareAnswers(
     if (normalizedCorrect.includes(normalizedUser)) return true;
 
     // Calculate similarity ratio (simple approach)
-    const words1 = normalizedUser.split(' ');
-    const words2 = normalizedCorrect.split(' ');
+    const words1 = normalizedUser.split(" ");
+    const words2 = normalizedCorrect.split(" ");
     const commonWords = words1.filter(word => words2.includes(word)).length;
     const totalWords = Math.max(words1.length, words2.length);
 
@@ -315,7 +358,7 @@ async function generateFeedback(
 Question from listening exercise: "${question}"
 User's answer: "${userAnswer}"
 Correct answer: "${correctAnswer}"
-Is the answer correct: ${isCorrect ? 'Yes' : 'No'}
+Is the answer correct: ${isCorrect ? "Yes" : "No"}
 
 Relevant part of the transcript: 
 ${extractRelevantTranscriptPart(transcript, question, correctAnswer)}
@@ -324,14 +367,14 @@ Please provide helpful, encouraging feedback for this answer. If the answer is i
 `;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: "gpt-3.5-turbo",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content:
-            'You are a helpful language learning assistant providing feedback on listening comprehension exercises.',
+            "You are a helpful language learning assistant providing feedback on listening comprehension exercises.",
         },
-        { role: 'user', content: prompt },
+        { role: "user", content: prompt },
       ],
       max_tokens: 150,
       temperature: 0.7,
@@ -340,13 +383,13 @@ Please provide helpful, encouraging feedback for this answer. If the answer is i
     return (
       response.choices[0]?.message?.content?.trim() ||
       (isCorrect
-        ? 'Correct answer!'
+        ? "Correct answer!"
         : `Incorrect. The correct answer is: ${correctAnswer}`)
     );
   } catch (error) {
-    console.error('Error generating individual feedback:', error);
+    console.error("Error generating individual feedback:", error);
     return isCorrect
-      ? 'Correct answer!'
+      ? "Correct answer!"
       : `Incorrect. The correct answer is: ${correctAnswer}`;
   }
 }
@@ -364,7 +407,7 @@ async function generateOverallFeedback(
     const incorrectQuestions = feedbackItems
       .filter(item => !item.isCorrect)
       .map(item => item.question)
-      .join('\n- ');
+      .join("\n- ");
 
     // Create a prompt for the AI to generate overall feedback
     const prompt = `
@@ -375,21 +418,21 @@ ${
   incorrectCount > 0
     ? `Questions the user got wrong:
 - ${incorrectQuestions}`
-    : 'The user answered all questions correctly!'
+    : "The user answered all questions correctly!"
 }
 
 Please provide encouraging overall feedback on their performance. Focus on their strengths but also provide specific advice on how they can improve their listening skills based on the types of questions they got wrong. Keep it to a maximum of 3-4 sentences.
 `;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: "gpt-3.5-turbo",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content:
-            'You are a helpful language learning assistant providing feedback on listening comprehension exercises.',
+            "You are a helpful language learning assistant providing feedback on listening comprehension exercises.",
         },
-        { role: 'user', content: prompt },
+        { role: "user", content: prompt },
       ],
       max_tokens: 200,
       temperature: 0.7,
@@ -400,7 +443,7 @@ Please provide encouraging overall feedback on their performance. Focus on their
       `You scored ${score}%. Keep practicing to improve your listening skills!`
     );
   } catch (error) {
-    console.error('Error generating overall feedback:', error);
+    console.error("Error generating overall feedback:", error);
     return `You scored ${score}%. Keep practicing to improve your listening skills!`;
   }
 }
@@ -424,11 +467,11 @@ function extractRelevantTranscriptPart(
       transcript.length,
       answerIndex + answer.length + 100
     );
-    return transcript.substring(startIndex, endIndex) + '...';
+    return transcript.substring(startIndex, endIndex) + "...";
   }
 
   // If we can't find the exact answer, return a short version of the transcript
   return transcript.length > 300
-    ? transcript.substring(0, 300) + '...'
+    ? transcript.substring(0, 300) + "..."
     : transcript;
 }

@@ -17,12 +17,23 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-
+import axios from "axios";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   Accordion,
+  AccordionContent,
   AccordionItem,
   AccordionTrigger,
-  AccordionContent,
 } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -36,13 +47,29 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
 import { cn, formatTime, normalizeQuestionType } from "@/lib/utils";
+import { useRecordActivity } from "@/hooks/use-gamification";
 
 // Fetch listening session from API
 async function fetchListeningSession(id: string) {
@@ -95,6 +122,7 @@ export default function ListeningSessionPage({
   const router = useRouter();
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement>(null);
+  const recordActivity = useRecordActivity();
 
   const [session, setSession] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -123,6 +151,10 @@ export default function ListeningSessionPage({
   >(new Set());
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  // Determine if we should record a gamification activity for vocabulary review
+  const [shouldRecordVocabActivity, setShouldRecordVocabActivity] =
+    useState(false);
 
   // Define the loadSession function outside useEffect to avoid strict mode issues
   const loadSession = async () => {
@@ -391,6 +423,28 @@ export default function ListeningSessionPage({
       setIsSubmitting(false);
     }
   };
+
+  // Add useEffect for recording vocabulary review gamification
+  useEffect(() => {
+    if (shouldRecordVocabActivity && session) {
+      const vocabCount = session.userProgress?.vocabularyReviewed?.length || 0;
+
+      // Only call this when there are vocabulary words to record
+      if (vocabCount > 0) {
+        recordActivity.mutate({
+          module: "listening",
+          activityType: "review_word",
+          metadata: {
+            sessionId: params.id,
+            count: vocabCount,
+          },
+        });
+      }
+
+      // Reset the flag after recording
+      setShouldRecordVocabActivity(false);
+    }
+  }, [shouldRecordVocabActivity, session, params.id, recordActivity]);
 
   // Loading state
   if (isLoading) {
@@ -769,6 +823,9 @@ export default function ListeningSessionPage({
                         console.log(
                           "Setting completion time as all content has been completed"
                         );
+
+                        // Set flag to record vocabulary review in gamification
+                        setShouldRecordVocabActivity(true);
                       }
 
                       updateSessionProgress(params.id, updateData).then(() => {

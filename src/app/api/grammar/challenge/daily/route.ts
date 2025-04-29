@@ -6,6 +6,9 @@ import dbConnect from "@/lib/db";
 import GrammarIssue from "@/models/GrammarIssue";
 import User from "@/models/User";
 
+// Set route to be dynamically rendered at request time
+export const dynamic = "force-dynamic";
+
 // GET /api/grammar/challenge/daily - Get a daily grammar challenge
 export async function GET(_req: NextRequest) {
   try {

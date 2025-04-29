@@ -6,6 +6,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IReadingSession } from "@/models/ReadingSession";
+import { useRecordActivity } from "@/hooks/use-gamification";
 
 import { GrammarPanel } from "./GrammarPanel";
 import { QuestionPanel } from "./QuestionPanel";
@@ -19,6 +20,7 @@ interface ReadingSessionProps {
 
 export function ReadingSession({ sessionId }: ReadingSessionProps) {
   const router = useRouter();
+  const recordActivity = useRecordActivity();
   const [session, setSession] = useState<IReadingSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -140,12 +142,26 @@ export function ReadingSession({ sessionId }: ReadingSessionProps) {
         }),
       });
       if (!response.ok) throw new Error("Failed to complete session");
+
+      // Record the activity for gamification after successful completion
+      recordActivity.mutate({
+        module: "reading",
+        activityType: "complete_session",
+        metadata: {
+          sessionId: sessionId,
+          timeSpent: progress.timeSpent,
+          correctAnswers: progress.correctAnswers,
+          questionsAnswered: progress.questionsAnswered,
+          comprehensionScore: progress.comprehensionScore,
+        },
+      });
+
       router.push("/dashboard/reading");
     } catch (error) {
       console.error("Error completing session:", error);
       setError("Failed to complete session");
     }
-  }, [session, sessionId, progress, router]);
+  }, [session, sessionId, progress, router, recordActivity]);
 
   // Handle word click - memoize to prevent unnecessary re-renders
   const handleWordClick = useCallback((word: string) => {

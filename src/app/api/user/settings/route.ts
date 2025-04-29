@@ -5,6 +5,9 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 
+// Set route to be dynamically rendered at request time
+export const dynamic = "force-dynamic";
+
 // GET /api/user/settings - Get current user settings
 export async function GET() {
   try {

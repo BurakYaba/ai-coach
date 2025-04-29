@@ -6,6 +6,9 @@ import dbConnect from "@/lib/db";
 import GrammarIssue from "@/models/GrammarIssue";
 import User from "@/models/User";
 
+// Set route to be dynamically rendered at request time
+export const dynamic = "force-dynamic";
+
 // Define types for grammar rules
 interface GrammarRule {
   title: string;

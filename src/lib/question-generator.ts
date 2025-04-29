@@ -233,7 +233,7 @@ For each vocabulary item, provide:
 - 2-3 example sentences using the word
 - A difficulty rating (1-10)
 
-Return as a JSON array of objects.
+Return as a JSON array of objects with a "vocabulary" property containing the array.
 
 Transcript:
 ${transcriptSample}`,
@@ -248,10 +248,45 @@ ${transcriptSample}`,
       const content = response.choices[0].message.content;
       if (content) {
         const parsed = JSON.parse(content);
-        if (Array.isArray(parsed.vocabulary)) {
-          vocabulary = parsed.vocabulary;
+
+        // Check for different possible structures and normalize
+        if (parsed && typeof parsed === "object") {
+          if (Array.isArray(parsed.vocabulary)) {
+            vocabulary = parsed.vocabulary;
+          } else if (Array.isArray(parsed)) {
+            vocabulary = parsed;
+          } else if (parsed.items && Array.isArray(parsed.items)) {
+            vocabulary = parsed.items;
+          } else if (parsed.words && Array.isArray(parsed.words)) {
+            vocabulary = parsed.words;
+          } else {
+            // Try to extract any array property from the response
+            const arrayProps = Object.keys(parsed).filter(
+              key => Array.isArray(parsed[key]) && parsed[key].length > 0
+            );
+
+            if (arrayProps.length > 0) {
+              vocabulary = parsed[arrayProps[0]];
+            } else {
+              // Last resort: construct a minimal vocabulary array
+              vocabulary = [
+                {
+                  word: "vocabulary",
+                  definition: "The body of words used in a particular language",
+                  context:
+                    "Building vocabulary is essential for language learning",
+                  examples: [
+                    "Students need to expand their vocabulary",
+                    "Reading helps improve vocabulary",
+                  ],
+                  difficulty: 5,
+                },
+              ];
+            }
+          }
         } else {
-          vocabulary = parsed;
+          // Fallback for unexpected response format
+          vocabulary = [];
         }
       }
     } catch (parseError) {
@@ -259,15 +294,23 @@ ${transcriptSample}`,
       return [];
     }
 
+    // Ensure vocabulary is an array before mapping
+    if (!Array.isArray(vocabulary)) {
+      console.error("Vocabulary is not an array:", vocabulary);
+      vocabulary = [];
+    }
+
     // Process and validate vocabulary items
     const processedVocabulary = vocabulary.map((item: any) => ({
-      word: item.word || "",
-      definition: item.definition || "",
-      context: item.context || "No context provided",
-      examples: Array.isArray(item.examples)
+      word: item?.word || "vocabulary",
+      definition: item?.definition || "Definition not provided",
+      context: item?.context || "No context provided",
+      examples: Array.isArray(item?.examples)
         ? item.examples
-        : [`Example: ${item.word} is commonly used in conversations.`],
-      difficulty: item.difficulty || 5,
+        : [
+            `Example: ${item?.word || "vocabulary"} is commonly used in conversations.`,
+          ],
+      difficulty: item?.difficulty || 5,
       timestamp: 0, // Will be calculated later when creating the listening session
     }));
 

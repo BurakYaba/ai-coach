@@ -32,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import axios from "axios";
+import Link from "next/link";
 
 interface ModuleProgressProps {
   module:
@@ -44,18 +45,22 @@ interface ModuleProgressProps {
     | "games";
 }
 
+interface ActivityItem {
+  id: string;
+  date: string;
+  xp: number;
+  description: string;
+  activityType: string;
+}
+
 interface ModuleStats {
   totalSessions: number;
   totalTimeSpent: number; // in minutes
   completedItems: number; // depends on module (e.g., passages, exercises, etc.)
   averageScore: number; // percentage
   totalXP: number;
-  recentActivity: {
-    date: string;
-    xp: number;
-    description: string;
-  }[];
-  streak: {
+  recentActivity: ActivityItem[];
+  streak?: {
     current: number;
     best: number;
   };
@@ -63,7 +68,7 @@ interface ModuleStats {
     value: number;
     progress: number;
   };
-  achievements: {
+  achievements?: {
     total: number;
     unlocked: number;
   };
@@ -78,40 +83,22 @@ export function ModuleProgress({ module }: ModuleProgressProps) {
     const fetchModuleStats = async () => {
       setLoading(true);
       try {
-        // In a real implementation, this would fetch from an API
-        // For now, simulate with mock data
-        const mockData: ModuleStats = {
-          totalSessions: Math.floor(Math.random() * 50) + 10,
-          totalTimeSpent: Math.floor(Math.random() * 1000) + 100,
-          completedItems: Math.floor(Math.random() * 200) + 20,
-          averageScore: Math.floor(Math.random() * 30) + 70,
-          totalXP: Math.floor(Math.random() * 2000) + 500,
-          recentActivity: Array(5)
-            .fill(0)
-            .map((_, i) => ({
-              date: new Date(Date.now() - i * 86400000).toISOString(),
-              xp: Math.floor(Math.random() * 50) + 10,
-              description: `Completed ${module} session`,
-            })),
-          streak: {
-            current: Math.floor(Math.random() * 5) + 1,
-            best: Math.floor(Math.random() * 15) + 5,
-          },
-          level: {
-            value: Math.floor(Math.random() * 10) + 1,
-            progress: Math.floor(Math.random() * 100),
-          },
-          achievements: {
-            total: 10,
-            unlocked: Math.floor(Math.random() * 10),
-          },
-        };
+        // Fetch real data from the API
+        const response = await axios.get(
+          `/api/gamification/modules/${module}/stats`
+        );
 
-        // Simulate API delay
-        setTimeout(() => {
-          setStats(mockData);
-          setLoading(false);
-        }, 1000);
+        if (response.data.stats) {
+          setStats(response.data.stats);
+        } else {
+          // Handle empty response
+          setStats(null);
+          toast({
+            title: "No data available",
+            description: `No ${module} activity data available yet.`,
+            variant: "default",
+          });
+        }
       } catch (error) {
         console.error(`Error fetching ${module} stats:`, error);
         toast({
@@ -119,6 +106,8 @@ export function ModuleProgress({ module }: ModuleProgressProps) {
           description: `Failed to load ${module} statistics`,
           variant: "destructive",
         });
+        setStats(null);
+      } finally {
         setLoading(false);
       }
     };
@@ -218,20 +207,49 @@ export function ModuleProgress({ module }: ModuleProgressProps) {
 
   if (!stats) {
     return (
-      <div className="text-center py-10">
-        <div
-          className={cn(
-            "p-4 rounded-full mx-auto mb-4 w-fit",
-            getModuleBgColor()
-          )}
-        >
-          {getModuleIcon()}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3
+            className={cn(
+              "text-lg font-semibold flex items-center gap-2",
+              getModuleColor()
+            )}
+          >
+            {getModuleIcon()}
+            {getModuleDisplayName()} Progress
+          </h3>
         </div>
-        <h3 className="text-lg font-medium mb-1">No Stats Available</h3>
-        <p className="text-sm text-muted-foreground">
-          Start learning {module} to see your progress!
-        </p>
-        <Button className="mt-4">Start {getModuleDisplayName()} Session</Button>
+
+        <Card className="bg-muted/5">
+          <CardContent className="py-8 text-center">
+            <div
+              className={cn(
+                "mx-auto mb-4 p-3 rounded-full",
+                getModuleBgColor()
+              )}
+            >
+              {getModuleIcon()}
+            </div>
+            <h4 className="text-lg font-medium mb-2">No Activity Yet</h4>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              You haven't completed any {module} activities yet. Start
+              practicing to see your progress stats here!
+            </p>
+            <div className="mt-6">
+              <Button
+                className={cn(
+                  getModuleBgColor(),
+                  "text-white hover:bg-opacity-90"
+                )}
+                asChild
+              >
+                <Link href={`/dashboard/${module}`}>
+                  Start {getModuleDisplayName()} Activity
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -315,7 +333,7 @@ export function ModuleProgress({ module }: ModuleProgressProps) {
                   Avg. Score
                 </span>
                 <span className="text-2xl font-bold">
-                  {stats.averageScore}%
+                  {stats.averageScore || 0}%
                 </span>
               </div>
             </div>
@@ -331,17 +349,21 @@ export function ModuleProgress({ module }: ModuleProgressProps) {
               <div className="flex items-center">
                 <Trophy className={cn("h-5 w-5 mr-2", getModuleColor())} />
                 <span className="text-2xl font-bold">
-                  {stats.achievements.unlocked}
+                  {stats.achievements?.unlocked || 0}
                 </span>
               </div>
               <span className="text-sm text-muted-foreground">
-                of {stats.achievements.total} unlocked
+                of {stats.achievements?.total || 0} unlocked
               </span>
             </div>
             <div className="space-y-1">
               <Progress
                 value={
-                  (stats.achievements.unlocked / stats.achievements.total) * 100
+                  stats.achievements
+                    ? (stats.achievements.unlocked /
+                        (stats.achievements.total || 1)) *
+                      100
+                    : 0
                 }
                 className="h-2"
               />
@@ -368,40 +390,46 @@ export function ModuleProgress({ module }: ModuleProgressProps) {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {stats.recentActivity.map((activity, index) => (
-              <div
-                key={index}
-                className="flex justify-between items-center p-3 rounded-lg border border-muted/20 hover:bg-muted/5 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "p-2 rounded-lg",
-                      getModuleBgColor(),
-                      getModuleColor()
-                    )}
-                  >
-                    {getModuleIcon()}
+            {stats.recentActivity && stats.recentActivity.length > 0 ? (
+              stats.recentActivity.map((activity, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center p-3 rounded-lg border border-muted/20 hover:bg-muted/5 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={cn(
+                        "p-2 rounded-lg",
+                        getModuleBgColor(),
+                        getModuleColor()
+                      )}
+                    >
+                      {getModuleIcon()}
+                    </div>
+                    <div>
+                      <div className="font-medium text-sm">
+                        {activity.description}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(activity.date).toLocaleDateString()} -{" "}
+                        {new Date(activity.date).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-medium text-sm">
-                      {activity.description}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {new Date(activity.date).toLocaleDateString()} -{" "}
-                      {new Date(activity.date).toLocaleTimeString([], {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </div>
+                  <div className="flex items-center gap-1">
+                    <Star className="h-4 w-4 text-yellow-500" />
+                    <span className="font-bold text-sm">{activity.xp} XP</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-yellow-500" />
-                  <span className="font-bold text-sm">{activity.xp} XP</span>
-                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                No recent activity to display
               </div>
-            ))}
+            )}
           </div>
         </CardContent>
         <CardFooter className="border-t pt-4">

@@ -7,6 +7,9 @@ import GrammarIssue from "@/models/GrammarIssue";
 import GrammarLesson from "@/models/GrammarLesson";
 import User from "@/models/User";
 
+// Set route to be dynamically rendered at request time
+export const dynamic = "force-dynamic";
+
 // GET /api/user/grammar-progress - Get user's grammar progress
 export async function GET(req: NextRequest) {
   try {

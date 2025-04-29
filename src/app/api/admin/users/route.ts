@@ -1,32 +1,35 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 
-import { authOptions, isAdmin } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import ListeningSession from '@/models/ListeningSession';
-import User from '@/models/User';
+import { authOptions, isAdmin } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import ListeningSession from "@/models/ListeningSession";
+import User from "@/models/User";
+import School from "@/models/School";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Check if user is admin
     const userIsAdmin = await isAdmin(session.user.id);
     if (!userIsAdmin) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     await dbConnect();
 
     const searchParams = request.nextUrl.searchParams;
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const searchTerm = searchParams.get('search') || '';
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const searchTerm = searchParams.get("search") || "";
     const skip = (page - 1) * limit;
 
     // Build query object
@@ -35,8 +38,8 @@ export async function GET(request: NextRequest) {
     // Add search filter if provided
     if (searchTerm) {
       query.$or = [
-        { name: { $regex: searchTerm, $options: 'i' } },
-        { email: { $regex: searchTerm, $options: 'i' } },
+        { name: { $regex: searchTerm, $options: "i" } },
+        { email: { $regex: searchTerm, $options: "i" } },
       ];
     }
 
@@ -45,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch paginated users
     const users = await User.find(query)
-      .select('_id name email image role createdAt')
+      .select("_id name email image role createdAt")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -99,9 +102,122 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error fetching users:', error);
+    console.error("Error fetching users:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch users' },
+      { error: "Failed to fetch users" },
+      { status: 500 }
+    );
+  }
+}
+
+// Create a new user
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Check if user is admin
+    const userIsAdmin = await isAdmin(session.user.id);
+    if (!userIsAdmin) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    await dbConnect();
+
+    const body = await request.json();
+    const {
+      name,
+      email,
+      password,
+      role,
+      school: schoolId,
+      branch: branchId,
+    } = body;
+
+    // Validate required fields
+    if (!name || !email || !password || !role) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Check if role is valid
+    if (!["user", "school_admin", "admin"].includes(role)) {
+      return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+    }
+
+    // Check for existing user
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return NextResponse.json(
+        { error: "User with this email already exists" },
+        { status: 400 }
+      );
+    }
+
+    // Validate school/branch if role is school_admin
+    if (role === "school_admin" && schoolId) {
+      const school = await School.findById(schoolId);
+      if (!school) {
+        return NextResponse.json(
+          { error: "Selected school not found" },
+          { status: 400 }
+        );
+      }
+
+      // If branch provided, verify it exists
+      if (branchId) {
+        // You would validate the branch belongs to the school here
+        // This depends on your data model structure
+      }
+    }
+
+    // Create user object with appropriate subscription status based on role
+    const userData: any = {
+      name,
+      email,
+      password, // Use the plain password - the pre-save hook in the User model will hash it
+      role,
+      subscription: {
+        type: "none",
+        status: "active", // Default to active for all users created by admin
+      },
+    };
+
+    // Add school reference if school_admin
+    if (role === "school_admin" && schoolId) {
+      userData.school = new mongoose.Types.ObjectId(schoolId);
+
+      // Add branch if provided
+      if (branchId) {
+        userData.branch = new mongoose.Types.ObjectId(branchId);
+      }
+    }
+
+    // Create the user
+    const user = await User.create(userData);
+
+    // If school_admin, add user to school admins array
+    if (role === "school_admin" && schoolId) {
+      await School.findByIdAndUpdate(schoolId, {
+        $addToSet: { admins: user._id },
+      });
+    }
+
+    // Return user without password
+    const userResponse = user.toObject();
+    const userWithoutPassword = { ...userResponse };
+    // @ts-expect-error - Password may not be recognized as a property by TypeScript
+    delete userWithoutPassword.password;
+
+    return NextResponse.json(userWithoutPassword, { status: 201 });
+  } catch (error) {
+    console.error("Error creating user:", error);
+    return NextResponse.json(
+      { error: "Failed to create user" },
       { status: 500 }
     );
   }

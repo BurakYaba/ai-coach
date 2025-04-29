@@ -59,9 +59,18 @@ export function ModuleAchievements({ module }: ModuleAchievementsProps) {
       setLoading(true);
       try {
         const response = await axios.get(
-          `/api/gamification/achievements?module=${module}`
+          `/api/gamification/modules/${module}/achievements`
         );
-        setAchievements(response.data.achievements);
+
+        if (
+          response.data.achievements &&
+          response.data.achievements.length > 0
+        ) {
+          setAchievements(response.data.achievements);
+        } else {
+          // If no achievements, set empty array
+          setAchievements([]);
+        }
       } catch (error) {
         console.error(`Error fetching ${module} achievements:`, error);
         toast({
@@ -69,6 +78,7 @@ export function ModuleAchievements({ module }: ModuleAchievementsProps) {
           description: `Failed to load ${module} achievements`,
           variant: "destructive",
         });
+        setAchievements([]);
       } finally {
         setLoading(false);
       }

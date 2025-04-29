@@ -141,3 +141,20 @@ export function normalizeQuestionType(
   // Default to multiple-choice if unrecognized
   return "multiple-choice";
 }
+
+/**
+ * Generate a random alphanumeric code of specified length
+ * @param length Length of the code to generate
+ * @returns Random alphanumeric code
+ */
+export function generateUniqueCode(length: number = 6): string {
+  const characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Omitting confusing characters like 0, O, 1, I
+  let result = "";
+
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    result += characters.charAt(randomIndex);
+  }
+
+  return result;
+}

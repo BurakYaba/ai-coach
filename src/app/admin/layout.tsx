@@ -1,11 +1,11 @@
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
+import { redirect } from "next/navigation";
+import { getServerSession } from "next-auth";
 
-import { isAdmin, authOptions } from '@/lib/auth';
+import { isAdmin, authOptions } from "@/lib/auth";
 
 // Improves performance by reducing re-renders
-export const dynamic = 'force-dynamic';
-export const fetchCache = 'force-no-store';
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 export default async function AdminLayout({
   children,
@@ -15,13 +15,13 @@ export default async function AdminLayout({
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect('/login');
+    redirect("/login");
   }
 
   // Check if user is admin
   const userIsAdmin = await isAdmin(session.user.id);
   if (!userIsAdmin) {
-    redirect('/dashboard'); // Redirect non-admins to dashboard
+    redirect("/dashboard"); // Redirect non-admins to dashboard
   }
 
   return (
@@ -46,6 +46,12 @@ export default async function AdminLayout({
               className="text-sm font-medium hover:text-primary"
             >
               Users
+            </a>
+            <a
+              href="/admin/schools"
+              className="text-sm font-medium hover:text-primary"
+            >
+              Schools
             </a>
             <a
               href="/dashboard"
