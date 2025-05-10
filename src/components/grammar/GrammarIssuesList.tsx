@@ -59,6 +59,7 @@ export default function GrammarIssuesList() {
   const router = useRouter();
   const [issues, setIssues] = useState<GrammarIssue[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isGeneratingLesson, setIsGeneratingLesson] = useState(false);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [levelFilter, setLevelFilter] = useState<string>("all");
   const [resolvedFilter, setResolvedFilter] = useState<string>("all");
@@ -187,11 +188,20 @@ export default function GrammarIssuesList() {
       return;
     }
 
+    setIsGeneratingLesson(true);
+
+    console.log(
+      "Starting lesson generation from selected issues:",
+      selectedIssues
+    );
+
     try {
       // Determine the most common category and level from selected issues
       const selectedIssuesData = issues.filter(issue =>
         selectedIssues.includes(issue._id)
       );
+
+      console.log("Selected issues data:", selectedIssuesData);
 
       const categoryCounts: Record<string, number> = {};
       const levelCounts: Record<string, number> = {};
@@ -203,6 +213,9 @@ export default function GrammarIssuesList() {
           (levelCounts[issue.ceferLevel] || 0) + 1;
       });
 
+      console.log("Category counts:", categoryCounts);
+      console.log("Level counts:", levelCounts);
+
       // Find most common category and level
       const topCategory = Object.entries(categoryCounts).sort(
         (a, b) => b[1] - a[1]
@@ -212,7 +225,10 @@ export default function GrammarIssuesList() {
         (a, b) => b[1] - a[1]
       )[0][0];
 
-      const response = await fetch("/api/grammar/lessons/generate", {
+      console.log("Using category:", topCategory, "and level:", topLevel);
+      console.log("Making API request to generate lesson...");
+
+      const response = await fetch("/api/grammar/lessons", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -224,11 +240,16 @@ export default function GrammarIssuesList() {
         }),
       });
 
+      console.log("API response status:", response.status);
+
       if (!response.ok) {
-        throw new Error("Failed to generate lesson");
+        const errorText = await response.text();
+        console.error("Error response from API:", errorText);
+        throw new Error(`Failed to generate lesson: ${errorText}`);
       }
 
       const data = await response.json();
+      console.log("Lesson created successfully:", data);
 
       toast({
         title: "Lesson created",
@@ -236,14 +257,18 @@ export default function GrammarIssuesList() {
       });
 
       // Navigate to the lesson
+      console.log("Navigating to lesson:", data.lesson._id);
       router.push(`/dashboard/grammar/lessons/${data.lesson._id}`);
     } catch (error: any) {
       console.error("Error generating lesson:", error);
+      // Show the detailed error message to help with debugging
       toast({
         title: "Error",
         description: error.message || "Failed to generate lesson",
         variant: "destructive",
       });
+    } finally {
+      setIsGeneratingLesson(false);
     }
   };
 
@@ -365,6 +390,7 @@ export default function GrammarIssuesList() {
               variant="outline"
               size="sm"
               onClick={() => markIssuesResolved(true)}
+              disabled={isGeneratingLesson}
             >
               Mark Resolved
             </Button>
@@ -372,11 +398,16 @@ export default function GrammarIssuesList() {
               variant="outline"
               size="sm"
               onClick={() => markIssuesResolved(false)}
+              disabled={isGeneratingLesson}
             >
               Mark Unresolved
             </Button>
-            <Button size="sm" onClick={generateLessonFromSelected}>
-              Generate Lesson
+            <Button
+              size="sm"
+              onClick={generateLessonFromSelected}
+              disabled={isGeneratingLesson}
+            >
+              {isGeneratingLesson ? "Generating..." : "Generate Lesson"}
             </Button>
           </div>
         )}

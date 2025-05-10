@@ -6,6 +6,7 @@ import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
 import UserActivity from "@/models/UserActivity";
 import GamificationProfile from "@/models/GamificationProfile";
+import { GamificationService } from "@/lib/gamification/gamification-service";
 
 type ModuleType =
   | "reading"
@@ -46,15 +47,8 @@ export async function GET(
 
     await dbConnect();
 
-    // Get user's gamification profile
-    const profile = await GamificationProfile.findOne({ userId });
-
-    if (!profile) {
-      return NextResponse.json(
-        { error: "Gamification profile not found" },
-        { status: 404 }
-      );
-    }
+    // Get user's gamification profile using the safer service method
+    const profile = await GamificationService.getUserProfile(userId);
 
     // Get module-specific activities
     const activities = await UserActivity.find({

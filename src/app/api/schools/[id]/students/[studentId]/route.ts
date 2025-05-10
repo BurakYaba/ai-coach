@@ -142,22 +142,48 @@ export async function DELETE(
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    // Remove school association (this doesn't delete the user, just removes from school)
-    student.school = undefined;
+    // Import all necessary models for cascade deletion
+    const GamificationProfile = (await import("@/models/GamificationProfile"))
+      .default;
+    const UserActivity = (await import("@/models/UserActivity")).default;
+    const VocabularyBank = (await import("@/models/VocabularyBank")).default;
+    const ReadingSession = (await import("@/models/ReadingSession")).default;
+    const ListeningSession = (await import("@/models/ListeningSession"))
+      .default;
+    const SpeakingSession = (await import("@/models/SpeakingSession")).default;
+    const WritingSession = (await import("@/models/WritingSession")).default;
 
-    // Update subscription status
-    student.subscription = {
-      type: "none",
-      status: "expired",
-    };
+    // Collect all deletion operations
+    const deleteOperations = [
+      // Delete the user's gamification profile
+      GamificationProfile.deleteOne({ userId: studentId }),
 
-    await student.save();
+      // Delete all user activities
+      UserActivity.deleteMany({ userId: studentId }),
 
-    return NextResponse.json({ message: "Student removed from school" });
+      // Delete vocabulary bank
+      VocabularyBank.deleteOne({ userId: studentId }),
+
+      // Delete all session data
+      ReadingSession.deleteMany({ userId: studentId }),
+      ListeningSession.deleteMany({ userId: studentId }),
+      SpeakingSession.deleteMany({ userId: studentId }),
+      WritingSession.deleteMany({ userId: studentId }),
+
+      // Finally, delete the user
+      User.findByIdAndDelete(studentId),
+    ];
+
+    // Execute all delete operations concurrently
+    await Promise.all(deleteOperations);
+
+    return NextResponse.json({
+      message: "Student and all associated data deleted successfully",
+    });
   } catch (error) {
-    console.error("Error removing student:", error);
+    console.error("Error deleting student:", error);
     return NextResponse.json(
-      { error: "Failed to remove student" },
+      { error: "Failed to delete student" },
       { status: 500 }
     );
   }

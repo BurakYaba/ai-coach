@@ -3,6 +3,7 @@
 import { Award, Zap, BookOpen } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import { DailyGrammarChallenge } from "@/components/grammar/DailyGrammarChallenge";
 import { GrammarFlashcards } from "@/components/grammar/GrammarFlashcards";
@@ -30,6 +31,7 @@ interface GrammarBadge {
 
 export default function GrammarPage() {
   const { data: session } = useSession();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [badges, setBadges] = useState<GrammarBadge[]>([]);
@@ -148,11 +150,8 @@ export default function GrammarPage() {
         description: `New lesson created: ${generateData.lesson.title}`,
       });
 
-      // Switch to lessons tab
-      setActiveTab("lessons");
-
-      // Refresh user progress
-      fetchUserProgress();
+      // Navigate directly to the new lesson
+      router.push(`/dashboard/grammar/lessons/${generateData.lesson._id}`);
     } catch (error: any) {
       console.error("Error generating lesson:", error);
       toast({

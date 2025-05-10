@@ -138,26 +138,56 @@ async function triggerEvaluation(sessionId: string, audioUrls: string[] = []) {
     // Create an API key for server-to-server authentication
     // This helps bypass the NextAuth authentication for server-initiated requests
     const internalApiKey = process.env.NEXTAUTH_SECRET || "internal-api-key";
+    console.log("Internal API key available:", !!internalApiKey);
 
-    // Make a non-blocking request to the evaluate endpoint
-    fetch(
-      `${process.env.NEXTAUTH_URL || "http://localhost:3000"}/api/speaking/evaluate`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Internal-Api-Key": internalApiKey,
-        },
-        body: JSON.stringify({
-          speakingSessionId: sessionId,
-          audioUrls: audioUrls,
-        }),
-      }
-    ).catch(error => {
-      console.error("Error triggering evaluation:", error);
+    // Log the API key's first and last few characters for debugging (safely)
+    if (internalApiKey) {
+      const safeKey = `${internalApiKey.substring(0, 3)}...${internalApiKey.substring(internalApiKey.length - 3)}`;
+      console.log("API key format check:", safeKey);
+    }
+
+    // Get base URL with fallback - ensure we use HTTPS for production
+    let baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+
+    // Make sure the URL has a protocol
+    if (!baseUrl.startsWith("http")) {
+      baseUrl = `https://${baseUrl}`;
+    }
+
+    const evaluateEndpoint = `${baseUrl}/api/speaking/evaluate`;
+
+    console.log(`Making API call to: ${evaluateEndpoint}`);
+    console.log("Headers being sent:", {
+      "Content-Type": "application/json",
+      "X-Internal-Api-Key": "present (value hidden)",
     });
 
-    console.log("Evaluation process triggered");
+    // Make a request to the evaluate endpoint with proper error handling
+    const response = await fetch(evaluateEndpoint, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-Api-Key": internalApiKey,
+      },
+      body: JSON.stringify({
+        speakingSessionId: sessionId,
+        audioUrls: audioUrls,
+      }),
+    });
+
+    // Log the response details
+    console.log(`Evaluation API response status: ${response.status}`);
+    console.log(`Response type: ${response.type}`);
+    console.log(`Response URL: ${response.url}`);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Evaluation request failed:", response.status, errorText);
+      throw new Error(`API error ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("Evaluation triggered successfully:", data);
   } catch (error) {
     console.error("Error triggering evaluation process:", error);
     // Don't throw - this is a background process and shouldn't affect the main flow

@@ -14,6 +14,7 @@ import { Heading } from "@/components/ui/heading";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import School from "@/models/School";
+import Branch from "@/models/Branch";
 
 export const metadata: Metadata = {
   title: "School Admin Dashboard",
@@ -23,7 +24,7 @@ export const metadata: Metadata = {
 async function getSchoolData(userId: string) {
   await dbConnect();
 
-  // Get the user to find their school
+  // Get the user to find their school and branch (if they are a branch admin)
   const user = await User.findById(userId);
   if (!user || !user.school) {
     return null;
@@ -39,25 +40,95 @@ async function getSchoolData(userId: string) {
     return null;
   }
 
-  // Get student count
-  const studentCount = await User.countDocuments({
+  // Check if the user is a branch admin
+  const isBranchAdmin = user.branch ? true : false;
+
+  // Prepare query for student count - filter by branch if user is a branch admin
+  const studentQuery: any = {
     school: school._id,
     role: "user",
-  });
+  };
 
-  // Get active student count (those who logged in the last 7 days)
+  // If user is a branch admin, only count students in their branch
+  if (isBranchAdmin && user.branch) {
+    studentQuery.branch = user.branch;
+  }
+
+  // Get student count with appropriate filtering
+  const studentCount = await User.countDocuments(studentQuery);
+
+  // Prepare query for active student count
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-  // This assumes updatedAt gets updated on login - adjust as needed
-  const activeStudentCount = await User.countDocuments({
-    school: school._id,
-    role: "user",
+  const activeStudentQuery = {
+    ...studentQuery,
     updatedAt: { $gte: sevenDaysAgo },
-  });
+  };
 
-  // Get admin count
-  const adminCount = school.admins.length;
+  // Get active student count with appropriate filtering
+  const activeStudentCount = await User.countDocuments(activeStudentQuery);
+
+  // Get admin count - if branch admin, only count admins for their branch
+  let adminCount = school.admins.length;
+
+  if (isBranchAdmin && user.branch) {
+    // Get the branch to find branch-specific admins
+    const branch = await Branch.findById(user.branch).populate({
+      path: "admins",
+      select: "name email _id",
+    });
+
+    // Count branch admins correctly
+    if (!branch) {
+      // If branch not found but user has branch access, count at least the current user
+      adminCount = 1;
+    } else {
+      // Find all users who are school_admin and associated with this specific branch
+      const branchAdminsCount = await User.countDocuments({
+        branch: user.branch,
+        role: "school_admin",
+      });
+
+      // Use the count from the database query instead of the branch.admins array
+      // This ensures we count all admins properly, regardless of whether they're
+      // explicitly listed in the branch.admins array
+      adminCount = branchAdminsCount > 0 ? branchAdminsCount : 1; // Minimum of 1 admin
+    }
+
+    // Include branch information in the return data
+    const branchData = branch
+      ? {
+          name: branch.name,
+          id: branch._id,
+        }
+      : null;
+
+    // Get subscription info
+    const subscriptionActive = school.subscription?.status === "active";
+    const subscriptionType = school.subscription?.type || "none";
+    const subscriptionMaxUsers = school.subscription?.maxUsers || 0;
+
+    // Return branch-specific data
+    return {
+      name: school.name,
+      branch: branchData,
+      location: school.location,
+      subscription: {
+        active: subscriptionActive,
+        type: subscriptionType,
+        maxUsers: subscriptionMaxUsers,
+        usedSlots: studentCount,
+      },
+      stats: {
+        studentCount,
+        activeStudentCount,
+        adminCount,
+      },
+      primaryContact: school.primaryContact,
+      isBranchAdmin,
+    };
+  }
 
   // Get subscription info
   const subscriptionActive = school.subscription?.status === "active";
@@ -80,6 +151,7 @@ async function getSchoolData(userId: string) {
       adminCount,
     },
     primaryContact: school.primaryContact,
+    isBranchAdmin,
   };
 }
 
@@ -93,7 +165,11 @@ export default async function SchoolAdminDashboard() {
     <div className="space-y-6">
       <Heading
         title="School Admin Dashboard"
-        description="Manage your school and students"
+        description={
+          schoolData?.isBranchAdmin && schoolData.branch
+            ? `Manage ${schoolData.branch.name}`
+            : "Manage your school and students"
+        }
       />
 
       {schoolData ? (
@@ -142,7 +218,9 @@ export default async function SchoolAdminDashboard() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">
-                    School Admins
+                    {schoolData.isBranchAdmin
+                      ? "Branch Admins"
+                      : "School Admins"}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -155,14 +233,26 @@ export default async function SchoolAdminDashboard() {
 
             <Card>
               <CardHeader>
-                <CardTitle>School Information</CardTitle>
-                <CardDescription>Details about your school</CardDescription>
+                <CardTitle>
+                  {schoolData.isBranchAdmin
+                    ? "Branch Information"
+                    : "School Information"}
+                </CardTitle>
+                <CardDescription>
+                  {schoolData.isBranchAdmin
+                    ? "Details about your branch"
+                    : "Details about your school"}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="font-medium">Name:</span>
-                    <span>{schoolData.name}</span>
+                    <span>
+                      {schoolData.isBranchAdmin && schoolData.branch
+                        ? schoolData.branch.name
+                        : schoolData.name}
+                    </span>
                   </div>
                   {schoolData.location.city && (
                     <div className="flex justify-between">
@@ -172,13 +262,20 @@ export default async function SchoolAdminDashboard() {
                       </span>
                     </div>
                   )}
-                  <div className="flex justify-between">
-                    <span className="font-medium">Primary Contact:</span>
-                    <span>
-                      {schoolData.primaryContact.name} (
-                      {schoolData.primaryContact.email})
-                    </span>
-                  </div>
+                  {schoolData.isBranchAdmin ? (
+                    <div className="flex justify-between">
+                      <span className="font-medium">School:</span>
+                      <span>{schoolData.name}</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between">
+                      <span className="font-medium">Primary Contact:</span>
+                      <span>
+                        {schoolData.primaryContact.name} (
+                        {schoolData.primaryContact.email})
+                      </span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -11,7 +11,7 @@ import { Badge, badges, getBadgeById } from "./badges";
 // XP configuration
 const XP_CONFIG = {
   reading: {
-    complete_session: 20,
+    complete_session: 5,
     correct_answer: 5,
     review_word: 2,
   },
@@ -21,8 +21,9 @@ const XP_CONFIG = {
     words_500_plus: 20,
   },
   listening: {
-    complete_session: 20,
-    correct_answer: 5,
+    complete_session: 5,
+    correct_answer: 2,
+    review_word: 2,
   },
   speaking: {
     complete_session: 30,
@@ -42,29 +43,100 @@ const XP_CONFIG = {
   },
 };
 
+// Calculate XP needed for a given level
+export function xpForLevel(level: number): number {
+  if (level <= 0) return 0;
+  if (level === 1) return 0; // Level 1 starts at 0 XP
+  if (level === 2) return 100; // Level 2 starts at 100 XP
+
+  // For Level 3 and above, use increasing XP requirements
+  // Level 3: 250 XP (100 + 150)
+  // Level 4: 450 XP (100 + 150 + 200)
+  // Level 5: 700 XP (100 + 150 + 200 + 250)
+  // And so on...
+
+  let totalXP = 100; // Starting with requirement for Level 2
+  let increment = 150; // Initial increment (for Level 3)
+
+  for (let i = 3; i <= level; i++) {
+    totalXP += increment;
+    increment += 50; // Each level requires 50 more XP than the previous increment
+  }
+
+  return totalXP;
+}
+
 // Level calculation
 export function calculateLevelFromXP(xp: number): {
   level: number;
   experienceToNextLevel: number;
+  currentLevelXP?: number;
+  nextLevelXP?: number;
+  xpSinceCurrentLevel?: number;
+  xpNeededForNextLevel?: number;
+  progressPercentage?: number;
 } {
+  // Handle special case of 0 XP
+  if (xp === 0) {
+    return {
+      level: 1,
+      experienceToNextLevel: 100, // Need 100 XP to reach level 2
+      currentLevelXP: 0,
+      nextLevelXP: 100,
+      xpSinceCurrentLevel: 0,
+      xpNeededForNextLevel: 100,
+      progressPercentage: 0,
+    };
+  }
+
+  // FIXED: Adjust level calculation to match user expectations
+  // Find the level where user's XP puts them
   let level = 1;
-  while (xpForLevel(level) <= xp) {
+  while (xp >= xpForLevel(level)) {
     level++;
   }
 
-  const currentLevelXP = level === 1 ? 0 : xpForLevel(level - 1);
-  const nextLevelXP = xpForLevel(level);
-  const experienceToNextLevel = nextLevelXP - currentLevelXP;
+  // Adjust back since we went one level too far
+  level--;
+
+  // Add 1 to level to match user expectations (100 XP = Level 2, not Level 1)
+  level += 1;
+
+  // Ensure level is at least 1
+  level = Math.max(level, 1);
+
+  // FIXED: Calculate XP thresholds based on the adjusted level
+  // Since we've adjusted the level, we need to adjust the thresholds too
+  const currentLevelXP = xpForLevel(level - 1); // XP threshold for current level
+  const nextLevelXP = xpForLevel(level); // XP threshold for next level
+
+  // Calculate XP progress within current level
+  const xpSinceCurrentLevel = xp - currentLevelXP;
+  const xpNeededForNextLevel = nextLevelXP - currentLevelXP;
+
+  // Calculate percentage progress to next level
+  const progressPercentage = (xpSinceCurrentLevel / xpNeededForNextLevel) * 100;
+
+  // Log detailed debugging information
+  console.log("XP Calculation Debug:", {
+    userTotalXP: xp,
+    currentLevel: level,
+    currentLevelThreshold: currentLevelXP,
+    nextLevelThreshold: nextLevelXP,
+    xpSinceCurrentLevel,
+    xpNeededForNextLevel,
+    progressPercentage,
+  });
 
   return {
-    level: level > 1 ? level - 1 : 1,
-    experienceToNextLevel,
+    level,
+    experienceToNextLevel: xpNeededForNextLevel, // Total XP difference between levels
+    currentLevelXP,
+    nextLevelXP,
+    xpSinceCurrentLevel,
+    xpNeededForNextLevel,
+    progressPercentage,
   };
-}
-
-// Calculate XP needed for a given level
-export function xpForLevel(level: number): number {
-  return Math.floor(100 * Math.pow(level, 1.5));
 }
 
 // Calculate streak based on last activity and current date
@@ -112,40 +184,63 @@ export class GamificationService {
     // Convert string ID to ObjectId if needed
     const objectId = new mongoose.Types.ObjectId(userId);
 
-    // Try to find existing profile
-    let profile = await GamificationProfile.findOne({ userId: objectId });
-
-    // Create new profile if none exists
-    if (!profile) {
-      profile = await GamificationProfile.create({
-        userId: objectId,
-        level: 1,
-        experience: 0,
-        experienceToNextLevel: 100,
-        streak: {
-          current: 0,
-          longest: 0,
-          lastActivity: new Date(),
-        },
-        achievements: [],
-        badges: [],
-        stats: {
-          totalXP: 0,
-          activeDays: 0,
-          moduleActivity: {
-            reading: 0,
-            writing: 0,
-            listening: 0,
-            speaking: 0,
-            vocabulary: 0,
-            grammar: 0,
-            games: 0,
+    try {
+      // Use findOneAndUpdate with upsert to safely get or create the profile
+      // This handles the race condition that can cause duplicate key errors
+      const profile = await GamificationProfile.findOneAndUpdate(
+        { userId: objectId },
+        {
+          $setOnInsert: {
+            userId: objectId,
+            level: 1,
+            experience: 0,
+            experienceToNextLevel: 100,
+            streak: {
+              current: 0,
+              longest: 0,
+              lastActivity: new Date(),
+            },
+            achievements: [],
+            badges: [],
+            stats: {
+              totalXP: 0,
+              activeDays: 0,
+              moduleActivity: {
+                reading: 0,
+                writing: 0,
+                listening: 0,
+                speaking: 0,
+                vocabulary: 0,
+                grammar: 0,
+                games: 0,
+              },
+            },
           },
         },
-      });
-    }
+        {
+          upsert: true, // Create if doesn't exist
+          new: true, // Return the updated/created document
+          runValidators: true, // Validate the document before saving
+        }
+      );
 
-    return profile;
+      return profile;
+    } catch (error) {
+      console.error("Error getting/creating gamification profile:", error);
+
+      // If we still get an error, attempt one more time with a simple find
+      // This should handle any race conditions that occurred
+      const existingProfile = await GamificationProfile.findOne({
+        userId: objectId,
+      });
+
+      if (existingProfile) {
+        return existingProfile;
+      }
+
+      // If no profile exists and we can't create one, throw the error
+      throw error;
+    }
   }
 
   // Award XP for an activity
@@ -175,20 +270,46 @@ export class GamificationService {
     // Check if we need to update streak
     const streakResult = this.updateStreak(profile);
 
-    // Record the activity
-    await UserActivity.create({
-      userId: objectId,
-      activityType,
-      module,
-      xpEarned: xpAmount,
-      metadata,
-    });
+    // Record the activity - but only if it's a session completion or it's not part of a completed session
+    // This helps prevent double-counting of activities
+    const shouldRecordActivity =
+      activityType === "complete_session" || !metadata.isPartOfCompletedSession;
 
-    // Update module activity count
-    if (module in profile.stats.moduleActivity) {
-      profile.stats.moduleActivity[
-        module as keyof typeof profile.stats.moduleActivity
-      ] += 1;
+    if (shouldRecordActivity) {
+      await UserActivity.create({
+        userId: objectId,
+        activityType,
+        module,
+        xpEarned: xpAmount,
+        metadata,
+      });
+    }
+
+    // Update module activity count - only for session completion activities to avoid double counting
+    // Also do not increment count for activities that are part of a completed session
+    if (
+      module in profile.stats.moduleActivity &&
+      (activityType === "complete_session" ||
+        !metadata.isPartOfCompletedSession)
+    ) {
+      // Only increment the count if:
+      // 1. It's a complete_session activity OR
+      // 2. It's NOT marked as part of a completed session
+      if (activityType === "complete_session") {
+        // Always increment for complete_session activities
+        profile.stats.moduleActivity[
+          module as keyof typeof profile.stats.moduleActivity
+        ] += 1;
+      } else if (
+        !metadata.isPartOfCompletedSession &&
+        activityType !== "review_word"
+      ) {
+        // Increment for other activities as long as they're not part of a completed session
+        // and not vocabulary reviews (which are handled specially)
+        profile.stats.moduleActivity[
+          module as keyof typeof profile.stats.moduleActivity
+        ] += 1;
+      }
     }
 
     // Add XP to profile
@@ -201,6 +322,19 @@ export class GamificationService {
     const leveledUp = level > profile.level;
     profile.level = level;
     profile.experienceToNextLevel = experienceToNextLevel;
+
+    // Log for debugging
+    console.log("XP Award - Profile After Calculation:", {
+      userId: userId,
+      activity: `${module}/${activityType}`,
+      xpAwarded: xpAmount,
+      newTotalXP: newTotalXP,
+      newLevel: level,
+      levelUp: leveledUp,
+      experienceToNextLevel: experienceToNextLevel,
+      fullCalculation: calculateLevelFromXP(newTotalXP),
+      isPartOfCompletedSession: metadata.isPartOfCompletedSession,
+    });
 
     // Check for new achievements
     const newAchievements = await this.checkAchievements(userId, profile);
@@ -242,6 +376,15 @@ export class GamificationService {
 
     // Base XP for the activity
     let xp = moduleConfig[activityType as keyof typeof moduleConfig] as number;
+
+    // Multiply XP for vocabulary reviews and correct answers based on count
+    if (activityType === "review_word" && metadata.count) {
+      xp = xp * metadata.count;
+      console.log(`Awarding ${xp} XP for ${metadata.count} vocabulary reviews`);
+    } else if (activityType === "correct_answer" && metadata.count) {
+      xp = xp * metadata.count;
+      console.log(`Awarding ${xp} XP for ${metadata.count} correct answers`);
+    }
 
     // Additional XP based on metadata
     if (module === "writing") {

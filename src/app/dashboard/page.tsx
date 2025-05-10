@@ -50,12 +50,14 @@ export default async function DashboardPage() {
     throw new Error("User not authenticated");
   }
 
+  await dbConnect();
+  const user = await User.findById(session.user.id);
   const userName = session.user.name || "User";
 
   return (
     <div className="space-y-8">
       <div className="bg-gradient-to-r from-primary/5 to-secondary/5 p-6 rounded-xl backdrop-blur-sm border border-muted/10">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">
+        <h1 className="text-3xl font-bold tracking-tight">
           Welcome back, <span className="text-gradient">{userName}</span>!
         </h1>
         <p className="text-muted-foreground">

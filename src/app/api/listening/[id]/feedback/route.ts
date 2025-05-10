@@ -97,27 +97,120 @@ export async function POST(
       };
     });
 
-    // Calculate overall score
-    const correctCount = questionFeedback.filter(
-      (item: any) => item.isCorrect
-    ).length;
-    const score =
-      questions.length > 0
-        ? Math.round((correctCount / questions.length) * 100)
-        : 0;
+    // Update user progress in database
+    // First, extract existing user answers from the session
+    // Convert Mongoose document to plain JavaScript object to avoid internal Mongoose properties
+    const listeningSessionObj = listeningSession.toObject
+      ? listeningSession.toObject()
+      : listeningSession;
 
-    console.log(
-      `Calculating score: ${correctCount} correct out of ${questions.length} questions = ${score}%`
+    // Extract existing user answers - ensuring it's a plain object
+    const existingUserAnswers: Record<string, string> = {};
+    // Check if userAnswers exists and is a Map
+    if (
+      listeningSessionObj.userProgress &&
+      listeningSessionObj.userProgress.userAnswers
+    ) {
+      // If it's a Map object, convert it properly
+      if (listeningSessionObj.userProgress.userAnswers instanceof Map) {
+        for (const [
+          key,
+          value,
+        ] of listeningSessionObj.userProgress.userAnswers.entries()) {
+          existingUserAnswers[key] = value;
+        }
+      } else if (
+        typeof listeningSessionObj.userProgress.userAnswers === "object"
+      ) {
+        // If it's already an object, copy it
+        Object.assign(
+          existingUserAnswers,
+          listeningSessionObj.userProgress.userAnswers
+        );
+      }
+    }
+
+    const existingCorrectAnswers =
+      listeningSessionObj.userProgress?.correctAnswers || 0;
+
+    // Track which questions are being answered for the first time vs. re-answered
+    let newCorrectAnswersCount = 0;
+    let newIncorrectAnswersReplacingCorrect = 0;
+
+    // Map to store all answers (existing + new)
+    const updatedUserAnswers = { ...existingUserAnswers };
+
+    // Process each answer in the current submission
+    questionFeedback.forEach(
+      (
+        feedback: {
+          userAnswer: string;
+          isCorrect: boolean;
+        },
+        index: number
+      ) => {
+        const questionId = `q${index}`;
+        const hasExistingAnswer = questionId in existingUserAnswers;
+        const wasCorrect =
+          hasExistingAnswer &&
+          compareAnswers(
+            existingUserAnswers[questionId],
+            questions[index].correctAnswer,
+            questions[index].type
+          );
+
+        // Only update if there's a new answer (not empty)
+        if (feedback.userAnswer) {
+          // Add this answer to the updated answers map
+          updatedUserAnswers[questionId] = feedback.userAnswer;
+
+          // Track correct/incorrect changes for XP calculation
+          if (!hasExistingAnswer && feedback.isCorrect) {
+            // New correct answer
+            newCorrectAnswersCount++;
+          } else if (hasExistingAnswer && wasCorrect && !feedback.isCorrect) {
+            // User changed a previously correct answer to incorrect
+            newIncorrectAnswersReplacingCorrect++;
+          } else if (hasExistingAnswer && !wasCorrect && feedback.isCorrect) {
+            // User changed a previously incorrect answer to correct
+            newCorrectAnswersCount++;
+          }
+        }
+      }
     );
+
+    // Calculate the updated total of correct answers
+    const totalCorrectAnswers = Math.max(
+      0, // Ensure we never go below 0
+      existingCorrectAnswers +
+        newCorrectAnswersCount -
+        newIncorrectAnswersReplacingCorrect
+    );
+
+    console.log("Correct answers calculation:", {
+      existingCorrectAnswers,
+      newCorrectAnswersCount,
+      newIncorrectAnswersReplacingCorrect,
+      totalCorrectAnswers,
+    });
+
+    // Count how many questions have answers
+    const answeredQuestionsCount = Object.keys(updatedUserAnswers).length;
+
+    // Calculate comprehension score based on total correct answers
+    const comprehensionScore =
+      answeredQuestionsCount > 0
+        ? Math.round((totalCorrectAnswers / answeredQuestionsCount) * 100)
+        : 0;
 
     // Generate overall feedback based on score
     let overallFeedback = "";
-    if (score >= 90) {
+    if (comprehensionScore >= 90) {
       overallFeedback =
         "Excellent work! You have a great understanding of the content.";
-    } else if (score >= 70) {
+    } else if (comprehensionScore >= 70) {
       overallFeedback = "Good job! You understood most of the content.";
-    } else if (score >= 50) {
+    } else if (comprehensionScore >= 50) {
       overallFeedback =
         "You're making progress. Keep practicing to improve your comprehension.";
     } else {
@@ -125,16 +218,13 @@ export async function POST(
         "This was challenging. Try reviewing the transcript and vocabulary to better understand the content.";
     }
 
-    // Update user progress in database
+    // Update the progress object with the new calculations
     const updatedProgress = {
-      ...listeningSession.userProgress,
-      questionsAnswered: questions.length,
-      correctAnswers: correctCount,
-      comprehensionScore: score,
-      userAnswers: answers.reduce((obj, answer, index) => {
-        obj[`q${index}`] = answer;
-        return obj;
-      }, {}),
+      ...listeningSessionObj.userProgress,
+      questionsAnswered: answeredQuestionsCount,
+      correctAnswers: totalCorrectAnswers,
+      comprehensionScore: comprehensionScore,
+      userAnswers: updatedUserAnswers,
     };
 
     // Only set completionTime if all questions are answered and all vocabulary items are reviewed
@@ -145,7 +235,8 @@ export async function POST(
       listeningSession.vocabulary?.length;
 
     // Check if this session is being completed now (wasn't completed before)
-    const wasCompletedBefore = !!listeningSession.userProgress.completionTime;
+    const wasCompletedBefore =
+      !!listeningSessionObj.userProgress.completionTime;
 
     // Set completionTime only when the session is 100% complete
     let isNowCompleted = false;
@@ -165,19 +256,78 @@ export async function POST(
       );
     }
 
-    console.log(`Saving user progress with comprehensionScore: ${score}`);
+    console.log(
+      `Saving user progress with comprehensionScore: ${comprehensionScore}`
+    );
 
-    // Debug log the object being saved
-    console.log("User progress object:", {
+    // For database update, we need to convert the userAnswers to a format MongoDB can handle
+    // Create a clean object with only the data we want to update to avoid Mongoose issues
+    interface CleanProgress {
+      questionsAnswered: number;
+      correctAnswers: number;
+      comprehensionScore: number;
+      userAnswers: Record<string, string>;
+      completionTime?: Date;
+      vocabularyReviewed?: string[];
+    }
+
+    const cleanUpdatedProgress: CleanProgress = {
       questionsAnswered: updatedProgress.questionsAnswered,
       correctAnswers: updatedProgress.correctAnswers,
       comprehensionScore: updatedProgress.comprehensionScore,
-      completionTime: updatedProgress.completionTime,
+      // For MongoDB Map fields, convert JS object to Map entries
+      userAnswers: Object.fromEntries(Object.entries(updatedUserAnswers)),
+    };
+
+    // Add completionTime only if it's needed
+    if (updatedProgress.completionTime) {
+      cleanUpdatedProgress.completionTime = updatedProgress.completionTime;
+    }
+
+    // Keep any vocabularyReviewed from the original progress
+    if (listeningSessionObj.userProgress?.vocabularyReviewed) {
+      cleanUpdatedProgress.vocabularyReviewed =
+        listeningSessionObj.userProgress.vocabularyReviewed;
+    }
+
+    console.log(
+      `Saving user progress with comprehensionScore: ${comprehensionScore}`
+    );
+
+    // Debug log the object being saved
+    console.log("User progress object:", {
+      questionsAnswered: cleanUpdatedProgress.questionsAnswered,
+      correctAnswers: cleanUpdatedProgress.correctAnswers,
+      comprehensionScore: cleanUpdatedProgress.comprehensionScore,
+      completionTime: cleanUpdatedProgress.completionTime,
     });
 
-    await ListeningSession.findByIdAndUpdate(id, {
-      $set: { userProgress: updatedProgress },
-    });
+    // Prepare update object for MongoDB
+    const updateObj = {
+      $set: {
+        "userProgress.questionsAnswered":
+          cleanUpdatedProgress.questionsAnswered,
+        "userProgress.correctAnswers": cleanUpdatedProgress.correctAnswers,
+        "userProgress.comprehensionScore":
+          cleanUpdatedProgress.comprehensionScore,
+        "userProgress.userAnswers": cleanUpdatedProgress.userAnswers,
+      } as Record<string, any>,
+    };
+
+    // Add completionTime if needed
+    if (cleanUpdatedProgress.completionTime) {
+      updateObj.$set["userProgress.completionTime"] =
+        cleanUpdatedProgress.completionTime;
+    }
+
+    // Add vocabularyReviewed if available
+    if (cleanUpdatedProgress.vocabularyReviewed) {
+      updateObj.$set["userProgress.vocabularyReviewed"] =
+        cleanUpdatedProgress.vocabularyReviewed;
+    }
+
+    // Perform the update
+    await ListeningSession.findByIdAndUpdate(id, updateObj);
 
     // Award XP for gamification if the session is completed now
     if (isNowCompleted) {
@@ -190,20 +340,44 @@ export async function POST(
           "complete_session",
           {
             sessionId: id,
-            timeSpent: listeningSession.userProgress.timeSpent || 0,
-            score: score,
+            timeSpent: listeningSessionObj.userProgress.timeSpent || 0,
+            score: comprehensionScore,
           }
         );
 
-        // Award XP for correct answers
-        if (correctCount > 0) {
+        // Award XP for correct answers - use the total correct answers from updatedProgress
+        const totalCorrectAnswers = updatedProgress.correctAnswers || 0;
+        if (totalCorrectAnswers > 0) {
+          console.log(
+            `Awarding XP for ${totalCorrectAnswers} total correct answers`
+          );
           await GamificationService.awardXP(
             session.user.id,
             "listening",
             "correct_answer",
             {
               sessionId: id,
-              count: correctCount,
+              count: totalCorrectAnswers,
+              isPartOfCompletedSession: true,
+            }
+          );
+        }
+
+        // Award XP for vocabulary reviews if any exist
+        const vocabCount =
+          listeningSessionObj.userProgress.vocabularyReviewed?.length || 0;
+        if (vocabCount > 0) {
+          console.log(
+            `Awarding XP for ${vocabCount} vocabulary reviews in listening session ${id}`
+          );
+          await GamificationService.awardXP(
+            session.user.id,
+            "listening",
+            "review_word",
+            {
+              sessionId: id,
+              count: vocabCount,
+              isPartOfCompletedSession: true,
             }
           );
         }
@@ -226,8 +400,8 @@ export async function POST(
 
     // Return feedback
     return NextResponse.json({
-      score,
-      correctCount,
+      score: comprehensionScore,
+      correctCount: totalCorrectAnswers,
       totalQuestions: questions.length,
       answers: questionFeedback.map(
         (

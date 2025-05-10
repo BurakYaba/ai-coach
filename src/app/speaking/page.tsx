@@ -3,7 +3,8 @@
 import { Info } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
-import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 
 import { FreeConversation } from "@/components/speaking/FreeConversation";
 import { TurnBasedConversation } from "@/components/speaking/TurnBasedConversation";
@@ -25,9 +26,20 @@ import {
 } from "@/components/ui/tooltip";
 
 export default function SpeakingPage() {
+  const { data: session } = useSession();
+  const isAdmin = session?.user?.role === "admin";
+
+  // For non-admin users, default to turn-based mode
   const [conversationMode, setConversationMode] = useState<
     "realtime" | "turn-based"
-  >("realtime");
+  >(isAdmin ? "realtime" : "turn-based");
+
+  // If user is not admin and tries to set realtime mode, switch back to turn-based
+  useEffect(() => {
+    if (!isAdmin && conversationMode === "realtime") {
+      setConversationMode("turn-based");
+    }
+  }, [isAdmin, conversationMode]);
 
   return (
     <div className="container mx-auto py-10">
@@ -58,30 +70,57 @@ export default function SpeakingPage() {
                   </span>
                   <div className="flex items-center">
                     <div className="bg-secondary rounded-md p-1 flex">
-                      <Button
-                        variant={
-                          conversationMode === "realtime" ? "default" : "ghost"
-                        }
-                        size="sm"
-                        className="rounded-md"
-                        onClick={() => setConversationMode("realtime")}
-                        aria-label="Realtime conversation mode"
-                      >
-                        Realtime
-                      </Button>
-                      <Button
-                        variant={
-                          conversationMode === "turn-based"
-                            ? "default"
-                            : "ghost"
-                        }
-                        size="sm"
-                        className="rounded-md"
-                        onClick={() => setConversationMode("turn-based")}
-                        aria-label="Turn-based conversation mode"
-                      >
-                        Turn-based
-                      </Button>
+                      {isAdmin ? (
+                        <>
+                          <Button
+                            variant={
+                              conversationMode === "realtime"
+                                ? "default"
+                                : "ghost"
+                            }
+                            size="sm"
+                            className="rounded-md"
+                            onClick={() => setConversationMode("realtime")}
+                            aria-label="Realtime conversation mode"
+                          >
+                            Realtime
+                          </Button>
+                          <Button
+                            variant={
+                              conversationMode === "turn-based"
+                                ? "default"
+                                : "ghost"
+                            }
+                            size="sm"
+                            className="rounded-md"
+                            onClick={() => setConversationMode("turn-based")}
+                            aria-label="Turn-based conversation mode"
+                          >
+                            Turn-based
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-md opacity-50 cursor-not-allowed"
+                            disabled
+                            aria-label="Realtime conversation mode coming soon"
+                          >
+                            Realtime
+                          </Button>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="rounded-md"
+                            onClick={() => setConversationMode("turn-based")}
+                            aria-label="Turn-based conversation mode"
+                          >
+                            Turn-based
+                          </Button>
+                        </>
+                      )}
                     </div>
 
                     <TooltipProvider>
@@ -92,15 +131,33 @@ export default function SpeakingPage() {
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent className="max-w-80">
-                          <p>
-                            <strong>Realtime:</strong> Natural back-and-forth
-                            conversation with OpenAI&apos;s Realtime API.
-                          </p>
-                          <p className="mt-2">
-                            <strong>Turn-based:</strong> Record your response,
-                            then listen to the AI response. Includes role-play
-                            options.
-                          </p>
+                          {isAdmin ? (
+                            <>
+                              <p>
+                                <strong>Realtime:</strong> Natural
+                                back-and-forth conversation with OpenAI&apos;s
+                                Realtime API.
+                              </p>
+                              <p className="mt-2">
+                                <strong>Turn-based:</strong> Record your
+                                response, then listen to the AI response.
+                                Includes role-play options.
+                              </p>
+                            </>
+                          ) : (
+                            <>
+                              <p>
+                                <strong>Realtime:</strong> Coming soon! Natural
+                                back-and-forth conversation with OpenAI&apos;s
+                                Realtime API.
+                              </p>
+                              <p className="mt-2">
+                                <strong>Turn-based:</strong> Record your
+                                response, then listen to the AI response.
+                                Includes role-play options.
+                              </p>
+                            </>
+                          )}
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

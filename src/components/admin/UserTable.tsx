@@ -1,7 +1,7 @@
 "use client";
 
 import { format, formatDistanceToNow } from "date-fns";
-import { User, UserCog, School, Trash, Plus } from "lucide-react";
+import { User, UserCog, School, Trash, Plus, Eye, EyeOff } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -110,6 +110,7 @@ export function UserTable() {
   const [schools, setSchools] = useState<SchoolOption[]>([]);
   const [loadingSchools, setLoadingSchools] = useState(false);
   const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Initialize form
   const addUserForm = useForm<z.infer<typeof addUserSchema>>({
@@ -369,6 +370,10 @@ export function UserTable() {
 
     // Fetch branches for the selected school
     fetchBranches(schoolId);
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   if (loading && users.length === 0) {
@@ -676,11 +681,30 @@ export function UserTable() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input
-                        type="password"
-                        placeholder="Password"
-                        {...field}
-                      />
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Password"
+                          {...field}
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
+                          onClick={togglePasswordVisibility}
+                          tabIndex={-1}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">
+                            {showPassword ? "Hide password" : "Show password"}
+                          </span>
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

@@ -36,7 +36,7 @@ export default async function AdminLayout({
               Dashboard
             </a>
             <a
-              href="/admin/listening"
+              href="/admin/library"
               className="text-sm font-medium hover:text-primary"
             >
               Listening Library
@@ -48,16 +48,22 @@ export default async function AdminLayout({
               Users
             </a>
             <a
-              href="/admin/schools"
+              href="/admin/sessions"
               className="text-sm font-medium hover:text-primary"
             >
-              Schools
+              Sessions
             </a>
             <a
               href="/dashboard"
-              className="text-sm font-medium hover:text-primary"
+              className="ml-4 px-3 py-1 text-sm font-medium bg-primary text-white rounded-md hover:bg-primary/90"
             >
               Back to App
+            </a>
+            <a
+              href="/api/auth/signout"
+              className="px-3 py-1 text-sm font-medium bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+            >
+              Logout
             </a>
           </nav>
         </div>

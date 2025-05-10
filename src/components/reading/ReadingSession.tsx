@@ -143,25 +143,12 @@ export function ReadingSession({ sessionId }: ReadingSessionProps) {
       });
       if (!response.ok) throw new Error("Failed to complete session");
 
-      // Record the activity for gamification after successful completion
-      recordActivity.mutate({
-        module: "reading",
-        activityType: "complete_session",
-        metadata: {
-          sessionId: sessionId,
-          timeSpent: progress.timeSpent,
-          correctAnswers: progress.correctAnswers,
-          questionsAnswered: progress.questionsAnswered,
-          comprehensionScore: progress.comprehensionScore,
-        },
-      });
-
       router.push("/dashboard/reading");
     } catch (error) {
       console.error("Error completing session:", error);
       setError("Failed to complete session");
     }
-  }, [session, sessionId, progress, router, recordActivity]);
+  }, [session, sessionId, progress, router]);
 
   // Handle word click - memoize to prevent unnecessary re-renders
   const handleWordClick = useCallback((word: string) => {

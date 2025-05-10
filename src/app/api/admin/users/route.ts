@@ -182,7 +182,7 @@ export async function POST(request: NextRequest) {
       password, // Use the plain password - the pre-save hook in the User model will hash it
       role,
       subscription: {
-        type: "none",
+        type: "free",
         status: "active", // Default to active for all users created by admin
       },
     };

@@ -6,6 +6,7 @@ import dbConnect from "@/lib/db";
 import School from "@/models/School";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 // GET /api/schools - Get all schools (admin only)
 export async function GET(req: NextRequest) {
@@ -102,7 +103,7 @@ export async function POST(req: NextRequest) {
         phone: body.primaryContact.phone || "",
       },
       subscription: body.subscription || {
-        type: "none",
+        type: "free",
         maxUsers: 0,
         status: "pending",
       },

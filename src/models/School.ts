@@ -8,7 +8,7 @@ export interface ISchool extends Document {
     country?: string;
   };
   subscription: {
-    type: "none" | "monthly" | "annual";
+    type: "free" | "monthly" | "annual";
     maxUsers: number;
     startDate?: Date;
     endDate?: Date;
@@ -50,8 +50,8 @@ const schoolSchema = new Schema<ISchool>(
     subscription: {
       type: {
         type: String,
-        enum: ["none", "monthly", "annual"],
-        default: "none",
+        enum: ["free", "monthly", "annual"],
+        default: "free",
       },
       maxUsers: {
         type: Number,

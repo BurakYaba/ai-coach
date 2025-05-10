@@ -6,7 +6,9 @@ import dbConnect from "@/lib/db";
 import School from "@/models/School";
 import User from "@/models/User";
 
+// Force dynamic rendering and prevent static path generation
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 // GET /api/schools/[id] - Get a school by ID
 export async function GET(

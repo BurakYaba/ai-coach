@@ -26,6 +26,11 @@ export async function POST(req: Request) {
       );
     }
 
+    // Set up free subscription with 7-day expiration
+    const startDate = new Date();
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 7); // 7 days from now
+
     // Create new user with default values
     const userData: any = {
       name,
@@ -35,6 +40,12 @@ export async function POST(req: Request) {
         topics: ["general"],
         dailyGoal: 30,
         preferredLearningTime: ["morning"],
+      },
+      subscription: {
+        type: "free",
+        status: "active",
+        startDate,
+        endDate,
       },
     };
 
@@ -64,8 +75,18 @@ export async function POST(req: Request) {
     const userResponse = user.toJSON();
     const { password: _, ...userWithoutPassword } = userResponse;
 
+    // Return user information to create a more meaningful response
     return NextResponse.json(
-      { message: "User created successfully", user: userWithoutPassword },
+      {
+        message: "User created successfully",
+        user: userWithoutPassword,
+        subscription: {
+          type: user.subscription.type,
+          status: user.subscription.status,
+          startDate: user.subscription.startDate,
+          endDate: user.subscription.endDate,
+        },
+      },
       { status: 201 }
     );
   } catch (error) {

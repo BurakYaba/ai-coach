@@ -45,7 +45,7 @@ export async function PUT(
       );
     }
 
-    if (type !== "monthly" && type !== "annual") {
+    if (type !== "monthly" && type !== "annual" && type !== "free") {
       return NextResponse.json(
         { error: "Invalid subscription type" },
         { status: 400 }

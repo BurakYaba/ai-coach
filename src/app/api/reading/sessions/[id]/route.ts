@@ -287,6 +287,7 @@ export async function PATCH(
             {
               sessionId: params.id,
               count: updatedSession.userProgress.correctAnswers,
+              isPartOfCompletedSession: true,
             }
           );
         }
@@ -299,6 +300,7 @@ export async function PATCH(
           await GamificationService.awardXP(userId, "reading", "review_word", {
             sessionId: params.id,
             count: vocabCount,
+            isPartOfCompletedSession: true,
           });
         }
 

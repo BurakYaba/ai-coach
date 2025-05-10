@@ -217,6 +217,55 @@ export function FreeConversation() {
     };
   }, []);
 
+  // Check if user is admin
+  const isUserAdmin = session?.user?.role === "admin";
+
+  // If user is not an admin, show a coming soon message
+  if (!isUserAdmin) {
+    return (
+      <div className="w-full max-w-6xl mx-auto px-4 py-8">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 shadow-sm border border-blue-100">
+          <h2 className="text-2xl font-bold text-blue-800 mb-4">
+            Real-time Conversation Coming Soon!
+          </h2>
+          <p className="text-gray-700 mb-6">
+            We're excited to announce that our real-time conversation feature is
+            currently under development and will be available to all users
+            shortly. This advanced feature will allow you to have natural,
+            flowing conversations with our AI speaking partner in real-time.
+          </p>
+          <div className="bg-white rounded-lg p-6 border border-blue-200">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              What to expect:
+            </h3>
+            <ul className="space-y-2 mb-4">
+              <li className="flex items-start">
+                <span className="text-blue-500 mr-2">•</span>
+                <span>Natural, flowing conversations without turn-taking</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-500 mr-2">•</span>
+                <span>Instant responses as you speak</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-500 mr-2">•</span>
+                <span>More realistic speaking practice experience</span>
+              </li>
+              <li className="flex items-start">
+                <span className="text-blue-500 mr-2">•</span>
+                <span>Enhanced pronunciation and fluency feedback</span>
+              </li>
+            </ul>
+            <p className="text-sm text-gray-600 italic">
+              In the meantime, you can continue using our turn-based
+              conversation feature for your speaking practice.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const startConversation = async () => {
     if (!session?.user) {
       toast({

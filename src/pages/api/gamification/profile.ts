@@ -1,7 +1,10 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
-import { GamificationService } from "@/lib/gamification/gamification-service";
+import {
+  GamificationService,
+  calculateLevelFromXP,
+} from "@/lib/gamification/gamification-service";
 
 export default async function handler(
   req: NextApiRequest,
@@ -26,6 +29,21 @@ export default async function handler(
 
     // Get user's gamification profile
     const profile = await GamificationService.getUserProfile(userId);
+
+    // Recalculate level based on current XP to ensure it's up-to-date
+    const { level, experienceToNextLevel } = calculateLevelFromXP(
+      profile.experience
+    );
+
+    // If the calculated level is different from the stored level, update it
+    if (level !== profile.level) {
+      console.log(
+        `Updating level for user ${userId}: ${profile.level} → ${level} (XP: ${profile.experience})`
+      );
+      profile.level = level;
+      profile.experienceToNextLevel = experienceToNextLevel;
+      await profile.save();
+    }
 
     // Return the profile
     return res.status(200).json({ profile });

@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { Eye, EyeOff } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -37,6 +38,8 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 export function RegisterForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -48,6 +51,14 @@ export function RegisterForm() {
       schoolCode: "",
     },
   });
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
 
   async function onSubmit(data: RegisterFormValues) {
     setIsLoading(true);
@@ -121,11 +132,30 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Create a password"
-                  type="password"
-                  {...field}
-                />
+                <div className="relative">
+                  <Input
+                    placeholder="Create a password"
+                    type={showPassword ? "text" : "password"}
+                    {...field}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
+                    onClick={togglePasswordVisibility}
+                    tabIndex={-1}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                    <span className="sr-only">
+                      {showPassword ? "Hide password" : "Show password"}
+                    </span>
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -138,11 +168,30 @@ export function RegisterForm() {
             <FormItem>
               <FormLabel>Confirm Password</FormLabel>
               <FormControl>
-                <Input
-                  placeholder="Confirm your password"
-                  type="password"
-                  {...field}
-                />
+                <div className="relative">
+                  <Input
+                    placeholder="Confirm your password"
+                    type={showConfirmPassword ? "text" : "password"}
+                    {...field}
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
+                    onClick={toggleConfirmPasswordVisibility}
+                    tabIndex={-1}
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                    <span className="sr-only">
+                      {showConfirmPassword ? "Hide password" : "Show password"}
+                    </span>
+                  </Button>
+                </div>
               </FormControl>
               <FormMessage />
             </FormItem>

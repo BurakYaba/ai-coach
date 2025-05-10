@@ -1,15 +1,11 @@
 import { Metadata } from "next";
-import Link from "next/link";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import { Heading } from "@/components/ui/heading";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { StudentTable } from "@/components/school-admin/StudentTable";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -49,12 +45,6 @@ export default async function StudentsPage() {
           title="Student Management"
           description="Manage your students"
         />
-        <Link href="/school-admin/students/add">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Students
-          </Button>
-        </Link>
       </div>
 
       <StudentTable userId={session.user.id} />

@@ -53,6 +53,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { DeleteSpeakingSessionButton } from "@/components/speaking/DeleteSpeakingSessionButton";
+import { GrammarIssuesSpeakingPanel } from "./GrammarIssuesSpeakingPanel";
 
 interface SpeakingSessionDetailsProps {
   sessionId: string;
@@ -1217,6 +1218,18 @@ export function SpeakingSessionDetails({
                         </div>
                       ) : null}
                     </div>
+
+                    {/* Grammar Issues Panel */}
+                    {session?.feedback?.grammarIssues &&
+                      session.feedback.grammarIssues.length > 0 && (
+                        <div className="mt-6">
+                          <GrammarIssuesSpeakingPanel
+                            issues={session.feedback.grammarIssues}
+                            sessionId={sessionId}
+                            ceferLevel={session.metadata?.level || "B1"}
+                          />
+                        </div>
+                      )}
                   </div>
                 ) : (
                   <div className="space-y-4">

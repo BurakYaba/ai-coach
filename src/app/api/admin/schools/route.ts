@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
       location: location || {},
       primaryContact,
       subscription: {
-        type: "none",
+        type: "free",
         maxUsers: 0,
         status: "active",
       },

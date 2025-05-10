@@ -27,7 +27,7 @@ const SCHOOL_ADMIN_PATHS = ["/school-admin"];
 // List of paths that require system admin role
 const ADMIN_PATHS = ["/admin"];
 
-// Public paths accessible without authentication
+// List of public paths accessible without authentication
 const PUBLIC_PATHS = [
   "/login",
   "/register",
@@ -46,6 +46,15 @@ export async function middleware(request: NextRequest) {
 
   // Skip middleware for public paths
   if (isPublicPath) {
+    return NextResponse.next();
+  }
+
+  // Check for internal API key for server-to-server authentication
+  const internalApiKey = request.headers.get("X-Internal-Api-Key");
+  const expectedApiKey = process.env.NEXTAUTH_SECRET || "internal-api-key";
+
+  // If this is an internal API call with the correct key, allow it through
+  if (isApiRoute && internalApiKey === expectedApiKey) {
     return NextResponse.next();
   }
 
@@ -91,15 +100,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
-    // For subscription-protected paths, redirect to a subscription page if necessary
-    // This is just a placeholder - actual subscription checks happen at the server-side API
-    // because we need to check both user and school subscriptions which requires database access
-    const isSubscriptionRequired = SUBSCRIPTION_PROTECTED_PATHS.some(path =>
-      pathname.startsWith(path)
-    );
-
-    // For API routes, we let the route handler check subscriptions
-    // as we need to access the database for full checks
+    // Note: We've removed the subscription check here as we're now handling it during login
   }
 
   return NextResponse.next();

@@ -25,6 +25,8 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
+import { GrammarIssuesPanel } from "@/components/writing/GrammarIssuesPanel";
+import { Check, Plus } from "lucide-react";
 
 interface WritingSession {
   _id: string;
@@ -110,6 +112,8 @@ interface GrammarIssue {
   explanation: string;
   message?: string;
   original?: string;
+  _isAddedToGrammar?: boolean;
+  _isAddingToGrammar?: boolean;
 }
 
 interface VocabularySuggestion {
@@ -269,6 +273,14 @@ export default function FeedbackPage() {
   const [currentVocabCardIndex, setCurrentVocabCardIndex] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
   const vocabSliderRef = useRef<HTMLDivElement>(null);
+
+  // Track which grammar issues are being added or have been added
+  const [addedGrammarIssues, setAddedGrammarIssues] = useState<
+    Record<string, boolean>
+  >({});
+  const [addingGrammarIssues, setAddingGrammarIssues] = useState<
+    Record<string, boolean>
+  >({});
 
   // Fetch session data
   useEffect(() => {
@@ -597,29 +609,32 @@ export default function FeedbackPage() {
           </TabsList>
 
           <TabsContent value="grammar" className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-6">
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle>Grammar & Spelling</CardTitle>
+                    <div>
+                      <CardTitle>Grammar Usage</CardTitle>
+                      <CardDescription>
+                        Grammar accuracy assessment
+                      </CardDescription>
+                    </div>
                   <div className="flex items-center gap-1 bg-primary/10 text-primary font-medium px-2 py-1 rounded-md">
                     <span className="text-sm">Score:</span>
                     <span className="text-lg font-bold">
-                      {hasEnhancedAnalysis &&
-                      typeof analysis.grammarScore !== "undefined"
-                        ? analysis.grammarScore
-                        : analysisData.grammar?.score || "N/A"}
+                        {session.analysis.grammarScore ||
+                          session.analysis.details.grammar.score}
                     </span>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Display OpenAI grammar issues in slider if available */}
-                {hasEnhancedAnalysis &&
-                analysis.grammarIssues &&
-                analysis.grammarIssues.length > 0 ? (
-                  <div className="space-y-4">
+              </Card>
+            </div>
+
+            {/* Grammar Issues in Slider with Add to Grammar button */}
+            <div className="space-y-4 mb-6">
                     <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-medium">Errors Found</h3>
+                <h3 className="text-lg font-medium">Grammar Issues</h3>
                       {hasMoreCards && (
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-muted-foreground">
@@ -631,6 +646,12 @@ export default function FeedbackPage() {
                       )}
                     </div>
 
+              {(
+                session.analysis.grammarIssues ||
+                session.analysis.details.grammar.errorList ||
+                []
+              ).length > 0 ? (
+                <>
                     <div ref={sliderRef} className="overflow-hidden relative">
                       <div
                         className="flex transition-transform duration-300 ease-in-out"
@@ -639,8 +660,16 @@ export default function FeedbackPage() {
                           width: "100%",
                         }}
                       >
-                        {analysis.grammarIssues.map(
-                          (issue: GrammarIssue, index: number) => (
+                      {(
+                        session.analysis.grammarIssues ||
+                        session.analysis.details.grammar.errorList ||
+                        []
+                      ).map((issue, index) => {
+                        const issueKey = `${issue.type}-${issue.context}`;
+                        const isAdded = addedGrammarIssues[issueKey];
+                        const isAdding = addingGrammarIssues[issueKey];
+
+                        return (
                             <div
                               key={index}
                               className="w-1/3 px-2 flex-shrink-0 box-border"
@@ -648,47 +677,120 @@ export default function FeedbackPage() {
                             >
                               <Card className="h-full">
                                 <CardHeader className="pb-2">
-                                  <CardTitle className="text-base capitalize truncate">
-                                    {issue.type || "Unknown"} Error
+                                <CardTitle className="text-base">
+                                  {issue.type}
                                   </CardTitle>
                                 </CardHeader>
-                                <CardContent className="space-y-2">
-                                  <div>
+                              <CardContent>
+                                <div className="space-y-2">
+                                  <p className="text-sm text-muted-foreground line-through">
+                                    {issue.context}
+                                  </p>
                                     <p className="text-sm font-medium">
-                                      Context:
-                                    </p>
-                                    <div className="p-2 bg-muted rounded-md">
-                                      <p className="text-sm break-words line-clamp-3">
-                                        {issue.context ||
-                                          "No context available"}
-                                      </p>
+                                    {issue.suggestion}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground border-l-2 border-primary/20 pl-2">
+                                    {issue.explanation}
+                                  </p>
+                                  <div className="mt-4 flex justify-end">
+                                    <Button
+                                      size="sm"
+                                      variant={
+                                        isAdded ? "outline" : "secondary"
+                                      }
+                                      disabled={isAdded || isAdding}
+                                      onClick={async () => {
+                                        try {
+                                          // Mark this issue as being added
+                                          setAddingGrammarIssues(prev => ({
+                                            ...prev,
+                                            [issueKey]: true,
+                                          }));
+
+                                          const response = await fetch(
+                                            "/api/grammar/issues",
+                                            {
+                                              method: "POST",
+                                              headers: {
+                                                "Content-Type":
+                                                  "application/json",
+                                              },
+                                              body: JSON.stringify({
+                                                sourceModule: "writing",
+                                                sourceSessionId: session._id,
+                                                issue: {
+                                                  type: issue.type,
+                                                  text: issue.context,
+                                                  correction: issue.suggestion,
+                                                  explanation:
+                                                    issue.explanation,
+                                                },
+                                                ceferLevel:
+                                                  session.analysis
+                                                    ?.vocabularyAnalysis
+                                                    ?.level || "B1",
+                                              }),
+                                            }
+                                          );
+
+                                          if (response.ok) {
+                                            setAddedGrammarIssues(prev => ({
+                                              ...prev,
+                                              [issueKey]: true,
+                                            }));
+
+                                            toast({
+                                              title: "Added to Grammar",
+                                              description:
+                                                "This grammar issue has been added to your Grammar module",
+                                            });
+                                          } else {
+                                            throw new Error(
+                                              "Failed to add grammar issue"
+                                            );
+                                          }
+                                        } catch (error) {
+                                          console.error(
+                                            "Error adding grammar issue:",
+                                            error
+                                          );
+
+                                          toast({
+                                            title: "Error",
+                                            description:
+                                              "Failed to add grammar issue",
+                                            variant: "destructive",
+                                          });
+                                        } finally {
+                                          setAddingGrammarIssues(prev => {
+                                            const newState = { ...prev };
+                                            delete newState[issueKey];
+                                            return newState;
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      {isAdding ? (
+                                        "Adding..."
+                                      ) : isAdded ? (
+                                        <>
+                                          <Check className="mr-1 h-4 w-4" />
+                                          Added
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Plus className="mr-1 h-4 w-4" />
+                                          Add to Grammar
+                                        </>
+                                      )}
+                                    </Button>
                                     </div>
-                                  </div>
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      Suggestion:
-                                    </p>
-                                    <div className="p-2 bg-primary/5 text-primary rounded-md">
-                                      <p className="text-sm break-words line-clamp-2">
-                                        {issue.suggestion ||
-                                          "No suggestion available"}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      Explanation:
-                                    </p>
-                                    <p className="text-sm text-muted-foreground break-words line-clamp-3">
-                                      {issue.explanation ||
-                                        "No explanation available"}
-                                    </p>
                                   </div>
                                 </CardContent>
                               </Card>
                             </div>
-                          )
-                        )}
+                        );
+                      })}
                       </div>
                     </div>
 
@@ -712,204 +814,71 @@ export default function FeedbackPage() {
                         </Button>
                       </div>
                     )}
-                  </div>
-                ) : (
-                  // Fallback to original grammar errors
-                  <>
-                    {analysisData.grammar?.errorList &&
-                    analysisData.grammar.errorList.length > 0 ? (
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Errors Found</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {analysisData.grammar.errorList.map(
-                            (error, index) => (
-                              <Card key={index} className="h-full">
-                                <CardHeader className="pb-2">
-                                  <CardTitle className="text-base capitalize">
-                                    {error.type || "Unknown"} Error
-                                  </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-2">
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      Context:
-                                    </p>
-                                    <p className="p-2 bg-muted rounded-md">
-                                      {error.context || "No context available"}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      Suggestion:
-                                    </p>
-                                    <p className="p-2 bg-primary/5 text-primary rounded-md">
-                                      {error.suggestion ||
-                                        "No suggestion available"}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <p className="text-sm font-medium">
-                                      Explanation:
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                      {error.explanation ||
-                                        "No explanation available"}
-                                    </p>
-                                  </div>
+                </>
+              ) : (
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-muted-foreground">
+                      Great job! Your writing doesn't have any significant
+                      grammar errors.
+                    </p>
                                 </CardContent>
                               </Card>
-                            )
                           )}
                         </div>
-                      </div>
-                    ) : (
-                      <div className="text-center p-4">
-                        <p>No grammar errors found.</p>
-                      </div>
-                    )}
-                  </>
-                )}
 
+            {/* Grammar Strengths and Improvements */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">Strengths</h3>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <div className="mr-2 text-green-500">
+                      <CheckCircleIcon className="h-5 w-5" />
+                    </div>
+                    Grammar Strengths
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                     <ul className="space-y-2">
-                      {hasEnhancedFeedback && analysis.feedback?.strengths ? (
-                        analysis.feedback.strengths
-                          .filter(
-                            s =>
-                              s.toLowerCase().includes("grammar") ||
-                              s.toLowerCase().includes("spelling")
-                          )
-                          .map((strength, index) => {
-                            // Clean the strength text from prefixes
-                            const cleanStrength = strength
-                              .replace(/^grammar strength:\s*/i, "")
-                              .replace(/^grammar:\s*/i, "")
-                              .replace(/^spelling strength:\s*/i, "")
-                              .replace(/^spelling:\s*/i, "");
-
-                            return (
-                              <li
-                                key={index}
-                                className="flex items-center gap-2"
-                              >
-                                <span className="text-green-500">✓</span>
-                                <span>{cleanStrength}</span>
+                    {(session.analysis.details.grammar.strengths || []).map(
+                      (strength, index) => (
+                        <li key={index} className="flex items-start">
+                          <div className="mr-2 mt-1 text-green-500">
+                            <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                          </div>
+                          <span>{strength}</span>
                               </li>
-                            );
-                          })
-                      ) : analysisData.grammar?.strengths &&
-                        analysisData.grammar.strengths.length > 0 ? (
-                        analysisData.grammar.strengths.map(
-                          (strength, index) => {
-                            // Clean the strength text from prefixes
-                            const cleanStrength = strength
-                              .replace(/^grammar strength:\s*/i, "")
-                              .replace(/^grammar:\s*/i, "")
-                              .replace(/^spelling strength:\s*/i, "")
-                              .replace(/^spelling:\s*/i, "");
-
-                            return (
-                              <li
-                                key={index}
-                                className="flex items-center gap-2"
-                              >
-                                <span className="text-green-500">✓</span>
-                                <span>{cleanStrength}</span>
-                              </li>
-                            );
-                          }
-                        )
-                      ) : (
-                        <li>No grammar strengths identified.</li>
+                      )
                       )}
                     </ul>
-                  </div>
+                </CardContent>
+              </Card>
 
-                  <div>
-                    <h3 className="text-lg font-medium mb-2">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <div className="mr-2 text-amber-500">
+                      <ArrowTrendingUpIcon className="h-5 w-5" />
+                    </div>
                       Areas for Improvement
-                    </h3>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                     <ul className="space-y-2">
-                      {hasEnhancedFeedback &&
-                      analysis.feedback?.improvements ? (
-                        analysis.feedback.improvements
-                          .filter(
-                            imp =>
-                              imp.toLowerCase().includes("grammar") ||
-                              imp.toLowerCase().includes("spelling")
-                          )
-                          .map((improvement: string, index: number) => {
-                            // Clean the improvement text from prefixes
-                            const cleanImprovement = improvement
-                              .replace(/^grammar improvement:\s*/i, "")
-                              .replace(/^grammar:\s*/i, "")
-                              .replace(/^spelling improvement:\s*/i, "")
-                              .replace(/^spelling:\s*/i, "");
-
-                            return (
-                              <li
-                                key={index}
-                                className="flex items-center gap-2"
-                              >
-                                <span className="text-amber-500">!</span>
-                                <span>{cleanImprovement}</span>
+                    {(session.analysis.details.grammar.improvements || []).map(
+                      (improvement, index) => (
+                        <li key={index} className="flex items-start">
+                          <div className="mr-2 mt-1 text-amber-500">
+                            <div className="h-2 w-2 rounded-full bg-amber-500"></div>
+                          </div>
+                          <span>{improvement}</span>
                               </li>
-                            );
-                          })
-                      ) : analysisData.grammar?.improvements &&
-                        analysisData.grammar.improvements.length > 0 ? (
-                        analysisData.grammar.improvements.map(
-                          (improvement, index) => {
-                            // Clean the improvement text from prefixes
-                            const cleanImprovement = improvement
-                              .replace(/^grammar improvement:\s*/i, "")
-                              .replace(/^grammar:\s*/i, "")
-                              .replace(/^spelling improvement:\s*/i, "")
-                              .replace(/^spelling:\s*/i, "");
-
-                            return (
-                              <li
-                                key={index}
-                                className="flex items-center gap-2"
-                              >
-                                <span className="text-amber-500">!</span>
-                                <span>{cleanImprovement}</span>
-                              </li>
-                            );
-                          }
-                        )
-                      ) : (
-                        <>
-                          <li className="flex items-center gap-2">
-                            <span className="text-amber-500">!</span>
-                            <span>
-                              Review your sentence structures for clarity and
-                              variety.
-                            </span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <span className="text-amber-500">!</span>
-                            <span>
-                              Check for consistent verb tense usage throughout
-                              your writing.
-                            </span>
-                          </li>
-                          <li className="flex items-center gap-2">
-                            <span className="text-amber-500">!</span>
-                            <span>
-                              Pay attention to punctuation, particularly with
-                              commas and periods.
-                            </span>
-                          </li>
-                        </>
+                      )
                       )}
                     </ul>
-                  </div>
-                </div>
               </CardContent>
             </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="vocabulary" className="space-y-4">

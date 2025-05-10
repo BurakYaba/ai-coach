@@ -3,6 +3,7 @@
 import { DashboardNav } from "./nav";
 import { UserNav } from "./user-nav";
 import { XpProgress } from "./xp-progress";
+import { SubscriptionBadge } from "./subscription-badge";
 
 interface DashboardHeaderProps {
   user: {
@@ -10,9 +11,18 @@ interface DashboardHeaderProps {
     email?: string | null;
     image?: string | null;
   };
+  subscription?: {
+    type: "free" | "monthly" | "annual";
+    status: "active" | "expired" | "pending";
+    startDate?: string;
+    endDate?: string;
+  };
 }
 
-export default function DashboardHeader({ user }: DashboardHeaderProps) {
+export default function DashboardHeader({
+  user,
+  subscription,
+}: DashboardHeaderProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-muted/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
@@ -25,6 +35,7 @@ export default function DashboardHeader({ user }: DashboardHeaderProps) {
           </div>
         </div>
         <div className="flex items-center space-x-4">
+          {subscription && <SubscriptionBadge subscription={subscription} />}
           <XpProgress />
           <UserNav user={user} />
         </div>

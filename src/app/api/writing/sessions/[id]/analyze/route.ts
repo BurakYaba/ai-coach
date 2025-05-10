@@ -71,48 +71,48 @@ export async function POST(
       writingSession.status = "analyzed";
       writingSession.analyzedAt = new Date();
 
-      // Store any grammar issues identified in the analysis
-      if (
-        analysis &&
-        analysis.details &&
-        analysis.details.grammar &&
-        analysis.details.grammar.errorList &&
-        Array.isArray(analysis.details.grammar.errorList) &&
-        analysis.details.grammar.errorList.length > 0
-      ) {
-        // Determine CEFR level based on vocabulary complexity or user level
-        let ceferLevel = "B1"; // Default level
+      // No longer automatically store grammar issues - they will be added manually by the user
+      // if (
+      //   analysis &&
+      //   analysis.details &&
+      //   analysis.details.grammar &&
+      //   analysis.details.grammar.errorList &&
+      //   Array.isArray(analysis.details.grammar.errorList) &&
+      //   analysis.details.grammar.errorList.length > 0
+      // ) {
+      //   // Determine CEFR level based on vocabulary complexity or user level
+      //   let ceferLevel = "B1"; // Default level
 
-        // If vocabulary level is available in the analysis, use it
-        if (analysis.details.vocabulary && analysis.details.vocabulary.level) {
-          const vocabLevel = analysis.details.vocabulary.level.toUpperCase();
-          if (["A1", "A2", "B1", "B2", "C1", "C2"].includes(vocabLevel)) {
-            ceferLevel = vocabLevel;
-          }
-        }
+      //   // If vocabulary level is available in the analysis, use it
+      //   if (analysis.details.vocabulary && analysis.details.vocabulary.level) {
+      //     const vocabLevel = analysis.details.vocabulary.level.toUpperCase();
+      //     if (["A1", "A2", "B1", "B2", "C1", "C2"].includes(vocabLevel)) {
+      //       ceferLevel = vocabLevel;
+      //     }
+      //   }
 
-        // Create grammar issues from the error list
-        const grammarIssuePromises = analysis.details.grammar.errorList.map(
-          (error: any) => {
-            return GrammarIssue.create({
-              userId: writingSession.userId,
-              sourceModule: "writing",
-              sourceSessionId: writingSession._id,
-              issue: {
-                type: error.type,
-                text: error.context,
-                correction: error.suggestion,
-                explanation: error.explanation,
-              },
-              ceferLevel: ceferLevel,
-              category: error.type.split(" ")[0].toLowerCase(), // Extract category from error type
-              resolved: false,
-            });
-          }
-        );
+      //   // Create grammar issues from the error list
+      //   const grammarIssuePromises = analysis.details.grammar.errorList.map(
+      //     (error: any) => {
+      //       return GrammarIssue.create({
+      //         userId: writingSession.userId,
+      //         sourceModule: "writing",
+      //         sourceSessionId: writingSession._id,
+      //         issue: {
+      //           type: error.type,
+      //           text: error.context,
+      //           correction: error.suggestion,
+      //           explanation: error.explanation,
+      //         },
+      //         ceferLevel: ceferLevel,
+      //         category: error.type.split(" ")[0].toLowerCase(), // Extract category from error type
+      //         resolved: false,
+      //       });
+      //     }
+      //   );
 
-        await Promise.all(grammarIssuePromises);
-      }
+      //   await Promise.all(grammarIssuePromises);
+      // }
 
       await writingSession.save();
 

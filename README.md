@@ -143,14 +143,14 @@ The ESLint configuration extends recommended configurations and includes plugins
 // .eslintrc.js
 module.exports = {
   root: true,
-  parser: '@typescript-eslint/parser',
+  parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaVersion: 2021,
-    sourceType: 'module',
+    sourceType: "module",
     ecmaFeatures: {
       jsx: true,
     },
-    project: './tsconfig.json',
+    project: "./tsconfig.json",
   },
   env: {
     browser: true,
@@ -158,70 +158,70 @@ module.exports = {
     es6: true,
   },
   extends: [
-    'eslint:recommended',
-    'plugin:@typescript-eslint/recommended',
-    'plugin:react/recommended',
-    'plugin:react-hooks/recommended',
-    'plugin:jsx-a11y/recommended',
-    'plugin:import/errors',
-    'plugin:import/warnings',
-    'plugin:import/typescript',
-    'next/core-web-vitals',
-    'prettier', // Make sure prettier is last to override other configs
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:jsx-a11y/recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:import/typescript",
+    "next/core-web-vitals",
+    "prettier", // Make sure prettier is last to override other configs
   ],
   plugins: [
-    '@typescript-eslint',
-    'react',
-    'react-hooks',
-    'jsx-a11y',
-    'import',
-    'prettier',
+    "@typescript-eslint",
+    "react",
+    "react-hooks",
+    "jsx-a11y",
+    "import",
+    "prettier",
   ],
   rules: {
     // React rules
-    'react/react-in-jsx-scope': 'off', // Not needed in Next.js
-    'react/prop-types': 'off', // We use TypeScript for prop validation
-    'react/jsx-filename-extension': [1, { extensions: ['.tsx'] }],
-    'react-hooks/rules-of-hooks': 'error',
-    'react-hooks/exhaustive-deps': 'warn',
+    "react/react-in-jsx-scope": "off", // Not needed in Next.js
+    "react/prop-types": "off", // We use TypeScript for prop validation
+    "react/jsx-filename-extension": [1, { extensions: [".tsx"] }],
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
 
     // TypeScript rules
-    '@typescript-eslint/explicit-module-boundary-types': 'off',
-    '@typescript-eslint/no-explicit-any': 'warn',
-    '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
-    '@typescript-eslint/no-non-null-assertion': 'warn',
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+    "@typescript-eslint/no-non-null-assertion": "warn",
 
     // Import rules
-    'import/order': [
-      'error',
+    "import/order": [
+      "error",
       {
         groups: [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index',
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index",
         ],
-        'newlines-between': 'always',
-        alphabetize: { order: 'asc', caseInsensitive: true },
+        "newlines-between": "always",
+        alphabetize: { order: "asc", caseInsensitive: true },
       },
     ],
-    'import/no-duplicates': 'error',
+    "import/no-duplicates": "error",
 
     // General rules
-    'no-console': ['warn', { allow: ['warn', 'error'] }],
-    'prettier/prettier': 'error',
-    'jsx-a11y/anchor-is-valid': 'off', // Next.js uses <a> tags without href
+    "no-console": ["warn", { allow: ["warn", "error"] }],
+    "prettier/prettier": "error",
+    "jsx-a11y/anchor-is-valid": "off", // Next.js uses <a> tags without href
   },
   settings: {
     react: {
-      version: 'detect',
+      version: "detect",
     },
-    'import/resolver': {
+    "import/resolver": {
       typescript: {},
       node: {
-        extensions: ['.js', '.jsx', '.ts', '.tsx'],
+        extensions: [".js", ".jsx", ".ts", ".tsx"],
       },
     },
   },
@@ -400,7 +400,7 @@ interface IUser extends Document {
   settings: {
     emailNotifications: boolean;
     progressReminders: boolean;
-    theme: 'light' | 'dark' | 'system';
+    theme: "light" | "dark" | "system";
   };
   createdAt: Date;
   updatedAt: Date;
@@ -503,7 +503,7 @@ interface IDashboardStats extends Document {
 
 interface IUserActivity extends Document {
   userId: mongoose.Types.ObjectId;
-  type: 'reading' | 'writing' | 'speaking';
+  type: "reading" | "writing" | "speaking";
   action: string;
   details: Record<string, any>;
   timestamp: Date;
@@ -534,7 +534,7 @@ interface IReadingSession extends Document {
   estimatedReadingTime: number;
   questions: Array<{
     id: string;
-    type: 'multiple-choice' | 'true-false' | 'open-ended';
+    type: "multiple-choice" | "true-false" | "open-ended";
     question: string;
     options?: string[];
     correctAnswer: string;
@@ -679,7 +679,7 @@ interface IWritingSession extends Document {
   userId: mongoose.Types.ObjectId;
   prompt: {
     text: string;
-    type: 'essay' | 'letter' | 'story' | 'argument';
+    type: "essay" | "letter" | "story" | "argument";
     topic: string;
     targetLength: number;
     requirements: string[];
@@ -737,7 +737,7 @@ interface IWritingSession extends Document {
 }
 
 interface IWritingPrompt extends Document {
-  type: 'essay' | 'letter' | 'story' | 'argument';
+  type: "essay" | "letter" | "story" | "argument";
   level: string;
   topic: string;
   text: string;
@@ -845,7 +845,7 @@ class WritingAnalyzer {
 ```typescript
 interface ISpeakingSession extends Document {
   userId: mongoose.Types.ObjectId;
-  sessionType: 'guided' | 'pronunciation' | 'conversation';
+  sessionType: "guided" | "pronunciation" | "conversation";
   level: string;
   topic: string;
   customTopic?: string;
@@ -862,7 +862,7 @@ interface ISpeakingSession extends Document {
 
   // For conversation
   messages: Array<{
-    role: 'user' | 'assistant';
+    role: "user" | "assistant";
     content: string;
     timestamp: Date;
     audioUrl?: string; // For user messages
@@ -899,7 +899,7 @@ interface ISpeakingSession extends Document {
     tokensUsed: number;
   };
 
-  status: 'in-progress' | 'completed' | 'analyzed';
+  status: "in-progress" | "completed" | "analyzed";
   startTime: Date;
   endTime?: Date;
   createdAt: Date;
@@ -936,7 +936,7 @@ The Speaking module will use WebRTC for real-time audio communication with OpenA
        try {
          // Initialize WebRTC connection
          this.peerConnection = new RTCPeerConnection({
-           iceServers: [{ urls: 'stun:stun.l.google.com:19302' }],
+           iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
          });
 
          // Set up data channel for control messages
@@ -976,13 +976,13 @@ The Speaking module will use WebRTC for real-time audio communication with OpenA
 
          this.isConnected = true;
        } catch (error) {
-         console.error('Connection error:', error);
+         console.error("Connection error:", error);
          throw error;
        }
      }
 
      private setupDataChannel() {
-       this.dataChannel = this.peerConnection!.createDataChannel('control');
+       this.dataChannel = this.peerConnection!.createDataChannel("control");
 
        this.dataChannel.onmessage = event => {
          const data = JSON.parse(event.data);
@@ -990,7 +990,7 @@ The Speaking module will use WebRTC for real-time audio communication with OpenA
        };
 
        this.dataChannel.onopen = () => {
-         console.log('Data channel opened');
+         console.log("Data channel opened");
        };
      }
 
@@ -1005,33 +1005,33 @@ The Speaking module will use WebRTC for real-time audio communication with OpenA
 
      private handleControlMessage(data: any) {
        switch (data.type) {
-         case 'transcription':
+         case "transcription":
            this.handleTranscription(data.text);
            break;
-         case 'error':
+         case "error":
            this.handleError(data.error);
            break;
-         case 'status':
+         case "status":
            this.handleStatus(data.status);
            break;
        }
      }
 
      private async getSignalingData(offer: RTCSessionDescription) {
-       const response = await fetch('https://api.openai.com/v1/audio/speech', {
-         method: 'POST',
+       const response = await fetch("https://api.openai.com/v1/audio/speech", {
+         method: "POST",
          headers: {
            Authorization: `Bearer ${this.apiKey}`,
-           'Content-Type': 'application/json',
+           "Content-Type": "application/json",
          },
          body: JSON.stringify({
            offer: offer.toJSON(),
-           model: 'gpt-4-turbo-preview',
+           model: "gpt-4-turbo-preview",
          }),
        });
 
        if (!response.ok) {
-         throw new Error('Failed to get signaling data');
+         throw new Error("Failed to get signaling data");
        }
 
        return await response.json();
@@ -1046,7 +1046,7 @@ The Speaking module will use WebRTC for real-time audio communication with OpenA
      }
 
      private handleError(error: any) {
-       console.error('Error from server:', error);
+       console.error("Error from server:", error);
        // Implement error recovery logic
      }
 
@@ -1297,10 +1297,10 @@ interface IListeningSession extends Document {
   level: string; // 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'
   topic: string;
   duration: number;
-  contentType: 'dialogue' | 'monologue' | 'news' | 'interview';
+  contentType: "dialogue" | "monologue" | "news" | "interview";
   questions: Array<{
     id: string;
-    type: 'multiple-choice' | 'true-false' | 'fill-blank';
+    type: "multiple-choice" | "true-false" | "fill-blank";
     question: string;
     options?: string[];
     correctAnswer: string;
@@ -1500,7 +1500,7 @@ async function GET(req: NextRequest) {
        segments.map(async segment => {
          const voice = getVoiceForSpeaker(segment.speakerNumber);
          const audioResponse = await openai.audio.speech.create({
-           model: 'tts-1',
+           model: "tts-1",
            voice: voice,
            input: segment.text,
          });
@@ -1613,7 +1613,7 @@ interface IAITutor extends Document {
   conversationHistory: Array<{
     sessionId: string;
     messages: Array<{
-      role: 'user' | 'tutor';
+      role: "user" | "tutor";
       content: string;
       timestamp: Date;
       context?: {
@@ -1642,8 +1642,8 @@ interface IAITutor extends Document {
 interface ITutorSession extends Document {
   userId: mongoose.Types.ObjectId;
   tutorId: mongoose.Types.ObjectId;
-  type: 'lesson' | 'review' | 'practice' | 'conversation';
-  status: 'active' | 'completed' | 'scheduled';
+  type: "lesson" | "review" | "practice" | "conversation";
+  status: "active" | "completed" | "scheduled";
   focus: {
     skill: string;
     topic: string;
@@ -1725,7 +1725,7 @@ interface IGamificationProfile extends Document {
     icon: string;
     category: string;
     earnedAt: Date;
-    rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+    rarity: "common" | "uncommon" | "rare" | "epic" | "legendary";
     progress?: {
       current: number;
       target: number;
@@ -1742,7 +1742,7 @@ interface IGamificationProfile extends Document {
   }>;
   inventory: Array<{
     id: string;
-    type: 'powerup' | 'customization' | 'booster';
+    type: "powerup" | "customization" | "booster";
     name: string;
     description: string;
     icon: string;
@@ -1753,7 +1753,7 @@ interface IGamificationProfile extends Document {
     id: string;
     name: string;
     description: string;
-    type: 'daily' | 'weekly' | 'monthly' | 'special';
+    type: "daily" | "weekly" | "monthly" | "special";
     progress: number;
     target: number;
     reward: {
@@ -1801,12 +1801,12 @@ interface IGamificationProfile extends Document {
 interface IRewardEvent extends Document {
   userId: mongoose.Types.ObjectId;
   type:
-    | 'experience'
-    | 'currency'
-    | 'item'
-    | 'badge'
-    | 'achievement'
-    | 'level_up';
+    | "experience"
+    | "currency"
+    | "item"
+    | "badge"
+    | "achievement"
+    | "level_up";
   amount?: number;
   itemId?: string;
   reason: string;
@@ -1815,7 +1815,7 @@ interface IRewardEvent extends Document {
 }
 
 interface IGamificationRule extends Document {
-  type: 'action' | 'milestone' | 'streak' | 'challenge';
+  type: "action" | "milestone" | "streak" | "challenge";
   trigger: {
     action?: string;
     milestone?: {
@@ -2008,7 +2008,7 @@ class GamificationEngine {
 
 ```typescript
 interface IDeploymentConfig {
-  environment: 'development' | 'staging' | 'production';
+  environment: "development" | "staging" | "production";
   scaling: {
     minInstances: number;
     maxInstances: number;
@@ -2025,7 +2025,7 @@ interface IDeploymentConfig {
   backup: {
     frequency: string;
     retention: number;
-    type: 'full' | 'incremental';
+    type: "full" | "incremental";
   };
 }
 ```
@@ -2232,7 +2232,7 @@ The Speaking Module will provide users with three main features:
 ```typescript
 interface ISpeakingSession extends Document {
   userId: mongoose.Types.ObjectId;
-  sessionType: 'guided' | 'pronunciation' | 'conversation';
+  sessionType: "guided" | "pronunciation" | "conversation";
   level: string;
   topic: string;
   customTopic?: string;
@@ -2249,7 +2249,7 @@ interface ISpeakingSession extends Document {
 
   // For conversation
   messages: Array<{
-    role: 'user' | 'assistant';
+    role: "user" | "assistant";
     content: string;
     timestamp: Date;
     audioUrl?: string; // For user messages
@@ -2286,7 +2286,7 @@ interface ISpeakingSession extends Document {
     tokensUsed: number;
   };
 
-  status: 'in-progress' | 'completed' | 'analyzed';
+  status: "in-progress" | "completed" | "analyzed";
   startTime: Date;
   endTime?: Date;
   createdAt: Date;
@@ -2435,7 +2435,7 @@ function useAudioRecorder() {
       };
 
       mediaRecorder.onstop = () => {
-        const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
+        const blob = new Blob(chunksRef.current, { type: "audio/webm" });
         setAudioBlob(blob);
         setIsRecording(false);
       };
@@ -2443,7 +2443,7 @@ function useAudioRecorder() {
       mediaRecorder.start();
       setIsRecording(true);
     } catch (error) {
-      console.error('Error accessing microphone:', error);
+      console.error("Error accessing microphone:", error);
     }
   }, []);
 
@@ -2467,23 +2467,23 @@ function useAudioRecorder() {
 // Transcription service
 async function transcribeAudio(audioBlob: Blob): Promise<string> {
   const formData = new FormData();
-  formData.append('file', audioBlob, 'recording.webm');
-  formData.append('model', 'whisper-1');
+  formData.append("file", audioBlob, "recording.webm");
+  formData.append("model", "whisper-1");
 
   try {
-    const response = await fetch('/api/speaking/transcribe', {
-      method: 'POST',
+    const response = await fetch("/api/speaking/transcribe", {
+      method: "POST",
       body: formData,
     });
 
     if (!response.ok) {
-      throw new Error('Transcription failed');
+      throw new Error("Transcription failed");
     }
 
     const data = await response.json();
     return data.text;
   } catch (error) {
-    console.error('Error transcribing audio:', error);
+    console.error("Error transcribing audio:", error);
     throw error;
   }
 }
@@ -2523,7 +2523,7 @@ class RealTimeConversationService {
 
       // Connect to WebSocket server
       this.socket = new WebSocket(
-        `wss://${window.location.host}/api/speaking/realtime?sessionId=${sessionId}&level=${level}${scenario ? `&scenario=${encodeURIComponent(scenario)}` : ''}`
+        `wss://${window.location.host}/api/speaking/realtime?sessionId=${sessionId}&level=${level}${scenario ? `&scenario=${encodeURIComponent(scenario)}` : ""}`
       );
 
       // Set up WebSocket event handlers
@@ -2584,12 +2584,12 @@ class RealTimeConversationService {
   private handleMessage(event: MessageEvent) {
     const data = JSON.parse(event.data);
 
-    if (data.type === 'transcript') {
+    if (data.type === "transcript") {
       // Handle transcription
       if (this.onMessageCallback) {
         this.onMessageCallback(data.content);
       }
-    } else if (data.type === 'audio') {
+    } else if (data.type === "audio") {
       // Handle audio response (play it)
       this.playAudioResponse(data.content);
     }
@@ -2616,12 +2616,12 @@ class RealTimeConversationService {
       source.connect(this.audioContext.destination);
       source.start();
     } catch (error) {
-      console.error('Error playing audio response:', error);
+      console.error("Error playing audio response:", error);
     }
   }
 
   private handleError(error: Error) {
-    console.error('Real-time conversation error:', error);
+    console.error("Real-time conversation error:", error);
     if (this.onErrorCallback) {
       this.onErrorCallback(error);
     }

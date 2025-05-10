@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
 import GamificationProfile from "@/models/GamificationProfile";
 import { Achievement, achievements } from "@/lib/gamification/achievements";
+import { GamificationService } from "@/lib/gamification/gamification-service";
 
 type ModuleType =
   | "reading"
@@ -45,15 +46,9 @@ export async function GET(
 
     await dbConnect();
 
-    // Get user's gamification profile
-    const profile = await GamificationProfile.findOne({ userId });
-
-    if (!profile) {
-      return NextResponse.json(
-        { error: "Gamification profile not found" },
-        { status: 404 }
-      );
-    }
+    // Get user's gamification profile using the improved service method
+    // which handles duplicate key errors and race conditions
+    const profile = await GamificationService.getUserProfile(userId);
 
     // Get all available achievements for this module
     const moduleAchievements = achievements.filter(

@@ -31,6 +31,15 @@ export async function recordActivity(
       metadata.score = 0;
     }
 
+    // Handle vocabulary words reviewed
+    if (activityType === "review_word") {
+      // If we're tracking vocabulary reviews for a session that was already completed,
+      // we'll still award XP but won't increment the activity count (handled in awardXP)
+      if (metadata.sessionId) {
+        metadata.isPartOfCompletedSession = true;
+      }
+    }
+
     // Track items completed if not explicitly set
     if (!Object.prototype.hasOwnProperty.call(metadata, "itemsCompleted")) {
       if (

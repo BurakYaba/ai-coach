@@ -23,7 +23,7 @@ export interface IUser extends Document {
     streak: number;
   };
   subscription: {
-    type: "none" | "monthly" | "annual";
+    type: "free" | "monthly" | "annual";
     startDate?: Date;
     endDate?: Date;
     status: "active" | "expired" | "pending";
@@ -158,8 +158,8 @@ const userSchema = new Schema<IUser>(
     subscription: {
       type: {
         type: String,
-        enum: ["none", "monthly", "annual"],
-        default: "none",
+        enum: ["free", "monthly", "annual"],
+        default: "free",
       },
       startDate: {
         type: Date,

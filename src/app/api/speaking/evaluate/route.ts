@@ -41,9 +41,14 @@ interface EvaluationResults {
  * analyze it with both systems, and update the session with the combined results.
  */
 export async function POST(req: NextRequest) {
+  console.log("Speaking evaluation endpoint called");
+
   try {
     const body = await req.json();
     const { speakingSessionId, audioUrls } = body;
+
+    console.log(`Evaluation request for session ID: ${speakingSessionId}`);
+    console.log(`Audio URLs provided: ${audioUrls?.length || 0}`);
 
     let userId: string | undefined;
     let isInternalCall = false;
@@ -52,16 +57,49 @@ export async function POST(req: NextRequest) {
     const internalApiKey = req.headers.get("X-Internal-Api-Key");
     const expectedApiKey = process.env.NEXTAUTH_SECRET || "internal-api-key";
 
+    // Log the headers for debugging (safely)
+    console.log("Headers received:", {
+      "content-type": req.headers.get("content-type"),
+      "x-internal-api-key": internalApiKey
+        ? "present (value hidden)"
+        : "missing",
+      "other-headers": Array.from(req.headers.keys()).filter(
+        key =>
+          !["content-type", "x-internal-api-key"].includes(key.toLowerCase())
+      ),
+    });
+
+    // Log API key details (safely)
+    console.log("Expected API key available:", !!expectedApiKey);
+    if (expectedApiKey) {
+      const safeExpectedKey = `${expectedApiKey.substring(0, 3)}...${expectedApiKey.substring(expectedApiKey.length - 3)}`;
+      console.log("Expected API key format:", safeExpectedKey);
+    }
+
+    if (internalApiKey) {
+      const safeReceivedKey = `${internalApiKey.substring(0, 3)}...${internalApiKey.substring(internalApiKey.length - 3)}`;
+      console.log("Received API key format:", safeReceivedKey);
+      console.log("API keys match:", internalApiKey === expectedApiKey);
+    }
+
     // Authenticate using either the API key or the user session
     if (internalApiKey === expectedApiKey) {
       isInternalCall = true;
+      console.log("Internal API key authentication successful");
       // For internal calls, we'll extract the user ID from the session directly
     } else {
       // Authenticate user via NextAuth
+      console.log("Attempting to authenticate via NextAuth session");
       const session = await getServerSession(authOptions);
+
       if (!session?.user) {
+        console.error("User session authentication failed - no valid session");
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
+
+      console.log(
+        `User session authentication successful for user: ${session.user.id}`
+      );
       userId = session.user.id;
     }
 

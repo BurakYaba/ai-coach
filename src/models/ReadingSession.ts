@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IReadingSession extends Document {
   userId: mongoose.Types.ObjectId;
@@ -10,7 +10,7 @@ export interface IReadingSession extends Document {
   estimatedReadingTime: number;
   questions: Array<{
     id: string;
-    type: 'multiple-choice' | 'true-false' | 'fill-blank';
+    type: "multiple-choice" | "true-false" | "fill-blank";
     question: string;
     options?: string[];
     correctAnswer: string;
@@ -53,7 +53,7 @@ const ReadingSessionSchema = new Schema<IReadingSession>(
   {
     userId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
       index: true,
     },
@@ -69,7 +69,7 @@ const ReadingSessionSchema = new Schema<IReadingSession>(
     level: {
       type: String,
       required: true,
-      enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
+      enum: ["A1", "A2", "B1", "B2", "C1", "C2"],
     },
     topic: {
       type: String,
@@ -92,7 +92,7 @@ const ReadingSessionSchema = new Schema<IReadingSession>(
         },
         type: {
           type: String,
-          enum: ['multiple-choice', 'true-false', 'fill-blank'],
+          enum: ["multiple-choice", "true-false", "fill-blank"],
           required: true,
         },
         question: {
@@ -207,11 +207,11 @@ const ReadingSessionSchema = new Schema<IReadingSession>(
 // Indexes for better query performance
 ReadingSessionSchema.index({ userId: 1, createdAt: -1 });
 ReadingSessionSchema.index({ level: 1, topic: 1 });
-ReadingSessionSchema.index({ 'userProgress.comprehensionScore': 1 });
+ReadingSessionSchema.index({ "userProgress.comprehensionScore": 1 });
 
 // Ensure the model isn't already defined before creating it
 export const ReadingSession =
   mongoose.models.ReadingSession ||
-  mongoose.model<IReadingSession>('ReadingSession', ReadingSessionSchema);
+  mongoose.model<IReadingSession>("ReadingSession", ReadingSessionSchema);
 
 export default ReadingSession;

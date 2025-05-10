@@ -431,12 +431,16 @@ export default function ListeningSessionPage({
 
       // Only call this when there are vocabulary words to record
       if (vocabCount > 0) {
+        console.log(
+          `Recording ${vocabCount} vocabulary reviews for gamification`
+        );
         recordActivity.mutate({
           module: "listening",
           activityType: "review_word",
           metadata: {
             sessionId: params.id,
             count: vocabCount,
+            isPartOfCompletedSession: true, // Mark this as part of a completed session
           },
         });
       }
@@ -825,7 +829,9 @@ export default function ListeningSessionPage({
                         );
 
                         // Set flag to record vocabulary review in gamification
-                        setShouldRecordVocabActivity(true);
+                        if (!session.userProgress?.completionTime) {
+                          setShouldRecordVocabActivity(true);
+                        }
                       }
 
                       updateSessionProgress(params.id, updateData).then(() => {

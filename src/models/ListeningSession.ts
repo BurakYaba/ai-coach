@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IListeningSession extends Document {
   userId: mongoose.Types.ObjectId;
@@ -11,10 +11,10 @@ export interface IListeningSession extends Document {
   level: string; // 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'
   topic: string;
   duration: number;
-  contentType: 'dialogue' | 'monologue' | 'news' | 'interview';
+  contentType: "dialogue" | "monologue" | "news" | "interview";
   questions: Array<{
     id: string;
-    type: 'multiple-choice' | 'true-false' | 'fill-blank';
+    type: "multiple-choice" | "true-false" | "fill-blank";
     question: string;
     options?: string[];
     correctAnswer: string;
@@ -63,7 +63,7 @@ const ListeningSessionSchema = new Schema<IListeningSession>(
   {
     userId: {
       type: Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
       index: true,
     },
@@ -86,7 +86,7 @@ const ListeningSessionSchema = new Schema<IListeningSession>(
     level: {
       type: String,
       required: true,
-      enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
+      enum: ["A1", "A2", "B1", "B2", "C1", "C2"],
     },
     topic: {
       type: String,
@@ -100,7 +100,7 @@ const ListeningSessionSchema = new Schema<IListeningSession>(
     contentType: {
       type: String,
       required: true,
-      enum: ['dialogue', 'monologue', 'news', 'interview'],
+      enum: ["dialogue", "monologue", "news", "interview"],
     },
     questions: [
       {
@@ -110,7 +110,7 @@ const ListeningSessionSchema = new Schema<IListeningSession>(
         },
         type: {
           type: String,
-          enum: ['multiple-choice', 'true-false', 'fill-blank'],
+          enum: ["multiple-choice", "true-false", "fill-blank"],
           required: true,
         },
         question: {
@@ -202,7 +202,7 @@ const ListeningSessionSchema = new Schema<IListeningSession>(
                 return v.length === 2 && v[0] <= v[1];
               },
               message:
-                'Segment must be [startTime, endTime] with startTime <= endTime',
+                "Segment must be [startTime, endTime] with startTime <= endTime",
             },
           },
           count: {
@@ -262,12 +262,12 @@ const ListeningSessionSchema = new Schema<IListeningSession>(
 // Indexes for better query performance
 ListeningSessionSchema.index({ userId: 1, createdAt: -1 });
 ListeningSessionSchema.index({ level: 1, topic: 1 });
-ListeningSessionSchema.index({ 'userProgress.comprehensionScore': 1 });
+ListeningSessionSchema.index({ "userProgress.comprehensionScore": 1 });
 ListeningSessionSchema.index({ contentType: 1 });
 
 // Ensure the model isn't already defined before creating it
 export const ListeningSession =
   mongoose.models.ListeningSession ||
-  mongoose.model<IListeningSession>('ListeningSession', ListeningSessionSchema);
+  mongoose.model<IListeningSession>("ListeningSession", ListeningSessionSchema);
 
 export default ListeningSession;

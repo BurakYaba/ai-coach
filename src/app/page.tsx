@@ -1,11 +1,11 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { Button } from '@/components/ui/button';
-import { GradientButton } from '@/components/ui/gradient-button';
+import { Button } from "@/components/ui/button";
+import { GradientButton } from "@/components/ui/gradient-button";
 import {
   GradientCard,
   GradientCardSimple,
-} from '@/components/ui/gradient-card';
+} from "@/components/ui/gradient-card";
 
 // Custom components based on Brainwave design
 const Tagline = ({ children }: { children: React.ReactNode }) => (
@@ -25,15 +25,15 @@ const BackgroundGradient = () => (
     </div>
     <div
       className="hidden lg:block absolute bottom-1/3 left-10 w-24 h-24 rounded-full bg-primary bg-opacity-30 blur-xl animate-float"
-      style={{ animationDelay: '0s' }}
+      style={{ animationDelay: "0s" }}
     />
     <div
       className="hidden lg:block absolute top-1/3 right-10 w-20 h-20 rounded-full bg-accent bg-opacity-30 blur-xl animate-float"
-      style={{ animationDelay: '1s' }}
+      style={{ animationDelay: "1s" }}
     />
     <div
       className="hidden lg:block absolute top-2/3 right-1/4 w-16 h-16 rounded-full bg-secondary bg-opacity-30 blur-xl animate-float"
-      style={{ animationDelay: '2s' }}
+      style={{ animationDelay: "2s" }}
     />
   </div>
 );
@@ -95,7 +95,7 @@ export default function LandingPage() {
             <Tagline>AI-Powered Language Learning</Tagline>
             <h1
               className="text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:text-7xl lg:leading-[1.1] text-center mb-6 animate-float"
-              style={{ animationDuration: '6s' }}
+              style={{ animationDuration: "6s" }}
             >
               Master English with Your
               <span className="text-gradient"> AI Language Coach</span>
@@ -110,7 +110,7 @@ export default function LandingPage() {
                 href="/register"
                 size="lg"
                 className="animate-pulse-glow"
-                style={{ animationDuration: '4s' }}
+                style={{ animationDuration: "4s" }}
               >
                 Start Learning Now
               </GradientButton>
@@ -144,10 +144,10 @@ export default function LandingPage() {
               key={index}
               variant={
                 index % 3 === 0
-                  ? 'default'
+                  ? "default"
                   : index % 3 === 1
-                    ? 'accent'
-                    : 'secondary'
+                    ? "accent"
+                    : "secondary"
               }
               borderOpacity="low"
               className="group flex flex-col items-center text-center space-y-4 bg-card hover:shadow-xl hover:shadow-primary hover:shadow-opacity-5 transition-all duration-300 backdrop-blur-card hover:scale-105 hover:-translate-y-1"
@@ -167,11 +167,11 @@ export default function LandingPage() {
         <div className="absolute -z-10 pointer-events-none inset-0 opacity-20">
           <div
             className="absolute top-0 right-1/4 w-72 h-72 bg-accent bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
-            style={{ animationDuration: '8s' }}
+            style={{ animationDuration: "8s" }}
           />
           <div
             className="absolute bottom-0 left-1/4 w-72 h-72 bg-primary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
-            style={{ animationDuration: '6s', animationDelay: '2s' }}
+            style={{ animationDuration: "6s", animationDelay: "2s" }}
           />
         </div>
       </section>
@@ -199,10 +199,10 @@ export default function LandingPage() {
                 key={index}
                 variant={
                   index % 3 === 0
-                    ? 'default'
+                    ? "default"
                     : index % 3 === 1
-                      ? 'accent'
-                      : 'secondary'
+                      ? "accent"
+                      : "secondary"
                 }
                 borderOpacity="low"
                 className="relative group hover:shadow-glow transition-all duration-500 backdrop-blur-card"
@@ -246,7 +246,7 @@ export default function LandingPage() {
           <Tagline>Start Your Journey</Tagline>
           <h2
             className="text-3xl md:text-4xl font-bold animate-float"
-            style={{ animationDuration: '5s' }}
+            style={{ animationDuration: "5s" }}
           >
             Ready to Improve Your English?
           </h2>
@@ -259,7 +259,7 @@ export default function LandingPage() {
               href="/register"
               size="lg"
               className="animate-pulse-glow"
-              style={{ animationDuration: '3s' }}
+              style={{ animationDuration: "3s" }}
             >
               Create Free Account
             </GradientButton>
@@ -269,7 +269,7 @@ export default function LandingPage() {
           <div className="absolute -z-10 pointer-events-none inset-0 opacity-20">
             <div
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-96 bg-gradient-to-r from-primary via-accent to-secondary bg-opacity-10 rounded-full blur-3xl animate-pulse-glow"
-              style={{ animationDuration: '10s' }}
+              style={{ animationDuration: "10s" }}
             />
           </div>
         </div>
@@ -425,9 +425,9 @@ export default function LandingPage() {
 
 const features = [
   {
-    title: 'Personalized Learning',
+    title: "Personalized Learning",
     description:
-      'AI-powered lessons that adapt to your level, goals, and learning style.',
+      "AI-powered lessons that adapt to your level, goals, and learning style.",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -445,9 +445,9 @@ const features = [
     ),
   },
   {
-    title: 'Engaging Listening Practice',
+    title: "Engaging Listening Practice",
     description:
-      'Immersive listening exercises with natural conversations between named characters with distinct voices.',
+      "Immersive listening exercises with natural conversations between named characters with distinct voices.",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -465,9 +465,9 @@ const features = [
     ),
   },
   {
-    title: 'Instant Feedback',
+    title: "Instant Feedback",
     description:
-      'Get real-time corrections and suggestions to improve your language skills.',
+      "Get real-time corrections and suggestions to improve your language skills.",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -485,9 +485,9 @@ const features = [
     ),
   },
   {
-    title: 'Practice Anytime',
+    title: "Practice Anytime",
     description:
-      'Access your personalized lessons and practice sessions 24/7 from any device.',
+      "Access your personalized lessons and practice sessions 24/7 from any device.",
     icon: (
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -508,18 +508,18 @@ const features = [
 
 const testimonials = [
   {
-    name: 'Sarah J.',
-    title: 'English Student',
-    text: 'AI Language Coach transformed my learning experience. The personalized feedback helped me improve my pronunciation faster than any traditional method.',
+    name: "Sarah J.",
+    title: "English Student",
+    text: "AI Language Coach transformed my learning experience. The personalized feedback helped me improve my pronunciation faster than any traditional method.",
   },
   {
-    name: 'Michael T.',
-    title: 'Business Professional',
-    text: 'I needed to improve my English for work quickly. The AI-powered practice sessions were exactly what I needed, available whenever I had time to practice.',
+    name: "Michael T.",
+    title: "Business Professional",
+    text: "I needed to improve my English for work quickly. The AI-powered practice sessions were exactly what I needed, available whenever I had time to practice.",
   },
   {
-    name: 'Elena K.',
-    title: 'University Student',
-    text: 'The listening exercises are incredible - the conversations feel natural and have helped me understand native speakers much better than before.',
+    name: "Elena K.",
+    title: "University Student",
+    text: "The listening exercises are incredible - the conversations feel natural and have helped me understand native speakers much better than before.",
   },
 ];

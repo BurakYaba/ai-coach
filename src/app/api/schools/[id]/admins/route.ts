@@ -8,6 +8,7 @@ import School from "@/models/School";
 import User from "@/models/User";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 
 // GET /api/schools/[id]/admins - Get school admins
 export async function GET(

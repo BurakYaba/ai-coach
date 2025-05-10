@@ -11,9 +11,9 @@ import dbConnect from "./db";
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: "credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
@@ -23,21 +23,31 @@ export const authOptions: NextAuthOptions = {
 
         await dbConnect();
 
-        const user = await User.findOne({ email: credentials.email })
-          .lean()
-          .exec();
+        const user = await User.findOne({ email: credentials.email });
+
         if (!user) {
-          throw new Error("No user found with this email");
+          throw new Error("Invalid email or password");
         }
 
-        const userModel = await User.findById(user._id);
-        if (!userModel) {
-          throw new Error("User not found");
+        const isPasswordValid = await user.comparePassword(
+          credentials.password
+        );
+
+        if (!isPasswordValid) {
+          throw new Error("Invalid email or password");
         }
 
-        const isValid = await userModel.comparePassword(credentials.password);
-        if (!isValid) {
-          throw new Error("Invalid password");
+        // Check subscription status for regular users (not admins)
+        if (user.role === "user") {
+          // Check if user has an active subscription
+          const isSubscriptionActive = await hasActiveSubscription(user._id);
+
+          if (!isSubscriptionActive) {
+            const subscriptionType = user.subscription?.type || "free";
+            throw new Error(
+              `Your ${subscriptionType} subscription has expired. Please contact your branch administrator.`
+            );
+          }
         }
 
         return {
@@ -63,12 +73,48 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
       }
+
+      // Add subscription information to token if not already present or needs refreshing
+      // This helps with middleware subscription checks
+      try {
+        // We periodically refresh the subscription info to ensure it's current
+        const shouldRefreshSubscription =
+          !token.subscriptionLastChecked ||
+          new Date(token.subscriptionLastChecked as string).getTime() +
+            60 * 60 * 1000 <
+            Date.now(); // Refresh every hour
+
+        if (shouldRefreshSubscription && token.id) {
+          await dbConnect();
+          const User = (await import("@/models/User")).default;
+          const userRecord = await User.findById(token.id);
+
+          if (userRecord) {
+            token.subscriptionStatus = userRecord.subscription?.status;
+            token.subscriptionType = userRecord.subscription?.type;
+            token.subscriptionExpiry = userRecord.subscription?.endDate
+              ? userRecord.subscription.endDate.toISOString()
+              : undefined;
+            token.subscriptionLastChecked = new Date().toISOString();
+          }
+        }
+      } catch (error) {
+        console.error("Error refreshing subscription in token:", error);
+      }
+
       return token;
     },
     async session({ session, token }: { session: any; token: JWT }) {
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+
+        // Add subscription info to the session
+        session.user.subscription = {
+          status: token.subscriptionStatus as string,
+          type: token.subscriptionType as string,
+          expiresAt: token.subscriptionExpiry as string,
+        };
       }
       return session;
     },
@@ -86,6 +132,11 @@ declare module "next-auth" {
       email: string;
       name: string;
       role: string;
+      subscription?: {
+        status: string;
+        type: string;
+        expiresAt: string;
+      };
     };
   }
   interface User {
@@ -100,6 +151,10 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     role?: string;
+    subscriptionStatus?: string;
+    subscriptionType?: string;
+    subscriptionExpiry?: string;
+    subscriptionLastChecked?: string;
   }
 }
 

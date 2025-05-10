@@ -11,6 +11,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
 import WritingSession, { IWritingSession } from "@/models/WritingSession";
+import { GamificationService } from "@/lib/gamification/gamification-service";
+import { recordWritingCompletion } from "@/lib/gamification/activity-recorder";
 
 interface IUserProgress extends Document {
   userId: string;
@@ -53,6 +55,8 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const userId = session.user.id;
+
     // Connect to database
     await dbConnect();
 
@@ -76,7 +80,7 @@ export async function POST(
     }
 
     // Check if user owns the session
-    if (writingSession.userId.toString() !== session.user.id) {
+    if (writingSession.userId.toString() !== userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
@@ -95,6 +99,28 @@ export async function POST(
     // Update status to completed
     writingSession.status = "completed";
     await writingSession.save();
+
+    // Update user progress stats
+    await updateUserProgress(userId, writingSession);
+
+    // Record activity and award XP
+    try {
+      const wordCount = writingSession.submission?.finalVersion?.wordCount || 0;
+      const timeSpent = calculateTimeSpent(writingSession);
+
+      // Record the writing completion for gamification
+      await recordWritingCompletion(userId, params.id, wordCount, timeSpent);
+
+      console.log(
+        `Successfully awarded XP for completed writing session ${params.id}`
+      );
+    } catch (error) {
+      console.error(
+        `Error awarding XP for writing session ${params.id}:`,
+        error
+      );
+      // Don't fail the request if gamification fails
+    }
 
     return NextResponse.json({
       success: true,
@@ -120,6 +146,34 @@ export async function POST(
       { status: 500 }
     );
   }
+}
+
+// Calculate time spent on the writing session (in seconds)
+function calculateTimeSpent(
+  writingSession: IWritingSession & Document
+): number {
+  if (!writingSession.submission?.finalVersion?.submittedAt) {
+    return 300; // Default to 5 minutes if no submission time
+  }
+
+  const submittedAt = new Date(
+    writingSession.submission.finalVersion.submittedAt
+  );
+
+  // Use timeTracking.startTime as the fallback if createdAt is not available
+  // This is safer as timeTracking.startTime is definitely in the interface
+  const startTime = writingSession.timeTracking?.startTime
+    ? new Date(writingSession.timeTracking.startTime)
+    : (writingSession as any).createdAt
+      ? new Date((writingSession as any).createdAt)
+      : new Date(submittedAt.getTime() - 300000); // Default to 5 minutes before submission
+
+  // Calculate time difference in seconds
+  const timeSpentMs = submittedAt.getTime() - startTime.getTime();
+  const timeSpentSec = Math.floor(timeSpentMs / 1000);
+
+  // Ensure reasonable time (min 1 minute, max 2 hours)
+  return Math.min(Math.max(timeSpentSec, 60), 7200);
 }
 
 async function updateUserProgress(
