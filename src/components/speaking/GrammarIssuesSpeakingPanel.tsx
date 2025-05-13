@@ -63,6 +63,9 @@ export function GrammarIssuesSpeakingPanel({
     try {
       setIsAddingGrammarIssue(prev => ({ ...prev, [issueKey]: true }));
 
+      // Ensure CEFR level is uppercase (e.g., convert "b1" to "B1")
+      const normalizedCeferLevel = ceferLevel ? ceferLevel.toUpperCase() : "B1";
+
       const response = await fetch("/api/grammar/issues", {
         method: "POST",
         headers: {
@@ -77,7 +80,7 @@ export function GrammarIssuesSpeakingPanel({
             correction: issue.correction,
             explanation: issue.explanation,
           },
-          ceferLevel,
+          ceferLevel: normalizedCeferLevel,
         }),
       });
 

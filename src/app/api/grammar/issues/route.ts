@@ -73,18 +73,40 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create grammar issue
+    // Check if the sourceSessionId is a valid ObjectId
+    if (!mongoose.isValidObjectId(body.sourceSessionId)) {
+      console.error(`Invalid ObjectId format: ${body.sourceSessionId}`);
+      return NextResponse.json(
+        { error: "Invalid session ID format" },
+        { status: 400 }
+      );
+    }
+
+    // Ensure CEFR level is uppercase
+    const ceferLevel = body.ceferLevel ? body.ceferLevel.toUpperCase() : "B1";
+
+    // Validate that ceferLevel is one of the allowed values
+    const validCeferLevels = ["A1", "A2", "B1", "B2", "C1", "C2"];
+    if (!validCeferLevels.includes(ceferLevel)) {
+      console.error(`Invalid CEFR level: ${ceferLevel}`);
+      return NextResponse.json(
+        { error: "Invalid CEFR level. Must be one of: A1, A2, B1, B2, C1, C2" },
+        { status: 400 }
+      );
+    }
+
+    // Create grammar issue with valid ObjectId
     const grammarIssue = await GrammarIssue.create({
       userId: session.user.id,
       sourceModule: body.sourceModule,
-      sourceSessionId: body.sourceSessionId,
+      sourceSessionId: new mongoose.Types.ObjectId(body.sourceSessionId),
       issue: {
         type: body.issue.type || "Grammar Error",
         text: body.issue.text,
         correction: body.issue.correction,
         explanation: body.issue.explanation,
       },
-      ceferLevel: body.ceferLevel || "B1",
+      ceferLevel: ceferLevel,
       category: body.issue.type?.includes(" ")
         ? body.issue.type.split(" ")[0].toLowerCase()
         : "grammar",

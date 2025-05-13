@@ -78,18 +78,6 @@ function calculateLevelAndProgress(xp: number) {
   // Calculate percentage progress to next level
   const progressPercentage = (xpSinceCurrentLevel / xpNeededForNextLevel) * 100;
 
-  // Debug log for edge cases
-  if (xp >= 100 && xp < 110) {
-    console.log("XP Progress Edge case calculation:", {
-      xp,
-      level,
-      currentLevelXP,
-      nextLevelXP,
-      xpSinceCurrentLevel,
-      xpNeededForNextLevel,
-    });
-  }
-
   return {
     level,
     currentLevelXP,
@@ -113,19 +101,6 @@ export function XpProgress() {
   const xpSinceCurrentLevel = calculatedData?.xpSinceCurrentLevel || 0;
   const xpNeededForNextLevel = calculatedData?.xpNeededForNextLevel || 100;
   const progressPercentage = calculatedData?.progressPercentage || 0;
-
-  // Debug logging
-  if (profile && calculatedData) {
-    console.log("XP Progress Component - Data:", {
-      totalXP: profile.experience,
-      calculatedLevel: calculatedData.level,
-      currentLevelThreshold: calculatedData.currentLevelXP,
-      nextLevelThreshold: calculatedData.nextLevelXP,
-      xpSinceCurrentLevel: calculatedData.xpSinceCurrentLevel,
-      xpNeededForNextLevel: calculatedData.xpNeededForNextLevel,
-      progressPercentage: calculatedData.progressPercentage,
-    });
-  }
 
   if (isLoading) {
     return <Skeleton className="h-4 w-20" />;

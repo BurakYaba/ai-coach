@@ -17,6 +17,8 @@ import {
   GraduationCap,
   AudioLines,
   Volume2,
+  Plus,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -53,7 +55,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { DeleteSpeakingSessionButton } from "@/components/speaking/DeleteSpeakingSessionButton";
-import { GrammarIssuesSpeakingPanel } from "./GrammarIssuesSpeakingPanel";
+import { useRecordActivity } from "@/hooks/use-gamification";
 
 interface SpeakingSessionDetailsProps {
   sessionId: string;
@@ -144,6 +146,18 @@ export function SpeakingSessionDetails({
   });
   const [grammarDrawerOpen, setGrammarDrawerOpen] = useState(false);
   const [pronunciationDrawerOpen, setPronunciationDrawerOpen] = useState(false);
+  const [addedGrammarIssues, setAddedGrammarIssues] = useState<
+    Record<string, boolean>
+  >({});
+  const [isAddingGrammarIssue, setIsAddingGrammarIssue] = useState<
+    Record<string, boolean>
+  >({});
+
+  // Track if we've already recorded this session for gamification
+  const hasRecordedActivity = useRef<boolean>(false);
+
+  // Get the recordActivity hook for gamification
+  const recordActivity = useRecordActivity();
 
   // Function to go to the previous grammar issue
   const prevGrammarIssue = () => {
@@ -211,6 +225,47 @@ export function SpeakingSessionDetails({
       fetchSession();
     }
   }, [sessionId]);
+
+  // Add gamification integration to record completed speaking sessions
+  useEffect(() => {
+    // Only proceed if we have a session and it's completed
+    if (
+      session &&
+      session.status === "completed" &&
+      !hasRecordedActivity.current
+    ) {
+      // Check if the session already has feedback/scores indicating completion
+      const isFullyEvaluated =
+        session.feedback &&
+        (session.feedback.overallScore !== undefined ||
+          session.feedback.fluencyScore !== undefined);
+
+      if (isFullyEvaluated) {
+        // Mark that we've recorded this activity to prevent duplicate records
+        hasRecordedActivity.current = true;
+
+        // Determine if this was a conversation session based on metadata
+        const isConversation =
+          session.metadata?.mode === "realtime" ||
+          session.metadata?.mode === "turn-based";
+
+        // Record the appropriate activity type
+        recordActivity.mutate({
+          module: "speaking",
+          activityType: isConversation
+            ? "conversation_session"
+            : "complete_session",
+          metadata: {
+            sessionId: sessionId,
+            duration: session.duration || 300, // Default to 5 minutes if duration not available
+            // Include additional metadata for more detailed analysis
+            transcriptCount: session.transcripts?.length || 0,
+            score: session.feedback?.overallScore || 0,
+          },
+        });
+      }
+    }
+  }, [session, sessionId, recordActivity]);
 
   // Calculate conversation analytics
   const calculateAnalytics = (transcripts: Transcript[]) => {
@@ -451,6 +506,69 @@ export function SpeakingSessionDetails({
       }
     };
   }, []);
+
+  // Add a function to add grammar issues to the grammar module
+  const addToGrammarModule = async (issue: {
+    text: string;
+    issue: string;
+    correction: string;
+    explanation: string;
+  }) => {
+    if (!session?.metadata?.level) return;
+
+    const issueKey = `${issue.issue}-${issue.text}`;
+
+    try {
+      setIsAddingGrammarIssue(prev => ({ ...prev, [issueKey]: true }));
+
+      // Ensure CEFR level is uppercase
+      const normalizedCeferLevel = session.metadata.level
+        ? session.metadata.level.toUpperCase()
+        : "B1";
+
+      const response = await fetch("/api/grammar/issues", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sourceModule: "speaking",
+          sourceSessionId: sessionId,
+          issue: {
+            type: issue.issue,
+            text: issue.text,
+            correction: issue.correction,
+            explanation: issue.explanation,
+          },
+          ceferLevel: normalizedCeferLevel,
+        }),
+      });
+
+      if (response.ok) {
+        setAddedGrammarIssues(prev => ({ ...prev, [issueKey]: true }));
+        toast({
+          title: "Added to Grammar",
+          description:
+            "This grammar issue has been added to your Grammar module",
+        });
+      } else {
+        throw new Error("Failed to add grammar issue");
+      }
+    } catch (error) {
+      console.error("Error adding grammar issue:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add grammar issue",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingGrammarIssue(prev => {
+        const newState = { ...prev };
+        delete newState[issueKey];
+        return newState;
+      });
+    }
+  };
 
   // Loading state
   if (loading) {
@@ -853,6 +971,48 @@ export function SpeakingSessionDetails({
                                         }
                                       </div>
                                     </div>
+
+                                    {/* Add the "Add to Grammar" button here */}
+                                    <div className="mt-4 flex justify-end">
+                                      {(() => {
+                                        const currentIssue =
+                                          session.feedback.grammarIssues[
+                                            currentGrammarIssueIndex
+                                          ];
+                                        const issueKey = `${currentIssue.issue}-${currentIssue.text}`;
+                                        const isAdded =
+                                          addedGrammarIssues[issueKey];
+                                        const isAdding =
+                                          isAddingGrammarIssue[issueKey];
+
+                                        return (
+                                          <Button
+                                            size="sm"
+                                            variant={
+                                              isAdded ? "outline" : "secondary"
+                                            }
+                                            disabled={isAdded || isAdding}
+                                            onClick={() =>
+                                              addToGrammarModule(currentIssue)
+                                            }
+                                          >
+                                            {isAdding ? (
+                                              "Adding..."
+                                            ) : isAdded ? (
+                                              <>
+                                                <Check className="mr-1 h-4 w-4" />
+                                                Added
+                                              </>
+                                            ) : (
+                                              <>
+                                                <Plus className="mr-1 h-4 w-4" />
+                                                Add to Grammar
+                                              </>
+                                            )}
+                                          </Button>
+                                        );
+                                      })()}
+                                    </div>
                                   </Card>
 
                                   {/* Slider navigation buttons */}
@@ -1218,18 +1378,6 @@ export function SpeakingSessionDetails({
                         </div>
                       ) : null}
                     </div>
-
-                    {/* Grammar Issues Panel */}
-                    {session?.feedback?.grammarIssues &&
-                      session.feedback.grammarIssues.length > 0 && (
-                        <div className="mt-6">
-                          <GrammarIssuesSpeakingPanel
-                            issues={session.feedback.grammarIssues}
-                            sessionId={sessionId}
-                            ceferLevel={session.metadata?.level || "B1"}
-                          />
-                        </div>
-                      )}
                   </div>
                 ) : (
                   <div className="space-y-4">

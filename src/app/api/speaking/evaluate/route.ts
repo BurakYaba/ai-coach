@@ -10,6 +10,10 @@ import { deleteCloudinaryFiles } from "@/lib/cloudinary";
 import dbConnect from "@/lib/db";
 import { getSessionAudioUrls } from "@/lib/session-helpers";
 import SpeakingSession from "@/models/SpeakingSession";
+import {
+  recordActivity,
+  recordSpeakingCompletion,
+} from "@/lib/gamification/activity-recorder";
 
 // Dynamic route to avoid static optimization
 export const dynamic = "force-dynamic";
@@ -480,6 +484,82 @@ async function processAudioEvaluation(
         { evaluationProgress: 100 },
         { new: true }
       );
+    }
+
+    // After updating the session document, add gamification recording
+    // This should be after the final update when the session is completed
+
+    // Assuming the final result looks something like this
+    const sessionResults = {
+      feedback: {
+        fluencyScore: results.fluencyScore,
+        accuracyScore: results.accuracyScore,
+        vocabularyScore: results.vocabularyScore,
+        pronunciationScore: results.pronunciationScore,
+        grammarScore: results.grammarScore,
+        overallScore: results.overallScore,
+        strengths: results.strengths,
+        areasForImprovement: results.areasForImprovement,
+        suggestions: results.suggestions,
+        grammarIssues: results.grammarIssues,
+        mispronunciations: results.mispronunciations,
+      },
+      status: "completed",
+      evaluationProgress: 100,
+      endTime: new Date(),
+    };
+
+    // Update the session document with the evaluation results
+    const updatedSession = await SpeakingSession.findByIdAndUpdate(
+      speakingSession._id,
+      {
+        $set: sessionResults,
+      },
+      { new: true }
+    );
+
+    // Add gamification integration after successfully updating the session
+    try {
+      // Check if we have what we need to record the activity
+      if (
+        updatedSession &&
+        updatedSession.status === "completed" &&
+        updatedSession.user
+      ) {
+        const userId = updatedSession.user.toString();
+        const sessionId = updatedSession._id.toString();
+        const duration = updatedSession.duration || 300;
+
+        // Determine if this was a conversation
+        const isConversation =
+          updatedSession.metadata?.mode === "realtime" ||
+          updatedSession.metadata?.mode === "turn-based";
+
+        if (isConversation) {
+          // Record a conversation session (higher XP)
+          await recordActivity(userId, "speaking", "conversation_session", {
+            sessionId,
+            duration,
+            score: updatedSession.feedback?.overallScore || 0,
+            transcriptCount: updatedSession.transcripts?.length || 0,
+            timestamp: new Date().toISOString(),
+          });
+        } else {
+          // Record a regular speaking session completion
+          await recordSpeakingCompletion(userId, sessionId, duration);
+        }
+
+        console.log(
+          `Recorded gamification activity for speaking session ${sessionId}`
+        );
+      }
+    } catch (gamificationError) {
+      // Log but don't fail the overall request if gamification recording fails
+      console.error(
+        "Error recording gamification activity:",
+        gamificationError
+      );
+      // Continue with the normal response
     }
 
     return NextResponse.json({
