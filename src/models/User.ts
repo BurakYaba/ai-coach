@@ -283,9 +283,20 @@ userSchema.methods.comparePassword = async function (
 
 // Check if user has an active subscription
 userSchema.methods.hasActiveSubscription = function (): boolean {
+  // First, check if endDate is in the past
+  if (
+    this.subscription.endDate &&
+    new Date(this.subscription.endDate) < new Date()
+  ) {
+    // If subscription has expired, it should not be considered active regardless of status
+    return false;
+  }
+
+  // Then check if status is active and either no endDate or endDate is in the future
   return (
     this.subscription.status === "active" &&
-    (!this.subscription.endDate || this.subscription.endDate > new Date())
+    (!this.subscription.endDate ||
+      new Date(this.subscription.endDate) > new Date())
   );
 };
 

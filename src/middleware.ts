@@ -100,7 +100,28 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
-    // Note: We've removed the subscription check here as we're now handling it during login
+    // Add additional subscription check for regular users
+    const isSubscriptionProtected = SUBSCRIPTION_PROTECTED_PATHS.some(path =>
+      pathname.startsWith(path)
+    );
+
+    if (isSubscriptionProtected && userRole === "user") {
+      // Check token for subscription status and expiry
+      const subscriptionStatus = token.subscriptionStatus as string;
+      const subscriptionExpiry = token.subscriptionExpiry as string | undefined;
+
+      // If subscription is explicitly expired or if end date has passed
+      const isExpired =
+        subscriptionStatus === "expired" ||
+        (subscriptionExpiry && new Date(subscriptionExpiry) < new Date());
+
+      if (isExpired) {
+        // Redirect to login with expired message
+        const url = new URL("/login", request.url);
+        url.searchParams.set("error", "SubscriptionExpired");
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return NextResponse.next();

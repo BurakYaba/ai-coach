@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -35,6 +35,18 @@ export function LoginForm() {
     null
   );
   const [showPassword, setShowPassword] = useState(false);
+
+  // Check for subscription error in URL params
+  useEffect(() => {
+    // For App Router, we need to use the URLSearchParams API
+    const params = new URLSearchParams(window.location.search);
+    const errorParam = params.get("error");
+    if (errorParam === "SubscriptionExpired") {
+      setSubscriptionError(
+        "Your subscription has expired. Please contact your branch administrator."
+      );
+    }
+  }, []);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),

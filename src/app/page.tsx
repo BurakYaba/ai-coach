@@ -77,6 +77,12 @@ export default function LandingPage() {
             >
               Testimonials
             </Link>
+            <Link
+              href="#pricing"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              Pricing
+            </Link>
           </nav>
           <div className="flex items-center gap-4">
             <Link href="/login">
@@ -866,6 +872,262 @@ export default function LandingPage() {
         <div className="absolute -z-10 pointer-events-none inset-0 opacity-20">
           <div className="absolute top-1/2 right-0 w-96 h-96 bg-accent bg-opacity-20 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-primary bg-opacity-20 rounded-full blur-3xl" />
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section
+        id="pricing"
+        className="container mx-auto px-5 py-16 md:py-24 space-y-16 relative"
+      >
+        <div className="text-center space-y-4 max-w-3xl mx-auto">
+          <Tagline>Simple Pricing</Tagline>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            Invest in Your Language Skills
+          </h2>
+          <p className="text-muted-foreground">
+            Choose a plan that works best for your learning journey
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8">
+          {/* Monthly Plan */}
+          <GradientCard className="group relative hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1">
+            <div className="absolute top-0 right-0 bg-primary text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-medium">
+              MOST FLEXIBLE
+            </div>
+            <div className="p-8 flex flex-col h-full">
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold mb-4">Monthly Plan</h3>
+                <div className="flex items-baseline mb-4">
+                  <span className="text-4xl font-bold">$14.99</span>
+                  <span className="text-muted-foreground ml-2">/month</span>
+                </div>
+                <p className="text-muted-foreground">
+                  Perfect for short-term learning goals or trying out all
+                  features
+                </p>
+              </div>
+
+              <ul className="space-y-3 mb-8 flex-grow">
+                <li className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 mr-3 text-primary"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Full access to all 6 learning modules
+                </li>
+                <li className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 mr-3 text-primary"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Unlimited AI-powered feedback
+                </li>
+                <li className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 mr-3 text-primary"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Personalized learning path
+                </li>
+                <li className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 mr-3 text-primary"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Progress tracking & analytics
+                </li>
+                <li className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 mr-3 text-primary"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Cancel anytime
+                </li>
+              </ul>
+
+              <GradientButton
+                href="/register?plan=monthly"
+                className="w-full"
+                size="lg"
+              >
+                Start Monthly Plan
+              </GradientButton>
+            </div>
+          </GradientCard>
+
+          {/* Annual Plan */}
+          <GradientCard className="group relative hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 border-2 border-primary">
+            <div className="absolute top-0 right-0 bg-primary text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-medium">
+              BEST VALUE
+            </div>
+            <div className="p-8 flex flex-col h-full">
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold mb-4">Annual Plan</h3>
+                <div className="flex items-baseline mb-4">
+                  <span className="text-4xl font-bold">$149.99</span>
+                  <span className="text-muted-foreground ml-2">/year</span>
+                </div>
+                <p className="text-muted-foreground">
+                  Save over $29 compared to monthly billing
+                  <span className="ml-2 inline-block bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                    Save 17%
+                  </span>
+                </p>
+              </div>
+
+              <ul className="space-y-3 mb-8 flex-grow">
+                <li className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 mr-3 text-primary"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Everything in monthly plan
+                </li>
+                <li className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 mr-3 text-primary"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Priority customer support
+                </li>
+                <li className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 mr-3 text-primary"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Exclusive advanced content
+                </li>
+                <li className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 mr-3 text-primary"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Early access to new features
+                </li>
+                <li className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-5 w-5 mr-3 text-primary"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Price lock guarantee
+                </li>
+              </ul>
+
+              <GradientButton
+                href="/register?plan=annual"
+                className="w-full"
+                size="lg"
+                variant="default"
+              >
+                Start Annual Plan
+              </GradientButton>
+            </div>
+          </GradientCard>
+        </div>
+
+        <div className="text-center max-w-2xl mx-auto pt-8">
+          <div className="p-4 bg-muted rounded-lg border border-border">
+            <h4 className="font-medium mb-2">100% Satisfaction Guarantee</h4>
+            <p className="text-sm text-muted-foreground">
+              Not satisfied with our platform? Let us know within 14 days of
+              your purchase, and we'll provide a full refund. No questions
+              asked.
+            </p>
+          </div>
+        </div>
+
+        {/* Decorative background elements */}
+        <div className="absolute -z-10 pointer-events-none inset-0 opacity-20">
+          <div
+            className="absolute top-1/4 right-0 w-72 h-72 bg-primary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
+            style={{ animationDuration: "8s" }}
+          />
+          <div
+            className="absolute bottom-1/4 left-0 w-72 h-72 bg-secondary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
+            style={{ animationDuration: "6s", animationDelay: "2s" }}
+          />
         </div>
       </section>
 

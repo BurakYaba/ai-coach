@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 
 import { DashboardStats } from "@/components/admin/DashboardStats";
+import { SubscriptionManagement } from "@/components/admin/subscription-management";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -62,6 +63,14 @@ export default async function AdminDashboard() {
 
       {/* Dashboard statistics with real-time data */}
       <DashboardStats />
+
+      {/* Subscription Management */}
+      <div className="mt-8 mb-4">
+        <h2 className="text-2xl font-bold tracking-tight mb-4">
+          Subscription Management
+        </h2>
+        <SubscriptionManagement />
+      </div>
 
       <h2 className="text-2xl font-bold tracking-tight mt-8 mb-4">
         Quick Actions

@@ -282,7 +282,20 @@ export async function hasActiveSubscription(userId: string): Promise<boolean> {
     const user = await User.findById(userId);
     if (!user) return false;
 
-    // Check user's own subscription first
+    // Check if user's subscription has expired and update status if needed
+    if (
+      user.subscription?.status === "active" &&
+      user.subscription.endDate &&
+      new Date(user.subscription.endDate) < new Date()
+    ) {
+      // Subscription has expired, update the status
+      await User.findByIdAndUpdate(user._id, {
+        "subscription.status": "expired",
+      });
+      return false;
+    }
+
+    // Now check if user's subscription is active and valid
     if (
       user.subscription?.status === "active" &&
       (!user.subscription.endDate ||
@@ -291,9 +304,25 @@ export async function hasActiveSubscription(userId: string): Promise<boolean> {
       return true;
     }
 
-    // If user belongs to a school, check school's subscription
+    // If user belongs to a school, check school's subscription similarly
     if (user.school) {
       const school = await School.findById(user.school);
+
+      // Check if school subscription has expired and update if needed
+      if (
+        school &&
+        school.subscription?.status === "active" &&
+        school.subscription.endDate &&
+        new Date(school.subscription.endDate) < new Date()
+      ) {
+        // School subscription has expired, update the status
+        await School.findByIdAndUpdate(school._id, {
+          "subscription.status": "expired",
+        });
+        return false;
+      }
+
+      // Now check if school subscription is still valid
       if (
         school &&
         school.subscription?.status === "active" &&
