@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import { DashboardNav } from "./nav";
@@ -55,13 +55,10 @@ export default function DashboardHeader({
               </SheetTrigger>
               <SheetContent side="right" className="w-[80%] sm:w-[350px]">
                 <div className="flex flex-col h-full py-6">
-                  <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center mb-6">
                     <span className="font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                       AI Coach
                     </span>
-                    <button onClick={() => setIsOpen(false)}>
-                      <X className="h-5 w-5" />
-                    </button>
                   </div>
                   <div className="flex flex-col space-y-1">
                     <DashboardNavMobile onItemClick={() => setIsOpen(false)} />
