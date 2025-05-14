@@ -9,6 +9,8 @@ import OpenAI from "openai";
 // Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
+  timeout: 30000, // Reduce to 30 seconds to ensure we don't hit the function timeout
+  maxRetries: 2, // Reduce retries to save time
 });
 
 // File system promises
@@ -526,6 +528,20 @@ export async function analyzeSessionRecordings(
     `Processing ${audioBuffers.length} audio recordings sequentially`
   );
 
+  // OPTIMIZATION: Limit the amount of audio we process to avoid timeouts
+  // If we have many files, only process the first few and focus on the largest ones
+  // which are likely to have more speech content
+  if (audioBuffers.length > 3) {
+    // Sort by buffer size (descending) - larger files typically have more speech
+    audioBuffers.sort((a, b) => b.buffer.length - a.buffer.length);
+
+    // Take the top 3 largest files only
+    console.log(
+      `Limiting analysis to the ${Math.min(3, audioBuffers.length)} largest audio files to prevent timeout`
+    );
+    audioBuffers = audioBuffers.slice(0, 3);
+  }
+
   // Process recordings sequentially instead of in parallel
   const results: AssessmentResult[] = [];
   for (let i = 0; i < audioBuffers.length; i++) {
@@ -548,17 +564,30 @@ export async function analyzeSessionRecordings(
       });
     }
 
-    // Add a small delay between processing each recording to avoid overwhelming Azure
+    // Reduce the delay between processing each recording
     if (i < audioBuffers.length - 1) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 100)); // Reduce delay from 300ms to 100ms
     }
   }
 
   // Extract all reference texts for grammar analysis
   const referenceTexts = audioBuffers.map(item => item.referenceText);
 
+  // OPTIMIZATION: Limit the text analysis to prevent timeouts in longer sessions
+  // Only take the first 500 characters of combined text
+  const MAX_TEXT_LENGTH = 1000;
+  const limitedTexts = referenceTexts.map(text => {
+    if (text && text.length > MAX_TEXT_LENGTH) {
+      console.log(
+        `Trimming text from ${text.length} to ${MAX_TEXT_LENGTH} characters`
+      );
+      return text.substring(0, MAX_TEXT_LENGTH);
+    }
+    return text;
+  });
+
   // Perform grammar and accuracy analysis on the transcribed texts
-  const textAnalysis = await analyzeGrammar(referenceTexts);
+  const textAnalysis = await analyzeGrammar(limitedTexts);
 
   // Aggregate scores
   const aggregateScores = results.reduce(

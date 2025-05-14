@@ -249,33 +249,37 @@ async function processAudioEvaluation(
       { new: true }
     );
 
-    // Using Azure speech utility to evaluate the audio
-    // Download audio files from URLs
-    const audioBuffers = await Promise.all(
-      userTranscripts.map(async (transcript, index) => {
-        // Be more flexible with index matching - use available URLs even if they don't match transcript count
-        const audioUrl = audioUrls[index] || audioUrls[0] || "";
-        if (!audioUrl) {
+    // OPTIMIZATION: Download audio files more efficiently in parallel
+    console.log(`Starting to download ${audioUrls.length} audio files...`);
+    const downloadPromises = userTranscripts.map(async (transcript, index) => {
+      // Be more flexible with index matching - use available URLs even if they don't match transcript count
+      const audioUrl = audioUrls[index] || audioUrls[0] || "";
+      if (!audioUrl) {
+        return null;
+      }
+
+      try {
+        const audioResponse = await fetch(audioUrl);
+        if (!audioResponse.ok) {
+          console.error(
+            `Failed to download audio at ${audioUrl}: ${audioResponse.status}`
+          );
           return null;
         }
 
-        try {
-          const audioResponse = await fetch(audioUrl);
-          if (!audioResponse.ok) {
-            return null;
-          }
+        const audioBuffer = await audioResponse.arrayBuffer();
+        return {
+          buffer: Buffer.from(audioBuffer),
+          referenceText: transcript.text,
+        };
+      } catch (downloadError) {
+        console.error(`Error downloading audio: ${downloadError}`);
+        return null;
+      }
+    });
 
-          const audioBuffer = await audioResponse.arrayBuffer();
-
-          return {
-            buffer: Buffer.from(audioBuffer),
-            referenceText: transcript.text,
-          };
-        } catch (downloadError) {
-          return null;
-        }
-      })
-    );
+    // Wait for all downloads to complete
+    const audioBuffers = await Promise.all(downloadPromises);
 
     // Update progress to 20% - audio files downloaded
     await SpeakingSession.findByIdAndUpdate(
@@ -299,17 +303,20 @@ async function processAudioEvaluation(
       );
     }
 
-    // If we have many audio buffers, implement a batching strategy
-    // Process at most 3 audio files at a time to reduce load on Azure
+    // OPTIMIZATION: Process smaller batches more efficiently
     let results: SessionAnalysisResult;
 
-    if (validAudioBuffers.length > 3) {
+    // Maximum batch size - process fewer files at once to avoid timeouts
+    const MAX_BATCH_SIZE = 2;
+
+    if (validAudioBuffers.length > MAX_BATCH_SIZE) {
       console.log(
-        `Processing ${validAudioBuffers.length} audio files in smaller batches`
+        `Processing ${validAudioBuffers.length} audio files in smaller batches of ${MAX_BATCH_SIZE}`
       );
 
-      // Process first 3 files to get baseline results
-      const initialBatch = validAudioBuffers.slice(0, 3);
+      // Process first batch
+      const initialBatch = validAudioBuffers.slice(0, MAX_BATCH_SIZE);
+      console.log(`Processing first batch of ${initialBatch.length} files`);
       results = await analyzeSessionRecordings(initialBatch);
 
       // Update progress to 40% - first batch of audio files analyzed
@@ -319,13 +326,20 @@ async function processAudioEvaluation(
         { new: true }
       );
 
-      // If there are more files, process them in a second batch
-      if (validAudioBuffers.length > 3) {
+      // If there are more files, process them in subsequent batches
+      if (validAudioBuffers.length > MAX_BATCH_SIZE) {
         try {
-          // Process remaining files (up to 3 more) after a delay
-          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+          // OPTIMIZATION: Use fewer remaining files to avoid timeouts
+          // Just take 1-2 more files from the remaining ones for evaluation
+          const maxRemainingToProcess = Math.min(
+            MAX_BATCH_SIZE,
+            validAudioBuffers.length - MAX_BATCH_SIZE
+          );
+          const secondBatch = validAudioBuffers.slice(
+            MAX_BATCH_SIZE,
+            MAX_BATCH_SIZE + maxRemainingToProcess
+          );
 
-          const secondBatch = validAudioBuffers.slice(3, 6);
           console.log(`Processing second batch of ${secondBatch.length} files`);
           const secondResults = await analyzeSessionRecordings(secondBatch);
 
@@ -340,9 +354,9 @@ async function processAudioEvaluation(
           results = combineAnalysisResults(results, secondResults);
 
           // If there are still more files, log that we're skipping them
-          if (validAudioBuffers.length > 6) {
+          if (validAudioBuffers.length > MAX_BATCH_SIZE * 2) {
             console.log(
-              `Skipping analysis of ${validAudioBuffers.length - 6} additional files to avoid overloading Azure`
+              `Skipping analysis of ${validAudioBuffers.length - MAX_BATCH_SIZE * 2} additional files to avoid timeout`
             );
           }
         } catch (batchError) {
@@ -354,7 +368,7 @@ async function processAudioEvaluation(
         }
       }
     } else {
-      // Process all files at once if there are 3 or fewer
+      // Process all files at once if there are fewer than or equal to MAX_BATCH_SIZE
       results = await analyzeSessionRecordings(validAudioBuffers);
 
       // Update progress to 60% - all audio files analyzed in a single batch

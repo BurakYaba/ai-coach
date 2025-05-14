@@ -8,6 +8,12 @@
     },
     "src/app/api/listening/generate/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/speaking/evaluate/route.ts": {
+      "maxDuration": 120
+    },
+    "src/app/api/speaking/conversation/end/route.ts": {
+      "maxDuration": 120
     }
   }
 }

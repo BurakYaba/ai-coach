@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 // Define the interface for the cached mongoose connection
 interface CachedConnection {
@@ -16,7 +16,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
   throw new Error(
-    'Please define the MONGODB_URI environment variable inside .env.local'
+    "Please define the MONGODB_URI environment variable inside .env.local"
   );
 }
 
@@ -42,30 +42,30 @@ mongoose.connection.setMaxListeners(20);
 // Register event listeners only once
 if (!cached.isEventsRegistered) {
   // Handle connection events
-  mongoose.connection.on('connected', () => {
-    console.log('MongoDB connection established');
+  mongoose.connection.on("connected", () => {
+    console.log("MongoDB connection established");
   });
 
-  mongoose.connection.on('error', err => {
-    console.error('MongoDB connection error:', err);
+  mongoose.connection.on("error", err => {
+    console.error("MongoDB connection error:", err);
   });
 
-  mongoose.connection.on('disconnected', () => {
-    console.log('MongoDB connection disconnected');
+  mongoose.connection.on("disconnected", () => {
+    console.log("MongoDB connection disconnected");
   });
 
   // Handle process termination
   const gracefulShutdown = () => {
     mongoose.connection.close(false).then(() => {
-      console.log('MongoDB connection closed through app termination');
+      console.log("MongoDB connection closed through app termination");
       process.exit(0);
     });
   };
 
   // Only add these event listeners once
-  if (process.env.NODE_ENV !== 'test') {
-    process.on('SIGINT', gracefulShutdown);
-    process.on('SIGTERM', gracefulShutdown);
+  if (process.env.NODE_ENV !== "test") {
+    process.on("SIGINT", gracefulShutdown);
+    process.on("SIGTERM", gracefulShutdown);
   }
 
   // Mark event listeners as registered
@@ -84,12 +84,14 @@ export async function dbConnect() {
       // Add connection pool options
       maxPoolSize: 10,
       minPoolSize: 5,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 10000,
+      socketTimeoutMS: 30000,
+      connectTimeoutMS: 5000,
+      serverSelectionTimeoutMS: 5000,
+      heartbeatFrequencyMS: 10000,
     };
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then(mongoose => {
-      console.log('MongoDB connected successfully');
+      console.log("MongoDB connected successfully");
       return mongoose;
     });
   }
@@ -98,7 +100,7 @@ export async function dbConnect() {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
-    console.error('MongoDB connection error:', e);
+    console.error("MongoDB connection error:", e);
     throw e;
   }
 
