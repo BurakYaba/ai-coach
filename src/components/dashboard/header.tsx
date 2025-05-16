@@ -43,7 +43,11 @@ export default function DashboardHeader({
         <div className="flex items-center space-x-4">
           {subscription && <SubscriptionBadge subscription={subscription} />}
           <XpProgress />
-          <UserNav user={user} />
+
+          {/* Only show UserNav on medium screens and above */}
+          <div className="hidden md:block">
+            <UserNav user={user} />
+          </div>
 
           {/* Mobile Menu */}
           <div className="md:hidden">
@@ -55,11 +59,25 @@ export default function DashboardHeader({
               </SheetTrigger>
               <SheetContent side="right" className="w-[80%] sm:w-[350px]">
                 <div className="flex flex-col h-full py-6">
-                  <div className="flex items-center mb-6">
+                  <div className="flex items-center justify-between mb-8">
                     <span className="font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                       AI Coach
                     </span>
                   </div>
+
+                  {/* User profile in mobile menu */}
+                  <div className="mb-6 pb-6 border-b border-muted/20">
+                    <div className="flex items-center gap-4">
+                      <UserNav user={user} />
+                      <div>
+                        <p className="font-medium">{user.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   <div className="flex flex-col space-y-1">
                     <DashboardNavMobile onItemClick={() => setIsOpen(false)} />
                   </div>
