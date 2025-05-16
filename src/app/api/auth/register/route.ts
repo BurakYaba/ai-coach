@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-
 import dbConnect from "@/lib/db";
-import User from "@/models/User";
-import Branch from "@/models/Branch";
 
 export async function POST(req: Request) {
   try {
@@ -16,6 +13,11 @@ export async function POST(req: Request) {
     }
 
     await dbConnect();
+
+    // Import models dynamically to ensure proper registration
+    const User = (await import("@/models/User")).default;
+    const Branch = (await import("@/models/Branch")).default;
+    const School = (await import("@/models/School")).default;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
