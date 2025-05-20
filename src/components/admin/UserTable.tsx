@@ -1,7 +1,18 @@
 "use client";
 
 import { format, formatDistanceToNow } from "date-fns";
-import { User, UserCog, School, Trash, Plus, Eye, EyeOff } from "lucide-react";
+import {
+  User,
+  UserCog,
+  School,
+  Trash,
+  Plus,
+  Eye,
+  EyeOff,
+  CalendarClock,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -67,6 +78,12 @@ interface UserData {
   image?: string;
   role: "user" | "admin" | "school_admin";
   createdAt: string;
+  subscription: {
+    type: "free" | "monthly" | "annual";
+    status: "active" | "expired" | "pending";
+    startDate?: Date;
+    endDate?: Date;
+  };
   stats: UserStats;
 }
 
@@ -407,7 +424,7 @@ export function UserTable() {
               <TableHead>Joined</TableHead>
               <TableHead>Last Active</TableHead>
               <TableHead>Sessions</TableHead>
-              <TableHead>Completion Rate</TableHead>
+              <TableHead>Subscription Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -465,7 +482,27 @@ export function UserTable() {
                   <TableCell>
                     {user.stats.completedSessions} / {user.stats.totalSessions}
                   </TableCell>
-                  <TableCell>{user.stats.completionRate.toFixed(0)}%</TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={
+                        user.subscription.status === "active"
+                          ? "default"
+                          : user.subscription.status === "pending"
+                            ? "outline"
+                            : "destructive"
+                      }
+                      className="capitalize flex items-center gap-1"
+                    >
+                      {user.subscription.status === "active" ? (
+                        <CalendarClock className="h-3 w-3" />
+                      ) : user.subscription.status === "pending" ? (
+                        <Clock className="h-3 w-3" />
+                      ) : (
+                        <AlertCircle className="h-3 w-3" />
+                      )}
+                      {user.subscription.type} - {user.subscription.status}
+                    </Badge>
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="relative">
                       <Button

@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
 import { AlertCircle, Eye, EyeOff } from "lucide-react";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,6 +19,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "@/components/ui/use-toast";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -72,12 +72,18 @@ export function LoginForm() {
         redirect: false,
       });
 
-      if (result?.error) {
+      if (!result?.ok) {
         // Check if this is a subscription error
-        if (result.error.includes("subscription")) {
+        if (result?.error?.includes("subscription")) {
           setSubscriptionError(result.error);
         } else {
-          toast.error(result.error);
+          // Make sure to show toast for invalid credentials
+          toast({
+            title: "Login failed",
+            description: result?.error || "Invalid email or password",
+            variant: "destructive",
+          });
+          console.error("Login error:", result?.error);
         }
         setIsLoading(false);
         return;
@@ -90,6 +96,12 @@ export function LoginForm() {
           const userData = await userResponse.json();
           const userRole = userData.user?.role;
           const hasBranch = !!userData.user?.branch;
+
+          // Show success toast
+          toast({
+            title: "Success",
+            description: "Login successful!",
+          });
 
           // If user is a school_admin and has a branch, redirect to school-admin dashboard
           if (userRole === "school_admin" && hasBranch) {
@@ -105,15 +117,28 @@ export function LoginForm() {
           }
         } else {
           // Fallback to regular dashboard if profile fetch fails
+          toast({
+            title: "Success",
+            description: "Login successful!",
+          });
           router.push("/dashboard");
         }
       } catch (profileError) {
         console.error("Error fetching user profile:", profileError);
         // Fallback to regular dashboard if profile fetch fails
+        toast({
+          title: "Success",
+          description: "Login successful!",
+        });
         router.push("/dashboard");
       }
     } catch (error) {
-      toast.error("Something went wrong. Please try again.");
+      console.error("Login submission error:", error);
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
       setIsLoading(false);
     }
   }

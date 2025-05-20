@@ -4,7 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
 
@@ -19,6 +18,7 @@ import {
   FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/use-toast";
 
 const registerSchema = z
   .object({
@@ -83,13 +83,24 @@ export function RegisterForm() {
         throw new Error(result.error || "Something went wrong");
       }
 
-      toast.success("Account created successfully");
+      toast({
+        title: "Success",
+        description: "Account created successfully",
+      });
       router.push("/login");
     } catch (error) {
       if (error instanceof Error) {
-        toast.error(error.message);
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
       } else {
-        toast.error("Something went wrong. Please try again.");
+        toast({
+          title: "Error",
+          description: "Something went wrong. Please try again.",
+          variant: "destructive",
+        });
       }
     } finally {
       setIsLoading(false);

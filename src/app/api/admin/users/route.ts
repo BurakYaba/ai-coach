@@ -46,9 +46,9 @@ export async function GET(request: NextRequest) {
     // Get total count for pagination
     const total = await User.countDocuments(query);
 
-    // Fetch paginated users
+    // Fetch paginated users - include subscription information
     const users = await User.find(query)
-      .select("_id name email image role createdAt")
+      .select("_id name email image role createdAt subscription")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -81,6 +81,12 @@ export async function GET(request: NextRequest) {
           image: user.image,
           role: user.role,
           createdAt: user.createdAt,
+          subscription: {
+            type: user.subscription?.type || "free",
+            status: user.subscription?.status || "pending",
+            startDate: user.subscription?.startDate,
+            endDate: user.subscription?.endDate,
+          },
           stats: {
             totalSessions,
             completedSessions,

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import NextAuthSessionProvider from "@/components/providers/session-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -30,6 +31,7 @@ export default function RootLayout({
           <QueryProvider>{children}</QueryProvider>
         </NextAuthSessionProvider>
         <Toaster />
+        <SonnerToaster position="top-right" />
       </body>
     </html>
   );
