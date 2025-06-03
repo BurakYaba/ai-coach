@@ -6,6 +6,7 @@ import { authOptions, canManageSchool } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import School from "@/models/School";
 import User from "@/models/User";
+import { checkAndUpdateUserSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -74,8 +75,45 @@ export async function GET(
       .skip(skip)
       .limit(limit);
 
+    // Check and update subscription status for each student
+    const studentsWithValidatedSubscriptions = await Promise.all(
+      students.map(async student => {
+        const studentId = student._id.toString();
+
+        // Check and update subscription status if expired
+        await checkAndUpdateUserSubscription(studentId);
+
+        // Refetch student to get updated subscription status
+        const updatedStudent =
+          await User.findById(studentId).select("subscription");
+
+        // Determine actual subscription status based on endDate
+        let actualStatus = updatedStudent?.subscription?.status || "pending";
+
+        // Double-check: if status is active but endDate has passed, mark as expired
+        if (
+          actualStatus === "active" &&
+          updatedStudent?.subscription?.endDate &&
+          new Date(updatedStudent.subscription.endDate) < new Date()
+        ) {
+          actualStatus = "expired";
+        }
+
+        // Return student with validated subscription status
+        return {
+          ...student.toObject(),
+          subscription: {
+            type: updatedStudent?.subscription?.type || "free",
+            status: actualStatus,
+            startDate: updatedStudent?.subscription?.startDate,
+            endDate: updatedStudent?.subscription?.endDate,
+          },
+        };
+      })
+    );
+
     return NextResponse.json({
-      students,
+      students: studentsWithValidatedSubscriptions,
       pagination: {
         total: totalStudents,
         page,

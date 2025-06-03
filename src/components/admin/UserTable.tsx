@@ -12,6 +12,7 @@ import {
   CalendarClock,
   Clock,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
@@ -128,6 +129,7 @@ export function UserTable() {
   const [loadingSchools, setLoadingSchools] = useState(false);
   const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [syncingSubscriptions, setSyncingSubscriptions] = useState(false);
 
   // Initialize form
   const addUserForm = useForm<z.infer<typeof addUserSchema>>({
@@ -393,6 +395,42 @@ export function UserTable() {
     setShowPassword(!showPassword);
   };
 
+  const handleSyncSubscriptions = async () => {
+    setSyncingSubscriptions(true);
+    try {
+      const response = await fetch("/api/admin/users/sync-subscriptions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to sync subscriptions");
+      }
+
+      const result = await response.json();
+
+      toast({
+        title: "Subscriptions synced",
+        description: `Updated ${result.usersUpdated} expired subscriptions`,
+      });
+
+      // Refresh user list to show updated statuses
+      fetchUsers();
+    } catch (err: any) {
+      console.error("Error syncing subscriptions:", err);
+      toast({
+        title: "Error",
+        description: err.message || "Failed to sync subscriptions",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncingSubscriptions(false);
+    }
+  };
+
   if (loading && users.length === 0) {
     return <LoadingSpinner />;
   }
@@ -410,9 +448,21 @@ export function UserTable() {
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
         />
-        <Button onClick={() => setIsAddUserDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Add User
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleSyncSubscriptions}
+            disabled={syncingSubscriptions}
+          >
+            <RefreshCw
+              className={`mr-2 h-4 w-4 ${syncingSubscriptions ? "animate-spin" : ""}`}
+            />
+            {syncingSubscriptions ? "Syncing..." : "Sync Subscriptions"}
+          </Button>
+          <Button onClick={() => setIsAddUserDialogOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" /> Add User
+          </Button>
+        </div>
       </div>
 
       <div className="border rounded-md">

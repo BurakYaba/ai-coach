@@ -1,4 +1,5 @@
-import { Suspense } from 'react';
+import { Suspense } from "react";
+import { Metadata } from "next";
 
 // Components
 import {
@@ -7,14 +8,14 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
-import { UserTable } from '@/components/admin/UserTable';
+import { UserTable } from "@/components/admin/UserTable";
 
-export const metadata = {
-  title: 'User Management | Admin Dashboard',
-  description: 'Manage users of the language learning platform',
+export const metadata: Metadata = {
+  title: "User Management | Admin Dashboard",
+  description: "Manage users of Fluenta",
 };
 
 function UserTableSkeleton() {

@@ -5,6 +5,7 @@ import { authOptions, canManageSchool, canManageStudent } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import School from "@/models/School";
 import User from "@/models/User";
+import { checkAndUpdateUserSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
@@ -46,7 +47,36 @@ export async function GET(
       return NextResponse.json({ error: "Student not found" }, { status: 404 });
     }
 
-    return NextResponse.json(student);
+    // Check and update subscription status if expired
+    await checkAndUpdateUserSubscription(studentId);
+
+    // Refetch student to get updated subscription status
+    const updatedStudent = await User.findById(studentId).select("-password");
+
+    // Determine actual subscription status based on endDate
+    let actualStatus = updatedStudent?.subscription?.status || "pending";
+
+    // Double-check: if status is active but endDate has passed, mark as expired
+    if (
+      actualStatus === "active" &&
+      updatedStudent?.subscription?.endDate &&
+      new Date(updatedStudent.subscription.endDate) < new Date()
+    ) {
+      actualStatus = "expired";
+    }
+
+    // Return student with validated subscription status
+    const studentWithValidatedSubscription = {
+      ...updatedStudent?.toObject(),
+      subscription: {
+        type: updatedStudent?.subscription?.type || "free",
+        status: actualStatus,
+        startDate: updatedStudent?.subscription?.startDate,
+        endDate: updatedStudent?.subscription?.endDate,
+      },
+    };
+
+    return NextResponse.json(studentWithValidatedSubscription);
   } catch (error) {
     console.error("Error fetching student:", error);
     return NextResponse.json(

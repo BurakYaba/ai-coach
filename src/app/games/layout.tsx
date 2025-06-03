@@ -1,7 +1,6 @@
 export const metadata = {
-  title: 'Language Learning Games - AI Language Coach',
-  description:
-    'Interactive language learning games to enhance your English skills',
+  title: "Language Learning Games - Fluenta",
+  description: "Fun interactive games to learn English",
 };
 
 export default function GamesLayout({

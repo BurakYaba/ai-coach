@@ -1,6 +1,6 @@
-# Development Guidelines for AI Language Learning Platform
+# Development Guidelines for Fluenta
 
-This document outlines the guidelines and best practices for implementing the AI Language Learning Platform. Both human developers and AI assistants should follow these guidelines to ensure consistency, maintainability, and high code quality.
+This document outlines the guidelines and best practices for implementing Fluenta. Both human developers and AI assistants should follow these guidelines to ensure consistency, maintainability, and high code quality.
 
 ## Project Implementation Principles
 
@@ -161,4 +161,4 @@ Before submitting or accepting code:
 
 ## Conclusion
 
-By following these guidelines, we ensure that the AI Language Learning Platform is implemented consistently, with high code quality, and according to the plan outlined in the README. Both human developers and AI assistants should refer to this document regularly to maintain alignment throughout the development process.
+By following these guidelines, we ensure that Fluenta is implemented consistently, with high code quality, and according to the plan outlined in the README. Both human developers and AI assistants should refer to this document frequently during development.

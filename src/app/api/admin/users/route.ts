@@ -8,6 +8,7 @@ import dbConnect from "@/lib/db";
 import ListeningSession from "@/models/ListeningSession";
 import User from "@/models/User";
 import School from "@/models/School";
+import { checkAndUpdateUserSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
@@ -53,10 +54,16 @@ export async function GET(request: NextRequest) {
       .skip(skip)
       .limit(limit);
 
-    // For each user, get their session stats
+    // For each user, get their session stats and check subscription status
     const usersWithStats = await Promise.all(
       users.map(async user => {
         const userId = user._id.toString();
+
+        // Check and update subscription status if expired
+        await checkAndUpdateUserSubscription(userId);
+
+        // Refetch user to get updated subscription status
+        const updatedUser = await User.findById(userId).select("subscription");
 
         // Total listening sessions
         const totalSessions = await ListeningSession.countDocuments({
@@ -74,6 +81,18 @@ export async function GET(request: NextRequest) {
           userId: userId,
         }).sort({ createdAt: -1 });
 
+        // Determine actual subscription status based on endDate
+        let actualStatus = updatedUser?.subscription?.status || "pending";
+
+        // Double-check: if status is active but endDate has passed, mark as expired
+        if (
+          actualStatus === "active" &&
+          updatedUser?.subscription?.endDate &&
+          new Date(updatedUser.subscription.endDate) < new Date()
+        ) {
+          actualStatus = "expired";
+        }
+
         return {
           _id: user._id,
           name: user.name,
@@ -82,10 +101,10 @@ export async function GET(request: NextRequest) {
           role: user.role,
           createdAt: user.createdAt,
           subscription: {
-            type: user.subscription?.type || "free",
-            status: user.subscription?.status || "pending",
-            startDate: user.subscription?.startDate,
-            endDate: user.subscription?.endDate,
+            type: updatedUser?.subscription?.type || "free",
+            status: actualStatus,
+            startDate: updatedUser?.subscription?.startDate,
+            endDate: updatedUser?.subscription?.endDate,
           },
           stats: {
             totalSessions,

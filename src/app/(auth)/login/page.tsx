@@ -1,7 +1,7 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
+import { Metadata } from "next";
+import Link from "next/link";
 
-import { LoginForm } from '@/components/auth/login-form';
+import { LoginForm } from "@/components/auth/login-form";
 import {
   Card,
   CardContent,
@@ -9,11 +9,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: 'Login - AI Language Learning Platform',
-  description: 'Login to your account',
+  title: "Login - Fluenta",
+  description: "Login to your account",
 };
 
 export default function LoginPage() {
@@ -30,7 +30,7 @@ export default function LoginPage() {
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
         <div className="text-sm text-center text-muted-foreground">
-          Don&apos;t have an account?{' '}
+          Don&apos;t have an account?{" "}
           <Link href="/register" className="text-primary hover:underline">
             Sign up
           </Link>

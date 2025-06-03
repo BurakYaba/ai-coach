@@ -1,10 +1,10 @@
-import { Metadata } from 'next';
-import { ReadingSession } from '@/components/reading/ReadingSession';
-import { notFound } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import ReadingSessionModel from '@/models/ReadingSession';
+import { Metadata } from "next";
+import { ReadingSession } from "@/components/reading/ReadingSession";
+import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import ReadingSessionModel from "@/models/ReadingSession";
 
 interface ReadingSessionPageProps {
   params: {
@@ -13,8 +13,8 @@ interface ReadingSessionPageProps {
 }
 
 export const metadata: Metadata = {
-  title: 'Reading Session | AI Language Coach',
-  description: 'Improve your reading skills with AI-powered reading sessions',
+  title: "Reading Session | Fluenta",
+  description: "Continue your reading practice session",
 };
 
 async function getReadingSession(id: string) {
@@ -37,7 +37,7 @@ async function getReadingSession(id: string) {
 
     return JSON.parse(JSON.stringify(readingSession));
   } catch (error) {
-    console.error('Error fetching reading session:', error);
+    console.error("Error fetching reading session:", error);
     return null;
   }
 }

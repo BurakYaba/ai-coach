@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
+import { Metadata } from "next";
 
 import { DashboardStats } from "@/components/admin/DashboardStats";
 import { Button } from "@/components/ui/button";
@@ -12,9 +13,9 @@ import {
 } from "@/components/ui/card";
 import { authOptions } from "@/lib/auth";
 
-export const metadata = {
-  title: "Admin Dashboard",
-  description: "Manage your language learning platform",
+export const metadata: Metadata = {
+  title: "Admin Dashboard | Fluenta",
+  description: "Manage your Fluenta platform",
 };
 
 // Admin action card component

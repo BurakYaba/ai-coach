@@ -50,6 +50,9 @@ export default async function DashboardLayout({
       }
     : undefined;
 
+  // Check if user is individual (not associated with a school)
+  const isIndividualUser = !user?.school;
+
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-b from-background to-background relative overflow-hidden">
       {/* Decorative background elements */}
@@ -58,7 +61,11 @@ export default async function DashboardLayout({
         <div className="absolute bottom-0 left-0 w-[40rem] h-[40rem] translate-y-1/2 -translate-x-1/2 rounded-full bg-secondary/5 blur-3xl opacity-30" />
       </div>
 
-      <DashboardHeader user={session.user} subscription={subscriptionInfo} />
+      <DashboardHeader
+        user={session.user}
+        subscription={subscriptionInfo}
+        isIndividualUser={isIndividualUser}
+      />
 
       <main className="flex-1">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -1,10 +1,10 @@
-import { Metadata } from 'next';
+import { Metadata } from "next";
 
-import { NewReadingSession } from '@/components/reading/NewReadingSession';
+import { NewReadingSession } from "@/components/reading/NewReadingSession";
 
 export const metadata: Metadata = {
-  title: 'New Reading Session - AI Language Learning Platform',
-  description: 'Start a new reading session',
+  title: "New Reading Session - Fluenta",
+  description: "Start a new reading session",
 };
 
 export default function NewReadingSessionPage() {

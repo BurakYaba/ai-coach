@@ -8,7 +8,7 @@ import { SchoolAdminSidebar } from "@/components/school-admin/SchoolAdminSidebar
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "School Admin Dashboard | AI Language Learning Platform",
+  title: "School Admin Dashboard | Fluenta",
   description: "Manage your school and students",
 };
 

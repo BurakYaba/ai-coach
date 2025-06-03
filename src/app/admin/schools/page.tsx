@@ -12,7 +12,7 @@ import { SchoolTable } from "@/components/admin/SchoolTable";
 
 export const metadata = {
   title: "School Management | Admin Dashboard",
-  description: "Manage schools and branches on the language learning platform",
+  description: "Manage schools and branches on Fluenta",
 };
 
 function SchoolTableSkeleton() {

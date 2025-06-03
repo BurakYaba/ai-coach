@@ -163,4 +163,4 @@ Use this checklist for each feature implementation to ensure consistency, code q
 - [ ] Performance is acceptable
 - [ ] User experience is intuitive and engaging
 
-By following this checklist for each feature implementation, we ensure consistency, high code quality, and adherence to the project plan throughout the development of the AI Language Learning Platform.
+By following this checklist for each feature implementation, we ensure consistency, high code quality, and adherence to the project plan throughout the development of Fluenta.

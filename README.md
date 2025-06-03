@@ -1,6 +1,6 @@
-# AI Language Learning Platform
+# Fluenta - Language Learning Platform
 
-A comprehensive language learning platform powered by AI that helps users improve their reading, writing, and speaking skills in English.
+A comprehensive, AI-powered language learning platform built with Next.js, featuring personalized lessons, real-time progress tracking, and advanced assessment tools.
 
 ## Table of Contents
 
@@ -2780,7 +2780,7 @@ This implementation plan provides a structured approach to building the speaking
 
 ### Speech Evaluation System
 
-The AI Coach platform features a comprehensive speech evaluation system that combines two powerful technologies:
+The Fluenta platform features a comprehensive speech evaluation system that combines two powerful technologies:
 
 1. **Azure Speech Services** - Analyzes audio characteristics:
 

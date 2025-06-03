@@ -565,7 +565,8 @@ export function FreeConversation() {
         const event = {
           type: "session.update",
           session: {
-            instructions: `You are an AI language coach specializing in conversation practice. 
+            instructions: `You are a language learning assistant on Fluenta specializing in conversation practice.
+            
             Your goal is to help the user improve their English speaking skills through natural conversation.
             
             Follow these guidelines:
@@ -659,8 +660,7 @@ export function FreeConversation() {
         const event = {
           type: "session.update",
           session: {
-            instructions: `You are an AI language coach specializing in conversation practice. 
-            Your goal is to help the user improve their English speaking skills through natural conversation.
+            instructions: `You are a language learning assistant on Fluenta specializing in conversation practice.
             
             ${brevityInstructions}
             

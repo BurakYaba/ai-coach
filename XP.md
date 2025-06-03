@@ -1,4 +1,4 @@
-# Language Learning Platform XP System Documentation
+# Fluenta XP System Documentation
 
 ## Overview
 

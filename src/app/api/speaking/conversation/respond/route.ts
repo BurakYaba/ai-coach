@@ -223,7 +223,7 @@ function buildSystemPrompt(
   isInitial: boolean
 ): string {
   // Base system prompt
-  let prompt = `You are an AI language coach specializing in English conversation practice.
+  let prompt = `You are a language learning assistant on Fluenta specializing in English conversation practice.
 Your goal is to help the user improve their English speaking skills through natural conversation.
 
 The user's English level is ${level.toUpperCase()} (${getLevelDescription(level)}).

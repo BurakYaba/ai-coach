@@ -1,11 +1,11 @@
-import { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import { getServerSession } from 'next-auth';
+import { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { getServerSession } from "next-auth";
 
-import { SpeakingSessionDetails } from '@/components/speaking/SpeakingSessionDetails';
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import SpeakingSession from '@/models/SpeakingSession';
+import { SpeakingSessionDetails } from "@/components/speaking/SpeakingSessionDetails";
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import SpeakingSession from "@/models/SpeakingSession";
 
 interface SpeakingSessionPageProps {
   params: {
@@ -14,8 +14,8 @@ interface SpeakingSessionPageProps {
 }
 
 export const metadata: Metadata = {
-  title: 'Speaking Session | AI Language Coach',
-  description: 'Review your speaking practice session and analytics',
+  title: "Speaking Session | Fluenta",
+  description: "Practice your speaking skills",
 };
 
 async function getSpeakingSession(id: string) {
@@ -38,7 +38,7 @@ async function getSpeakingSession(id: string) {
 
     return JSON.parse(JSON.stringify(speakingSession));
   } catch (error) {
-    console.error('Error fetching speaking session:', error);
+    console.error("Error fetching speaking session:", error);
     return null;
   }
 }

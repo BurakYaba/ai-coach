@@ -1,16 +1,15 @@
-import { Metadata } from 'next';
-import Link from 'next/link';
+import { Metadata } from "next";
+import Link from "next/link";
 
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { WritingProgress } from '@/components/writing/WritingProgress';
-import { WritingPromptList } from '@/components/writing/WritingPromptList';
-import { WritingSessionList } from '@/components/writing/WritingSessionList';
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WritingProgress } from "@/components/writing/WritingProgress";
+import { WritingPromptList } from "@/components/writing/WritingPromptList";
+import { WritingSessionList } from "@/components/writing/WritingSessionList";
 
 export const metadata: Metadata = {
-  title: 'Writing Practice | AI Language Learning',
-  description:
-    'Improve your writing skills with AI-powered feedback and analysis',
+  title: "Writing Practice | Fluenta",
+  description: "Practice your writing skills with AI assistance",
 };
 
 export default function WritingDashboardPage() {

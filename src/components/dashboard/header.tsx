@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, GraduationCap } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 import { DashboardNav } from "./nav";
@@ -21,11 +21,13 @@ interface DashboardHeaderProps {
     startDate?: string;
     endDate?: string;
   };
+  isIndividualUser?: boolean;
 }
 
 export default function DashboardHeader({
   user,
   subscription,
+  isIndividualUser,
 }: DashboardHeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -33,15 +35,21 @@ export default function DashboardHeader({
     <header className="sticky top-0 z-50 w-full border-b border-muted/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
         <div className="flex items-center">
-          <span className="font-bold text-lg mr-8 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            AI Coach
-          </span>
+          <div className="flex items-center space-x-2">
+            <GraduationCap className="h-6 w-6 text-primary" />
+            <span className="font-bold text-xl">Fluenta</span>
+          </div>
           <div className="hidden md:flex">
             <DashboardNav />
           </div>
         </div>
         <div className="flex items-center space-x-4">
-          {subscription && <SubscriptionBadge subscription={subscription} />}
+          {subscription && (
+            <SubscriptionBadge
+              subscription={subscription}
+              isIndividualUser={isIndividualUser}
+            />
+          )}
           <XpProgress />
 
           {/* Only show UserNav on medium screens and above */}
@@ -61,7 +69,7 @@ export default function DashboardHeader({
                 <div className="flex flex-col h-full py-6">
                   <div className="flex items-center justify-between mb-8">
                     <span className="font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      AI Coach
+                      Fluenta
                     </span>
                   </div>
 

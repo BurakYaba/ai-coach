@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
 import { QueryProvider } from "@/components/providers/QueryProvider";
@@ -9,9 +10,9 @@ import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata = {
-  title: "AI Language Learning Platform",
-  description: "Learn languages effectively with AI assistance",
+export const metadata: Metadata = {
+  title: "Fluenta - Language Learning Platform",
+  description: "Master languages with AI-powered personalized learning",
 };
 
 export default function RootLayout({

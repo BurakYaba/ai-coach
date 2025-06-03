@@ -34,6 +34,7 @@ const PUBLIC_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/api/auth",
+  "/api/payments/webhook",
 ];
 
 export async function middleware(request: NextRequest) {

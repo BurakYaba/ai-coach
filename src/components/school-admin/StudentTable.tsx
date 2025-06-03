@@ -21,7 +21,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Pencil, Trash2, Eye, CalendarClock } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Eye,
+  CalendarClock,
+  RefreshCw,
+  Clock,
+  AlertCircle,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   Select,
@@ -129,6 +137,7 @@ export function StudentTable({ userId }: StudentTableProps) {
   const [isEditStudentDialogOpen, setIsEditStudentDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<User | null>(null);
   const [isUpdatingStudent, setIsUpdatingStudent] = useState(false);
+  const [syncingSubscriptions, setSyncingSubscriptions] = useState(false);
 
   // Load user's school and then load its students
   useEffect(() => {
@@ -464,6 +473,42 @@ export function StudentTable({ userId }: StudentTableProps) {
     }
   };
 
+  const handleSyncSubscriptions = async () => {
+    if (!school) return;
+
+    setSyncingSubscriptions(true);
+    try {
+      const response = await fetch(
+        `/api/schools/${school._id}/students/sync-subscriptions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to sync subscriptions");
+      }
+
+      const result = await response.json();
+
+      toast.success(
+        `Subscriptions synced: Updated ${result.studentsUpdated} expired subscriptions`
+      );
+
+      // Refresh the student list to show updated statuses
+      fetchStudents(school._id, currentPage, searchTerm);
+    } catch (err: any) {
+      console.error("Error syncing subscriptions:", err);
+      toast.error(err.message || "Failed to sync subscriptions");
+    } finally {
+      setSyncingSubscriptions(false);
+    }
+  };
+
   if (error) {
     return (
       <Card>
@@ -489,15 +534,30 @@ export function StudentTable({ userId }: StudentTableProps) {
       </CardHeader>
       <CardContent>
         <div className="mb-6 flex flex-col gap-4">
-          <form onSubmit={handleSearch} className="flex items-center gap-2">
-            <Input
-              placeholder="Search by name or email"
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="flex-1"
-            />
-            <Button type="submit">Search</Button>
-          </form>
+          <div className="flex items-center gap-2">
+            <form
+              onSubmit={handleSearch}
+              className="flex items-center gap-2 flex-1"
+            >
+              <Input
+                placeholder="Search by name or email"
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="flex-1"
+              />
+              <Button type="submit">Search</Button>
+            </form>
+            <Button
+              variant="outline"
+              onClick={handleSyncSubscriptions}
+              disabled={syncingSubscriptions || !school}
+            >
+              <RefreshCw
+                className={`mr-2 h-4 w-4 ${syncingSubscriptions ? "animate-spin" : ""}`}
+              />
+              {syncingSubscriptions ? "Syncing..." : "Sync Subscriptions"}
+            </Button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -530,17 +590,26 @@ export function StudentTable({ userId }: StudentTableProps) {
                       {student.languageLevel || "beginner"}
                     </TableCell>
                     <TableCell>
-                      {student.subscription?.status === "active" ? (
-                        <Badge variant="default">
-                          {student.subscription.type === "annual"
-                            ? "Annual"
-                            : student.subscription.type === "free"
-                              ? "Free"
-                              : "Monthly"}
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline">None</Badge>
-                      )}
+                      <Badge
+                        variant={
+                          student.subscription?.status === "active"
+                            ? "default"
+                            : student.subscription?.status === "pending"
+                              ? "outline"
+                              : "destructive"
+                        }
+                        className="capitalize flex items-center gap-1"
+                      >
+                        {student.subscription?.status === "active" ? (
+                          <CalendarClock className="h-3 w-3" />
+                        ) : student.subscription?.status === "pending" ? (
+                          <Clock className="h-3 w-3" />
+                        ) : (
+                          <AlertCircle className="h-3 w-3" />
+                        )}
+                        {student.subscription?.type || "free"} -{" "}
+                        {student.subscription?.status || "expired"}
+                      </Badge>
                     </TableCell>
                     <TableCell>
                       {new Date(student.createdAt).toLocaleDateString()}

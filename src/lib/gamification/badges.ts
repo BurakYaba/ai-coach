@@ -260,7 +260,7 @@ const specialBadges: Badge[] = [
   {
     id: "early_adopter",
     name: "Early Adopter",
-    description: "Joined the AI Coach platform in its early days",
+    description: "Joined the Fluenta platform in its early days",
     icon: "flag",
     tier: "bronze",
     category: "special",

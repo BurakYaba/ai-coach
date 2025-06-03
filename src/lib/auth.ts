@@ -44,9 +44,19 @@ export const authOptions: NextAuthOptions = {
 
           if (!isSubscriptionActive) {
             const subscriptionType = user.subscription?.type || "free";
-            throw new Error(
-              `Your ${subscriptionType} subscription has expired. Please contact your branch administrator.`
-            );
+
+            // Different messages for individual vs school users
+            if (!user.school) {
+              // Individual user
+              throw new Error(
+                `Your ${subscriptionType} subscription has expired. Please visit the pricing page to renew your subscription.`
+              );
+            } else {
+              // School user
+              throw new Error(
+                `Your ${subscriptionType} subscription has expired. Please contact your branch administrator.`
+              );
+            }
           }
         }
 

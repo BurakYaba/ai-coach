@@ -3,11 +3,32 @@ import dbConnect from "@/lib/db";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password, schoolCode } = await req.json();
+    const { name, email, password, schoolCode, registrationType } =
+      await req.json();
 
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    if (
+      !registrationType ||
+      !["individual", "school"].includes(registrationType)
+    ) {
+      return NextResponse.json(
+        { error: "Invalid registration type" },
+        { status: 400 }
+      );
+    }
+
+    // School registration requires school code
+    if (registrationType === "school" && !schoolCode) {
+      return NextResponse.json(
+        {
+          error: "School registration code is required for school registration",
+        },
         { status: 400 }
       );
     }
@@ -51,8 +72,8 @@ export async function POST(req: Request) {
       },
     };
 
-    // If school code is provided, try to find the corresponding school and branch
-    if (schoolCode) {
+    // Handle school registration - associate with school and branch
+    if (registrationType === "school") {
       const branch = await Branch.findOne({
         registrationCode: schoolCode,
       }).populate("school");
@@ -68,6 +89,7 @@ export async function POST(req: Request) {
       userData.branch = branch._id;
       userData.school = branch.school._id;
     }
+    // Individual users remain without school/branch associations
 
     // Create new user
     const user = new User(userData);

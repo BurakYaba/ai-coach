@@ -60,7 +60,7 @@ export default function SpeakingPage() {
                   <CardTitle>Free Conversation</CardTitle>
                   <CardDescription>
                     Practice your speaking skills in a free-flowing conversation
-                    with an AI language coach.
+                    with Fluenta.
                   </CardDescription>
                 </div>
 
@@ -207,6 +207,11 @@ export default function SpeakingPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <p className="text-muted-foreground mb-8">
+        Practice your speaking skills in real time. Choose from guided speaking
+        exercises, pronunciation practice, or free conversation with Fluenta.
+      </p>
     </div>
   );
 }

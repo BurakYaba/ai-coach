@@ -10,11 +10,11 @@ import {
 
 // SEO metadata for the landing page
 export const metadata: Metadata = {
-  title: "AI Language Coach | Master English with Personalized Learning",
+  title: "Fluenta | Master English with AI-Powered Learning",
   description:
-    "Improve your English with AI-powered reading, writing, listening, speaking, vocabulary, and grammar practice. Get personalized feedback and track your progress.",
+    "Master English with Fluenta's AI-powered reading, writing, listening, speaking, vocabulary, and grammar practice. Get personalized feedback and track your progress.",
   keywords:
-    "language learning, English learning app, AI language tutor, English practice, vocabulary builder, grammar lessons, speaking practice",
+    "language learning, English learning app, AI language tutor, English practice, vocabulary builder, grammar lessons, speaking practice, Fluenta",
 };
 
 // Custom components based on Brainwave design
@@ -57,7 +57,7 @@ export default function LandingPage() {
       {/* Navigation */}
       <header className="fixed top-0 z-50 w-full border-b bg-background backdrop-blur supports-[backdrop-filter]:bg-background bg-opacity-95">
         <div className="container flex h-16 items-center justify-between">
-          <div className="font-bold text-xl">AI Language Coach</div>
+          <div className="font-bold text-xl">Fluenta</div>
           <nav className="hidden md:flex items-center gap-8">
             <Link
               href="#modules"
@@ -93,7 +93,12 @@ export default function LandingPage() {
                 Login
               </Button>
             </Link>
-            <GradientButton href="/register">Get Started</GradientButton>
+            <GradientButton
+              href="/register"
+              className="text-sm sm:text-base px-3 sm:px-6"
+            >
+              Get Started
+            </GradientButton>
           </div>
         </div>
       </header>
@@ -107,8 +112,8 @@ export default function LandingPage() {
               className="text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:text-7xl lg:leading-[1.1] text-center mb-6 animate-float"
               style={{ animationDuration: "6s" }}
             >
-              Master English with Your
-              <span className="text-gradient"> AI Language Coach</span>
+              Master English with
+              <span className="text-gradient"> Fluenta</span>
             </h1>
             <p className="max-w-[42rem] mx-auto leading-normal text-muted-foreground sm:text-xl sm:leading-8 text-center mb-8">
               The all-in-one platform for learning English through interactive
@@ -119,12 +124,17 @@ export default function LandingPage() {
               <GradientButton
                 href="/register"
                 size="lg"
-                className="animate-pulse-glow"
+                className="animate-pulse-glow text-xs sm:text-base"
                 style={{ animationDuration: "4s" }}
               >
                 Start Learning Now
               </GradientButton>
-              <GradientButton href="#modules" variant="outline" size="lg">
+              <GradientButton
+                href="#modules"
+                variant="outline"
+                size="lg"
+                className="text-sm sm:text-base"
+              >
                 Explore Modules
               </GradientButton>
             </div>
@@ -1150,7 +1160,7 @@ export default function LandingPage() {
             <GradientButton
               href="/register"
               size="lg"
-              className="animate-pulse-glow"
+              className="animate-pulse-glow text-xs sm:text-base"
               style={{ animationDuration: "3s" }}
             >
               Start Learning Now
@@ -1171,7 +1181,7 @@ export default function LandingPage() {
       <footer className="border-t border-foreground border-opacity-5 py-12 relative">
         <div className="container mx-auto px-5 grid gap-8 md:grid-cols-2 lg:grid-cols-3 relative z-10">
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">AI Language Coach</h3>
+            <h3 className="text-lg font-semibold">Fluenta</h3>
             <p className="text-sm text-muted-foreground">
               Your all-in-one AI-powered platform for mastering English through
               reading, writing, listening, speaking, vocabulary, and grammar.
@@ -1241,8 +1251,7 @@ export default function LandingPage() {
 
         <div className="container mx-auto px-5 mt-8 pt-8 border-t border-foreground border-opacity-5 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} AI Language Coach. All rights
-            reserved.
+            © {new Date().getFullYear()} Fluenta. All rights reserved.
           </p>
           <div className="flex gap-4">
             <Link

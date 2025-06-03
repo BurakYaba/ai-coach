@@ -20,35 +20,33 @@ import {
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 
-const registerSchema = z
+const individualRegisterSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
-    schoolCode: z.string().min(1, "School registration code is required"),
   })
   .refine(data => data.password === data.confirmPassword, {
     message: "Passwords don't match",
     path: ["confirmPassword"],
   });
 
-type RegisterFormValues = z.infer<typeof registerSchema>;
+type IndividualRegisterFormValues = z.infer<typeof individualRegisterSchema>;
 
-export function RegisterForm() {
+export function IndividualRegisterForm() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const form = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema),
+  const form = useForm<IndividualRegisterFormValues>({
+    resolver: zodResolver(individualRegisterSchema),
     defaultValues: {
       name: "",
       email: "",
       password: "",
       confirmPassword: "",
-      schoolCode: "",
     },
   });
 
@@ -60,7 +58,7 @@ export function RegisterForm() {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  async function onSubmit(data: RegisterFormValues) {
+  async function onSubmit(data: IndividualRegisterFormValues) {
     setIsLoading(true);
 
     try {
@@ -73,8 +71,7 @@ export function RegisterForm() {
           name: data.name,
           email: data.email,
           password: data.password,
-          schoolCode: data.schoolCode,
-          registrationType: "school",
+          registrationType: "individual",
         }),
       });
 
@@ -86,7 +83,8 @@ export function RegisterForm() {
 
       toast({
         title: "Success",
-        description: "Account created successfully",
+        description:
+          "Account created successfully! You have 7 days of free access.",
       });
       router.push("/login");
     } catch (error) {
@@ -209,28 +207,25 @@ export function RegisterForm() {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="schoolCode"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>School Registration Code *</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter your school registration code"
-                  {...field}
-                />
-              </FormControl>
-              <FormDescription>
-                Enter the 6-digit code provided by your school
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h4 className="font-semibold text-blue-900 mb-2">What you get:</h4>
+          <ul className="text-sm text-blue-800 space-y-1">
+            <li>• 7 days free trial</li>
+            <li>• Full access to all learning modules</li>
+            <li>• AI-powered personalized feedback</li>
+            <li>• After trial: $14.99/month subscription</li>
+          </ul>
+        </div>
+
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Creating account..." : "Create account"}
+          {isLoading ? "Creating account..." : "Start Free Trial"}
         </Button>
+
+        <p className="text-xs text-center text-muted-foreground">
+          By creating an account, you agree to our terms of service and privacy
+          policy.
+        </p>
       </form>
     </Form>
   );
