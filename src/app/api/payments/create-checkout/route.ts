@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
-import { stripe, STRIPE_PRODUCTS } from "@/lib/stripe";
+import { getStripe, STRIPE_PRODUCTS } from "@/lib/stripe";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 
@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
     }
 
     const product = STRIPE_PRODUCTS[planType as keyof typeof STRIPE_PRODUCTS];
+    const stripe = getStripe();
 
     // Create Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({

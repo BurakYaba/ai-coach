@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import Stripe from "stripe";
 
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 
@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const stripe = getStripe();
     let event: Stripe.Event;
 
     try {
@@ -123,6 +124,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   const subscriptionId = (invoice as any).subscription;
 
   if (subscriptionId && typeof subscriptionId === "string") {
+    const stripe = getStripe();
     const subscription = await stripe.subscriptions.retrieve(subscriptionId);
     await updateUserSubscriptionFromStripe(subscription);
   }
