@@ -247,22 +247,34 @@ export default function SpeakingDashboard() {
   const totalWords = countTotalWords();
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6">
       <SpeakingTourManager />
 
       <div
-        className="flex justify-between items-center mb-6"
+        className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6"
         data-tour="speaking-header"
       >
-        <h1 className="text-2xl font-bold">Speaking Practice</h1>
-        <div className="flex gap-2">
-          <Link href="/speaking">
-            <Button data-tour="practice-speaking-btn">
-              <Mic className="mr-2 h-4 w-4" />
-              Practice Speaking
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold">Speaking Practice</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+            Practice speaking with AI conversation partners and get real-time
+            feedback on pronunciation and fluency.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
+          <Link href="/speaking" className="order-1">
+            <Button
+              className="w-full sm:w-auto text-xs sm:text-sm"
+              data-tour="practice-speaking-btn"
+            >
+              <Mic className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Practice Speaking</span>
+              <span className="sm:hidden">Practice</span>
             </Button>
           </Link>
-          <SpeakingTourTrigger />
+          <div className="order-2">
+            <SpeakingTourTrigger />
+          </div>
         </div>
       </div>
 

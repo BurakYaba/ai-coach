@@ -32,10 +32,15 @@ export function TakeTourButton({
           variant={variant}
           size={size}
           onClick={onStartTour}
-          className={`${className} gap-2`}
+          className={`${className} gap-1 sm:gap-2`}
         >
-          {showIcon && <HelpCircle className="h-4 w-4" />}
-          {children || "Take the Tour"}
+          {showIcon && <HelpCircle className="h-3 w-3 sm:h-4 sm:w-4" />}
+          <span className="hidden min-[480px]:inline">
+            {children || "Take the Tour"}
+          </span>
+          <span className="min-[480px]:hidden">
+            {children ? children : "Tour"}
+          </span>
         </Button>
       </TooltipTrigger>
       <TooltipContent>

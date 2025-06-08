@@ -49,21 +49,29 @@ export default function WritingDashboardPage() {
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+    <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             Writing Practice
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
             Improve your writing skills with AI-powered feedback and analysis
           </p>
         </div>
-        <div className="flex gap-3">
-          <TakeTourButton onStartTour={manualStart} />
-          <Link href="/dashboard/writing/new">
-            <Button size="lg" data-tour="start-new-session">
-              New Writing Session
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-shrink-0">
+          <TakeTourButton
+            onStartTour={manualStart}
+            className="text-xs sm:text-sm order-2 sm:order-1"
+          />
+          <Link href="/dashboard/writing/new" className="order-1 sm:order-2">
+            <Button
+              size="sm"
+              className="w-full sm:w-auto text-xs sm:text-sm"
+              data-tour="start-new-session"
+            >
+              <span className="hidden sm:inline">New Writing Session</span>
+              <span className="sm:hidden">New Session</span>
             </Button>
           </Link>
         </div>
@@ -74,15 +82,30 @@ export default function WritingDashboardPage() {
         className="space-y-4"
         data-tour="writing-tabs"
       >
-        <TabsList>
-          <TabsTrigger value="sessions" data-tour="sessions-tab">
-            My Sessions
+        <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
+          <TabsTrigger
+            value="sessions"
+            data-tour="sessions-tab"
+            className="text-xs sm:text-sm"
+          >
+            <span className="hidden sm:inline">My Sessions</span>
+            <span className="sm:hidden">Sessions</span>
           </TabsTrigger>
-          <TabsTrigger value="prompts" data-tour="prompts-tab">
-            Writing Prompts
+          <TabsTrigger
+            value="prompts"
+            data-tour="prompts-tab"
+            className="text-xs sm:text-sm"
+          >
+            <span className="hidden sm:inline">Writing Prompts</span>
+            <span className="sm:hidden">Prompts</span>
           </TabsTrigger>
-          <TabsTrigger value="progress" data-tour="progress-tab">
-            My Progress
+          <TabsTrigger
+            value="progress"
+            data-tour="progress-tab"
+            className="text-xs sm:text-sm"
+          >
+            <span className="hidden sm:inline">My Progress</span>
+            <span className="sm:hidden">Progress</span>
           </TabsTrigger>
         </TabsList>
 

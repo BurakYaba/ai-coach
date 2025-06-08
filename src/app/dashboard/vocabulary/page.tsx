@@ -195,15 +195,45 @@ export default function VocabularyDashboard() {
 
   if (!vocabularyBank || vocabularyBank.words.length === 0) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6">
         <VocabularyTourManager />
 
         <div
-          className="flex justify-between items-center mb-6"
+          className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6"
           data-tour="vocabulary-header"
         >
-          <h1 className="text-3xl font-bold">Vocabulary Dashboard</h1>
-          <div className="flex gap-2" data-tour="vocabulary-actions">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold">
+              Vocabulary Dashboard
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+              Build your vocabulary systematically with spaced repetition,
+              contextual learning, and personalized word lists.
+            </p>
+          </div>
+          <div
+            className="flex flex-col sm:flex-row gap-2 flex-shrink-0"
+            data-tour="vocabulary-actions"
+          >
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/dashboard/vocabulary/flashcards")}
+              className="flex items-center gap-1 text-xs sm:text-sm"
+            >
+              <FlipHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden min-[480px]:inline">Flashcards</span>
+              <span className="min-[480px]:hidden">Cards</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              className="flex items-center gap-1 text-xs sm:text-sm"
+            >
+              <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+              Refresh
+            </Button>
             <VocabularyTourTrigger />
           </div>
         </div>
@@ -247,31 +277,43 @@ export default function VocabularyDashboard() {
   }).length;
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6 space-y-6">
       <VocabularyTourManager />
 
       <div
-        className="flex justify-between items-center"
+        className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6"
         data-tour="vocabulary-header"
       >
-        <h1 className="text-3xl font-bold">Vocabulary Dashboard</h1>
-        <div className="flex gap-2" data-tour="vocabulary-actions">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            Vocabulary Dashboard
+          </h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+            Build your vocabulary systematically with spaced repetition,
+            contextual learning, and personalized word lists.
+          </p>
+        </div>
+        <div
+          className="flex flex-col sm:flex-row gap-2 flex-shrink-0"
+          data-tour="vocabulary-actions"
+        >
           <Button
             variant="outline"
             size="sm"
             onClick={() => router.push("/dashboard/vocabulary/flashcards")}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 text-xs sm:text-sm"
           >
-            <FlipHorizontal className="h-4 w-4" />
-            Flashcards
+            <FlipHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden min-[480px]:inline">Flashcards</span>
+            <span className="min-[480px]:hidden">Cards</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 text-xs sm:text-sm"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
             Refresh
           </Button>
           <VocabularyTourTrigger />

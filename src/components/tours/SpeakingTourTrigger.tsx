@@ -26,10 +26,11 @@ export default function SpeakingTourTrigger() {
         variant="outline"
         size="sm"
         onClick={handleStartTour}
-        className="text-muted-foreground hover:text-primary"
+        className="text-muted-foreground hover:text-primary text-xs sm:text-sm"
       >
-        <HelpCircle className="h-4 w-4 mr-2" />
-        Take the Tour
+        <HelpCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+        <span className="hidden min-[480px]:inline">Take the Tour</span>
+        <span className="min-[480px]:hidden">Tour</span>
       </Button>
 
       <SpeakingTour

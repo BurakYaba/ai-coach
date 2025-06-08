@@ -103,19 +103,21 @@ export default async function ListeningDashboardPage({
   const defaultTab = searchParams.tab || "library";
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6">
       <div className="mb-6" data-tour="listening-header">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
               Listening Practice
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
               Improve your listening skills with curated and personalized audio
               content
             </p>
           </div>
-          <ListeningTourTrigger />
+          <div className="flex-shrink-0">
+            <ListeningTourTrigger />
+          </div>
         </div>
       </div>
 
@@ -135,12 +137,28 @@ export default async function ListeningDashboardPage({
       )}
 
       <Tabs defaultValue={defaultTab} className="space-y-4">
-        <TabsList data-tour="listening-tabs">
-          <TabsTrigger value="library">Listening Library</TabsTrigger>
-          <TabsTrigger value="inprogress">In Progress</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="progress" data-tour="progress-tab">
-            My Progress
+        <TabsList
+          data-tour="listening-tabs"
+          className="grid w-full grid-cols-4 text-xs sm:text-sm"
+        >
+          <TabsTrigger value="library" className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">Listening Library</span>
+            <span className="sm:hidden">Library</span>
+          </TabsTrigger>
+          <TabsTrigger value="inprogress" className="text-xs sm:text-sm">
+            <span className="hidden sm:inline">In Progress</span>
+            <span className="sm:hidden">Progress</span>
+          </TabsTrigger>
+          <TabsTrigger value="completed" className="text-xs sm:text-sm">
+            Completed
+          </TabsTrigger>
+          <TabsTrigger
+            value="progress"
+            data-tour="progress-tab"
+            className="text-xs sm:text-sm"
+          >
+            <span className="hidden sm:inline">My Progress</span>
+            <span className="sm:hidden">Stats</span>
           </TabsTrigger>
         </TabsList>
 
