@@ -283,26 +283,26 @@ export default function SkillAssessmentStep({
           </div>
         </div>
 
-        <div className="flex justify-between">
+        <div className="flex flex-col sm:flex-row sm:justify-between gap-4">
           {onBack && (
             <button
               onClick={onBack}
-              className="flex items-center space-x-2 px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="flex items-center justify-center space-x-2 px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back</span>
             </button>
           )}
-          <div className="flex space-x-4 ml-auto">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:ml-auto">
             <button
               onClick={() => onNext()}
-              className="px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+              className="px-4 sm:px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-center"
             >
               Skip Assessment
             </button>
             <button
               onClick={handleStartAssessment}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-center"
             >
               Start Assessment
             </button>
