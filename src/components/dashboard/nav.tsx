@@ -38,6 +38,10 @@ const navItems = [
     title: "Games",
     href: "/games",
   },
+  {
+    title: "Billing",
+    href: "/dashboard/subscription",
+  },
 ];
 
 export function DashboardNav() {

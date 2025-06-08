@@ -4,6 +4,86 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    await dbConnect();
+    const user = await User.findById(session.user.id);
+
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    if (!user.onboarding) {
+      return NextResponse.json(
+        { error: "User onboarding not initialized" },
+        { status: 400 }
+      );
+    }
+
+    // Generate default learning path with minimal requirements
+    const defaultPreferences = {
+      learningGoals: ["general_fluency"],
+      timeAvailable: "30-60 minutes",
+      difficultyPreference: "moderate",
+      focusAreas: [],
+      learningStyle: "mixed",
+      strengths: [],
+      weaknesses: [],
+    };
+
+    const defaultSkillAssessment = {
+      completed: false,
+      ceferLevel: "B1",
+      weakAreas: ["grammar", "vocabulary"],
+      strengths: ["reading"],
+      scores: {
+        reading: 50,
+        writing: 40,
+        listening: 45,
+        speaking: 35,
+        vocabulary: 40,
+        grammar: 35,
+      },
+    };
+
+    const learningPath = generateLearningPath(
+      defaultPreferences,
+      defaultSkillAssessment
+    );
+
+    // Update user onboarding with default values
+    user.onboarding.preferences = {
+      ...user.onboarding.preferences,
+      ...defaultPreferences,
+    };
+
+    user.onboarding.recommendedPath = learningPath;
+    user.onboarding.currentStep = 4; // Move to completion step
+
+    await user.save();
+
+    return NextResponse.json({
+      success: true,
+      learningPath,
+      preferences: defaultPreferences,
+      skippedAssessment: true,
+      message:
+        "Default learning path generated. You can customize your preferences or take assessments later for more personalized recommendations.",
+    });
+  } catch (error) {
+    console.error("Error generating default learning path:", error);
+    return NextResponse.json(
+      { error: "Failed to generate learning path. Please try again." },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -23,17 +103,6 @@ export async function POST(request: NextRequest) {
       otherPreferences,
     } = body;
 
-    // Validate required fields
-    if (!learningGoals || !timeAvailable || !learningStyle) {
-      return NextResponse.json(
-        {
-          error:
-            "Learning goals, time availability, and learning style are required",
-        },
-        { status: 400 }
-      );
-    }
-
     await dbConnect();
     const user = await User.findById(session.user.id);
 
@@ -48,29 +117,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (
-      !user.onboarding.skillAssessment ||
-      !user.onboarding.skillAssessment.completed
-    ) {
-      return NextResponse.json(
-        { error: "Skill assessment must be completed first" },
-        { status: 400 }
-      );
-    }
-
-    // Prepare comprehensive preferences object
+    // Prepare comprehensive preferences object with defaults for skipped steps
     const preferences = {
       learningGoals: Array.isArray(learningGoals)
         ? learningGoals
-        : [learningGoals],
-      timeAvailable,
+        : learningGoals
+          ? [learningGoals]
+          : ["general_fluency"], // Default goal
+      timeAvailable: timeAvailable || "30-60 minutes", // Default time
       difficultyPreference: difficultyPreference || "moderate",
       focusAreas: Array.isArray(focusAreas)
         ? focusAreas
         : focusAreas
           ? [focusAreas]
           : [],
-      learningStyle,
+      learningStyle: learningStyle || "mixed", // Default learning style
       strengths: Array.isArray(strengths)
         ? strengths
         : strengths
@@ -84,11 +145,26 @@ export async function POST(request: NextRequest) {
       ...otherPreferences,
     };
 
+    // Use existing skill assessment data if available, otherwise create default
+    const skillAssessmentData = user.onboarding.skillAssessment?.completed
+      ? user.onboarding.skillAssessment
+      : {
+          completed: false,
+          ceferLevel: "B1", // Default level for beginners
+          weakAreas: ["grammar", "vocabulary"], // Common weak areas
+          strengths: ["reading"], // Common starting strength
+          scores: {
+            reading: 50,
+            writing: 40,
+            listening: 45,
+            speaking: 35,
+            vocabulary: 40,
+            grammar: 35,
+          },
+        };
+
     // Generate personalized learning path
-    const learningPath = generateLearningPath(
-      preferences,
-      user.onboarding.skillAssessment
-    );
+    const learningPath = generateLearningPath(preferences, skillAssessmentData);
 
     // Update user onboarding with comprehensive preferences and recommended path
     user.onboarding.preferences = {
@@ -103,7 +179,7 @@ export async function POST(request: NextRequest) {
     };
 
     user.onboarding.recommendedPath = learningPath;
-    user.onboarding.currentStep = 4; // Move to completion step, not final step
+    user.onboarding.currentStep = 4; // Move to completion step
 
     await user.save();
 
@@ -111,6 +187,10 @@ export async function POST(request: NextRequest) {
       success: true,
       learningPath,
       preferences,
+      skippedAssessment: !user.onboarding.skillAssessment?.completed,
+      message: !user.onboarding.skillAssessment?.completed
+        ? "Learning path generated with default settings. You can take the skill assessment later to get more personalized recommendations."
+        : "Learning path generated successfully!",
     });
   } catch (error) {
     console.error("Error generating learning path:", error);

@@ -103,17 +103,21 @@ export default async function PricingPage() {
 }
 
 function PricingContent({ session }: { session: any }) {
+  // Determine the correct back link based on authentication status
+  const backLink = session?.user ? "/dashboard" : "/";
+  const backText = session?.user ? "Back to Dashboard" : "Back to Home";
+
   return (
     <>
       <ExpiredUserAlert />
 
       <div className="mb-8">
         <Link
-          href="/"
+          href={backLink}
           className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Home
+          {backText}
         </Link>
 
         <div className="text-center">

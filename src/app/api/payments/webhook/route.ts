@@ -131,8 +131,32 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 }
 
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
-  // Handle failed payments - could send email notifications here
+  // Handle failed payments - update user subscription status
   console.log(`Payment failed for invoice: ${invoice.id}`);
+
+  const subscriptionId = (invoice as any).subscription;
+
+  if (subscriptionId && typeof subscriptionId === "string") {
+    const stripe = getStripe();
+    const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+    // If subscription is past_due or unpaid, update user accordingly
+    if (
+      subscription.status === "past_due" ||
+      subscription.status === "unpaid"
+    ) {
+      const userId = subscription.metadata?.userId;
+
+      if (userId) {
+        await User.findByIdAndUpdate(userId, {
+          "subscription.status": "expired",
+        });
+        console.log(
+          `Subscription marked as expired for user ${userId} due to failed payment`
+        );
+      }
+    }
+  }
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {

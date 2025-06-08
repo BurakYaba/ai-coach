@@ -37,17 +37,40 @@ export async function POST(request: NextRequest) {
     const product = STRIPE_PRODUCTS[planType as keyof typeof STRIPE_PRODUCTS];
     const stripe = getStripe();
 
+    // Find or create Stripe customer
+    let stripeCustomerId = null;
+
+    // Try to find existing customer by email
+    const existingCustomers = await stripe.customers.list({
+      email: user.email,
+      limit: 1,
+    });
+
+    if (existingCustomers.data.length > 0) {
+      stripeCustomerId = existingCustomers.data[0].id;
+    } else {
+      // Create new customer if none exists
+      const customer = await stripe.customers.create({
+        email: user.email,
+        name: user.name,
+        metadata: {
+          userId: user._id.toString(),
+        },
+      });
+      stripeCustomerId = customer.id;
+    }
+
     // Create Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
+      customer: stripeCustomerId, // Use existing or new customer
       line_items: [
         {
           price: product.priceId,
           quantity: 1,
         },
       ],
-      customer_email: user.email,
       metadata: {
         userId: user._id.toString(),
         planType,
@@ -55,6 +78,14 @@ export async function POST(request: NextRequest) {
       success_url: `${process.env.NEXTAUTH_URL}/dashboard?success=true&refresh_token=true`,
       cancel_url: `${process.env.NEXTAUTH_URL}/pricing?canceled=true`,
       allow_promotion_codes: true,
+      // Custom business information for checkout
+      custom_text: {
+        submit: {
+          message: "Complete your Fluenta subscription",
+        },
+      },
+      // Optional: Add branding
+      billing_address_collection: "auto",
     });
 
     return NextResponse.json({ sessionId: checkoutSession.id });

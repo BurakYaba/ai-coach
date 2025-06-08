@@ -112,6 +112,7 @@ function DashboardNavMobile({ onItemClick }: { onItemClick: () => void }) {
     { title: "Speaking", href: "/dashboard/speaking" },
     { title: "Grammar", href: "/dashboard/grammar" },
     { title: "Games", href: "/games" },
+    { title: "Billing", href: "/dashboard/subscription" },
   ];
 
   return (

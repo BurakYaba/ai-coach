@@ -27,7 +27,7 @@ export async function GET() {
         ceferLevel: "B1",
         weakAreas: [],
         strengths: [],
-        assessmentDate: null,
+        assessmentDate: new Date(),
         scores: {
           reading: 0,
           writing: 0,
@@ -83,6 +83,7 @@ export async function PATCH(request: NextRequest) {
       skillAssessment,
       tours,
       moduleVisits,
+      skipStep,
     } = body;
 
     await dbConnect();
@@ -141,6 +142,46 @@ export async function PATCH(request: NextRequest) {
     }
     if (!user.onboarding.moduleVisits) {
       user.onboarding.moduleVisits = {};
+    }
+
+    // Handle step skipping - if user wants to skip a specific step
+    if (skipStep !== undefined) {
+      const stepNumber =
+        typeof skipStep === "number" ? skipStep : parseInt(skipStep);
+
+      // Set defaults based on which step is being skipped
+      if (stepNumber === 1) {
+        // Skipping skill assessment
+        user.onboarding.skillAssessment = {
+          completed: false,
+          ceferLevel: "B1",
+          weakAreas: ["grammar", "vocabulary"],
+          strengths: ["reading"],
+          assessmentDate: new Date(),
+          scores: {
+            reading: 50,
+            writing: 40,
+            listening: 45,
+            speaking: 35,
+            vocabulary: 40,
+            grammar: 35,
+          },
+        };
+      } else if (stepNumber === 2) {
+        // Skipping preferences
+        user.onboarding.preferences = {
+          ...user.onboarding.preferences,
+          learningGoals: ["general_fluency"],
+          timeAvailable: "30-60 minutes",
+          learningStyle: "mixed",
+        };
+      }
+
+      // Advance to next step
+      user.onboarding.currentStep = Math.max(
+        user.onboarding.currentStep,
+        stepNumber + 1
+      );
     }
 
     // Update fields if provided

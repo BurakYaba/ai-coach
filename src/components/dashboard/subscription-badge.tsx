@@ -11,6 +11,7 @@ import {
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
 import { Progress } from "@/components/ui/progress";
+import { ManageSubscriptionButton } from "@/components/payments/manage-subscription-button";
 
 interface SubscriptionInfo {
   type: "free" | "monthly" | "annual";
@@ -122,7 +123,7 @@ export function SubscriptionBadge({
 
           {/* Show upgrade button for individual users */}
           {isIndividualUser && (
-            <div className="pt-2 border-t">
+            <div className="pt-2 border-t space-y-2">
               <Link href="/pricing">
                 <Button size="sm" className="w-full">
                   <CreditCard className="mr-2 h-3 w-3" />
@@ -131,6 +132,15 @@ export function SubscriptionBadge({
                     : "Upgrade Plan"}
                 </Button>
               </Link>
+              {isActive && (
+                <ManageSubscriptionButton
+                  size="sm"
+                  className="w-full"
+                  variant="outline"
+                >
+                  Manage Billing
+                </ManageSubscriptionButton>
+              )}
             </div>
           )}
         </div>
