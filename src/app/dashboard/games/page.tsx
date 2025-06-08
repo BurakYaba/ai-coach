@@ -14,6 +14,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+// Add dynamic = 'force-dynamic' to ensure page is not statically cached
+export const dynamic = "force-dynamic";
+
 // Game catalog data
 const games = [
   {
@@ -110,7 +113,7 @@ export default function GamesPage() {
             <CardFooter>
               {game.available ? (
                 <Link
-                  href={`/games/${game.id}`}
+                  href={`/dashboard/games/${game.id}`}
                   className="w-full flex justify-center"
                 >
                   <PlayButton>PLAY NOW</PlayButton>

@@ -1,7 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { CheckCircle, AlertCircle } from "lucide-react";
+import {
+  CheckCircle,
+  AlertCircle,
+  Shield,
+  Clock,
+  Smartphone,
+} from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -29,6 +35,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/use-toast";
+import { useLocalStorage } from "@/hooks/use-local-storage";
 
 const learningTimeOptions = [
   { value: "morning", label: "Morning" },
@@ -60,6 +69,12 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState("");
   const [error, setError] = useState("");
   const [userData, setUserData] = useState<any>(null);
+
+  // Check for saved credentials
+  const [savedCredentials] = useLocalStorage<any>(
+    "fluenta_login_credentials",
+    null
+  );
 
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
@@ -140,6 +155,34 @@ export default function ProfilePage() {
     }
   };
 
+  // Function to clear saved credentials
+  const clearSavedCredentials = () => {
+    localStorage.removeItem("fluenta_login_credentials");
+    toast({
+      title: "Credentials cleared",
+      description:
+        "Saved login credentials have been removed from this device.",
+    });
+    // Force a re-render by updating a dummy state or using window.location.reload()
+    window.location.reload();
+  };
+
+  // Calculate session expiry
+  const getSessionInfo = () => {
+    if (!session?.user) return null;
+
+    const rememberMe = session.user.rememberMe;
+    const sessionDuration = rememberMe ? 30 : 7; // 30 days for remember me, 7 days otherwise
+
+    return {
+      rememberMe,
+      sessionDuration,
+      hasRememberMe: !!savedCredentials,
+    };
+  };
+
+  const sessionInfo = getSessionInfo();
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -201,6 +244,100 @@ export default function ProfilePage() {
         </Alert>
       )}
 
+      {/* Security & Sessions Card */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-4">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-50 to-indigo-50">
+              <Shield className="h-8 w-8 text-blue-600" />
+            </div>
+            <div>
+              <CardTitle>Security & Sessions</CardTitle>
+              <CardDescription>
+                Manage your login sessions and security preferences
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Session Duration</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant={sessionInfo?.rememberMe ? "default" : "secondary"}
+                >
+                  {sessionInfo?.sessionDuration} days
+                </Badge>
+                <span className="text-sm text-muted-foreground">
+                  {sessionInfo?.rememberMe
+                    ? "Extended (Remember Me)"
+                    : "Standard"}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Smartphone className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Remember Me Status</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant={sessionInfo?.hasRememberMe ? "default" : "outline"}
+                >
+                  {sessionInfo?.hasRememberMe ? "Enabled" : "Disabled"}
+                </Badge>
+                {sessionInfo?.hasRememberMe && (
+                  <span className="text-sm text-muted-foreground">
+                    Credentials saved on this device
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {sessionInfo?.hasRememberMe && (
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Saved Login Credentials</p>
+                <p className="text-xs text-muted-foreground">
+                  Your login credentials are saved securely on this device for
+                  faster access
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={clearSavedCredentials}
+                className="text-destructive hover:text-destructive"
+              >
+                Clear Credentials
+              </Button>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium">Security Tips</h4>
+            <ul className="text-xs text-muted-foreground space-y-1">
+              <li>• Only use "Remember Me" on trusted devices</li>
+              <li>• Clear saved credentials if using a shared computer</li>
+              <li>
+                • Your session will automatically expire after{" "}
+                {sessionInfo?.sessionDuration} days
+              </li>
+              <li>
+                • Log out from all devices if you suspect unauthorized access
+              </li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Existing Personal Information Card */}
       <Card>
         <CardHeader>
           <div className="flex items-center gap-4">

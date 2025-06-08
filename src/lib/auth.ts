@@ -15,6 +15,7 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
+        rememberMe: { label: "Remember Me", type: "text" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -63,13 +64,14 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          rememberMe: credentials.rememberMe === "true",
         };
       },
     }),
   ],
   session: {
     strategy: "jwt",
-    maxAge: 7 * 24 * 60 * 60, // 7 days
+    maxAge: 7 * 24 * 60 * 60, // Default 7 days (will be overridden in jwt callback based on rememberMe)
   },
   pages: {
     signIn: "/login",
@@ -80,6 +82,16 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.rememberMe = user.rememberMe;
+
+        // Set token expiration based on remember me preference
+        if (user.rememberMe) {
+          // Extend session to 30 days if "Remember Me" is checked
+          token.exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
+        } else {
+          // Default 7 days if "Remember Me" is not checked
+          token.exp = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
+        }
       }
 
       // Set force refresh flag when triggered by session update
@@ -137,6 +149,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.rememberMe = token.rememberMe as boolean;
 
         // Add subscription info to the session
         session.user.subscription = {
@@ -152,7 +165,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   jwt: {
-    maxAge: 7 * 24 * 60 * 60, // 7 days
+    maxAge: 30 * 24 * 60 * 60, // Maximum 30 days (for remember me users)
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
@@ -164,6 +177,7 @@ declare module "next-auth" {
       email: string;
       name: string;
       role: string;
+      rememberMe?: boolean;
       subscription?: {
         status: string;
         type: string;
@@ -177,6 +191,7 @@ declare module "next-auth" {
     email: string;
     name: string;
     role: string;
+    rememberMe?: boolean;
   }
 }
 
@@ -184,6 +199,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     role?: string;
+    rememberMe?: boolean;
     subscriptionStatus?: string;
     subscriptionType?: string;
     subscriptionExpiry?: string;

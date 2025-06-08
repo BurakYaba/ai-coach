@@ -18,15 +18,25 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/components/ui/use-toast";
+import { useLocalStorage } from "@/hooks/use-local-storage";
+import { encryptCredentials, decryptCredentials } from "@/lib/crypto-utils";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
+  rememberMe: z.boolean().default(false),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
+
+interface SavedCredentials {
+  email: string;
+  password: string; // This will be encrypted when stored
+  rememberMe: boolean;
+}
 
 export function LoginForm() {
   const router = useRouter();
@@ -35,6 +45,15 @@ export function LoginForm() {
     null
   );
   const [showPassword, setShowPassword] = useState(false);
+
+  // Use localStorage to persist login credentials (encrypted)
+  const [savedCredentials, setSavedCredentials] =
+    useLocalStorage<SavedCredentials | null>("fluenta_login_credentials", null);
+
+  // Decrypt credentials for form initialization
+  const decryptedCredentials = savedCredentials
+    ? decryptCredentials(savedCredentials)
+    : null;
 
   // Check for subscription error in URL params
   useEffect(() => {
@@ -51,10 +70,20 @@ export function LoginForm() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: decryptedCredentials?.email || "",
+      password: decryptedCredentials?.password || "",
+      rememberMe: decryptedCredentials?.rememberMe || false,
     },
   });
+
+  // Update form when savedCredentials change (e.g., on component mount)
+  useEffect(() => {
+    if (decryptedCredentials) {
+      form.setValue("email", decryptedCredentials.email);
+      form.setValue("password", decryptedCredentials.password);
+      form.setValue("rememberMe", decryptedCredentials.rememberMe);
+    }
+  }, [decryptedCredentials, form]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -65,11 +94,27 @@ export function LoginForm() {
     setSubscriptionError(null);
 
     try {
+      // Handle remember me functionality
+      if (data.rememberMe) {
+        // Encrypt and save credentials to localStorage
+        const encryptedCredentials = encryptCredentials({
+          email: data.email,
+          password: data.password,
+          rememberMe: true,
+        });
+        setSavedCredentials(encryptedCredentials);
+      } else {
+        // Clear saved credentials if remember me is unchecked
+        setSavedCredentials(null);
+      }
+
       // First attempt to sign in without redirect
       const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
         redirect: false,
+        // Add remember me flag to session (will be used in auth config)
+        rememberMe: data.rememberMe.toString(),
       });
 
       if (!result?.ok) {
@@ -100,7 +145,9 @@ export function LoginForm() {
           // Show success toast
           toast({
             title: "Success",
-            description: "Login successful!",
+            description: data.rememberMe
+              ? "Login successful! Your credentials have been saved securely."
+              : "Login successful!",
           });
 
           // If user is a school_admin and has a branch, redirect to school-admin dashboard
@@ -119,7 +166,9 @@ export function LoginForm() {
           // Fallback to regular dashboard if profile fetch fails
           toast({
             title: "Success",
-            description: "Login successful!",
+            description: data.rememberMe
+              ? "Login successful! Your credentials have been saved securely."
+              : "Login successful!",
           });
           router.push("/dashboard");
         }
@@ -128,7 +177,9 @@ export function LoginForm() {
         // Fallback to regular dashboard if profile fetch fails
         toast({
           title: "Success",
-          description: "Login successful!",
+          description: data.rememberMe
+            ? "Login successful! Your credentials have been saved securely."
+            : "Login successful!",
         });
         router.push("/dashboard");
       }
@@ -142,6 +193,20 @@ export function LoginForm() {
       setIsLoading(false);
     }
   }
+
+  // Function to clear saved credentials
+  const clearSavedCredentials = () => {
+    setSavedCredentials(null);
+    form.reset({
+      email: "",
+      password: "",
+      rememberMe: false,
+    });
+    toast({
+      title: "Credentials cleared",
+      description: "Saved login credentials have been removed.",
+    });
+  };
 
   return (
     <Form {...form}>
@@ -210,9 +275,48 @@ export function LoginForm() {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="rememberMe"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              </FormControl>
+              <div className="space-y-1 leading-none">
+                <FormLabel className="text-sm font-normal cursor-pointer">
+                  Remember me on this device
+                </FormLabel>
+                <p className="text-xs text-muted-foreground">
+                  Your login credentials will be saved securely for faster
+                  access
+                </p>
+              </div>
+            </FormItem>
+          )}
+        />
+
         <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Logging in..." : "Login"}
         </Button>
+
+        {savedCredentials && (
+          <div className="flex justify-center">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={clearSavedCredentials}
+              className="text-xs text-muted-foreground hover:text-foreground"
+            >
+              Clear saved credentials
+            </Button>
+          </div>
+        )}
       </form>
     </Form>
   );

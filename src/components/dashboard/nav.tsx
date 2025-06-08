@@ -36,11 +36,7 @@ const navItems = [
   },
   {
     title: "Games",
-    href: "/games",
-  },
-  {
-    title: "Billing",
-    href: "/dashboard/subscription",
+    href: "/dashboard/games",
   },
 ];
 
@@ -59,9 +55,7 @@ export function DashboardNav() {
           className={cn(
             "px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:bg-muted/50 hover:text-primary",
             pathname === item.href ||
-              (item.href === "/games" && pathname?.startsWith("/games")) ||
-              (item.href === "/dashboard/grammar" &&
-                pathname?.startsWith("/dashboard/grammar"))
+              (item.href !== "/dashboard" && pathname?.startsWith(item.href))
               ? "text-primary bg-primary/5 shadow-sm"
               : "text-muted-foreground"
           )}
