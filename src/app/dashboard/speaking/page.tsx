@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
+import SpeakingTourManager from "@/components/tours/SpeakingTourManager";
+import SpeakingTourTrigger from "@/components/tours/SpeakingTourTrigger";
 
 interface SpeakingSession {
   _id: string;
@@ -246,18 +248,26 @@ export default function SpeakingDashboard() {
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
+      <SpeakingTourManager />
+
+      <div
+        className="flex justify-between items-center mb-6"
+        data-tour="speaking-header"
+      >
         <h1 className="text-2xl font-bold">Speaking Practice</h1>
-        <Link href="/speaking">
-          <Button>
-            <Mic className="mr-2 h-4 w-4" />
-            Practice Speaking
-          </Button>
-        </Link>
+        <div className="flex gap-2">
+          <Link href="/speaking">
+            <Button data-tour="practice-speaking-btn">
+              <Mic className="mr-2 h-4 w-4" />
+              Practice Speaking
+            </Button>
+          </Link>
+          <SpeakingTourTrigger />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <Card>
+        <Card data-tour="speaking-overview">
           <CardHeader>
             <CardTitle>Overview</CardTitle>
             <CardDescription>Your speaking practice statistics</CardDescription>
@@ -326,7 +336,7 @@ export default function SpeakingDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card data-tour="recent-session">
           <CardHeader>
             <CardTitle>Most Recent Session</CardTitle>
             <CardDescription>
@@ -388,7 +398,10 @@ export default function SpeakingDashboard() {
         </Card>
       </div>
 
-      <div className="flex justify-between items-center mb-4">
+      <div
+        className="flex justify-between items-center mb-4"
+        data-tour="session-history-header"
+      >
         <h2 className="text-xl font-semibold">Session History</h2>
       </div>
 
@@ -420,11 +433,12 @@ export default function SpeakingDashboard() {
       ) : sessions.length > 0 ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {sessions.map(session => (
+            {sessions.map((session, index) => (
               <Card
                 key={session._id}
                 className="h-full flex flex-col hover:border-primary cursor-pointer"
                 onClick={() => handleSessionClick(session._id)}
+                data-tour={index === 0 ? "session-card" : undefined}
               >
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
@@ -487,7 +501,7 @@ export default function SpeakingDashboard() {
           </div>
 
           {pagination.pages > 1 && (
-            <Pagination className="mt-6">
+            <Pagination className="mt-6" data-tour="speaking-pagination">
               <PaginationContent>
                 {pagination.current > 1 && (
                   <PaginationItem>
@@ -523,7 +537,7 @@ export default function SpeakingDashboard() {
           )}
         </>
       ) : (
-        <Card>
+        <Card data-tour="no-sessions-card">
           <CardContent className="p-6 text-center">
             <p className="text-muted-foreground">
               No speaking sessions found. Start practicing to see your history!

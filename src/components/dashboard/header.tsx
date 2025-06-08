@@ -8,6 +8,7 @@ import { DashboardNav } from "./nav";
 import { UserNav } from "./user-nav";
 import { XpProgress } from "./xp-progress";
 import { SubscriptionBadge } from "./subscription-badge";
+import DashboardTourTrigger from "../tours/DashboardTourTrigger";
 
 interface DashboardHeaderProps {
   user: {
@@ -51,6 +52,7 @@ export default function DashboardHeader({
             />
           )}
           <XpProgress />
+          <DashboardTourTrigger />
 
           {/* Only show UserNav on medium screens and above */}
           <div className="hidden md:block">

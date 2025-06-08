@@ -44,7 +44,10 @@ export function DashboardNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex items-center space-x-1 lg:space-x-2">
+    <nav
+      className="flex items-center space-x-1 lg:space-x-2"
+      data-tour="dashboard-nav"
+    >
       {navItems.map(item => (
         <Link
           key={item.href}

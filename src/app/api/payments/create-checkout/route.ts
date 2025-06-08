@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
         userId: user._id.toString(),
         planType,
       },
-      success_url: `${process.env.NEXTAUTH_URL}/dashboard?success=true`,
+      success_url: `${process.env.NEXTAUTH_URL}/dashboard?success=true&refresh_token=true`,
       cancel_url: `${process.env.NEXTAUTH_URL}/pricing?canceled=true`,
       allow_promotion_codes: true,
     });

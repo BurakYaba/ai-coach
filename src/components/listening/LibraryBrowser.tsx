@@ -115,7 +115,10 @@ export function LibraryBrowser() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap gap-4 justify-between">
+      <div
+        className="flex flex-wrap gap-4 justify-between"
+        data-tour="search-filters"
+      >
         <Input
           placeholder="Search by title or topic..."
           className="max-w-sm"
@@ -177,9 +180,16 @@ export function LibraryBrowser() {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {items.map(item => (
-            <Card key={item._id} className="h-full flex flex-col">
+        <div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+          data-tour="content-library"
+        >
+          {items.map((item, index) => (
+            <Card
+              key={item._id}
+              className="h-full flex flex-col"
+              data-tour={index === 0 ? "content-card" : undefined}
+            >
               <div className={`h-1.5 ${getLevelColor(item.level)}`} />
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-start">

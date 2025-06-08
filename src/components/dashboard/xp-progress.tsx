@@ -113,7 +113,10 @@ export function XpProgress() {
   return (
     <HoverCard>
       <HoverCardTrigger asChild>
-        <div className="flex items-center gap-2 rounded-lg px-2 py-1 cursor-pointer bg-primary/5 hover:bg-primary/10 transition-colors">
+        <div
+          className="flex items-center gap-2 rounded-lg px-2 py-1 cursor-pointer bg-primary/5 hover:bg-primary/10 transition-colors"
+          data-tour="xp-progress"
+        >
           <span className="flex items-center gap-1">
             <Star className="h-3.5 w-3.5 text-yellow-500" />
             <span className="text-xs font-medium">{displayLevel}</span>

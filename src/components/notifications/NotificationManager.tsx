@@ -22,25 +22,77 @@ export default function NotificationManager() {
     const fetchUserData = async () => {
       if (!session?.user?.id) return;
 
+      // First check: if user is on onboarding pages, skip entirely
+      if (
+        typeof window !== "undefined" &&
+        (window.location.pathname === "/onboarding" ||
+          window.location.pathname.startsWith("/onboarding/"))
+      ) {
+        console.log("Skipping notifications setup - user on onboarding page");
+        return;
+      }
+
+      // Second check: if user hasn't completed onboarding according to session, skip
+      if (session.user.onboardingCompleted === false) {
+        console.log(
+          "Skipping notifications setup - onboarding not completed in session"
+        );
+        return;
+      }
+
       try {
-        // Fetch user profile for learning times and daily goal
+        // Only proceed with profile/settings fetch if user has definitely completed onboarding
         const profileResponse = await fetch("/api/user/profile");
-        if (!profileResponse.ok) return;
+        if (!profileResponse.ok) {
+          console.warn(
+            "Could not fetch user profile for notifications:",
+            profileResponse.status
+          );
+          return;
+        }
+
+        // Check if response is actually JSON
+        const contentType = profileResponse.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          console.warn(
+            "User profile response is not JSON, skipping notifications setup"
+          );
+          return;
+        }
 
         const profileData = await profileResponse.json();
 
         // Fetch user settings for notification preferences
         const settingsResponse = await fetch("/api/user/settings");
-        if (!settingsResponse.ok) return;
+        if (!settingsResponse.ok) {
+          console.warn(
+            "Could not fetch user settings for notifications:",
+            settingsResponse.status
+          );
+          return;
+        }
+
+        // Check if settings response is actually JSON
+        const settingsContentType =
+          settingsResponse.headers.get("content-type");
+        if (
+          !settingsContentType ||
+          !settingsContentType.includes("application/json")
+        ) {
+          console.warn(
+            "User settings response is not JSON, skipping notifications setup"
+          );
+          return;
+        }
 
         const settingsData = await settingsResponse.json();
 
         // Combine the data we need
         setUserData({
           preferredLearningTime:
-            profileData.user.learningPreferences.preferredLearningTime || [],
-          dailyGoal: profileData.user.learningPreferences.dailyGoal || 30,
-          progressReminders: settingsData.settings.progressReminders,
+            profileData.user?.learningPreferences?.preferredLearningTime || [],
+          dailyGoal: profileData.user?.learningPreferences?.dailyGoal || 30,
+          progressReminders: settingsData.settings?.progressReminders,
         });
       } catch (error) {
         console.error("Error fetching user notification preferences:", error);

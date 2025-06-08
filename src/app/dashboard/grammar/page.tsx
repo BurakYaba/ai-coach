@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
+import GrammarTourManager from "@/components/tours/GrammarTourManager";
+import GrammarTourTrigger from "@/components/tours/GrammarTourTrigger";
 
 interface GrammarBadge {
   name: string;
@@ -179,7 +181,12 @@ export default function GrammarPage() {
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+      <GrammarTourManager />
+
+      <div
+        className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4"
+        data-tour="grammar-header"
+      >
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
             Grammar Practice
@@ -188,9 +195,17 @@ export default function GrammarPage() {
             Track your grammar issues and learn from personalized lessons
           </p>
         </div>
-        <Button size="lg" onClick={generateLesson} disabled={isGenerating}>
-          {isGenerating ? "Generating..." : "Generate Lesson"}
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="lg"
+            onClick={generateLesson}
+            disabled={isGenerating}
+            data-tour="generate-lesson-btn"
+          >
+            {isGenerating ? "Generating..." : "Generate Lesson"}
+          </Button>
+          <GrammarTourTrigger />
+        </div>
       </div>
 
       <Tabs
@@ -198,17 +213,22 @@ export default function GrammarPage() {
         value={activeTab}
         onValueChange={setActiveTab}
         className="space-y-4"
+        data-tour="grammar-tabs"
       >
         <TabsList className="grid grid-cols-4 md:w-[600px]">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-          <TabsTrigger value="issues">Issues</TabsTrigger>
-          <TabsTrigger value="lessons">Lessons</TabsTrigger>
+          <TabsTrigger value="issues" data-tour="grammar-issues-tab">
+            Issues
+          </TabsTrigger>
+          <TabsTrigger value="lessons" data-tour="grammar-lessons-tab">
+            Lessons
+          </TabsTrigger>
           <TabsTrigger value="practice">Practice</TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-1 gap-4 mb-8">
-            <Card>
+            <Card data-tour="grammar-achievements">
               <CardHeader className="pb-2">
                 <CardTitle className="text-base flex items-center gap-2">
                   <Award className="h-4 w-4 text-primary" />
@@ -287,7 +307,7 @@ export default function GrammarPage() {
 
         <TabsContent value="practice" className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Card>
+            <Card data-tour="daily-challenge">
               <CardHeader>
                 <CardTitle>Daily Grammar Challenge</CardTitle>
                 <CardDescription>
@@ -299,7 +319,7 @@ export default function GrammarPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card data-tour="grammar-flashcards">
               <CardHeader>
                 <CardTitle>Grammar Flashcards</CardTitle>
                 <CardDescription>

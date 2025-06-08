@@ -42,6 +42,8 @@ import {
   useToggleWordFavorite,
   type VocabularyWord,
 } from "@/hooks/use-vocabulary";
+import VocabularyTourManager from "@/components/tours/VocabularyTourManager";
+import VocabularyTourTrigger from "@/components/tours/VocabularyTourTrigger";
 
 export default function VocabularyDashboard() {
   const router = useRouter();
@@ -194,7 +196,18 @@ export default function VocabularyDashboard() {
   if (!vocabularyBank || vocabularyBank.words.length === 0) {
     return (
       <div className="container mx-auto py-6">
-        <h1 className="text-3xl font-bold mb-6">Vocabulary Dashboard</h1>
+        <VocabularyTourManager />
+
+        <div
+          className="flex justify-between items-center mb-6"
+          data-tour="vocabulary-header"
+        >
+          <h1 className="text-3xl font-bold">Vocabulary Dashboard</h1>
+          <div className="flex gap-2" data-tour="vocabulary-actions">
+            <VocabularyTourTrigger />
+          </div>
+        </div>
+
         <Card>
           <CardHeader>
             <CardTitle>No vocabulary words yet</CardTitle>
@@ -235,9 +248,14 @@ export default function VocabularyDashboard() {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
+      <VocabularyTourManager />
+
+      <div
+        className="flex justify-between items-center"
+        data-tour="vocabulary-header"
+      >
         <h1 className="text-3xl font-bold">Vocabulary Dashboard</h1>
-        <div className="flex gap-2">
+        <div className="flex gap-2" data-tour="vocabulary-actions">
           <Button
             variant="outline"
             size="sm"
@@ -256,10 +274,14 @@ export default function VocabularyDashboard() {
             <RefreshCw className="h-4 w-4" />
             Refresh
           </Button>
+          <VocabularyTourTrigger />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        data-tour="vocabulary-stats"
+      >
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Total Words</CardTitle>
@@ -330,6 +352,7 @@ export default function VocabularyDashboard() {
             value={activeTab}
             onValueChange={setActiveTab}
             className="w-full"
+            data-tour="vocabulary-tabs"
           >
             <TabsList>
               <TabsTrigger value="all">
@@ -350,17 +373,22 @@ export default function VocabularyDashboard() {
           <Button
             onClick={handleStartReview}
             disabled={wordsNeedingReview === 0}
+            data-tour="start-review-btn"
           >
             Start Review
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+          data-tour="vocabulary-grid"
+        >
           {currentWords.length > 0 ? (
-            currentWords.map(word => (
+            currentWords.map((word, index) => (
               <Card
                 key={word._id}
                 className="overflow-hidden h-full flex flex-col"
+                data-tour={index === 0 ? "word-card" : undefined}
               >
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
@@ -521,7 +549,7 @@ export default function VocabularyDashboard() {
         </div>
 
         {totalPages > 1 && (
-          <Pagination className="mt-4">
+          <Pagination className="mt-4" data-tour="vocabulary-pagination">
             <PaginationContent>
               {currentPage > 1 && (
                 <PaginationItem>

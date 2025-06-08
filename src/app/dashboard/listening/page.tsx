@@ -16,6 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authOptions } from "@/lib/auth";
+import ListeningTourManager from "@/components/tours/ListeningTourManager";
+import ListeningTourTrigger from "@/components/tours/ListeningTourTrigger";
 
 export const metadata: Metadata = {
   title: "Listening Practice | Language Coach",
@@ -102,14 +104,19 @@ export default async function ListeningDashboardPage({
 
   return (
     <div className="container mx-auto py-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Listening Practice
-        </h1>
-        <p className="text-muted-foreground">
-          Improve your listening skills with curated and personalized audio
-          content
-        </p>
+      <div className="mb-6" data-tour="listening-header">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Listening Practice
+            </h1>
+            <p className="text-muted-foreground">
+              Improve your listening skills with curated and personalized audio
+              content
+            </p>
+          </div>
+          <ListeningTourTrigger />
+        </div>
       </div>
 
       {errorMessage && (
@@ -128,11 +135,13 @@ export default async function ListeningDashboardPage({
       )}
 
       <Tabs defaultValue={defaultTab} className="space-y-4">
-        <TabsList>
+        <TabsList data-tour="listening-tabs">
           <TabsTrigger value="library">Listening Library</TabsTrigger>
           <TabsTrigger value="inprogress">In Progress</TabsTrigger>
           <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="progress">My Progress</TabsTrigger>
+          <TabsTrigger value="progress" data-tour="progress-tab">
+            My Progress
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="library" className="space-y-4">
@@ -172,6 +181,9 @@ export default async function ListeningDashboardPage({
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Listening Tour */}
+      <ListeningTourManager />
     </div>
   );
 }

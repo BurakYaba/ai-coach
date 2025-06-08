@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { DashboardNav } from "@/components/dashboard/nav";
 import { UserNav } from "@/components/dashboard/user-nav";
 import NotificationManager from "@/components/notifications/NotificationManager";
+import { SubscriptionRefreshHandler } from "@/components/payments/subscription-refresh-handler";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
@@ -71,6 +72,8 @@ export default async function DashboardLayout({
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Notification Manager - handles browser notifications */}
           <NotificationManager />
+          {/* Subscription Refresh Handler - handles JWT refresh after payments */}
+          <SubscriptionRefreshHandler />
           {children}
         </div>
       </main>

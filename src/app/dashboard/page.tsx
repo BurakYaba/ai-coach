@@ -16,6 +16,7 @@ import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
 import User from "@/models/User";
 import { GamificationProfileStats } from "@/components/gamification/profile-stats";
+import DashboardTourManager from "@/components/tours/DashboardTourManager";
 
 export const metadata: Metadata = {
   title: "Dashboard | Fluenta",
@@ -78,7 +79,10 @@ export default async function DashboardPage({
         </Alert>
       )}
 
-      <div className="bg-gradient-to-r from-primary/5 to-secondary/5 p-6 rounded-xl backdrop-blur-sm border border-muted/10">
+      <div
+        className="bg-gradient-to-r from-primary/5 to-secondary/5 p-6 rounded-xl backdrop-blur-sm border border-muted/10"
+        data-tour="dashboard-welcome"
+      >
         <h1 className="text-3xl font-bold tracking-tight">
           Welcome back, <span className="text-gradient">{userName}</span>!
         </h1>
@@ -89,6 +93,9 @@ export default async function DashboardPage({
 
       {/* GamificationProfileStats replaces UserStats */}
       <GamificationProfileStats />
+
+      {/* Dashboard Tour */}
+      <DashboardTourManager />
     </div>
   );
 }

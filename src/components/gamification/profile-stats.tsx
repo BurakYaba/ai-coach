@@ -157,7 +157,7 @@ export function GamificationProfileStats() {
       {/* Stats Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* XP and Level Card */}
-        <Card>
+        <Card data-tour="level-xp-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">Level & XP</CardTitle>
           </CardHeader>
@@ -186,7 +186,7 @@ export function GamificationProfileStats() {
         </Card>
 
         {/* Streak Card */}
-        <Card>
+        <Card data-tour="streak-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium">
               Learning Streak
@@ -257,7 +257,11 @@ export function GamificationProfileStats() {
       </div>
 
       {/* Achievements and Badges */}
-      <Tabs defaultValue="achievements" className="mt-6">
+      <Tabs
+        defaultValue="achievements"
+        className="mt-6"
+        data-tour="achievements-section"
+      >
         <TabsList className="mb-4">
           <TabsTrigger value="achievements">
             Achievements ({achievements?.length || 0})

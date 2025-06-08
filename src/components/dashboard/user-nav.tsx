@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { School } from "lucide-react";
+import { School, MapPin } from "lucide-react";
 
 interface UserNavProps {
   user: {
@@ -34,7 +34,10 @@ export function UserNav({ user }: UserNavProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="focus:outline-none group transition-transform hover:scale-105">
+      <DropdownMenuTrigger
+        className="focus:outline-none group transition-transform hover:scale-105"
+        data-tour="user-nav"
+      >
         <Avatar className="h-9 w-9 border-2 border-transparent group-hover:border-primary/20 transition-all">
           <AvatarFallback className="bg-gradient-to-br from-primary/10 to-secondary/10">
             {initials}
@@ -112,6 +115,15 @@ export function UserNav({ user }: UserNavProps) {
               <circle cx="12" cy="7" r="4" />
             </svg>
             <span>Profile</span>
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          asChild
+          className="py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+        >
+          <a href="/dashboard/learning-path" className="flex items-center">
+            <MapPin className="mr-2 h-4 w-4" />
+            <span>Learning Path</span>
           </a>
         </DropdownMenuItem>
         <DropdownMenuItem

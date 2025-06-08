@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { Check, ArrowLeft } from "lucide-react";
+import { Check, ArrowLeft, AlertCircle } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { authOptions } from "@/lib/auth";
 import { CheckoutButton } from "@/components/payments/checkout-button";
 import { dbConnect } from "@/lib/db";
 import User from "@/models/User";
+
+// Client component to handle expired user alert
+import {
+  ExpiredUserAlert,
+  PricingHeading,
+} from "@/components/pricing/expired-user-alert";
 
 export const metadata: Metadata = {
   title: "Pricing - Fluenta",
@@ -89,120 +96,122 @@ export default async function PricingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
       <div className="container mx-auto px-4">
-        <div className="mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Link>
+        <PricingContent session={session} />
+      </div>
+    </div>
+  );
+}
 
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Choose Your Learning Plan
-            </h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Start your language learning journey with our comprehensive
-              AI-powered platform
+function PricingContent({ session }: { session: any }) {
+  return (
+    <>
+      <ExpiredUserAlert />
+
+      <div className="mb-8">
+        <Link
+          href="/"
+          className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Home
+        </Link>
+
+        <div className="text-center">
+          <PricingHeading />
+        </div>
+      </div>
+
+      <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        {plans.map(plan => (
+          <Card
+            key={plan.name}
+            className={`relative ${plan.popular ? "border-blue-500 shadow-lg" : ""}`}
+          >
+            {plan.popular && (
+              <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
+                Most Popular
+              </Badge>
+            )}
+
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl font-bold">{plan.name}</CardTitle>
+              <div className="flex items-baseline justify-center">
+                <span className="text-4xl font-bold">{plan.price}</span>
+                <span className="text-gray-500 ml-2">/{plan.period}</span>
+              </div>
+              <CardDescription className="text-base">
+                {plan.description}
+              </CardDescription>
+            </CardHeader>
+
+            <CardContent className="flex-grow">
+              <ul className="space-y-3">
+                {plan.features.map((feature, index) => (
+                  <li key={index} className="flex items-start">
+                    <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                    <span className="text-sm">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+
+            <CardFooter>
+              {session?.user ? (
+                <CheckoutButton
+                  planType={plan.planType}
+                  className="w-full"
+                  variant={plan.popular ? "default" : "outline"}
+                >
+                  Choose {plan.name} Plan
+                </CheckoutButton>
+              ) : (
+                <Button className="w-full" variant="outline" asChild>
+                  <Link href="/register">Sign Up to Get Started</Link>
+                </Button>
+              )}
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
+
+      <div className="text-center mt-12">
+        <h3 className="text-xl font-semibold mb-4">
+          Frequently Asked Questions
+        </h3>
+        <div className="max-w-2xl mx-auto space-y-4 text-left">
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h4 className="font-semibold mb-2">Can I cancel anytime?</h4>
+            <p className="text-gray-600">
+              Yes, you can cancel your subscription at any time. You'll continue
+              to have access until the end of your billing period.
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h4 className="font-semibold mb-2">Do you offer a free trial?</h4>
+            <p className="text-gray-600">
+              Yes! All new users get 7 days of free access to try all features
+              before committing to a subscription.
+            </p>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow">
+            <h4 className="font-semibold mb-2">
+              What payment methods do you accept?
+            </h4>
+            <p className="text-gray-600">
+              We accept all major credit cards and debit cards through our
+              secure payment processor.
             </p>
           </div>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          {plans.map(plan => (
-            <Card
-              key={plan.name}
-              className={`relative ${plan.popular ? "border-blue-500 shadow-lg" : ""}`}
-            >
-              {plan.popular && (
-                <Badge className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600">
-                  Most Popular
-                </Badge>
-              )}
-
-              <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-bold">
-                  {plan.name}
-                </CardTitle>
-                <div className="flex items-baseline justify-center">
-                  <span className="text-4xl font-bold">{plan.price}</span>
-                  <span className="text-gray-500 ml-2">/{plan.period}</span>
-                </div>
-                <CardDescription className="text-base">
-                  {plan.description}
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="flex-grow">
-                <ul className="space-y-3">
-                  {plan.features.map((feature, index) => (
-                    <li key={index} className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-
-              <CardFooter>
-                {session?.user ? (
-                  <CheckoutButton
-                    planType={plan.planType}
-                    className="w-full"
-                    variant={plan.popular ? "default" : "outline"}
-                  >
-                    Choose {plan.name} Plan
-                  </CheckoutButton>
-                ) : (
-                  <Button className="w-full" variant="outline" asChild>
-                    <Link href="/register">Sign Up to Get Started</Link>
-                  </Button>
-                )}
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-
-        <div className="text-center mt-12">
-          <h3 className="text-xl font-semibold mb-4">
-            Frequently Asked Questions
-          </h3>
-          <div className="max-w-2xl mx-auto space-y-4 text-left">
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h4 className="font-semibold mb-2">Can I cancel anytime?</h4>
-              <p className="text-gray-600">
-                Yes, you can cancel your subscription at any time. You'll
-                continue to have access until the end of your billing period.
-              </p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h4 className="font-semibold mb-2">Do you offer a free trial?</h4>
-              <p className="text-gray-600">
-                Yes! All new users get 7 days of free access to try all features
-                before committing to a subscription.
-              </p>
-            </div>
-            <div className="bg-white p-4 rounded-lg shadow">
-              <h4 className="font-semibold mb-2">
-                What payment methods do you accept?
-              </h4>
-              <p className="text-gray-600">
-                We accept all major credit cards and debit cards through our
-                secure payment processor.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {!session?.user && (
-          <div className="text-center mt-8">
-            <Button asChild size="lg">
-              <Link href="/register">Start Your Free Trial Today</Link>
-            </Button>
-          </div>
-        )}
       </div>
-    </div>
+
+      {!session?.user && (
+        <div className="text-center mt-8">
+          <Button asChild size="lg">
+            <Link href="/register">Get Started Today</Link>
+          </Button>
+        </div>
+      )}
+    </>
   );
 }

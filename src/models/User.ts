@@ -51,6 +51,55 @@ export interface IUser extends Document {
     challengeStreak: number;
     savedFlashcards?: string[]; // IDs of saved flashcards
   };
+  // Onboarding fields - all optional to not break existing functionality
+  onboarding?: {
+    completed: boolean;
+    currentStep: number;
+    skillAssessment: {
+      completed: boolean;
+      ceferLevel: string; // A1, A2, B1, B2, C1, C2
+      overallScore?: number; // Overall percentage score from assessment
+      weakAreas: string[]; // ['grammar', 'vocabulary', 'speaking', etc.]
+      strengths: string[];
+      assessmentDate: Date;
+      scores: {
+        reading: number;
+        writing: number;
+        listening: number;
+        speaking: number;
+        vocabulary: number;
+        grammar: number;
+      };
+    };
+    preferences: {
+      learningGoals: string[]; // ['business', 'travel', 'academic', etc.]
+      interests: string[];
+      timeAvailable: string; // '15min', '30min', '60min', 'flexible'
+      preferredTime: string; // 'morning', 'afternoon', 'evening'
+      learningStyle: string; // 'visual', 'auditory', 'kinesthetic', 'mixed'
+      difficultyPreference?: string; // 'easy', 'moderate', 'challenging'
+      focusAreas?: string[]; // user-selected areas to focus on
+      strengths?: string[]; // user-reported strengths
+      weaknesses?: string[]; // user-reported weaknesses
+    };
+    recommendedPath: {
+      primaryFocus: string[]; // modules to focus on
+      suggestedOrder: string[];
+      estimatedWeeks: number;
+    };
+    tours: {
+      completed: string[];
+      skipped: string[];
+    };
+    moduleVisits: {
+      [key: string]: {
+        firstVisit: Date;
+        totalVisits: number;
+        lastVisit: Date;
+      };
+    };
+    completedAt?: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -249,6 +298,170 @@ const userSchema = new Schema<IUser>(
         default: [],
       },
     },
+    // Onboarding fields - all optional to not break existing functionality
+    onboarding: {
+      type: {
+        completed: {
+          type: Boolean,
+          default: false,
+        },
+        currentStep: {
+          type: Number,
+          default: 0,
+        },
+        skillAssessment: {
+          completed: {
+            type: Boolean,
+            default: false,
+          },
+          ceferLevel: {
+            type: String,
+            enum: ["A1", "A2", "B1", "B2", "C1", "C2"],
+            default: "B1",
+          },
+          overallScore: {
+            type: Number,
+            default: null,
+          },
+          weakAreas: {
+            type: [String],
+            default: [],
+          },
+          strengths: {
+            type: [String],
+            default: [],
+          },
+          assessmentDate: {
+            type: Date,
+            default: Date.now,
+          },
+          scores: {
+            reading: {
+              type: Number,
+              default: 0,
+              min: 0,
+              max: 100,
+            },
+            writing: {
+              type: Number,
+              default: 0,
+              min: 0,
+              max: 100,
+            },
+            listening: {
+              type: Number,
+              default: 0,
+              min: 0,
+              max: 100,
+            },
+            speaking: {
+              type: Number,
+              default: 0,
+              min: 0,
+              max: 100,
+            },
+            vocabulary: {
+              type: Number,
+              default: 0,
+              min: 0,
+              max: 100,
+            },
+            grammar: {
+              type: Number,
+              default: 0,
+              min: 0,
+              max: 100,
+            },
+          },
+        },
+        preferences: {
+          learningGoals: {
+            type: [String],
+            default: [],
+          },
+          interests: {
+            type: [String],
+            default: [],
+          },
+          timeAvailable: {
+            type: String,
+            enum: ["15min", "30min", "60min", "flexible"],
+            default: "flexible",
+          },
+          preferredTime: {
+            type: String,
+            enum: ["morning", "afternoon", "evening"],
+            default: "evening",
+          },
+          learningStyle: {
+            type: String,
+            enum: ["visual", "auditory", "kinesthetic", "mixed"],
+            default: "mixed",
+          },
+          difficultyPreference: {
+            type: String,
+            enum: ["easy", "moderate", "challenging"],
+          },
+          focusAreas: {
+            type: [String],
+          },
+          strengths: {
+            type: [String],
+          },
+          weaknesses: {
+            type: [String],
+          },
+        },
+        recommendedPath: {
+          primaryFocus: {
+            type: [String],
+            default: [],
+          },
+          suggestedOrder: {
+            type: [String],
+            default: [],
+          },
+          estimatedWeeks: {
+            type: Number,
+            default: 12,
+          },
+        },
+        tours: {
+          completed: {
+            type: [String],
+            default: [],
+          },
+          skipped: {
+            type: [String],
+            default: [],
+          },
+        },
+        moduleVisits: {
+          type: Map,
+          of: {
+            firstVisit: {
+              type: Date,
+              default: Date.now,
+            },
+            totalVisits: {
+              type: Number,
+              default: 1,
+            },
+            lastVisit: {
+              type: Date,
+              default: Date.now,
+            },
+          },
+          default: new Map(),
+        },
+        completedAt: {
+          type: Date,
+          default: null,
+        },
+      },
+      required: false,
+      default: undefined,
+    },
   },
   {
     timestamps: true,
@@ -260,6 +473,7 @@ userSchema.index({ email: 1, createdAt: 1 });
 userSchema.index({ "grammarProgress.lastDailyChallenge": 1 }); // For daily challenge queries
 userSchema.index({ school: 1, role: 1 }); // For querying users by school and role
 userSchema.index({ branch: 1 });
+userSchema.index({ "onboarding.completed": 1 }); // For onboarding queries
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {

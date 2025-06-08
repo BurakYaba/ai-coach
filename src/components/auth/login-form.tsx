@@ -43,7 +43,7 @@ export function LoginForm() {
     const errorParam = params.get("error");
     if (errorParam === "SubscriptionExpired") {
       setSubscriptionError(
-        "Your subscription has expired. Please contact your branch administrator."
+        "Your subscription has expired. Please contact your branch administrator to renew your subscription."
       );
     }
   }, []);
@@ -152,8 +152,9 @@ export function LoginForm() {
           <AlertDescription>
             {subscriptionError}
             <div className="mt-2 text-sm">
-              Please contact your branch administrator to renew your
-              subscription.
+              Your school's subscription has expired. You will not be able to
+              access the learning content until your branch administrator renews
+              the subscription.
             </div>
           </AlertDescription>
         </Alert>

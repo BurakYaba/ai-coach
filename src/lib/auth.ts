@@ -45,14 +45,12 @@ export const authOptions: NextAuthOptions = {
           if (!isSubscriptionActive) {
             const subscriptionType = user.subscription?.type || "free";
 
-            // Different messages for individual vs school users
+            // Different handling for individual vs school users
             if (!user.school) {
-              // Individual user
-              throw new Error(
-                `Your ${subscriptionType} subscription has expired. Please visit the pricing page to renew your subscription.`
-              );
+              // Individual user - allow login, middleware will handle redirect to pricing
+              // Don't throw error, let them log in and middleware will redirect appropriately
             } else {
-              // School user
+              // School user - block login and show error message
               throw new Error(
                 `Your ${subscriptionType} subscription has expired. Please contact your branch administrator.`
               );
@@ -78,13 +76,18 @@ export const authOptions: NextAuthOptions = {
     error: "/login",
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
       }
 
-      // Add subscription information to token if not already present or needs refreshing
+      // Set force refresh flag when triggered by session update
+      if (trigger === "update" && session?.forceRefresh) {
+        token.forceRefresh = true;
+      }
+
+      // Add subscription and school information to token if not already present or needs refreshing
       // This helps with middleware subscription checks
       try {
         // We periodically refresh the subscription info to ensure it's current
@@ -94,7 +97,10 @@ export const authOptions: NextAuthOptions = {
             60 * 60 * 1000 <
             Date.now(); // Refresh every hour
 
-        if (shouldRefreshSubscription && token.id) {
+        // Force refresh if this is right after a payment (indicated by refresh_token in URL)
+        const shouldForceRefresh = token.forceRefresh === true;
+
+        if ((shouldRefreshSubscription || shouldForceRefresh) && token.id) {
           await dbConnect();
           const User = (await import("@/models/User")).default;
           const userRecord = await User.findById(token.id);
@@ -106,6 +112,19 @@ export const authOptions: NextAuthOptions = {
               ? userRecord.subscription.endDate.toISOString()
               : undefined;
             token.subscriptionLastChecked = new Date().toISOString();
+            // Add school information to distinguish individual vs school users
+            token.school = userRecord.school
+              ? userRecord.school.toString()
+              : null;
+
+            // Add onboarding completion status
+            token.onboardingCompleted =
+              userRecord.onboarding?.completed || false;
+
+            // Clear the force refresh flag after refreshing
+            if (shouldForceRefresh) {
+              token.forceRefresh = false;
+            }
           }
         }
       } catch (error) {
@@ -125,6 +144,9 @@ export const authOptions: NextAuthOptions = {
           type: token.subscriptionType as string,
           expiresAt: token.subscriptionExpiry as string,
         };
+
+        // Add onboarding status to the session
+        session.user.onboardingCompleted = token.onboardingCompleted as boolean;
       }
       return session;
     },
@@ -147,6 +169,7 @@ declare module "next-auth" {
         type: string;
         expiresAt: string;
       };
+      onboardingCompleted?: boolean;
     };
   }
   interface User {
@@ -165,6 +188,9 @@ declare module "next-auth/jwt" {
     subscriptionType?: string;
     subscriptionExpiry?: string;
     subscriptionLastChecked?: string;
+    school?: string | null;
+    forceRefresh?: boolean;
+    onboardingCompleted?: boolean;
   }
 }
 
