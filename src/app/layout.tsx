@@ -3,8 +3,10 @@ import { Inter } from "next/font/google";
 
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import NextAuthSessionProvider from "@/components/providers/session-provider";
+import { AnalyticsProvider } from "@/components/providers/AnalyticsProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -28,8 +30,11 @@ export default function RootLayout({
           inter.className
         )}
       >
+        <GoogleAnalytics />
         <NextAuthSessionProvider>
-          <QueryProvider>{children}</QueryProvider>
+          <QueryProvider>
+            <AnalyticsProvider>{children}</AnalyticsProvider>
+          </QueryProvider>
         </NextAuthSessionProvider>
         <Toaster />
         <SonnerToaster position="top-right" />
