@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowLeft, ArrowRight, HelpCircle, Lightbulb } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,7 +40,12 @@ export default function ModuleTour({
   const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
   const [overlayPosition, setOverlayPosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const tourRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen && steps.length > 0) {
@@ -152,7 +158,7 @@ export default function ModuleTour({
     // Add highlight class to target element
     element.classList.add("tour-highlight");
     element.style.position = "relative";
-    element.style.zIndex = "9998";
+    element.style.setProperty("z-index", "2147483646", "important");
     element.style.boxShadow =
       "0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 8px rgba(59, 130, 246, 0.2)";
     element.style.borderRadius = "8px";
@@ -233,7 +239,7 @@ export default function ModuleTour({
     }
   };
 
-  if (!isVisible || steps.length === 0) {
+  if (!isVisible || steps.length === 0 || !isMounted) {
     return null;
   }
 
@@ -245,7 +251,7 @@ export default function ModuleTour({
     ? (targetElement as any)._tourAdjustedPosition || currentStepData.position
     : currentStepData.position;
 
-  return (
+  const tourContent = (
     <AnimatePresence>
       {isVisible && (
         <>
@@ -254,8 +260,15 @@ export default function ModuleTour({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-[9999]"
-            style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}
+            className="fixed inset-0 bg-black/50"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              zIndex: 2147483647,
+            }}
           />
 
           {/* Tour content */}
@@ -264,12 +277,13 @@ export default function ModuleTour({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed z-[10000] max-w-md"
+            className="fixed max-w-md"
             style={{
               left: overlayPosition.x,
               top: overlayPosition.y,
               maxHeight: "60vh",
               maxWidth: "min(400px, 90vw)",
+              zIndex: 2147483647,
               transform:
                 adjustedPosition === "center"
                   ? "translate(-50%, 0)"
@@ -407,6 +421,8 @@ export default function ModuleTour({
       )}
     </AnimatePresence>
   );
+
+  return createPortal(tourContent, document.body);
 }
 
 // CSS for highlight effect (add to global styles)
@@ -423,7 +439,7 @@ export const tourStyles = `
     border-radius: 12px;
     pointer-events: none;
     animation: pulse-border 2s infinite;
-    z-index: 9996;
+    z-index: 2147483645 !important;
   }
   
   @keyframes pulse-border {

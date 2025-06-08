@@ -206,7 +206,7 @@
   border-radius: 12px;
   pointer-events: none;
   animation: pulse-border 2s infinite;
-  z-index: 9996;
+  z-index: 2147483645 !important;
 }
 
 @keyframes pulse-border {
