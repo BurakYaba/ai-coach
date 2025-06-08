@@ -35,9 +35,9 @@ export default function DashboardTourTrigger() {
               variant="ghost"
               size="sm"
               onClick={handleStartTour}
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-primary"
+              className="h-6 w-6 p-0 text-muted-foreground hover:text-primary sm:h-8 sm:w-8"
             >
-              <HelpCircle className="h-4 w-4" />
+              <HelpCircle className="h-3 w-3 sm:h-4 sm:w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>

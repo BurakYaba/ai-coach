@@ -41,10 +41,21 @@ export default function ModuleTour({
   const [overlayPosition, setOverlayPosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const tourRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
+
+    // Check if mobile on mount and set up resize listener
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   useEffect(() => {
@@ -277,15 +288,15 @@ export default function ModuleTour({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed max-w-md"
+            className="fixed left-4 right-4 sm:left-auto sm:right-auto sm:max-w-md"
             style={{
-              left: overlayPosition.x,
-              top: overlayPosition.y,
-              maxHeight: "60vh",
-              maxWidth: "min(400px, 90vw)",
+              left: isMobile ? undefined : overlayPosition.x,
+              top: isMobile ? "20px" : overlayPosition.y,
+              maxHeight: isMobile ? "calc(100vh - 40px)" : "80vh",
               zIndex: 2147483647,
-              transform:
-                adjustedPosition === "center"
+              transform: isMobile
+                ? "none"
+                : adjustedPosition === "center"
                   ? "translate(-50%, 0)"
                   : adjustedPosition === "top"
                     ? "translate(-50%, -100%)"
@@ -296,13 +307,18 @@ export default function ModuleTour({
                         : "translate(0, -50%)",
             }}
           >
-            <Card className="border shadow-2xl">
-              <CardContent className="p-6 overflow-y-auto max-h-[60vh]">
+            <Card className="border shadow-2xl w-full sm:w-auto sm:max-w-md sm:mx-auto">
+              <CardContent
+                className="p-4 sm:p-6 overflow-y-auto"
+                style={{
+                  maxHeight: isMobile ? "calc(100vh - 80px)" : "80vh",
+                }}
+              >
                 {/* Header */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <HelpCircle className="h-5 w-5 text-primary" />
-                    <h3 className="font-semibold text-lg">
+                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                  <div className="flex items-center gap-1 sm:gap-2">
+                    <HelpCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                    <h3 className="font-semibold text-base sm:text-lg">
                       {currentStepData.title}
                     </h3>
                     {currentStepData.optional && (
@@ -315,9 +331,9 @@ export default function ModuleTour({
                     variant="ghost"
                     size="sm"
                     onClick={handleSkip}
-                    className="h-8 w-8 p-0"
+                    className="h-6 w-6 sm:h-8 sm:w-8 p-0"
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 </div>
 
@@ -370,30 +386,38 @@ export default function ModuleTour({
                 </div>
 
                 {/* Navigation */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
+                  <div className="flex items-center gap-1 sm:gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={handlePrevious}
                       disabled={currentStep === 0}
+                      className="text-xs sm:text-sm"
                     >
-                      <ArrowLeft className="h-4 w-4 mr-1" />
-                      Previous
+                      <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                      <span className="hidden sm:inline">Previous</span>
+                      <span className="sm:hidden">Prev</span>
                     </Button>
-                    <Button variant="outline" size="sm" onClick={handleSkip}>
-                      Skip Tour
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleSkip}
+                      className="text-xs sm:text-sm"
+                    >
+                      <span className="hidden sm:inline">Skip Tour</span>
+                      <span className="sm:hidden">Skip</span>
                     </Button>
                   </div>
 
                   <Button
                     onClick={handleNext}
                     size="sm"
-                    className="min-w-[80px]"
+                    className="min-w-[80px] text-xs sm:text-sm order-first sm:order-last"
                   >
                     {currentStep === steps.length - 1 ? "Finish" : "Next"}
                     {currentStep < steps.length - 1 && (
-                      <ArrowRight className="h-4 w-4 ml-1" />
+                      <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
                     )}
                   </Button>
                 </div>

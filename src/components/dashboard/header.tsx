@@ -34,9 +34,9 @@ export default function DashboardHeader({
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-muted/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between">
+      <div className="container mx-auto px-2 sm:px-4 lg:px-8 flex h-16 items-center justify-between">
         <div className="flex items-center">
-          <div className="flex items-center space-x-2 mr-6">
+          <div className="flex items-center space-x-2 mr-4 sm:mr-6">
             <GraduationCap className="h-6 w-6 text-primary" />
             <span className="font-bold text-xl">Fluenta</span>
           </div>
@@ -44,14 +44,18 @@ export default function DashboardHeader({
             <DashboardNav />
           </div>
         </div>
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-1 sm:space-x-4">
           {subscription && (
-            <SubscriptionBadge
-              subscription={subscription}
-              isIndividualUser={isIndividualUser}
-            />
+            <div className="hidden min-[400px]:block">
+              <SubscriptionBadge
+                subscription={subscription}
+                isIndividualUser={isIndividualUser}
+              />
+            </div>
           )}
           <XpProgress />
+
+          {/* Tour button - always visible, positioned between XP and mobile menu */}
           <DashboardTourTrigger />
 
           {/* Only show UserNav on medium screens and above */}
@@ -63,8 +67,8 @@ export default function DashboardHeader({
           <div className="md:hidden">
             <Sheet open={isOpen} onOpenChange={setIsOpen}>
               <SheetTrigger asChild>
-                <button className="p-2 focus:outline-none">
-                  <Menu className="h-6 w-6" />
+                <button className="p-1 sm:p-2 focus:outline-none">
+                  <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
                 </button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[80%] sm:w-[350px]">
