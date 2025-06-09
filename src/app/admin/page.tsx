@@ -89,6 +89,13 @@ export default async function AdminDashboard() {
           href="/admin/sessions"
           buttonText="View Sessions"
         />
+
+        <AdminActionCard
+          title="User Feedback"
+          description="View and respond to user feedback and suggestions"
+          href="/admin/feedback"
+          buttonText="View Feedback"
+        />
       </div>
     </div>
   );

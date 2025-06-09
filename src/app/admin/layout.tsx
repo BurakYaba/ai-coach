@@ -60,6 +60,12 @@ export default async function AdminLayout({
               Schools
             </a>
             <a
+              href="/admin/feedback"
+              className="text-sm font-medium hover:text-primary"
+            >
+              Feedback
+            </a>
+            <a
               href="/dashboard"
               className="ml-4 px-3 py-1 text-sm font-medium bg-primary text-white rounded-md hover:bg-primary/90"
             >

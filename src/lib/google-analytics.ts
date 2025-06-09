@@ -15,19 +15,18 @@ declare global {
 
 // Initialize Google Analytics
 export const initGA = () => {
-  if (typeof window !== "undefined" && GA_MEASUREMENT_ID && window.gtag) {
-    window.gtag("config", GA_MEASUREMENT_ID, {
-      page_title: document.title,
-      page_location: window.location.href,
-    });
+  if (typeof window !== "undefined" && GA_MEASUREMENT_ID) {
+    // Just initialize - page tracking will be handled by the useGoogleAnalytics hook
+    console.log("Google Analytics initialized");
   }
 };
 
 // Track page views
 export const trackPageView = (url: string, title?: string) => {
   if (typeof window !== "undefined" && GA_MEASUREMENT_ID && window.gtag) {
+    const pageTitle = title || globalThis.document?.title || "";
     window.gtag("config", GA_MEASUREMENT_ID, {
-      page_title: title || document.title,
+      page_title: pageTitle,
       page_location: url,
     });
   }

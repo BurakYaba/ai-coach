@@ -11,7 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { School, MapPin } from "lucide-react";
+import { School, MapPin, MessageSquare, History } from "lucide-react";
+import { FeedbackForm } from "@/components/feedback/FeedbackForm";
 
 interface UserNavProps {
   user: {
@@ -168,6 +169,33 @@ export function UserNav({ user }: UserNavProps) {
             <span>Settings</span>
           </a>
         </DropdownMenuItem>
+
+        <DropdownMenuSeparator className="bg-muted/20" />
+
+        {/* Feedback Form */}
+        <FeedbackForm
+          trigger={
+            <DropdownMenuItem
+              className="py-2 cursor-pointer hover:bg-muted/50 transition-colors flex items-center"
+              onSelect={e => e.preventDefault()}
+            >
+              <MessageSquare className="mr-2 h-4 w-4" />
+              <span>Give Feedback</span>
+            </DropdownMenuItem>
+          }
+        />
+
+        {/* My Feedback History */}
+        <DropdownMenuItem
+          asChild
+          className="py-2 cursor-pointer hover:bg-muted/50 transition-colors"
+        >
+          <a href="/dashboard/feedback" className="flex items-center">
+            <History className="mr-2 h-4 w-4" />
+            <span>My Feedback</span>
+          </a>
+        </DropdownMenuItem>
+
         <DropdownMenuSeparator className="bg-muted/20" />
         <DropdownMenuItem
           className="py-2 cursor-pointer text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors flex items-center"
