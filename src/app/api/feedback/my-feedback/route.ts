@@ -5,6 +5,9 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import Feedback from "@/models/Feedback";
 
+// Force dynamic rendering since we use headers for authentication
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

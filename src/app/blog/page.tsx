@@ -28,6 +28,53 @@ export const metadata: Metadata = {
 };
 
 const blogPosts = [
+  // New SEO-optimized blog posts (featured)
+  {
+    id: "english-pronunciation-practice-online",
+    title:
+      "English Pronunciation Practice Online: 10 Best Tools & Techniques 2025",
+    excerpt:
+      "Master English pronunciation with the best online tools and techniques. Discover AI-powered pronunciation coaches, free practice resources, and proven methods to improve your accent.",
+    category: "Pronunciation",
+    readTime: "15 min read",
+    publishDate: "2024-12-20",
+    featured: true,
+    tags: ["Pronunciation", "Online Tools", "AI Coach", "Practice"],
+  },
+  {
+    id: "ai-english-grammar-checker",
+    title: "AI English Grammar Checker: Top 8 Tools Compared [2025 Review]",
+    excerpt:
+      "Discover the best AI English grammar checkers in 2025. Compare Grammarly, Fluenta, QuillBot, and more. Find the perfect grammar checking tool for error-free writing.",
+    category: "Grammar",
+    readTime: "12 min read",
+    publishDate: "2024-12-22",
+    featured: true,
+    tags: ["Grammar", "AI Tools", "Writing", "Comparison"],
+  },
+  {
+    id: "english-conversation-practice-app",
+    title: "Best English Conversation Practice Apps 2025: Top 10 Reviewed",
+    excerpt:
+      "Transform your English speaking skills with these top conversation practice apps. From AI-powered tutors to real human conversations, find the perfect app to boost your confidence.",
+    category: "Speaking",
+    readTime: "14 min read",
+    publishDate: "2024-12-25",
+    featured: true,
+    tags: ["Speaking", "Apps", "Conversation", "Practice"],
+  },
+  {
+    id: "free-english-level-test",
+    title: "Free English Level Test: Assess Your Skills Today [CEFR A1-C2]",
+    excerpt:
+      "Take our free English level test to discover your proficiency level. Comprehensive assessment covering reading, writing, listening, speaking, grammar, and vocabulary. Get instant results.",
+    category: "Assessment",
+    readTime: "8 min read",
+    publishDate: "2024-12-28",
+    featured: true,
+    tags: ["Assessment", "CEFR", "Level Test", "Free"],
+  },
+  // Existing blog posts
   {
     id: "5-ai-tools-improve-english-2025",
     title: "5 AI Tools to Improve Your English in 2025",
@@ -36,7 +83,7 @@ const blogPosts = [
     category: "AI Tools",
     readTime: "8 min read",
     publishDate: "2024-12-15",
-    featured: true,
+    featured: false,
     tags: ["AI", "Technology", "Tools", "2025"],
   },
   {
@@ -47,7 +94,7 @@ const blogPosts = [
     category: "IELTS",
     readTime: "12 min read",
     publishDate: "2024-12-10",
-    featured: true,
+    featured: false,
     tags: ["IELTS", "AI", "Test Preparation", "Band Score"],
   },
   {
@@ -58,7 +105,7 @@ const blogPosts = [
     category: "Speaking",
     readTime: "10 min read",
     publishDate: "2024-12-05",
-    featured: true,
+    featured: false,
     tags: ["Speaking", "Beginners", "Practice", "30-Day Plan"],
   },
   {
@@ -99,11 +146,12 @@ const blogPosts = [
 const categories = [
   "All",
   "AI Tools",
-  "IELTS",
-  "Speaking",
-  "Grammar",
-  "Vocabulary",
   "Pronunciation",
+  "Grammar",
+  "Speaking",
+  "Assessment",
+  "IELTS",
+  "Vocabulary",
 ];
 
 export default function BlogPage() {
@@ -131,6 +179,24 @@ export default function BlogPage() {
               </Link>
               <Link href="/blog" className="text-sm font-medium text-primary">
                 Blog
+              </Link>
+              <Link
+                href="/modules/speaking"
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                Modules
+              </Link>
+              <Link
+                href="/faq"
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                FAQ
+              </Link>
+              <Link
+                href="/testimonials"
+                className="text-sm font-medium hover:text-primary transition-colors"
+              >
+                Success Stories
               </Link>
               <Link
                 href="/pricing"

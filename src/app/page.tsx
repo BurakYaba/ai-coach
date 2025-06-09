@@ -69,10 +69,10 @@ export default function LandingPage() {
           <div className="font-bold text-xl">Fluenta</div>
           <nav className="hidden md:flex items-center gap-8">
             <Link
-              href="#modules"
+              href="/modules/speaking"
               className="text-sm font-medium hover:text-primary transition-colors"
             >
-              Learning Modules
+              Modules
             </Link>
             <Link
               href="#features"
@@ -87,10 +87,16 @@ export default function LandingPage() {
               Blog
             </Link>
             <Link
-              href="#testimonials"
+              href="/testimonials"
               className="text-sm font-medium hover:text-primary transition-colors"
             >
-              Testimonials
+              Success Stories
+            </Link>
+            <Link
+              href="/faq"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              FAQ
             </Link>
             <Link
               href="#pricing"
