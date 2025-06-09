@@ -9,6 +9,14 @@ export interface IUser extends Document {
   role: "user" | "school_admin" | "admin";
   school?: mongoose.Types.ObjectId;
   branch?: mongoose.Types.ObjectId;
+
+  // Email verification and password reset fields
+  emailVerified?: boolean;
+  emailVerificationToken?: string;
+  emailVerificationExpires?: Date;
+  passwordResetToken?: string;
+  passwordResetExpires?: Date;
+
   languageLevel: string;
   learningPreferences: {
     topics: string[];
@@ -146,6 +154,29 @@ const userSchema = new Schema<IUser>(
       ref: "Branch",
       required: false,
     },
+
+    // Email verification and password reset fields
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerificationToken: {
+      type: String,
+      required: false,
+    },
+    emailVerificationExpires: {
+      type: Date,
+      required: false,
+    },
+    passwordResetToken: {
+      type: String,
+      required: false,
+    },
+    passwordResetExpires: {
+      type: Date,
+      required: false,
+    },
+
     languageLevel: {
       type: String,
       enum: ["beginner", "intermediate", "advanced"],

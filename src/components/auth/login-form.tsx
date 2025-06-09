@@ -44,6 +44,10 @@ export function LoginForm() {
   const [subscriptionError, setSubscriptionError] = useState<string | null>(
     null
   );
+  const [emailVerificationError, setEmailVerificationError] = useState<
+    string | null
+  >(null);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   // Use localStorage to persist login credentials (encrypted)
@@ -89,9 +93,56 @@ export function LoginForm() {
     setShowPassword(!showPassword);
   };
 
+  const handleResendVerification = async () => {
+    const email = form.getValues("email");
+    if (!email) {
+      toast({
+        title: "Error",
+        description: "Please enter your email address first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsResendingVerification(true);
+    try {
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Verification Email Sent",
+          description: result.message,
+          duration: 5000,
+        });
+        setEmailVerificationError(null);
+      } else {
+        toast({
+          title: "Error",
+          description: result.error || "Failed to send verification email",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsResendingVerification(false);
+    }
+  };
+
   async function onSubmit(data: LoginFormValues) {
     setIsLoading(true);
     setSubscriptionError(null);
+    setEmailVerificationError(null);
 
     try {
       // Handle remember me functionality
@@ -118,8 +169,12 @@ export function LoginForm() {
       });
 
       if (!result?.ok) {
+        // Check if this is an email verification error
+        if (result?.error?.includes("verify your email")) {
+          setEmailVerificationError(result.error);
+        }
         // Check if this is a subscription error
-        if (result?.error?.includes("subscription")) {
+        else if (result?.error?.includes("subscription")) {
           setSubscriptionError(result.error);
         } else {
           // Make sure to show toast for invalid credentials
@@ -211,16 +266,30 @@ export function LoginForm() {
   return (
     <Form {...form}>
       {subscriptionError && (
-        <Alert variant="destructive" className="mb-4">
+        <Alert>
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Subscription Expired</AlertTitle>
-          <AlertDescription>
-            {subscriptionError}
-            <div className="mt-2 text-sm">
-              Your school's subscription has expired. You will not be able to
-              access the learning content until your branch administrator renews
-              the subscription.
-            </div>
+          <AlertTitle>Subscription Required</AlertTitle>
+          <AlertDescription>{subscriptionError}</AlertDescription>
+        </Alert>
+      )}
+
+      {emailVerificationError && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Email Verification Required</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>{emailVerificationError}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleResendVerification}
+              disabled={isResendingVerification}
+              className="mt-2"
+            >
+              {isResendingVerification
+                ? "Sending..."
+                : "Resend Verification Email"}
+            </Button>
           </AlertDescription>
         </Alert>
       )}

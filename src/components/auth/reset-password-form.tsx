@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,15 +15,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 
-const individualRegisterSchema = z
+const resetPasswordSchema = z
   .object({
-    name: z.string().min(2, "Name must be at least 2 characters"),
-    email: z.string().email("Invalid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z.string(),
   })
@@ -32,19 +29,20 @@ const individualRegisterSchema = z
     path: ["confirmPassword"],
   });
 
-type IndividualRegisterFormValues = z.infer<typeof individualRegisterSchema>;
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
-export function IndividualRegisterForm() {
+export function ResetPasswordForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const form = useForm<IndividualRegisterFormValues>({
-    resolver: zodResolver(individualRegisterSchema),
+  const token = searchParams?.get("token");
+
+  const form = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      name: "",
-      email: "",
       password: "",
       confirmPassword: "",
     },
@@ -58,20 +56,27 @@ export function IndividualRegisterForm() {
     setShowConfirmPassword(!showConfirmPassword);
   };
 
-  async function onSubmit(data: IndividualRegisterFormValues) {
+  async function onSubmit(data: ResetPasswordFormValues) {
+    if (!token) {
+      toast({
+        title: "Error",
+        description: "Reset token is missing. Please check your email link.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetch("/api/auth/reset-password", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: data.name,
-          email: data.email,
+          token: token,
           password: data.password,
-          registrationType: "individual",
         }),
       });
 
@@ -81,20 +86,14 @@ export function IndividualRegisterForm() {
         throw new Error(result.error || "Something went wrong");
       }
 
-      // Show different message based on whether email was sent
-      const emailSentMessage = result.emailSent
-        ? "Please check your email and click the verification link to complete your registration."
-        : "Account created successfully! Note: Email verification is temporarily unavailable.";
-
       toast({
-        title: "Registration Successful!",
-        description: emailSentMessage,
-        duration: 8000, // Show longer for important message
+        title: "Success",
+        description: result.message,
       });
 
-      // Redirect to login with a message
+      // Redirect to login page after successful password reset
       router.push(
-        "/login?message=Account created successfully. Please check your email for verification."
+        "/login?message=Password reset successfully. Please log in with your new password."
       );
     } catch (error) {
       if (error instanceof Error) {
@@ -115,45 +114,36 @@ export function IndividualRegisterForm() {
     }
   }
 
+  if (!token) {
+    return (
+      <div className="space-y-4 text-center">
+        <div className="text-red-600 text-lg font-medium">
+          Invalid Reset Link
+        </div>
+        <p className="text-sm text-muted-foreground">
+          This password reset link is invalid or has expired. Please request a
+          new password reset link.
+        </p>
+        <Button asChild>
+          <a href="/forgot-password">Request New Reset Link</a>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter your email" type="email" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>New Password</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
-                    placeholder="Create a password"
+                    placeholder="Enter your new password"
                     type={showPassword ? "text" : "password"}
                     {...field}
                   />
@@ -185,11 +175,11 @@ export function IndividualRegisterForm() {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel>Confirm New Password</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
-                    placeholder="Confirm your password"
+                    placeholder="Confirm your new password"
                     type={showConfirmPassword ? "text" : "password"}
                     {...field}
                   />
@@ -216,25 +206,9 @@ export function IndividualRegisterForm() {
             </FormItem>
           )}
         />
-
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="font-semibold text-blue-900 mb-2">What you get:</h4>
-          <ul className="text-sm text-blue-800 space-y-1">
-            <li>• 7 days free trial</li>
-            <li>• Full access to all learning modules</li>
-            <li>• AI-powered personalized feedback</li>
-            <li>• After trial: $14.99/month subscription</li>
-          </ul>
-        </div>
-
         <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? "Creating account..." : "Start Free Trial"}
+          {isLoading ? "Resetting..." : "Reset Password"}
         </Button>
-
-        <p className="text-xs text-center text-muted-foreground">
-          By creating an account, you agree to our terms of service and privacy
-          policy.
-        </p>
       </form>
     </Form>
   );

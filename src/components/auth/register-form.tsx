@@ -84,11 +84,21 @@ export function RegisterForm() {
         throw new Error(result.error || "Something went wrong");
       }
 
+      // Show different message based on whether email was sent
+      const emailSentMessage = result.emailSent
+        ? "Please check your email and click the verification link to complete your registration."
+        : "Account created successfully! Note: Email verification is temporarily unavailable.";
+
       toast({
-        title: "Success",
-        description: "Account created successfully",
+        title: "Registration Successful!",
+        description: emailSentMessage,
+        duration: 8000, // Show longer for important message
       });
-      router.push("/login");
+
+      // Redirect to login with a message
+      router.push(
+        "/login?message=Account created successfully. Please check your email for verification."
+      );
     } catch (error) {
       if (error instanceof Error) {
         toast({

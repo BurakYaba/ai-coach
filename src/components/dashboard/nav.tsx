@@ -38,10 +38,6 @@ const navItems = [
     title: "Games",
     href: "/dashboard/games",
   },
-  {
-    title: "My Feedback",
-    href: "/dashboard/feedback",
-  },
 ];
 
 export function DashboardNav() {

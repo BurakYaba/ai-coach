@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import dbConnect from "@/lib/db";
+import { sendEmailVerification } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -49,6 +51,10 @@ export async function POST(req: Request) {
       );
     }
 
+    // Generate email verification token
+    const emailVerificationToken = randomBytes(32).toString("hex");
+    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
+
     // Set up free subscription with 7-day expiration
     const startDate = new Date();
     const endDate = new Date(startDate);
@@ -59,6 +65,9 @@ export async function POST(req: Request) {
       name,
       email,
       password,
+      emailVerified: false, // Start with unverified email
+      emailVerificationToken,
+      emailVerificationExpires,
       learningPreferences: {
         topics: ["general"],
         dailyGoal: 30,
@@ -95,21 +104,45 @@ export async function POST(req: Request) {
     const user = new User(userData);
     await user.save();
 
+    // Send verification email (don't fail registration if email fails)
+    let emailSent = false;
+    try {
+      const emailResult = await sendEmailVerification(
+        user.email,
+        user.name,
+        emailVerificationToken
+      );
+      emailSent = emailResult.success;
+      if (!emailResult.success) {
+        console.log("Email verification failed:", emailResult.error);
+      }
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+    }
+
     // Remove password from response
     const userResponse = user.toJSON();
-    const { password: _, ...userWithoutPassword } = userResponse;
+    const {
+      password: _,
+      emailVerificationToken: __,
+      ...userWithoutSensitiveData
+    } = userResponse;
 
     // Return user information to create a more meaningful response
     return NextResponse.json(
       {
-        message: "User created successfully",
-        user: userWithoutPassword,
+        message:
+          "User created successfully. Please check your email to verify your account.",
+        user: userWithoutSensitiveData,
         subscription: {
           type: user.subscription.type,
           status: user.subscription.status,
           startDate: user.subscription.startDate,
           endDate: user.subscription.endDate,
         },
+        emailSent: emailSent,
+        userId: user._id,
+        emailVerificationRequired: true,
       },
       { status: 201 }
     );
