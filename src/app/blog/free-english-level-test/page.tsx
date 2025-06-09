@@ -54,7 +54,7 @@ export default function BlogPost() {
                 Blog
               </Link>
               <Link
-                href="/assessment"
+                href="/onboarding"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Level Test

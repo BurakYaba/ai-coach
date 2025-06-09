@@ -522,7 +522,7 @@ export default function BlogPost() {
                   Try Fluenta Grammar Checker Free
                 </Button>
               </Link>
-              <Link href="/modules/writing">
+              <Link href="/modules/writing-assistant">
                 <Button variant="outline" size="lg" className="text-lg px-8">
                   Explore Writing Module
                 </Button>
