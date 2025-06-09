@@ -1,1 +1,0 @@
-  // Calculate pagination\n  const totalPages = Math.ceil((sessions?.length || 0) / sessionsPerPage);\n  const indexOfLastSession = currentPage * sessionsPerPage;\n  const indexOfFirstSession = indexOfLastSession - sessionsPerPage;\n  const currentSessions = sessions?.slice(\n    indexOfFirstSession,\n    indexOfLastSession\n  ) || [];

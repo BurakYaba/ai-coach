@@ -7,6 +7,11 @@ import {
   GradientCard,
   GradientCardSimple,
 } from "@/components/ui/gradient-card";
+import {
+  StructuredData,
+  organizationSchema,
+  websiteSchema,
+} from "@/components/seo/StructuredData";
 
 // SEO metadata for the landing page
 export const metadata: Metadata = {
@@ -51,6 +56,10 @@ const BackgroundGradient = () => (
 export default function LandingPage() {
   return (
     <div className="flex flex-col min-h-screen bg-background overflow-hidden">
+      {/* Add structured data for SEO */}
+      <StructuredData type="Organization" data={organizationSchema} />
+      <StructuredData type="WebSite" data={websiteSchema} />
+
       {/* Global background effect */}
       <BackgroundGradient />
 
@@ -70,6 +79,12 @@ export default function LandingPage() {
               className="text-sm font-medium hover:text-primary transition-colors"
             >
               Features
+            </Link>
+            <Link
+              href="/blog"
+              className="text-sm font-medium hover:text-primary transition-colors"
+            >
+              Blog
             </Link>
             <Link
               href="#testimonials"

@@ -12,7 +12,11 @@
     "type-check": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "generate:og": "node scripts/generate-og-images.mjs",
+    "generate:icons": "node scripts/generate-icons.mjs",
+    "generate:favicon": "node scripts/create-favicon.mjs",
+    "generate:all": "npm run generate:favicon && npm run generate:icons && npm run generate:og"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
