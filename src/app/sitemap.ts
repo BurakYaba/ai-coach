@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://fluenta.com"; // Replace with your actual domain
+  const baseUrl = "https://www.fluenta-ai.com"; // Updated to correct domain
 
   // Blog posts with detailed metadata
   const blogPosts = [

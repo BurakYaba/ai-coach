@@ -29,14 +29,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://fluenta.com"),
+  metadataBase: new URL("https://www.fluenta-ai.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://fluenta.com",
+    url: "https://www.fluenta-ai.com",
     title: "Fluenta | Master English with AI-Powered Learning",
     description:
       "Master English with Fluenta's AI-powered reading, writing, listening, speaking, vocabulary, and grammar practice. Get personalized feedback and track your progress.",
