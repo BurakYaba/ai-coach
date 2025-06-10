@@ -6,7 +6,7 @@ import { normalizeQuestionType } from "@/lib/utils";
 // Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  timeout: 55000, // 55 seconds timeout
+  timeout: 115000, // 115 seconds timeout to match other components
   maxRetries: 2, // Reduce retries to avoid long wait times
 });
 
@@ -101,7 +101,23 @@ export async function generateQuestions(
           role: "user",
           content: `Create ${questionCount} listening comprehension questions based on this transcript for ${level} level learners. Include a mix of multiple-choice, true-false, and fill-in-the-blank questions. For each question, provide a clear explanation of the answer.
 
-The response should be a valid JSON array with objects having these properties:
+IMPORTANT: Return ONLY a JSON object with a "questions" property containing an array of question objects. Do not include any other text.
+
+Expected JSON format:
+{
+  "questions": [
+    {
+      "type": "multiple-choice",
+      "question": "What is the main topic?",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctAnswer": "Option A",
+      "explanation": "The answer is found in the first paragraph...",
+      "timestamp": 50
+    }
+  ]
+}
+
+Each question object should have these exact properties:
 - type: "multiple-choice", "true-false", or "fill-blank"
 - question: The question text
 - options: For multiple-choice, an array of 3-4 options (not needed for other types)
@@ -120,18 +136,54 @@ ${transcript}`,
     let questions = [];
     try {
       const content = response.choices[0].message.content;
+      console.log(
+        "OpenAI questions response content:",
+        content?.substring(0, 500) + "..."
+      );
+
       if (content) {
         const parsed = JSON.parse(content);
+        console.log(
+          "Parsed questions response structure:",
+          Object.keys(parsed)
+        );
+
+        // Handle different possible response structures
         if (Array.isArray(parsed.questions)) {
           questions = parsed.questions;
-        } else {
-          // Handle case where the response might have a different structure
+        } else if (Array.isArray(parsed)) {
           questions = parsed;
+        } else if (parsed.items && Array.isArray(parsed.items)) {
+          questions = parsed.items;
+        } else if (typeof parsed === "object" && parsed !== null) {
+          // Look for any array property in the response
+          const arrayProps = Object.keys(parsed).filter(
+            key => Array.isArray(parsed[key]) && parsed[key].length > 0
+          );
+
+          if (arrayProps.length > 0) {
+            questions = parsed[arrayProps[0]];
+          } else {
+            // If no array found, create a fallback question
+            console.warn(
+              "No valid questions array found in OpenAI response, using fallback"
+            );
+            questions = [];
+          }
+        } else {
+          console.warn("Unexpected response format from OpenAI for questions");
+          questions = [];
         }
       }
     } catch (parseError) {
       console.error("Error parsing questions JSON:", parseError);
       return [];
+    }
+
+    // Ensure questions is an array before processing
+    if (!Array.isArray(questions)) {
+      console.error("Questions is not an array after parsing:", questions);
+      questions = [];
     }
 
     // Validate and assign IDs to each question

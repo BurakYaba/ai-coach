@@ -9,11 +9,23 @@
     "src/app/api/listening/generate/route.ts": {
       "maxDuration": 60
     },
+    "src/app/api/admin/library/generate/route.ts": {
+      "maxDuration": 120
+    },
     "src/app/api/speaking/evaluate/route.ts": {
       "maxDuration": 120
     },
     "src/app/api/speaking/conversation/end/route.ts": {
       "maxDuration": 120
+    },
+    "src/app/api/speaking/conversation/respond/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/speaking/guided-practice/analyze/route.ts": {
+      "maxDuration": 60
+    },
+    "src/app/api/speaking/pronunciation/analyze/route.ts": {
+      "maxDuration": 60
     }
   }
 }

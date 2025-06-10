@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -23,32 +23,32 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { useToast } from '@/components/ui/use-toast';
+} from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { useToast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   level: z.string().min(2, {
-    message: 'Please select a CEFR level',
+    message: "Please select a CEFR level",
   }),
   topic: z.string().min(3, {
-    message: 'Topic must be at least 3 characters',
+    message: "Topic must be at least 3 characters",
   }),
   contentType: z.string().min(1, {
-    message: 'Please select a content type',
+    message: "Please select a content type",
   }),
   targetLength: z.string().min(1, {
-    message: 'Please select a target length',
+    message: "Please select a target length",
   }),
   category: z.string().optional(),
   isPublic: z.boolean().default(false),
@@ -63,11 +63,11 @@ export default function AIGeneratedListeningForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      level: '',
-      topic: '',
-      contentType: 'dialogue',
-      targetLength: 'medium',
-      category: '',
+      level: "",
+      topic: "",
+      contentType: "dialogue",
+      targetLength: "medium",
+      category: "",
       isPublic: false,
     },
   });
@@ -78,10 +78,10 @@ export default function AIGeneratedListeningForm() {
 
     try {
       // Send the form data to the API
-      const response = await fetch('/api/admin/library/generate', {
-        method: 'POST',
+      const response = await fetch("/api/admin/library/generate", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(values),
       });
@@ -89,26 +89,42 @@ export default function AIGeneratedListeningForm() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to generate listening content');
+        throw new Error(data.error || "Failed to generate listening content");
       }
 
       toast({
-        title: 'Success!',
-        description: `Library item "${data.title}" has been ${values.isPublic ? 'published' : 'saved as draft'}.`,
+        title: "Success!",
+        description: `Library item "${data.title}" has been ${values.isPublic ? "published" : "saved as draft"}.`,
       });
 
       // Redirect to the library management page
-      router.push('/admin/library');
+      router.push("/admin/library");
       router.refresh();
     } catch (error) {
-      console.error('Error generating library item:', error);
+      console.error("Error generating library item:", error);
+
+      // Provide more specific error messages for different types of errors
+      let errorMessage = "Failed to generate listening content";
+
+      if (error instanceof Error) {
+        if (
+          error.message.includes("timeout") ||
+          error.message.includes("timed out")
+        ) {
+          errorMessage =
+            "Content generation timed out. Try using a shorter target length or simpler topic. For longer content, consider creating multiple shorter sessions.";
+        } else if (error.message.includes("504")) {
+          errorMessage =
+            "Server timeout - try again with shorter content or a different topic.";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
       toast({
-        title: 'Error',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'Failed to generate listening content',
-        variant: 'destructive',
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -122,7 +138,8 @@ export default function AIGeneratedListeningForm() {
         <CardDescription>
           Our AI will generate a complete listening exercise based on your
           specifications, including transcript, audio, comprehension questions,
-          and vocabulary.
+          and vocabulary. Note: Longer content may take more time to process. If
+          you encounter timeouts, try using shorter target lengths.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -309,7 +326,7 @@ export default function AIGeneratedListeningForm() {
                   Generating (this may take 1-2 minutes)...
                 </>
               ) : (
-                'Generate Listening Exercise'
+                "Generate Listening Exercise"
               )}
             </Button>
           </form>
@@ -340,7 +357,7 @@ function ContentTypeOption({
         <FormLabel className="font-normal cursor-pointer">{label}</FormLabel>
       </div>
       <p
-        className={`text-xs text-muted-foreground ml-7 ${current === value ? 'opacity-100' : 'opacity-70'}`}
+        className={`text-xs text-muted-foreground ml-7 ${current === value ? "opacity-100" : "opacity-70"}`}
       >
         {description}
       </p>

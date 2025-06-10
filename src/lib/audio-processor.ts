@@ -1,13 +1,13 @@
-import { exec } from 'child_process';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
-import { promisify } from 'util';
+import { exec } from "child_process";
+import fs from "fs";
+import os from "os";
+import path from "path";
+import { promisify } from "util";
 
-import { OpenAI } from 'openai';
-import { v4 as uuidv4 } from 'uuid';
+import { OpenAI } from "openai";
+import { v4 as uuidv4 } from "uuid";
 
-import { uploadAudioBuffer } from './cloudinary';
+import { uploadAudioBuffer } from "./cloudinary";
 
 const execPromise = promisify(exec);
 const writeFilePromise = promisify(fs.writeFile);
@@ -17,14 +17,14 @@ const mkdtempPromise = promisify(fs.mkdtemp);
 // Initialize OpenAI
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  timeout: 55000, // 55 seconds timeout to stay under Vercel's 60-second limit
+  timeout: 115000, // 115 seconds timeout to match admin route timeout
   maxRetries: 3, // Increase retries for better reliability
 });
 
 // Define voices by gender for better matching
-const MALE_VOICES = ['onyx', 'echo', 'alloy'] as const;
-const FEMALE_VOICES = ['nova', 'shimmer', 'fable'] as const;
-const NEUTRAL_VOICES = ['alloy'] as const; // For gender-neutral or unknown speakers
+const MALE_VOICES = ["onyx", "echo", "alloy"] as const;
+const FEMALE_VOICES = ["nova", "shimmer", "fable"] as const;
+const NEUTRAL_VOICES = ["alloy"] as const; // For gender-neutral or unknown speakers
 
 // Combined list of all available voices
 const ALL_VOICES = [...MALE_VOICES, ...FEMALE_VOICES] as const;
@@ -32,155 +32,155 @@ type Voice = (typeof ALL_VOICES)[number];
 
 // Common male and female names for gender detection
 const MALE_NAMES = [
-  'john',
-  'david',
-  'michael',
-  'james',
-  'robert',
-  'william',
-  'joseph',
-  'thomas',
-  'charles',
-  'ahmed',
-  'mohamed',
-  'ali',
-  'juan',
-  'carlos',
-  'josé',
-  'wei',
-  'ming',
-  'yuki',
-  'hiroshi',
-  'abdul',
-  'sergei',
-  'dmitri',
-  'hans',
-  'klaus',
-  'paul',
-  'mark',
-  'luke',
-  'matthew',
-  'george',
-  'sam',
-  'alex',
-  'frank',
-  'dan',
-  'andy',
-  'tony',
-  'steve',
-  'brian',
-  'kevin',
-  'ronald',
-  'jason',
-  'edward',
-  'eric',
-  'steven',
-  'patrick',
-  'sean',
-  'adam',
-  'jack',
-  'jonathan',
-  'harry',
-  'peter',
+  "john",
+  "david",
+  "michael",
+  "james",
+  "robert",
+  "william",
+  "joseph",
+  "thomas",
+  "charles",
+  "ahmed",
+  "mohamed",
+  "ali",
+  "juan",
+  "carlos",
+  "josé",
+  "wei",
+  "ming",
+  "yuki",
+  "hiroshi",
+  "abdul",
+  "sergei",
+  "dmitri",
+  "hans",
+  "klaus",
+  "paul",
+  "mark",
+  "luke",
+  "matthew",
+  "george",
+  "sam",
+  "alex",
+  "frank",
+  "dan",
+  "andy",
+  "tony",
+  "steve",
+  "brian",
+  "kevin",
+  "ronald",
+  "jason",
+  "edward",
+  "eric",
+  "steven",
+  "patrick",
+  "sean",
+  "adam",
+  "jack",
+  "jonathan",
+  "harry",
+  "peter",
 ];
 
 const FEMALE_NAMES = [
-  'mary',
-  'patricia',
-  'jennifer',
-  'linda',
-  'elizabeth',
-  'barbara',
-  'susan',
-  'jessica',
-  'maria',
-  'sarah',
-  'karen',
-  'nancy',
-  'lisa',
-  'betty',
-  'anna',
-  'fatima',
-  'aisha',
-  'mei',
-  'yuki',
-  'rosa',
-  'olga',
-  'natasha',
-  'lucia',
-  'carmen',
-  'andrea',
-  'julia',
-  'sofia',
-  'isabella',
-  'emily',
-  'amanda',
-  'jane',
-  'amy',
-  'diana',
-  'kate',
-  'helen',
-  'laura',
-  'olivia',
-  'emma',
-  'zoe',
-  'sophia',
-  'mia',
-  'lily',
-  'victoria',
-  'grace',
-  'sophie',
-  'lauren',
-  'charlotte',
-  'hannah',
-  'lucy',
-  'rachel',
+  "mary",
+  "patricia",
+  "jennifer",
+  "linda",
+  "elizabeth",
+  "barbara",
+  "susan",
+  "jessica",
+  "maria",
+  "sarah",
+  "karen",
+  "nancy",
+  "lisa",
+  "betty",
+  "anna",
+  "fatima",
+  "aisha",
+  "mei",
+  "yuki",
+  "rosa",
+  "olga",
+  "natasha",
+  "lucia",
+  "carmen",
+  "andrea",
+  "julia",
+  "sofia",
+  "isabella",
+  "emily",
+  "amanda",
+  "jane",
+  "amy",
+  "diana",
+  "kate",
+  "helen",
+  "laura",
+  "olivia",
+  "emma",
+  "zoe",
+  "sophia",
+  "mia",
+  "lily",
+  "victoria",
+  "grace",
+  "sophie",
+  "lauren",
+  "charlotte",
+  "hannah",
+  "lucy",
+  "rachel",
 ];
 
 // Full path to FFmpeg executable (can be configured via env variable or default)
-const FFMPEG_PATH = process.env.FFMPEG_PATH || 'ffmpeg';
+const FFMPEG_PATH = process.env.FFMPEG_PATH || "ffmpeg";
 
 /**
  * Determine gender from a name
  * @param name The speaker's name
  * @returns The likely gender of the person with that name
  */
-function determineGenderFromName(name: string): 'male' | 'female' | 'unknown' {
+function determineGenderFromName(name: string): "male" | "female" | "unknown" {
   const lowerName = name.toLowerCase();
 
   // Check common name lists first
   if (MALE_NAMES.includes(lowerName)) {
-    return 'male';
+    return "male";
   }
 
   if (FEMALE_NAMES.includes(lowerName)) {
-    return 'female';
+    return "female";
   }
 
   // If not in our lists, use common name endings as a heuristic
   // This is not perfect but provides a reasonable guess
   if (
-    lowerName.endsWith('a') ||
-    lowerName.endsWith('ia') ||
-    lowerName.endsWith('ina') ||
-    lowerName.endsWith('elle') ||
-    lowerName.endsWith('ette')
+    lowerName.endsWith("a") ||
+    lowerName.endsWith("ia") ||
+    lowerName.endsWith("ina") ||
+    lowerName.endsWith("elle") ||
+    lowerName.endsWith("ette")
   ) {
-    return 'female';
+    return "female";
   }
 
   if (
-    lowerName.endsWith('o') ||
-    lowerName.endsWith('n') ||
-    lowerName.endsWith('k') ||
-    lowerName.endsWith('s') ||
-    lowerName.endsWith('r')
+    lowerName.endsWith("o") ||
+    lowerName.endsWith("n") ||
+    lowerName.endsWith("k") ||
+    lowerName.endsWith("s") ||
+    lowerName.endsWith("r")
   ) {
-    return 'male';
+    return "male";
   }
 
   // If we cannot determine gender, return unknown
-  return 'unknown';
+  return "unknown";
 }
 
 /**
@@ -192,7 +192,7 @@ export function parseTranscriptBySpeaker(transcript: string): Array<{
   speakerIndex: number; // For backward compatibility and audio sequencing
   speakerName: string; // The name of the speaker
   text: string; // The spoken text
-  detectedGender: 'male' | 'female' | 'unknown'; // Gender based on name
+  detectedGender: "male" | "female" | "unknown"; // Gender based on name
 }> {
   // Try to match named speakers first (e.g., "John: Hello")
   const namedRegex =
@@ -205,7 +205,7 @@ export function parseTranscriptBySpeaker(transcript: string): Array<{
     speakerIndex: number;
     speakerName: string;
     text: string;
-    detectedGender: 'male' | 'female' | 'unknown';
+    detectedGender: "male" | "female" | "unknown";
   }> = [];
 
   // Track unique speakers to maintain consistent indexing
@@ -254,22 +254,22 @@ export function parseTranscriptBySpeaker(transcript: string): Array<{
       // For backward compatibility, try to infer gender from content
       // This uses a simplified approach compared to the original complex algorithm
       const lowerText = text.toLowerCase();
-      let detectedGender: 'male' | 'female' | 'unknown' = 'unknown';
+      let detectedGender: "male" | "female" | "unknown" = "unknown";
 
       // Simple pronoun-based detection
       if (
         /\b(he|him|his|himself|mr\.)\b/i.test(lowerText) &&
         !/\b(she|her|hers|herself|mrs\.|ms\.)\b/i.test(lowerText)
       ) {
-        detectedGender = 'male';
+        detectedGender = "male";
       } else if (
         !/\b(he|him|his|himself|mr\.)\b/i.test(lowerText) &&
         /\b(she|her|hers|herself|mrs\.|ms\.)\b/i.test(lowerText)
       ) {
-        detectedGender = 'female';
+        detectedGender = "female";
       } else {
         // Alternate for variety
-        detectedGender = speakerIndex % 2 === 0 ? 'male' : 'female';
+        detectedGender = speakerIndex % 2 === 0 ? "male" : "female";
       }
 
       segments.push({
@@ -292,12 +292,12 @@ export function parseTranscriptBySpeaker(transcript: string): Array<{
  */
 export function getVoiceForSpeaker(
   speakerIndex: number,
-  detectedGender: 'male' | 'female' | 'unknown' = 'unknown'
+  detectedGender: "male" | "female" | "unknown" = "unknown"
 ): Voice {
-  if (detectedGender === 'male') {
+  if (detectedGender === "male") {
     // Select from male voices
     return MALE_VOICES[(speakerIndex - 1) % MALE_VOICES.length];
-  } else if (detectedGender === 'female') {
+  } else if (detectedGender === "female") {
     // Select from female voices
     return FEMALE_VOICES[(speakerIndex - 1) % FEMALE_VOICES.length];
   } else {
@@ -318,19 +318,19 @@ export async function generateSpeakerAudio(
 ): Promise<string> {
   try {
     const response = await openai.audio.speech.create({
-      model: 'tts-1',
+      model: "tts-1",
       voice,
       input: text,
     });
 
     const buffer = Buffer.from(await response.arrayBuffer());
-    const tempDir = await mkdtempPromise(path.join(os.tmpdir(), 'tts-'));
+    const tempDir = await mkdtempPromise(path.join(os.tmpdir(), "tts-"));
     const tempFilePath = path.join(tempDir, `${uuidv4()}.mp3`);
     await writeFilePromise(tempFilePath, buffer);
 
     return tempFilePath;
   } catch (error) {
-    console.error('Error generating speaker audio:', error);
+    console.error("Error generating speaker audio:", error);
     throw error;
   }
 }
@@ -341,12 +341,12 @@ export async function generateSpeakerAudio(
  * @returns Upload result from Cloudinary or local data URL
  */
 export async function createMultiSpeakerAudio(transcript: string) {
-  let tempDir = '';
+  let tempDir = "";
   const tempFiles: string[] = [];
 
   try {
     // Create temporary directory
-    tempDir = await mkdtempPromise(path.join(os.tmpdir(), 'multi-speaker-'));
+    tempDir = await mkdtempPromise(path.join(os.tmpdir(), "multi-speaker-"));
 
     // Parse transcript to get speaker segments
     const segments = parseTranscriptBySpeaker(transcript);
@@ -369,10 +369,10 @@ export async function createMultiSpeakerAudio(transcript: string) {
     );
 
     // Create file with concatenation instructions for FFmpeg
-    const concatFilePath = path.join(tempDir, 'concat.txt');
+    const concatFilePath = path.join(tempDir, "concat.txt");
     const concatFileContent = audioFilePaths
       .map(file => `file '${file.path.replace(/'/g, "'\\''")}'`)
-      .join('\n');
+      .join("\n");
 
     await writeFilePromise(concatFilePath, concatFileContent);
     tempFiles.push(concatFilePath);
@@ -392,10 +392,10 @@ export async function createMultiSpeakerAudio(transcript: string) {
       // Try to upload to Cloudinary with specific encoding settings
       // This tells Cloudinary exactly what format to expect
       const cloudinaryResult = await uploadAudioBuffer(combinedBuffer, {
-        folder: 'listening-sessions',
-        resource_type: 'video',
-        format: 'mp3', // Explicitly specify format
-        audio_codec: 'mp3', // Explicitly specify codec
+        folder: "listening-sessions",
+        resource_type: "video",
+        format: "mp3", // Explicitly specify format
+        audio_codec: "mp3", // Explicitly specify codec
       });
 
       return {
@@ -406,7 +406,7 @@ export async function createMultiSpeakerAudio(transcript: string) {
       };
     } catch (cloudinaryError) {
       console.warn(
-        'Cloudinary upload failed, using local audio:',
+        "Cloudinary upload failed, using local audio:",
         cloudinaryError
       );
 
@@ -424,9 +424,9 @@ export async function createMultiSpeakerAudio(transcript: string) {
 
         // Try uploading with raw resource type
         const cloudinaryResult = await uploadAudioBuffer(finalBuffer, {
-          folder: 'listening-sessions',
-          resource_type: 'raw',
-          format: 'mp3',
+          folder: "listening-sessions",
+          resource_type: "raw",
+          format: "mp3",
         });
 
         return {
@@ -437,10 +437,10 @@ export async function createMultiSpeakerAudio(transcript: string) {
           speakerCount: new Set(segments.map(s => s.speakerIndex)).size,
         };
       } catch (secondError) {
-        console.warn('Secondary upload attempt failed:', secondError);
+        console.warn("Secondary upload attempt failed:", secondError);
 
         // Convert buffer to base64 data URL as final fallback
-        const base64Audio = combinedBuffer.toString('base64');
+        const base64Audio = combinedBuffer.toString("base64");
         const dataUrl = `data:audio/mp3;base64,${base64Audio}`;
 
         return {
@@ -452,7 +452,7 @@ export async function createMultiSpeakerAudio(transcript: string) {
       }
     }
   } catch (error) {
-    console.error('Error creating multi-speaker audio:', error);
+    console.error("Error creating multi-speaker audio:", error);
     throw error;
   } finally {
     // Clean up temporary files
@@ -533,15 +533,15 @@ export async function generateTitleFromTranscript(
   try {
     // Generate a title using OpenAI
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: "gpt-3.5-turbo",
       messages: [
         {
-          role: 'system',
+          role: "system",
           content:
-            'You are a helpful assistant that creates concise, engaging titles.',
+            "You are a helpful assistant that creates concise, engaging titles.",
         },
         {
-          role: 'user',
+          role: "user",
           content: `Create a short, engaging title (maximum 8 words) for a language learning listening exercise about ${topic} based on this transcript. Don't use quotes in the title:\n\n${transcript.substring(0, 1000)}...`,
         },
       ],
@@ -552,9 +552,9 @@ export async function generateTitleFromTranscript(
     const title =
       response.choices[0].message.content?.trim() ||
       `Conversation about ${topic}`;
-    return title.replace(/["']/g, ''); // Remove quotes if they exist
+    return title.replace(/["']/g, ""); // Remove quotes if they exist
   } catch (error) {
-    console.error('Error generating title:', error);
+    console.error("Error generating title:", error);
     return `Conversation about ${topic}`;
   }
 }

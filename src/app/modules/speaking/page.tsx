@@ -200,7 +200,7 @@ export default function SpeakingModule() {
               Practice Real-World Scenarios
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Choose from 50+ conversation scenarios designed for practical
+              Choose from 47+ conversation scenarios designed for practical
               English use in work, travel, and daily life.
             </p>
           </div>
@@ -339,7 +339,7 @@ export default function SpeakingModule() {
               </CardHeader>
               <CardContent>
                 <p className="text-sm">
-                  Select from 50+ real-world conversation scenarios based on
+                  Select from 47+ real-world conversation scenarios based on
                   your goals and interests.
                 </p>
               </CardContent>

@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 // Initialize OpenAI with improved timeout handling
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
-  timeout: 55000, // 55 seconds timeout
+  timeout: 115000, // 115 seconds timeout (under 120s Vercel limit)
   maxRetries: 3,
 });
 
@@ -29,9 +29,12 @@ const openai = new OpenAI({
 export async function POST(req: NextRequest) {
   // Set a controller to handle timeouts more gracefully
   const controller = new AbortController();
+  // Use longer timeout for local development (5 minutes), shorter for production
+  const timeoutDuration =
+    process.env.NODE_ENV === "development" ? 300000 : 115000;
   const timeoutId = setTimeout(() => {
     controller.abort();
-  }, 55000); // 55 second timeout
+  }, timeoutDuration);
 
   try {
     const session = await getServerSession(authOptions);
@@ -105,6 +108,26 @@ export async function POST(req: NextRequest) {
         level as keyof typeof wordCounts.medium
       ] || 400;
 
+    // Add a check for potentially problematic content lengths
+    // Longer content takes more time to process and generate audio
+    if (targetWordCount > 800) {
+      console.warn(
+        `Warning: High word count (${targetWordCount}) may cause timeout. Consider using shorter content.`
+      );
+    }
+
+    // In development mode, cap word count to speed up testing
+    const finalWordCount =
+      process.env.NODE_ENV === "development"
+        ? Math.min(targetWordCount, 600) // Cap at 600 words for faster testing
+        : targetWordCount;
+
+    if (finalWordCount < targetWordCount) {
+      console.log(
+        `Development mode: Reduced word count from ${targetWordCount} to ${finalWordCount} for faster processing`
+      );
+    }
+
     // Determine number of speakers based on content type
     const speakerCountMap = {
       monologue: 1,
@@ -119,13 +142,20 @@ export async function POST(req: NextRequest) {
     // Content generation process
     try {
       // Step 1: Generate transcript using OpenAI
+      console.log(
+        `Starting content generation for ${level} ${contentType} on topic "${topic}"...`
+      );
+      const startTime = Date.now();
+
+      console.log("Step 1/6: Generating transcript...");
       const transcript = await generateTranscript(
         level,
         topic,
         contentType,
-        targetWordCount,
+        finalWordCount,
         speakerCount
       );
+      console.log(`Transcript generated in ${Date.now() - startTime}ms`);
 
       // Check if operation was aborted due to timeout
       if (controller.signal.aborted) {
@@ -141,7 +171,10 @@ export async function POST(req: NextRequest) {
       }
 
       // Step 2: Create multi-speaker audio from transcript
+      console.log("Step 2/6: Generating audio from transcript...");
+      const audioStartTime = Date.now();
       const audioResult = await createMultiSpeakerAudio(transcript);
+      console.log(`Audio generated in ${Date.now() - audioStartTime}ms`);
 
       // Check if operation was aborted due to timeout after audio generation
       if (controller.signal.aborted) {
@@ -156,14 +189,20 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Step 3: Generate questions
-      const questions = await generateQuestions(transcript, level);
-
-      // Step 4: Extract vocabulary
-      const vocabulary = await extractVocabulary(transcript, level);
-
-      // Step 5: Generate title
-      const title = await generateTitle(transcript, topic, level);
+      // Steps 3-5: Run question generation, vocabulary extraction, and title generation in parallel
+      // This significantly reduces processing time
+      console.log(
+        "Steps 3-5/6: Generating questions, vocabulary, and title in parallel..."
+      );
+      const parallelStartTime = Date.now();
+      const [questions, vocabulary, title] = await Promise.all([
+        generateQuestions(transcript, level),
+        extractVocabulary(transcript, level),
+        generateTitle(transcript, topic, level),
+      ]);
+      console.log(
+        `Parallel generation completed in ${Date.now() - parallelStartTime}ms`
+      );
 
       // After generating the transcript and creating the audio
       // const segments = parseTranscriptBySpeaker(transcript);  // commented out as currently unused
@@ -230,6 +269,8 @@ export async function POST(req: NextRequest) {
         const suggestedTopics = await suggestNextTopics(topic, level);
 
         // Create a library item (which is a special type of listening session)
+        console.log("Step 6/6: Creating library item in database...");
+        const dbStartTime = Date.now();
         const libraryItem = await ListeningSession.create({
           userId: userObjectId,
           title,
@@ -266,6 +307,11 @@ export async function POST(req: NextRequest) {
             suggestedNextTopics: suggestedTopics,
           },
         });
+
+        console.log(
+          `Database creation completed in ${Date.now() - dbStartTime}ms`
+        );
+        console.log(`Total generation time: ${Date.now() - startTime}ms`);
 
         return NextResponse.json(libraryItem, { status: 201 });
       } catch (dbError) {
