@@ -330,14 +330,26 @@ export async function POST(req: NextRequest) {
               type: audioFile.type,
             });
 
+            // Use same prompt logic as main Whisper path
+            const isAdvancedLevel =
+              speakingSession.metadata?.level &&
+              ["b2", "c1", "c2"].includes(
+                speakingSession.metadata.level.toLowerCase()
+              );
+
+            const prompt = isAdvancedLevel
+              ? "Transcribe exactly as spoken including errors and hesitations."
+              : "Transcribe exactly as spoken. Preserve all grammatical errors, filler words, and hesitations. Do not correct grammar or improve fluency.";
+
             const whisperTranscription =
               await openai.audio.transcriptions.create({
                 file: file,
                 model: "whisper-1",
                 language: "en",
-                prompt:
-                  "Transcribe exactly as spoken. Preserve all grammatical errors, filler words, and hesitations. Do not correct grammar or improve fluency. For language learning purposes, exact transcription is critical.",
+                prompt: prompt,
                 temperature: 0.0,
+                // OPTIMIZATION: Use JSON response format for faster parsing
+                response_format: "json",
               });
             transcribedText = whisperTranscription.text;
           } catch (whisperError) {
@@ -348,32 +360,66 @@ export async function POST(req: NextRequest) {
       } else {
         // Use OpenAI Whisper API
         console.log("Using OpenAI Whisper for transcription");
+
+        // OPTIMIZATION: Choose prompt based on learning context
+        // For advanced learners, speed matters more; for beginners, error preservation is critical
+        const isAdvancedLevel =
+          speakingSession.metadata?.level &&
+          ["b2", "c1", "c2"].includes(
+            speakingSession.metadata.level.toLowerCase()
+          );
+
+        const prompt = isAdvancedLevel
+          ? "Transcribe exactly as spoken including errors and hesitations."
+          : "Transcribe exactly as spoken. Preserve all grammatical errors, filler words, and hesitations. Do not correct grammar or improve fluency.";
+
+        console.log(
+          `Using ${isAdvancedLevel ? "simplified" : "detailed"} prompt for level: ${speakingSession.metadata?.level || "unknown"}`
+        );
+
         const transcription = await openai.audio.transcriptions.create({
           file: new File([buffer], "audio.webm", { type: audioFile.type }),
           model: "whisper-1",
           language: "en",
-          prompt:
-            "Transcribe exactly as spoken. Preserve all grammatical errors, filler words, and hesitations. Do not correct grammar or improve fluency. For language learning purposes, exact transcription is critical.",
+          prompt: prompt,
           temperature: 0.0,
+          // OPTIMIZATION: Use JSON response format for faster parsing
+          response_format: "json",
         });
         transcribedText = transcription.text;
       }
 
-      // Check for potential grammar errors
-      const errorAnalysis = await detectPotentialGrammarErrors(transcribedText);
+      // OPTIMIZATION: Run grammar analysis and database operations in parallel
+      console.log(
+        "Running parallel processing for grammar analysis and database save"
+      );
 
-      // Add the transcription to the session with error metadata
-      speakingSession.transcripts.push({
-        role: "user",
-        text: transcribedText,
-        timestamp: new Date(),
-        metadata: {
+      const [errorAnalysis] = await Promise.all([
+        // Grammar analysis (async)
+        detectPotentialGrammarErrors(transcribedText),
+
+        // Database save (async) - save transcription first
+        (async () => {
+          speakingSession.transcripts.push({
+            role: "user",
+            text: transcribedText,
+            timestamp: new Date(),
+          });
+          return speakingSession.save();
+        })(),
+      ]);
+
+      // Update the saved transcript with grammar metadata (quick operation)
+      const lastTranscript =
+        speakingSession.transcripts[speakingSession.transcripts.length - 1];
+      if (lastTranscript) {
+        lastTranscript.metadata = {
           potentialGrammarErrors: errorAnalysis.potentialErrors,
           markedText: errorAnalysis.markedText,
-        },
-      });
-
-      await speakingSession.save();
+        };
+        // Save again with metadata (this is fast since it's just updating one field)
+        await speakingSession.save();
+      }
 
       // Return both the transcription and potential errors
       return NextResponse.json({

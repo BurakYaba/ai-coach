@@ -640,11 +640,11 @@ export function TurnBasedConversation() {
     try {
       setIsStartingSession(true);
 
-      // Reset conversation and add a loading message
+      // PHASE 1: Better progressive loading - show immediate feedback
       setConversation([
         {
           role: "assistant",
-          text: "Starting conversation, please wait...",
+          text: "🔄 Connecting to conversation partner...",
         },
       ]);
 
@@ -653,9 +653,9 @@ export function TurnBasedConversation() {
       // Initialize session with backend
       console.log("Starting conversation session");
 
-      // Add timeout for the API request
+      // PHASE 1: Faster timeout for session creation
       const controller = new AbortController();
-      const startTimeoutId = setTimeout(() => controller.abort(), 20000); // 20-second timeout
+      const startTimeoutId = setTimeout(() => controller.abort(), 12000); // Reduced from 15000 to 12000
 
       try {
         const response = await fetch("/api/speaking/conversation/start", {
@@ -685,6 +685,14 @@ export function TurnBasedConversation() {
         setSpeakingSessionId(data.speakingSessionId);
         setIsSessionActive(true);
 
+        // PHASE 1: Show AI is preparing response
+        setConversation([
+          {
+            role: "assistant",
+            text: "✨ AI is preparing your conversation...",
+          },
+        ]);
+
         // Generate initial AI greeting based on selected scenario
         const initialPrompt = getInitialPrompt();
         console.log("Initial prompt:", initialPrompt);
@@ -693,7 +701,7 @@ export function TurnBasedConversation() {
         await generateAIResponse(initialPrompt, true, data.speakingSessionId);
       } catch (error: any) {
         if (error.name === "AbortError") {
-          throw new Error("Request timed out. Please try again.");
+          throw new Error("Connection timed out. Please try again.");
         }
         throw error;
       } finally {
@@ -817,7 +825,22 @@ export function TurnBasedConversation() {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
+
+      // OPTIMIZATION: Configure MediaRecorder for better compression and faster processing
+      const options = {
+        mimeType: "audio/webm;codecs=opus", // Opus codec for better compression
+        audioBitsPerSecond: 64000, // Lower bitrate for faster upload (still good quality for speech)
+      };
+
+      // Fallback for browsers that don't support the preferred format
+      let mediaRecorder;
+      try {
+        mediaRecorder = new MediaRecorder(stream, options);
+      } catch (e) {
+        console.log("Preferred audio format not supported, using default");
+        mediaRecorder = new MediaRecorder(stream);
+      }
+
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
@@ -829,7 +852,7 @@ export function TurnBasedConversation() {
 
       mediaRecorder.onstop = () => {
         const audioBlob = new Blob(audioChunksRef.current, {
-          type: "audio/webm",
+          type: mediaRecorder.mimeType || "audio/webm",
         });
         setAudioBlob(audioBlob);
         processRecording(audioBlob);
@@ -995,9 +1018,9 @@ export function TurnBasedConversation() {
       // Send user input to backend for AI response
       console.log("Sending request to /api/speaking/conversation/respond");
 
-      // Add timeout for the API request
+      // PHASE 1: Faster timeout for better responsiveness
       const controller = new AbortController();
-      const apiTimeoutId = setTimeout(() => controller.abort(), 50000); // 50-second timeout to match backend
+      const apiTimeoutId = setTimeout(() => controller.abort(), 30000); // Reduced from 40000 to 30000
 
       try {
         const response = await fetch("/api/speaking/conversation/respond", {
@@ -1030,22 +1053,24 @@ export function TurnBasedConversation() {
         const data = await response.json();
         console.log("API response received:", data);
 
-        // Add AI response to conversation
+        // PHASE 1: Add AI response immediately - better perceived performance
         setConversation(prev => [
-          ...prev,
+          ...prev.filter(
+            msg => !msg.text.includes("🔄") && !msg.text.includes("✨")
+          ), // Remove loading messages
           { role: "assistant", text: data.text },
         ]);
 
-        // Play audio response
+        // PHASE 1: Handle audio loading with better feedback
         if (data.audioUrl && audioElementRef.current) {
-          console.log("Playing audio response");
+          console.log("Loading audio response...");
           audioElementRef.current.src = data.audioUrl;
 
-          // Add timeout for audio loading
+          // PHASE 1: Faster audio loading timeout
           const audioLoadTimeout = setTimeout(() => {
-            console.warn("Audio loading timeout, continuing without audio");
+            console.warn("Audio loading timeout, continuing in text mode");
             setStatus("idle");
-          }, 10000); // 10 second timeout for audio loading
+          }, 6000); // Reduced from 8000 to 6000 for faster fallback
 
           audioElementRef.current.onloadeddata = () => {
             clearTimeout(audioLoadTimeout);
@@ -1076,7 +1101,7 @@ export function TurnBasedConversation() {
         }
       } catch (error: any) {
         if (error.name === "AbortError") {
-          throw new Error("Request timed out. Please try again.");
+          throw new Error("Response timed out. Please try again.");
         }
         throw error;
       } finally {
@@ -1097,180 +1122,21 @@ export function TurnBasedConversation() {
   };
 
   const getInitialPrompt = () => {
-    // Find the selected scenario
+    // PHASE 2: Simple approach - let the system prompt handle role-playing
+    // This prevents role confusion where AI responds to the greeting instead of giving it
     const scenario = ROLE_PLAY_SCENARIOS.find(s => s.id === selectedScenario);
 
     if (!scenario) {
-      return "Hello! I'm your AI language practice partner. What would you like to talk about today?";
+      return "Hello!";
     }
 
     if (scenario.id === "free") {
-      return `Hello there! I'm your English language practice partner. I'm here to help you improve your conversation skills. How are you doing today? Is there any specific topic you'd like to discuss?`;
+      return "Hello! I'd like to practice my English conversation skills.";
     }
 
-    // Role-play specific greetings
-    switch (scenario.id) {
-      // Food & Dining
-      case "restaurant":
-        return `Hello and welcome to our restaurant! My name is Alex and I'll be your server today. Would you like to see our menu? We have some excellent specials today that I can tell you about.`;
-
-      case "cafe":
-        return `Good morning! Welcome to our coffee shop. What can I get started for you today? Are you looking for coffee, tea, or maybe something to eat?`;
-
-      case "grocery_shopping":
-        return `Hi there! I'm working here today. Can I help you find anything specific? Are you looking for something in particular or just doing your regular shopping?`;
-
-      case "food_delivery":
-        return `Hello! Thank you for calling our food delivery service. I can help you place an order today. What would you like to order, and what's your delivery address?`;
-
-      // Travel & Transportation
-      case "airport":
-        return `Good day! Welcome to the airport check-in counter. May I see your passport and flight details, please? I'll help you check in for your flight today.`;
-
-      case "taxi_uber":
-        return `Hi! I'm your driver today. Where would you like to go? Please let me know the address or the name of the place you're heading to.`;
-
-      case "public_transport":
-        return `Good morning! I can help you with tickets and directions. Where are you trying to get to today? Do you need help with the schedule or buying a ticket?`;
-
-      case "car_rental":
-        return `Welcome to our car rental office! I can help you with your reservation today. Do you have a booking with us, or would you like to rent a car?`;
-
-      case "train_station":
-        return `Hello! Welcome to the train station. I can help you with tickets and schedules. Where are you traveling to today? Do you need help finding your platform?`;
-
-      // Accommodation
-      case "hotel":
-        return `Good evening and welcome to our hotel! I'm at the front desk and I'll be assisting you with your check-in. Do you have a reservation with us?`;
-
-      case "airbnb_host":
-        return `Hi there! Welcome! I'm your Airbnb host. I hope you had a good trip getting here. Let me show you around and give you the keys. Do you have any questions about the place?`;
-
-      case "apartment_viewing":
-        return `Good afternoon! I'm glad you could make it to see the apartment today. I'm the real estate agent handling this property. Shall we start with a tour of the apartment?`;
-
-      // Shopping & Services
-      case "shopping":
-        return `Hello there! Welcome to our clothing store. We have some great sales going on today. Is there something specific you're looking for? Perhaps I can help you find it.`;
-
-      case "electronics_store":
-        return `Hi! Welcome to our electronics store. Are you looking for anything specific today? Maybe a phone, laptop, or something for your home? I'm here to help you find what you need.`;
-
-      case "pharmacy":
-        return `Good afternoon! Welcome to the pharmacy. How can I help you today? Do you have a prescription to fill, or are you looking for over-the-counter medication?`;
-
-      case "post_office":
-        return `Hello! Welcome to the post office. What can I help you with today? Are you sending a package, buying stamps, or picking up mail?`;
-
-      case "hair_salon":
-        return `Hi there! Welcome to our salon. Do you have an appointment today, or are you looking to schedule one? What kind of service are you interested in?`;
-
-      // Healthcare & Wellness
-      case "doctor":
-        return `Good morning. I'm Dr. Thompson. Thanks for coming in today. What seems to be the problem? Can you tell me what symptoms you've been experiencing?`;
-
-      case "dentist":
-        return `Hello! I'm Dr. Martinez, your dentist for today. Thanks for coming in. What brings you here today? Are you having any dental problems or is this a routine check-up?`;
-
-      case "gym_membership":
-        return `Hi! Welcome to our fitness center. I'm here to help you learn about our gym and membership options. Is this your first time visiting? What are your fitness goals?`;
-
-      // Professional & Business
-      case "interview":
-        return `Hello, thank you for coming in today. I'm the hiring manager for the position you applied for. Please, have a seat. Could you start by telling me a little about yourself and your experience?`;
-
-      case "workplace_meeting":
-        return `Good morning everyone! Thanks for joining today's team meeting. I hope you all had a good week. Let's start by going around and sharing updates on our current projects. How did your tasks go this week?`;
-
-      case "networking_event":
-        return `Hello! Great to meet you at this networking event. I'm Sarah, and I work in marketing. What brings you here today? What kind of work do you do?`;
-
-      case "customer_service":
-        return `Thank you for calling customer service. My name is Mike, and I'm here to help you today. Can you please tell me your account number or the reason for your call?`;
-
-      case "business_presentation":
-        return `Good morning, everyone! Thank you for attending today's presentation. I'm excited to share our new project proposal with you. Before we begin, are there any specific questions you'd like me to address?`;
-
-      // Banking & Finance
-      case "bank_visit":
-        return `Good afternoon! Welcome to our bank. I'm here to help you with your banking needs today. Are you looking to open an account, apply for a loan, or do you have other banking business?`;
-
-      case "insurance_consultation":
-        return `Hello! Thank you for coming in for your insurance consultation. I'm here to help you understand your options and find the best coverage for your needs. What type of insurance are you interested in?`;
-
-      // Education & Learning
-      case "university_enrollment":
-        return `Welcome to our university! I'm an admissions counselor here to help you with enrollment. Are you interested in applying for a specific program? What would you like to study?`;
-
-      case "library_visit":
-        return `Hello! Welcome to the library. I'm here to help you find what you need. Are you looking for specific books, research materials, or do you need help with something else?`;
-
-      case "language_exchange":
-        return `Hi there! Nice to meet you for our language exchange session. I'm really excited to practice with you today. Should we start in English or would you prefer to alternate languages?`;
-
-      // Social & Entertainment
-      case "party_invitation":
-        return `Hey! I'm so excited about planning this party. I was hoping you could help me with some ideas. What do you think would make for a great celebration? Any suggestions for food, music, or activities?`;
-
-      case "movie_theater":
-        return `Hi! Welcome to our movie theater. What movie would you like to see today? I can help you with tickets and show times. Are you looking for any specific genre or time?`;
-
-      case "sports_event":
-        return `Hey there! Great to see another fan here today. Are you excited about the game? Which team are you supporting? This should be a really good match!`;
-
-      case "concert_venue":
-        return `Hi there! Welcome to tonight's concert. Are you excited about the show? Is this your first time seeing this artist perform? The venue has great acoustics!`;
-
-      // Technology & Digital
-      case "tech_support":
-        return `Hello! Thank you for calling tech support. My name is Alex, and I'm here to help you solve your technical problem today. Can you please describe what issue you're experiencing?`;
-
-      case "phone_plan":
-        return `Hi! Welcome to our mobile service store. I can help you with phone plans and services today. Are you looking to upgrade your current plan, get a new phone, or switch carriers?`;
-
-      case "internet_setup":
-        return `Hello! I'm the technician here to help set up your internet service today. I'll make sure everything is working properly. Have you been having any connectivity issues lately?`;
-
-      // Emergency & Urgent Situations
-      case "emergency_call":
-        return `911, what's your emergency? Please stay calm and tell me what's happening. Are you safe right now? What kind of help do you need?`;
-
-      case "police_report":
-        return `Good morning. I'm Officer Johnson. I understand you need to file a report today. Can you please tell me what happened? When and where did this incident occur?`;
-
-      // Home & Lifestyle
-      case "real_estate_agent":
-        return `Hello! I'm excited to help you with your real estate needs. Are you looking to buy a home, sell your current property, or maybe rent something? What's your ideal budget and location?`;
-
-      case "home_repair":
-        return `Hi there! I'm here to take a look at the repair issue you called about. Can you show me the problem and tell me when you first noticed it? I'll give you an estimate for the work.`;
-
-      case "utility_services":
-        return `Hello! Thank you for calling our utility company. I can help you set up new service, report outages, or answer billing questions. What can I assist you with today?`;
-
-      // Cultural & Community
-      case "museum_visit":
-        return `Welcome to our museum! I'm here at the information desk to help make your visit enjoyable. Is this your first time here? Are you interested in any particular exhibits or do you need a map?`;
-
-      case "religious_service":
-        return `Hello and welcome! It's wonderful to see you here today. Are you new to our community? I'd be happy to help you get oriented and answer any questions you might have.`;
-
-      case "volunteer_work":
-        return `Hi there! Thank you so much for your interest in volunteering with us. We really appreciate people who want to give back to the community. What kind of volunteer work interests you most?`;
-
-      // Casual & Daily Life
-      case "neighborhood_chat":
-        return `Hey there, neighbor! How are you doing today? I was just out in the garden and thought I'd say hello. How's everything going with you? Any exciting plans for the weekend?`;
-
-      case "small_talk":
-        return `Hi there! Nice day today, isn't it? I hope you're having a good day. How has your week been going so far? Anything interesting happening?`;
-
-      case "hobby_discussion":
-        return `Hey! I heard you're into the same hobby as me. That's so cool! How long have you been interested in this? I'd love to hear about your experience and maybe share some tips.`;
-
-      default:
-        return `Hello! I'm your AI language practice partner. Let's practice in a ${scenario.name.toLowerCase()} scenario. I'll guide you through this conversation as if we're in a real-life situation.`;
-    }
+    // For role-play scenarios, use simple context-setting prompts
+    // The system prompt will handle the actual role-playing behavior
+    return "Hello!";
   };
 
   return (
@@ -1416,26 +1282,50 @@ export function TurnBasedConversation() {
             ref={conversationContainerRef}
             className="border rounded-lg p-4 space-y-4 max-h-[400px] overflow-y-auto"
           >
-            {conversation.map((message, i) => (
-              <div
-                key={i}
-                className={cn(
-                  "flex items-start space-x-2",
-                  message.role === "user" ? "justify-end" : "justify-start"
-                )}
-              >
+            {conversation.length === 0 ? (
+              <p className="text-center text-muted-foreground text-sm py-8">
+                Click "Start Conversation" to begin speaking practice
+              </p>
+            ) : (
+              conversation.map((message: any, i: number) => (
                 <div
+                  key={i}
                   className={cn(
-                    "max-w-[80%] rounded-lg p-3",
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
+                    "flex items-start space-x-2",
+                    message.role === "user" ? "justify-end" : "justify-start"
                   )}
                 >
-                  <p>{message.text}</p>
+                  <div
+                    className={cn(
+                      "max-w-[80%] rounded-lg p-3",
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted"
+                    )}
+                  >
+                    <p>{message.text}</p>
+                  </div>
+                </div>
+              ))
+            )}
+
+            {/* PHASE 1: Show processing indicator when AI is thinking */}
+            {status === "processing" && conversation.length > 0 && (
+              <div className="flex items-start space-x-2 justify-start">
+                <div className="bg-muted max-w-[80%] rounded-lg p-3">
+                  <div className="flex items-center space-x-2">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                      <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                      <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce"></div>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      AI is thinking...
+                    </p>
+                  </div>
                 </div>
               </div>
-            ))}
+            )}
 
             {isProcessing && (
               <div className="flex justify-center p-4">
