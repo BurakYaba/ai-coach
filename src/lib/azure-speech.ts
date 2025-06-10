@@ -349,18 +349,25 @@ export async function performPronunciationAssessment(
                 // Extract word-level assessment if available
                 let wordLevelAssessment: WordAssessment[] | undefined;
 
+                // Helper function to normalize scores from 0-100 to 0-10 scale
+                const normalizeScore = (score: number) =>
+                  Math.min(Math.max(Math.round((score / 100) * 10), 0), 10);
+
                 if (detailedResults && detailedResults.Words) {
                   wordLevelAssessment = detailedResults.Words.map(
                     (word: any) => {
                       const wordAssessment: WordAssessment = {
                         word: word.Word,
-                        pronunciationScore:
-                          word.PronunciationAssessment?.AccuracyScore || 0,
+                        pronunciationScore: normalizeScore(
+                          word.PronunciationAssessment?.AccuracyScore || 0
+                        ),
                         offset: word.Offset,
                         duration: word.Duration,
                         phonemes: word.Phonemes?.map((p: any) => ({
                           phoneme: p.Phoneme,
-                          score: p.PronunciationAssessment?.AccuracyScore || 0,
+                          score: normalizeScore(
+                            p.PronunciationAssessment?.AccuracyScore || 0
+                          ),
                         })),
                       };
                       return wordAssessment;
@@ -381,12 +388,20 @@ export async function performPronunciationAssessment(
                 }
 
                 resolve({
-                  pronunciationScore: pronunciationResults.pronunciationScore,
-                  fluencyScore: pronunciationResults.fluencyScore,
-                  completenessScore: pronunciationResults.completenessScore,
-                  accuracyScore: pronunciationResults.accuracyScore, // We'll ignore this from Azure
+                  pronunciationScore: normalizeScore(
+                    pronunciationResults.pronunciationScore
+                  ),
+                  fluencyScore: normalizeScore(
+                    pronunciationResults.fluencyScore
+                  ),
+                  completenessScore: normalizeScore(
+                    pronunciationResults.completenessScore
+                  ),
+                  accuracyScore: normalizeScore(
+                    pronunciationResults.accuracyScore
+                  ), // We'll ignore this from Azure
                   prosodyScore: prosodyScore
-                    ? Math.min(Math.round(prosodyScore), 100)
+                    ? normalizeScore(prosodyScore)
                     : undefined,
                   speakingRate,
                   wordLevelAssessment,
@@ -453,34 +468,49 @@ export async function analyzeGrammar(transcripts: string[]): Promise<{
       messages: [
         {
           role: "system",
-          content: `You are a language assessment expert specializing in English grammar and linguistic accuracy analysis.
-Analyze the provided speech transcription for grammar errors and linguistic accuracy.
+          content: `You are a strict English language assessment expert specializing in grammar error detection.
+Analyze the provided speech transcription for ALL grammar errors and linguistic inaccuracies.
 
-By linguistic accuracy, we mean how correctly the speaker uses English vocabulary and grammar structures to convey meaning accurately.
+IMPORTANT: Be thorough and strict in detecting errors including:
+- Tense inconsistencies and incorrect verb forms
+- Subject-verb agreement errors
+- Incorrect article usage (a, an, the)
+- Preposition errors
+- Word choice/vocabulary mistakes
+- Sentence structure problems
+- Missing or extra words
+
+By linguistic accuracy, we mean how correctly the speaker uses English vocabulary and grammar structures.
+
+Scoring Guidelines:
+- 10/10: Perfect grammar with no errors
+- 8-9/10: Excellent with 1-2 minor errors
+- 6-7/10: Good with 3-4 errors or 1-2 significant errors
+- 4-5/10: Fair with multiple errors affecting clarity
+- 1-3/10: Poor with many errors that impede understanding
 
 Return a JSON object with the following structure:
 {
   "grammarIssues": [
     {
-      "text": "The incorrect text",
-      "issue": "Brief description of the grammatical issue",
+      "text": "The exact incorrect text from the transcript",
+      "issue": "Specific description of the grammatical issue",
       "correction": "The corrected text",
-      "explanation": "A brief explanation of the grammar rule"
+      "explanation": "Clear explanation of the grammar rule"
     }
   ],
-  "grammarScore": (a number from 1-10 rating the overall grammatical correctness, where 10 is perfect grammar),
-  "accuracyScore": (a number from 1-10 rating the linguistic accuracy, where 10 is perfectly accurate language use)
+  "grammarScore": (a number from 1-10 rating overall grammatical correctness),
+  "accuracyScore": (a number from 1-10 rating linguistic accuracy and word choice)
 }
 
-If there are no grammar issues, return an empty array for grammarIssues and scores based on the quality of the grammar and accuracy.
-Focus on grammar rules, sentence structure, and appropriate word usage.`,
+CRITICAL: Even if speech sounds "natural", detect ALL grammatical errors. Be particularly strict about tense consistency and formal grammar rules.`,
         },
         {
           role: "user",
-          content: `Here is the transcribed speech to analyze for grammar issues and linguistic accuracy:\n\n${combinedText}`,
+          content: `Analyze this speech transcript for grammar errors and linguistic accuracy. Be thorough and strict:\n\n${combinedText}`,
         },
       ],
-      temperature: 0.3,
+      temperature: 0.1, // Lower temperature for more consistent, strict analysis
       response_format: { type: "json_object" },
     });
 
@@ -633,22 +663,20 @@ export async function analyzeSessionRecordings(
 
   const count = results.length;
 
-  // Convert to 1-10 scale for consistency with your feedback schema
-  const normalizeScore = (score: number) => Math.round((score / 100) * 10);
-
-  // Calculate averages and normalize to 1-10 scale
-  const avgPronunciation = normalizeScore(
+  // Scores are already normalized to 0-10 scale from performPronunciationAssessment
+  // Calculate averages directly without additional normalization
+  const avgPronunciation = Math.round(
     aggregateScores.pronunciationScoreSum / count
   );
-  const avgFluency = normalizeScore(aggregateScores.fluencyScoreSum / count);
-  const avgCompleteness = normalizeScore(
+  const avgFluency = Math.round(aggregateScores.fluencyScoreSum / count);
+  const avgCompleteness = Math.round(
     aggregateScores.completenessScoreSum / count
   );
 
   // Calculate prosody score if available
   const avgProsody =
     aggregateScores.prosodyScoreCount > 0
-      ? normalizeScore(
+      ? Math.round(
           aggregateScores.prosodyScoreSum / aggregateScores.prosodyScoreCount
         )
       : undefined;
@@ -669,9 +697,9 @@ export async function analyzeSessionRecordings(
     // Skip if no word-level assessment is available
     if (!result.wordLevelAssessment) return [];
 
-    // Filter words with pronunciation score below threshold (< 70%)
+    // Filter words with pronunciation score below threshold (< 7/10)
     return result.wordLevelAssessment
-      .filter(word => word.pronunciationScore < 70)
+      .filter(word => word.pronunciationScore < 7)
       .map(word => ({
         word: word.word,
         pronunciationScore: word.pronunciationScore,

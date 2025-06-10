@@ -262,7 +262,7 @@ export default function SpeakingDashboard() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
-          <Link href="/speaking" className="order-1">
+          <Link href="/dashboard/speaking/practice" className="order-1">
             <Button
               className="w-full sm:w-auto text-xs sm:text-sm"
               data-tour="practice-speaking-btn"
@@ -555,7 +555,7 @@ export default function SpeakingDashboard() {
               No speaking sessions found. Start practicing to see your history!
             </p>
             <div className="mt-4">
-              <Link href="/speaking">
+              <Link href="/dashboard/speaking/practice">
                 <Button>Start Speaking Practice</Button>
               </Link>
             </div>

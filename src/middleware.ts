@@ -7,7 +7,6 @@ const SUBSCRIPTION_PROTECTED_PATHS = [
   "/dashboard",
   "/grammar",
   "/reading",
-  "/speaking",
   "/listening",
   "/writing",
   "/vocabulary",

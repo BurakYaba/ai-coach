@@ -1,6 +1,6 @@
-import Link from 'next/link';
+import Link from "next/link";
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 
 export default function SpeakingSessionNotFound() {
   return (
@@ -15,7 +15,9 @@ export default function SpeakingSessionNotFound() {
           <Link href="/dashboard/speaking">Back to Speaking Dashboard</Link>
         </Button>
         <Button asChild variant="outline">
-          <Link href="/speaking">Start New Speaking Session</Link>
+          <Link href="/dashboard/speaking/practice">
+            Start New Speaking Session
+          </Link>
         </Button>
       </div>
     </div>

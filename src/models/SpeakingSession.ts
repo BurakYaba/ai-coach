@@ -52,7 +52,7 @@ export interface ISpeakingSession extends Document {
     }>;
   };
   metadata?: {
-    mode?: "realtime" | "turn-based";
+    mode?: "realtime" | "turn-based" | "guided-practice";
     scenario?: string;
     level?: string;
     audioUrls?: string[]; // Array of audio recording URLs for this session
@@ -271,7 +271,7 @@ const speakingSessionSchema = new Schema<ISpeakingSession>(
     metadata: {
       mode: {
         type: String,
-        enum: ["realtime", "turn-based"],
+        enum: ["realtime", "turn-based", "guided-practice"],
         required: false,
       },
       scenario: {
