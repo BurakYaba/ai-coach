@@ -14,8 +14,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata: Metadata = {
-  title: "Register - Fluenta",
-  description: "Create your account",
+  title:
+    "Create Your Free Fluenta Account - Start Learning English with AI Today",
+  description:
+    "Join Fluenta's AI-powered English learning platform. Sign up for free to access personalized speaking, writing, grammar, and vocabulary practice with instant feedback and adaptive learning technology.",
 };
 
 export default function RegisterPage() {
@@ -23,7 +25,7 @@ export default function RegisterPage() {
     <Card className="w-full">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl text-center">
-          Create an account
+          Join Fluenta - Start Your AI English Learning Journey
         </CardTitle>
         <CardDescription className="text-center">
           Choose your registration type and enter your details

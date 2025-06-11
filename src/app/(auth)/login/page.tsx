@@ -12,15 +12,18 @@ import {
 } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Login - Fluenta",
-  description: "Login to your account",
+  title: "Login to Fluenta - Access Your AI English Learning Dashboard",
+  description:
+    "Sign in to your Fluenta account to continue your English learning journey. Access personalized AI lessons, track your progress, and improve your speaking, writing, and grammar skills with advanced feedback technology.",
 };
 
 export default function LoginPage() {
   return (
     <Card className="w-full">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">Welcome back</CardTitle>
+        <CardTitle className="text-2xl text-center">
+          Welcome back to Fluenta
+        </CardTitle>
         <CardDescription className="text-center">
           Enter your email and password to login to your account
         </CardDescription>
