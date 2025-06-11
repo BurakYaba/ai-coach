@@ -210,7 +210,7 @@ export default function LandingPage() {
           <div
             className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
             style={{
-              backgroundImage: "url('/reading.jpg')",
+              backgroundImage: "url('/reading.jpg?v=1')",
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
@@ -296,7 +296,7 @@ export default function LandingPage() {
           <div
             className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
             style={{
-              backgroundImage: "url('/writing.jpg')",
+              backgroundImage: "url('/writing.jpg?v=1')",
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
@@ -384,7 +384,7 @@ export default function LandingPage() {
           <div
             className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
             style={{
-              backgroundImage: "url('/listening.jpg')",
+              backgroundImage: "url('/listening.jpg?v=1')",
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
@@ -470,7 +470,7 @@ export default function LandingPage() {
           <div
             className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
             style={{
-              backgroundImage: "url('/speaking.jpg')",
+              backgroundImage: "url('/speaking.jpg?v=1')",
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
@@ -558,7 +558,7 @@ export default function LandingPage() {
           <div
             className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
             style={{
-              backgroundImage: "url('/vocabulary.jpg')",
+              backgroundImage: "url('/vocabulary.jpg?v=1')",
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
@@ -650,7 +650,7 @@ export default function LandingPage() {
           <div
             className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
             style={{
-              backgroundImage: "url('/grammar.jpg')",
+              backgroundImage: "url('/grammar.jpg?v=1')",
               backgroundSize: "cover",
               backgroundPosition: "center",
               backgroundRepeat: "no-repeat",
