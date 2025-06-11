@@ -47,11 +47,9 @@ export const metadata: Metadata = {
         width: 1200,
         height: 630,
         alt: "Fluenta - AI-Powered English Learning Platform",
+        type: "image/png",
       },
     ],
-  },
-  other: {
-    "fb:app_id": "your-facebook-app-id", // Optional: Replace with actual Facebook App ID
   },
   twitter: {
     card: "summary_large_image",
@@ -89,6 +87,47 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#3b82f6" />
+
+        {/* Explicit Open Graph tags for better social media compatibility */}
+        <meta
+          property="og:title"
+          content="Fluenta | Master English with AI-Powered Learning"
+        />
+        <meta
+          property="og:description"
+          content="Master English with Fluenta's AI-powered reading, writing, listening, speaking, vocabulary, and grammar practice. Get personalized feedback and track your progress."
+        />
+        <meta
+          property="og:image"
+          content="https://www.fluenta-ai.com/og-images/og-home.png"
+        />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:type" content="image/png" />
+        <meta
+          property="og:image:alt"
+          content="Fluenta - AI-Powered English Learning Platform"
+        />
+        <meta property="og:url" content="https://www.fluenta-ai.com" />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Fluenta" />
+
+        {/* Twitter Card tags */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+          name="twitter:title"
+          content="Fluenta | Master English with AI-Powered Learning"
+        />
+        <meta
+          name="twitter:description"
+          content="Master English with Fluenta's AI-powered reading, writing, listening, speaking, vocabulary, and grammar practice."
+        />
+        <meta
+          name="twitter:image"
+          content="https://www.fluenta-ai.com/og-images/og-home.png"
+        />
+        <meta name="twitter:creator" content="@fluenta" />
+
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link
           rel="icon"
