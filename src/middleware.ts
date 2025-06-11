@@ -56,11 +56,19 @@ const ONBOARDING_EXEMPT_PATHS = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip middleware for static files (images, fonts, etc.)
+  // Skip middleware for static files (images, fonts, etc.) - Enhanced check
   if (
     pathname.match(
       /\.(jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot|css|js|json|xml|txt)$/
-    )
+    ) ||
+    pathname.startsWith("/og-images/") ||
+    pathname.startsWith("/images/") ||
+    pathname.startsWith("/static/") ||
+    pathname.startsWith("/_next/") ||
+    pathname === "/robots.txt" ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/manifest.json" ||
+    pathname === "/favicon.ico"
   ) {
     return NextResponse.next();
   }
@@ -229,11 +237,14 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except:
-     * 1. All paths that start with: _next, static, images, favicon.ico, sw.js, robots.txt, manifest.json, etc.
-     * 2. All public files in the public directory
-     * 3. OG images for social media crawlers
+     * Match all request paths except for:
+     * 1. _next/static (static files)
+     * 2. _next/image (image optimization files)
+     * 3. favicon.ico (favicon file)
+     * 4. All files with extensions (js, css, images, etc.)
+     * 5. og-images directory (for social media)
+     * 6. Other static assets
      */
-    "/((?!_next/|static/|public/|images/|img/|og-images/|favicon.ico|sw.js|workbox-|robots.txt|manifest.json|sitemap.xml).*)",
+    "/((?!_next/static|_next/image|favicon.ico|og-images|images|static|.*\\.(?:jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot|css|js|json|xml|txt)$).*)",
   ],
 };
