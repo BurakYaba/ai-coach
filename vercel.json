@@ -26,6 +26,9 @@
     },
     "src/app/api/speaking/pronunciation/analyze/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/grammar/lessons/route.ts": {
+      "maxDuration": 60
     }
   }
 }

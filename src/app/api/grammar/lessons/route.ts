@@ -1,12 +1,12 @@
-import mongoose from 'mongoose';
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import OpenAI from 'openai';
+import mongoose from "mongoose";
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import OpenAI from "openai";
 
-import { authOptions } from '@/lib/auth';
-import dbConnect from '@/lib/db';
-import GrammarIssue from '@/models/GrammarIssue';
-import GrammarLesson from '@/models/GrammarLesson';
+import { authOptions } from "@/lib/auth";
+import dbConnect from "@/lib/db";
+import GrammarIssue from "@/models/GrammarIssue";
+import GrammarLesson from "@/models/GrammarLesson";
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -18,17 +18,17 @@ export async function GET(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
 
     // Get query parameters
     const url = new URL(req.url);
-    const category = url.searchParams.get('category');
-    const ceferLevel = url.searchParams.get('ceferLevel');
-    const completed = url.searchParams.get('completed');
-    const limit = parseInt(url.searchParams.get('limit') || '20');
+    const category = url.searchParams.get("category");
+    const ceferLevel = url.searchParams.get("ceferLevel");
+    const completed = url.searchParams.get("completed");
+    const limit = parseInt(url.searchParams.get("limit") || "20");
 
     // Build query
     const query: any = { userId: session.user.id };
@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (completed !== null) {
-      query.completed = completed === 'true';
+      query.completed = completed === "true";
     }
 
     // Execute query
@@ -53,9 +53,9 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ lessons });
   } catch (error: any) {
-    console.error('Error fetching grammar lessons:', error);
+    console.error("Error fetching grammar lessons:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch grammar lessons', details: error.message },
+      { error: "Failed to fetch grammar lessons", details: error.message },
       { status: 500 }
     );
   }
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     // Validate required fields
     if (!body.category || !body.ceferLevel) {
       return NextResponse.json(
-        { error: 'Missing required fields: category or ceferLevel' },
+        { error: "Missing required fields: category or ceferLevel" },
         { status: 400 }
       );
     }
@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
 
     if (issues.length === 0) {
       return NextResponse.json(
-        { error: 'No grammar issues found to generate lesson' },
+        { error: "No grammar issues found to generate lesson" },
         { status: 404 }
       );
     }
@@ -133,13 +133,13 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(
-      { lesson: grammarLesson, message: 'Grammar lesson created successfully' },
+      { lesson: grammarLesson, message: "Grammar lesson created successfully" },
       { status: 201 }
     );
   } catch (error: any) {
-    console.error('Error creating grammar lesson:', error);
+    console.error("Error creating grammar lesson:", error);
     return NextResponse.json(
-      { error: 'Failed to create grammar lesson', details: error.message },
+      { error: "Failed to create grammar lesson", details: error.message },
       { status: 500 }
     );
   }
@@ -150,7 +150,7 @@ export async function PATCH(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     await dbConnect();
@@ -159,7 +159,7 @@ export async function PATCH(req: NextRequest) {
     // Get the lesson ID from the URL or body
     let lessonId: string;
     const url = new URL(req.url);
-    const pathParts = url.pathname.split('/');
+    const pathParts = url.pathname.split("/");
     lessonId = pathParts[pathParts.length - 1];
 
     if (!lessonId && body.lessonId) {
@@ -168,7 +168,7 @@ export async function PATCH(req: NextRequest) {
 
     if (!lessonId) {
       return NextResponse.json(
-        { error: 'Lesson ID is required' },
+        { error: "Lesson ID is required" },
         { status: 400 }
       );
     }
@@ -181,18 +181,18 @@ export async function PATCH(req: NextRequest) {
 
     if (!lesson) {
       return NextResponse.json(
-        { error: 'Lesson not found or access denied' },
+        { error: "Lesson not found or access denied" },
         { status: 404 }
       );
     }
 
     // Update fields
-    if (typeof body.completed === 'boolean') {
+    if (typeof body.completed === "boolean") {
       lesson.completed = body.completed;
     }
 
     if (
-      typeof body.score === 'number' &&
+      typeof body.score === "number" &&
       body.score >= 0 &&
       body.score <= 100
     ) {
@@ -216,13 +216,13 @@ export async function PATCH(req: NextRequest) {
     }
 
     return NextResponse.json({
-      message: 'Lesson updated successfully',
+      message: "Lesson updated successfully",
       lesson,
     });
   } catch (error: any) {
-    console.error('Error updating grammar lesson:', error);
+    console.error("Error updating grammar lesson:", error);
     return NextResponse.json(
-      { error: 'Failed to update grammar lesson', details: error.message },
+      { error: "Failed to update grammar lesson", details: error.message },
       { status: 500 }
     );
   }
@@ -274,47 +274,120 @@ Please create a comprehensive grammar lesson with the following components in va
 
 Make sure to tailor the lesson to the specific errors the learner has made, but also cover the broader grammar concept thoroughly.`;
 
-  // Call OpenAI to generate the lesson content
-  const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
-    messages: [
-      {
-        role: 'system',
-        content:
-          'You are an expert language teacher specializing in teaching English grammar.',
-      },
-      {
-        role: 'user',
-        content: prompt,
-      },
-    ],
-    temperature: 0.7,
-    max_tokens: 2500,
-  });
-
-  // Parse the response
-  const responseContent = response.choices[0].message.content || '';
-
   try {
-    // Extract JSON from the response - it might be wrapped in markdown code blocks
-    const jsonMatch = responseContent.match(/```json\s*([\s\S]*?)\s*```/) ||
-      responseContent.match(/```\s*([\s\S]*?)\s*```/) || [
-        null,
-        responseContent,
-      ];
+    // Call OpenAI to generate the lesson content with timeout handling
+    const response = await Promise.race([
+      openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an expert language teacher specializing in teaching English grammar. Always respond with valid JSON.",
+          },
+          {
+            role: "user",
+            content: prompt,
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 2000, // Reduced from 2500 to speed up response
+      }),
+      new Promise(
+        (_, reject) =>
+          setTimeout(() => reject(new Error("OpenAI request timeout")), 45000) // 45 second timeout
+      ),
+    ]);
 
-    const jsonContent = jsonMatch[1] || responseContent;
-    const lessonContent = JSON.parse(jsonContent);
+    // Parse the response
+    const responseContent = (response as any).choices[0].message.content || "";
 
+    try {
+      // Extract JSON from the response - it might be wrapped in markdown code blocks
+      const jsonMatch = responseContent.match(/```json\s*([\s\S]*?)\s*```/) ||
+        responseContent.match(/```\s*([\s\S]*?)\s*```/) || [
+          null,
+          responseContent,
+        ];
+
+      const jsonContent = jsonMatch[1] || responseContent;
+      const lessonContent = JSON.parse(jsonContent);
+
+      // Validate the response structure
+      if (!lessonContent.title || !lessonContent.explanation) {
+        throw new Error("Invalid lesson content structure");
+      }
+
+      return {
+        title: lessonContent.title,
+        explanation: lessonContent.explanation,
+        examples: lessonContent.examples || [],
+        exercises: lessonContent.exercises || [],
+      };
+    } catch (parseError) {
+      console.error("Error parsing OpenAI response:", parseError);
+      console.log("Raw response:", responseContent);
+
+      // Fallback lesson content if parsing fails
+      return {
+        title: `${category} Grammar Practice`,
+        explanation: `This lesson focuses on ${category} grammar rules based on your recent errors. Please review the examples and complete the exercises to improve your understanding.`,
+        examples: issueExamples.slice(0, 3).map(issue => ({
+          correct: issue.correctedText,
+          incorrect: issue.incorrectText,
+          explanation: issue.explanation || "Review this correction carefully.",
+        })),
+        exercises: [
+          {
+            question:
+              "Which of the following sentences is grammatically correct?",
+            options:
+              issueExamples.length > 0
+                ? [
+                    issueExamples[0].correctedText,
+                    issueExamples[0].incorrectText,
+                    "Both are correct",
+                    "Neither is correct",
+                  ]
+                : ["Option A", "Option B", "Option C", "Option D"],
+            correctAnswer:
+              issueExamples.length > 0
+                ? issueExamples[0].correctedText
+                : "Option A",
+            explanation:
+              issueExamples.length > 0
+                ? issueExamples[0].explanation || "This is the correct form."
+                : "Review grammar rules.",
+          },
+        ],
+      };
+    }
+  } catch (error: any) {
+    console.error("Error calling OpenAI API:", error);
+
+    // Return fallback content if OpenAI fails
     return {
-      title: lessonContent.title,
-      explanation: lessonContent.explanation,
-      examples: lessonContent.examples || [],
-      exercises: lessonContent.exercises || [],
+      title: `${category} Grammar Practice`,
+      explanation: `This lesson focuses on ${category} grammar rules. Please review your recent errors and practice the correct forms.`,
+      examples: issueExamples.slice(0, 3).map(issue => ({
+        correct: issue.correctedText,
+        incorrect: issue.incorrectText,
+        explanation: issue.explanation || "Review this correction carefully.",
+      })),
+      exercises: [
+        {
+          question: "Practice identifying correct grammar usage.",
+          options: [
+            "Review examples above",
+            "Practice more",
+            "Ask for help",
+            "Continue learning",
+          ],
+          correctAnswer: "Review examples above",
+          explanation:
+            "Start by reviewing the examples to understand the grammar rules.",
+        },
+      ],
     };
-  } catch (error) {
-    console.error('Error parsing OpenAI response:', error);
-    console.log('Raw response:', responseContent);
-    throw new Error('Failed to generate valid lesson content');
   }
 }
