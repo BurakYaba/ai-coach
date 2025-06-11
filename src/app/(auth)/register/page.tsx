@@ -13,22 +13,60 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export const metadata: Metadata = {
-  title:
-    "Create Your Free Fluenta Account - Start Learning English with AI Today",
-  description:
-    "Join Fluenta's AI-powered English learning platform. Sign up for free to access personalized speaking, writing, grammar, and vocabulary practice with instant feedback and adaptive learning technology.",
-};
+interface Props {
+  searchParams: { plan?: string };
+}
 
-export default function RegisterPage() {
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
+  const plan = searchParams.plan;
+
+  if (plan === "monthly") {
+    return {
+      title: "Sign Up for Monthly Plan - Fluenta AI English Learning",
+      description:
+        "Join Fluenta with our flexible monthly plan. Access AI-powered English learning with personalized speaking, writing, grammar, and vocabulary practice. Cancel anytime.",
+    };
+  } else if (plan === "annual") {
+    return {
+      title: "Sign Up for Annual Plan - Fluenta AI English Learning",
+      description:
+        "Save with Fluenta's annual plan! Get full access to AI-powered English learning with personalized speaking, writing, grammar, and vocabulary practice at the best value.",
+    };
+  }
+
+  return {
+    title: "Create Free Fluenta Account - AI English Learning",
+    description:
+      "Join Fluenta's AI-powered English learning platform. Sign up for free to access personalized speaking, writing, grammar, and vocabulary practice with instant feedback and adaptive learning technology.",
+  };
+}
+
+export default function RegisterPage({ searchParams }: Props) {
+  const plan = searchParams.plan;
+
   return (
     <Card className="w-full">
       <CardHeader className="space-y-1">
+        <h1 className="sr-only">
+          {plan === "monthly"
+            ? "Sign Up for Monthly Plan - Fluenta AI English Learning"
+            : plan === "annual"
+              ? "Sign Up for Annual Plan - Fluenta AI English Learning"
+              : "Create Your Fluenta Account - AI English Learning Platform"}
+        </h1>
         <CardTitle className="text-2xl text-center">
-          Join Fluenta - Start Your AI English Learning Journey
+          {plan === "monthly"
+            ? "Join Fluenta Monthly Plan"
+            : plan === "annual"
+              ? "Join Fluenta Annual Plan"
+              : "Join Fluenta - Start Your AI English Learning Journey"}
         </CardTitle>
         <CardDescription className="text-center">
-          Choose your registration type and enter your details
+          {plan
+            ? `Complete your ${plan} plan registration and start learning`
+            : "Choose your registration type and enter your details"}
         </CardDescription>
       </CardHeader>
       <CardContent>

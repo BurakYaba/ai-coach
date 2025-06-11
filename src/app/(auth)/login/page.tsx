@@ -11,18 +11,43 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-export const metadata: Metadata = {
-  title: "Login to Fluenta - Access Your AI English Learning Dashboard",
-  description:
-    "Sign in to your Fluenta account to continue your English learning journey. Access personalized AI lessons, track your progress, and improve your speaking, writing, and grammar skills with advanced feedback technology.",
-};
+interface Props {
+  searchParams: { callbackUrl?: string };
+}
 
-export default function LoginPage() {
+export async function generateMetadata({
+  searchParams,
+}: Props): Promise<Metadata> {
+  const callbackUrl = searchParams.callbackUrl;
+
+  if (callbackUrl) {
+    return {
+      title: "Login to Continue - Fluenta AI English Learning",
+      description:
+        "Sign in to your Fluenta account to continue to your requested page. Access personalized AI lessons, track your progress, and improve your English skills with advanced learning technology.",
+    };
+  }
+
+  return {
+    title: "Login to Fluenta - AI English Learning Platform",
+    description:
+      "Sign in to your Fluenta account to continue your English learning journey. Access personalized AI lessons, track your progress, and improve your speaking, writing, and grammar skills with advanced feedback technology.",
+  };
+}
+
+export default function LoginPage({ searchParams }: Props) {
+  const callbackUrl = searchParams.callbackUrl;
+
   return (
     <Card className="w-full">
       <CardHeader className="space-y-1">
+        <h1 className="sr-only">
+          {callbackUrl
+            ? "Login to Continue - Fluenta Account Access"
+            : "Login to Your Fluenta Account"}
+        </h1>
         <CardTitle className="text-2xl text-center">
-          Welcome back to Fluenta
+          {callbackUrl ? "Login to Continue" : "Welcome back to Fluenta"}
         </CardTitle>
         <CardDescription className="text-center">
           Enter your email and password to login to your account

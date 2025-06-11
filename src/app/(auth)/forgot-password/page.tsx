@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/card";
 
 export const metadata: Metadata = {
-  title: "Reset Your Fluenta Password - Recover Access to AI English Learning",
+  title: "Reset Fluenta Password - Recover Account Access",
   description:
     "Forgot your Fluenta password? Reset it securely and regain access to your personalized AI English learning platform. Get back to improving your speaking, writing, and grammar skills with instant recovery.",
 };
@@ -21,6 +21,7 @@ export default function ForgotPasswordPage() {
   return (
     <Card className="w-full">
       <CardHeader className="space-y-1">
+        <h1 className="sr-only">Reset Your Fluenta Password</h1>
         <CardTitle className="text-2xl text-center">
           Reset Your Fluenta Password
         </CardTitle>
