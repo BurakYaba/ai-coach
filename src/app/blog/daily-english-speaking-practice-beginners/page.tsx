@@ -670,7 +670,7 @@ export default function DailySpeakingPractice() {
                 <Link href="/register">
                   <Button size="lg">Start Speaking Practice</Button>
                 </Link>
-                <Link href="/speaking-assessment">
+                <Link href="/modules/speaking">
                   <Button variant="outline" size="lg">
                     Take Speaking Assessment
                   </Button>

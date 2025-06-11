@@ -77,7 +77,7 @@ export default function BlogPost() {
                 Blog
               </Link>
               <Link
-                href="/modules/writing"
+                href="/modules/writing-assistant"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Writing Practice

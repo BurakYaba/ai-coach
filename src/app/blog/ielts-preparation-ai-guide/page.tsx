@@ -588,11 +588,6 @@ export default function IELTSPreparationGuide() {
                 <Link href="/register">
                   <Button size="lg">Start Free Trial</Button>
                 </Link>
-                <Link href="/ielts-practice">
-                  <Button variant="outline" size="lg">
-                    Take Practice Test
-                  </Button>
-                </Link>
               </div>
             </div>
           </section>
