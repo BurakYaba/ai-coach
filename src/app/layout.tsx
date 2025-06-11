@@ -50,6 +50,9 @@ export const metadata: Metadata = {
       },
     ],
   },
+  other: {
+    "fb:app_id": "your-facebook-app-id", // Optional: Replace with actual Facebook App ID
+  },
   twitter: {
     card: "summary_large_image",
     title: "Fluenta | Master English with AI-Powered Learning",
