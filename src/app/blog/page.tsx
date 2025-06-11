@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-images/og-blog.png",
+        url: "https://www.fluenta-ai.com/og-images/og-blog.png",
         width: 1200,
         height: 630,
         alt: "Fluenta English Learning Blog",

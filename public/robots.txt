@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /onboarding/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /_next/
+Disallow: /private/
+
+Sitemap: https://www.fluenta-ai.com/sitemap.xml 

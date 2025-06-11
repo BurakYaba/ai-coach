@@ -1,7 +1,7 @@
 import { MetadataRoute } from "next";
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = "https://fluenta.com"; // Replace with your actual domain
+  const baseUrl = "https://www.fluenta-ai.com"; // Use correct www subdomain
 
   return {
     rules: {

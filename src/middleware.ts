@@ -232,7 +232,8 @@ export const config = {
      * Match all request paths except:
      * 1. All paths that start with: _next, static, images, favicon.ico, sw.js, robots.txt, manifest.json, etc.
      * 2. All public files in the public directory
+     * 3. OG images for social media crawlers
      */
-    "/((?!_next/|static/|public/|images/|img/|favicon.ico|sw.js|workbox-|robots.txt|manifest.json|sitemap.xml).*)",
+    "/((?!_next/|static/|public/|images/|img/|og-images/|favicon.ico|sw.js|workbox-|robots.txt|manifest.json|sitemap.xml).*)",
   ],
 };

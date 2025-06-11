@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     siteName: "Fluenta",
     images: [
       {
-        url: "/og-images/og-home.png",
+        url: "https://www.fluenta-ai.com/og-images/og-home.png",
         width: 1200,
         height: 630,
         alt: "Fluenta - AI-Powered English Learning Platform",
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
     title: "Fluenta | Master English with AI-Powered Learning",
     description:
       "Master English with Fluenta's AI-powered reading, writing, listening, speaking, vocabulary, and grammar practice.",
-    images: ["/og-images/og-home.png"],
+    images: ["https://www.fluenta-ai.com/og-images/og-home.png"],
     creator: "@fluenta",
   },
   robots: {
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: "your-google-site-verification-code", // Add your actual verification code
+    google: "fluenta-verification-code", // Replace with your actual verification code
     // yandex: "your-yandex-verification-code",
     // bing: "your-bing-verification-code",
   },
