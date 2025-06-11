@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Metadata } from "next";
 
 import { Button } from "@/components/ui/button";
@@ -66,7 +67,13 @@ export default function LandingPage() {
       {/* Navigation */}
       <header className="fixed top-0 z-50 w-full border-b bg-background backdrop-blur supports-[backdrop-filter]:bg-background bg-opacity-95">
         <div className="container flex h-16 items-center justify-between">
-          <div className="font-bold text-xl">Fluenta</div>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center relative">
+              <span className="text-white font-black text-sm">F</span>
+              <div className="absolute top-1 right-1 w-1 h-1 bg-white rounded-full opacity-80"></div>
+            </div>
+            <span className="font-bold text-xl">Fluenta</span>
+          </div>
           <nav className="hidden md:flex items-center gap-8">
             <Link
               href="/modules/speaking"
@@ -125,18 +132,37 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-[7rem] -mt-[4rem] relative" id="hero">
-        <div className="container relative mx-auto px-5 pb-16 pt-20 md:pb-24 md:pt-24 lg:pb-32 lg:pt-36">
+      <section
+        className="pt-[7rem] -mt-[4rem] relative bg-cover bg-center bg-no-repeat"
+        id="hero"
+        style={{
+          backgroundImage: "url('/hero.png')",
+        }}
+      >
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
+        <div className="container relative mx-auto px-5 pb-16 pt-20 md:pb-24 md:pt-24 lg:pb-32 lg:pt-36 relative z-10">
           <div className="relative z-1 max-w-[62rem] mx-auto text-center mb-[4rem] md:mb-16 lg:mb-[6rem]">
-            <Tagline>Complete English Learning Platform</Tagline>
+            <Tagline>
+              <span className="text-gray-100 font-medium drop-shadow-lg">
+                Complete English Learning Platform
+              </span>
+            </Tagline>
             <h1
-              className="text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:text-7xl lg:leading-[1.1] text-center mb-6 animate-float"
+              className="text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:text-7xl lg:leading-[1.1] text-center mb-6 animate-float drop-shadow-xl"
               style={{ animationDuration: "6s" }}
             >
-              Master English with
+              <span
+                className="text-gray-100"
+                style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
+              >
+                Master English with
+              </span>
               <span className="text-gradient"> Fluenta</span>
             </h1>
-            <p className="max-w-[42rem] mx-auto leading-normal text-muted-foreground sm:text-xl sm:leading-8 text-center mb-8">
+            <p
+              className="max-w-[42rem] mx-auto leading-normal sm:text-xl sm:leading-8 text-center mb-8 text-gray-100 font-medium drop-shadow-lg"
+              style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.8)" }}
+            >
               The all-in-one platform for learning English through interactive
               reading, writing, listening, speaking, vocabulary, and grammar
               modules. Get personalized AI feedback on all your language skills.
@@ -145,7 +171,7 @@ export default function LandingPage() {
               <GradientButton
                 href="/register"
                 size="lg"
-                className="animate-pulse-glow text-xs sm:text-base"
+                className="animate-pulse-glow text-xs sm:text-base font-semibold drop-shadow-lg"
                 style={{ animationDuration: "4s" }}
               >
                 Start Learning Now
@@ -154,7 +180,7 @@ export default function LandingPage() {
                 href="#modules"
                 variant="outline"
                 size="lg"
-                className="text-sm sm:text-base"
+                className="text-sm sm:text-base font-semibold drop-shadow-lg bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
               >
                 Explore Modules
               </GradientButton>
@@ -181,9 +207,19 @@ export default function LandingPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Reading Module */}
-          <GradientCard className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1">
-            <div className="p-6 space-y-4">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white">
+          <div
+            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            style={{
+              backgroundImage: "url('/reading.jpg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              minHeight: "400px",
+            }}
+          >
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="p-6 space-y-4 relative z-10">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -198,13 +234,15 @@ export default function LandingPage() {
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold">Reading Module</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-xl font-semibold text-white">
+                Reading Module
+              </h3>
+              <p className="text-sm text-gray-100">
                 Improve your reading comprehension with AI-generated content
                 tailored to your level and interests. Answer interactive
                 questions, learn vocabulary in context, and track your progress.
               </p>
-              <ul className="text-sm space-y-2 text-muted-foreground">
+              <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -214,7 +252,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-blue-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -229,7 +267,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-blue-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -244,7 +282,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-blue-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -252,12 +290,22 @@ export default function LandingPage() {
                 </li>
               </ul>
             </div>
-          </GradientCard>
+          </div>
 
           {/* Writing Module */}
-          <GradientCard className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1">
-            <div className="p-6 space-y-4">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white">
+          <div
+            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            style={{
+              backgroundImage: "url('/writing.jpg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              minHeight: "400px",
+            }}
+          >
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="p-6 space-y-4 relative z-10">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white shadow-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -274,13 +322,15 @@ export default function LandingPage() {
                   <circle cx="11" cy="11" r="2"></circle>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold">Writing Module</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-xl font-semibold text-white">
+                Writing Module
+              </h3>
+              <p className="text-sm text-gray-100">
                 Enhance your writing skills with guided prompts and AI-powered
                 feedback. Get detailed analysis on grammar, vocabulary usage,
                 sentence structure, and more.
               </p>
-              <ul className="text-sm space-y-2 text-muted-foreground">
+              <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -290,7 +340,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-green-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -305,7 +355,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-green-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -320,7 +370,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-green-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -328,12 +378,22 @@ export default function LandingPage() {
                 </li>
               </ul>
             </div>
-          </GradientCard>
+          </div>
 
           {/* Listening Module */}
-          <GradientCard className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1">
-            <div className="p-6 space-y-4">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white">
+          <div
+            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            style={{
+              backgroundImage: "url('/listening.jpg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              minHeight: "400px",
+            }}
+          >
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="p-6 space-y-4 relative z-10">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -348,13 +408,15 @@ export default function LandingPage() {
                   <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold">Listening Module</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-xl font-semibold text-white">
+                Listening Module
+              </h3>
+              <p className="text-sm text-gray-100">
                 Sharpen your listening skills with a library of audio content.
                 Listen to conversations, answer questions, and practice
                 understanding native speakers.
               </p>
-              <ul className="text-sm space-y-2 text-muted-foreground">
+              <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -364,7 +426,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-purple-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -379,7 +441,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-purple-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -394,7 +456,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-purple-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -402,12 +464,22 @@ export default function LandingPage() {
                 </li>
               </ul>
             </div>
-          </GradientCard>
+          </div>
 
           {/* Speaking Module */}
-          <GradientCard className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1">
-            <div className="p-6 space-y-4">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white">
+          <div
+            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            style={{
+              backgroundImage: "url('/speaking.jpg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              minHeight: "400px",
+            }}
+          >
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="p-6 space-y-4 relative z-10">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white shadow-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -424,13 +496,15 @@ export default function LandingPage() {
                   <line x1="8" y1="23" x2="16" y2="23"></line>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold">Speaking Module</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-xl font-semibold text-white">
+                Speaking Module
+              </h3>
+              <p className="text-sm text-gray-100">
                 Practice speaking English with AI conversation partners. Get
                 feedback on pronunciation, fluency, grammar, and vocabulary in
                 real-time.
               </p>
-              <ul className="text-sm space-y-2 text-muted-foreground">
+              <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -440,7 +514,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-red-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -455,7 +529,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-red-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -470,7 +544,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-red-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -478,12 +552,22 @@ export default function LandingPage() {
                 </li>
               </ul>
             </div>
-          </GradientCard>
+          </div>
 
           {/* Vocabulary Module */}
-          <GradientCard className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1">
-            <div className="p-6 space-y-4">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center text-white">
+          <div
+            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            style={{
+              backgroundImage: "url('/vocabulary.jpg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              minHeight: "400px",
+            }}
+          >
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="p-6 space-y-4 relative z-10">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center text-white shadow-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -504,13 +588,15 @@ export default function LandingPage() {
                   <path d="M15 21h4"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold">Vocabulary Module</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-xl font-semibold text-white">
+                Vocabulary Module
+              </h3>
+              <p className="text-sm text-gray-100">
                 Build your vocabulary with a personalized word bank, spaced
                 repetition review system, and interactive flashcards to track
                 your mastery level.
               </p>
-              <ul className="text-sm space-y-2 text-muted-foreground">
+              <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -520,7 +606,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-yellow-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -535,7 +621,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-yellow-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -550,7 +636,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-yellow-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -558,12 +644,22 @@ export default function LandingPage() {
                 </li>
               </ul>
             </div>
-          </GradientCard>
+          </div>
 
           {/* Grammar Module */}
-          <GradientCard className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1">
-            <div className="p-6 space-y-4">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center text-white">
+          <div
+            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            style={{
+              backgroundImage: "url('/grammar.jpg')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              minHeight: "400px",
+            }}
+          >
+            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="p-6 space-y-4 relative z-10">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center text-white shadow-lg">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -584,13 +680,15 @@ export default function LandingPage() {
                   <line x1="8" y1="14" x2="8" y2="14"></line>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold">Grammar Module</h3>
-              <p className="text-sm text-muted-foreground">
+              <h3 className="text-xl font-semibold text-white">
+                Grammar Module
+              </h3>
+              <p className="text-sm text-gray-100">
                 Master English grammar with personalized lessons targeting your
                 weak areas. Take daily challenges and get detailed explanations
                 for grammar rules.
               </p>
-              <ul className="text-sm space-y-2 text-muted-foreground">
+              <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -600,7 +698,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-cyan-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -615,7 +713,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-cyan-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -630,7 +728,7 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-primary"
+                    className="h-4 w-4 mr-2 text-cyan-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
@@ -638,7 +736,7 @@ export default function LandingPage() {
                 </li>
               </ul>
             </div>
-          </GradientCard>
+          </div>
         </div>
       </section>
 
@@ -658,124 +756,154 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <GradientCardSimple
-            variant="default"
-            borderOpacity="low"
-            className="group flex flex-col items-center text-center space-y-4 bg-card hover:shadow-xl hover:shadow-primary hover:shadow-opacity-5 transition-all duration-300 backdrop-blur-card hover:scale-105 hover:-translate-y-1"
-          >
-            <div className="p-4 rounded-full bg-gradient-to-r from-primary via-accent to-secondary bg-opacity-10 group-hover:bg-opacity-30 transition-colors">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-6 w-6 text-primary group-hover:scale-110 transition-transform duration-300"
-              >
-                <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
-                <path d="M21.17 8H12V2.83c2.44.4 4.77 1.69 6.6 3.67 1.77 1.91 2.57 4 2.57 4z" />
-              </svg>
+        {/* Bento Box Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 h-auto lg:h-[600px]">
+          {/* AI-Powered Learning - Large card */}
+          <div className="md:col-span-2 lg:col-span-2 lg:row-span-2 group relative overflow-hidden rounded-2xl border bg-card hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <Image
+              src="/AI_Learning.jpg"
+              alt="AI-Powered Learning illustration"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 66vw, 50vw"
+              priority
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/70 group-hover:via-black/30 transition-all duration-300"></div>
+            <div className="relative z-10 p-8 h-full flex flex-col justify-end min-h-[300px]">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-8 w-8 text-white"
+                >
+                  <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
+                  <path d="M21.17 8H12V2.83c2.44.4 4.77 1.69 6.6 3.67 1.77 1.91 2.57 4 2.57 4z" />
+                </svg>
+              </div>
+              <h3 className="text-2xl lg:text-3xl font-bold text-white mb-4">
+                AI-Powered Learning
+              </h3>
+              <p className="text-gray-100 text-lg leading-relaxed">
+                Our advanced AI engine personalizes content, analyzes your
+                performance, and adapts lessons to your learning style and
+                progress.
+              </p>
             </div>
-            <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">
-              AI-Powered Learning
-            </h3>
-            <p className="text-muted-foreground">
-              Our advanced AI engine personalizes content, analyzes your
-              performance, and adapts lessons to your learning style and
-              progress.
-            </p>
-          </GradientCardSimple>
+          </div>
 
-          <GradientCardSimple
-            variant="accent"
-            borderOpacity="low"
-            className="group flex flex-col items-center text-center space-y-4 bg-card hover:shadow-xl hover:shadow-primary hover:shadow-opacity-5 transition-all duration-300 backdrop-blur-card hover:scale-105 hover:-translate-y-1"
-          >
-            <div className="p-4 rounded-full bg-gradient-to-r from-primary via-accent to-secondary bg-opacity-10 group-hover:bg-opacity-30 transition-colors">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-6 w-6 text-accent group-hover:scale-110 transition-transform duration-300"
-              >
-                <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-              </svg>
+          {/* Comprehensive Feedback - Medium card */}
+          <div className="md:col-span-1 lg:col-span-1 lg:row-span-1 group relative overflow-hidden rounded-2xl border bg-card hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <Image
+              src="/feedback.jpg"
+              alt="Comprehensive feedback illustration"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/70 group-hover:via-black/30 transition-all duration-300"></div>
+            <div className="relative z-10 p-6 h-full flex flex-col justify-end min-h-[280px]">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-6 w-6 text-white"
+                >
+                  <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">
+                Comprehensive Feedback
+              </h3>
+              <p className="text-gray-100 text-sm">
+                Get detailed, actionable feedback on your writing, speaking, and
+                grammar.
+              </p>
             </div>
-            <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">
-              Comprehensive Feedback
-            </h3>
-            <p className="text-muted-foreground">
-              Get detailed, actionable feedback on your writing, speaking, and
-              grammar with suggestions for improvement and progress tracking.
-            </p>
-          </GradientCardSimple>
+          </div>
 
-          <GradientCardSimple
-            variant="secondary"
-            borderOpacity="low"
-            className="group flex flex-col items-center text-center space-y-4 bg-card hover:shadow-xl hover:shadow-primary hover:shadow-opacity-5 transition-all duration-300 backdrop-blur-card hover:scale-105 hover:-translate-y-1"
-          >
-            <div className="p-4 rounded-full bg-gradient-to-r from-primary via-accent to-secondary bg-opacity-10 group-hover:bg-opacity-30 transition-colors">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-6 w-6 text-secondary group-hover:scale-110 transition-transform duration-300"
-              >
-                <path d="m7 11 2-2-2-2"></path>
-                <path d="M11 13h4"></path>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              </svg>
+          {/* Interactive Practice - Medium card */}
+          <div className="md:col-span-1 lg:col-span-1 lg:row-span-1 group relative overflow-hidden rounded-2xl border bg-card hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <Image
+              src="/interactive_practice.jpg"
+              alt="Interactive practice illustration"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent group-hover:from-black/70 group-hover:via-black/30 transition-all duration-300"></div>
+            <div className="relative z-10 p-6 h-full flex flex-col justify-end min-h-[280px]">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-6 w-6 text-white"
+                >
+                  <path d="m7 11 2-2-2-2"></path>
+                  <path d="M11 13h4"></path>
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                </svg>
+              </div>
+              <h3 className="text-xl font-bold text-white mb-3">
+                Interactive Practice
+              </h3>
+              <p className="text-gray-100 text-sm">
+                Engage with interactive exercises and language games that make
+                learning enjoyable.
+              </p>
             </div>
-            <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">
-              Interactive Practice
-            </h3>
-            <p className="text-muted-foreground">
-              Engage with interactive exercises, conversations, and language
-              games that make learning enjoyable while reinforcing key concepts.
-            </p>
-          </GradientCardSimple>
+          </div>
 
-          <GradientCardSimple
-            variant="default"
-            borderOpacity="low"
-            className="group flex flex-col items-center text-center space-y-4 bg-card hover:shadow-xl hover:shadow-primary hover:shadow-opacity-5 transition-all duration-300 backdrop-blur-card hover:scale-105 hover:-translate-y-1"
-          >
-            <div className="p-4 rounded-full bg-gradient-to-r from-primary via-accent to-secondary bg-opacity-10 group-hover:bg-opacity-30 transition-colors">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="h-6 w-6 text-primary group-hover:scale-110 transition-transform duration-300"
-              >
-                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-                <path d="m15 9-6 6"></path>
-                <path d="m9 9 6 6"></path>
-              </svg>
+          {/* Gamification & Rewards - Wide card */}
+          <div className="md:col-span-3 lg:col-span-2 lg:row-span-1 group relative overflow-hidden rounded-2xl border bg-card hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
+            <Image
+              src="/gamification.jpg"
+              alt="Gamification and rewards illustration"
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, 50vw"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent group-hover:from-black/70 group-hover:via-black/30 transition-all duration-300"></div>
+            <div className="relative z-10 p-8 h-full flex flex-col justify-center lg:justify-end min-h-[280px]">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="h-7 w-7 text-white"
+                >
+                  <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                  <path d="m15 9-6 6"></path>
+                  <path d="m9 9 6 6"></path>
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-white mb-4">
+                Gamification & Rewards
+              </h3>
+              <p className="text-gray-100 text-lg max-w-lg">
+                Stay motivated with points, badges, streaks, and level
+                progression that make learning English addictive and fun.
+              </p>
             </div>
-            <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">
-              Gamification & Rewards
-            </h3>
-            <p className="text-muted-foreground">
-              Stay motivated with points, badges, streaks, and level progression
-              that make learning English addictive and fun.
-            </p>
-          </GradientCardSimple>
+          </div>
         </div>
 
         {/* Decorative background elements */}
@@ -1314,7 +1442,7 @@ export default function LandingPage() {
                 fill="currentColor"
                 viewBox="0 0 16 16"
               >
-                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.82-.48-1.44-1.28-1.72-2.28-.12-4.84 1.84-6.72 2.34-6.84.48.08.84.84.84 1.2.36A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
               </svg>
             </Link>
           </div>
