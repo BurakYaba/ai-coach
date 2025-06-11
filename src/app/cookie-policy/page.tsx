@@ -250,16 +250,16 @@ export default function CookiePolicyPage() {
 
               <div className="bg-muted p-4 rounded-lg mt-4">
                 <p>
-                  <strong>Email:</strong> privacy@fluenta.ai
+                  <strong>Email:</strong> info@fluenta-ai.com
                 </p>
                 <p>
                   <strong>Address:</strong> Fluenta Inc.
                   <br />
-                  123 Innovation Drive, Suite 400
+                  Flat 15 Station Road Barham Court Cuffley
                   <br />
-                  San Francisco, CA 94105
+                  Hertfordshire, EN6 4HY
                   <br />
-                  United States
+                  United Kingdom
                 </p>
               </div>
             </CardContent>
