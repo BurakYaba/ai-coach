@@ -56,6 +56,15 @@ const ONBOARDING_EXEMPT_PATHS = [
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Skip middleware for static files (images, fonts, etc.)
+  if (
+    pathname.match(
+      /\.(jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot|css|js|json|xml|txt)$/
+    )
+  ) {
+    return NextResponse.next();
+  }
+
   // Check if the path is a protected API route
   const isApiRoute = pathname.startsWith("/api/");
   const isAuthApiRoute = isApiRoute && !pathname.startsWith("/api/auth/");
