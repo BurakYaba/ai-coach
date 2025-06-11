@@ -38,6 +38,7 @@ const PUBLIC_PATHS = [
   "/reset-password",
   "/api/auth",
   "/api/payments/webhook",
+  "/api/og",
 ];
 
 // List of paths that should skip onboarding check
