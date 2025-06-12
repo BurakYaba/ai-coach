@@ -1198,13 +1198,13 @@ export function PronunciationPractice() {
     return (
       <div className="space-y-6">
         {/* CEFR Level Selection */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:gap-4 sm:space-y-0">
           <span className="font-medium">Select CEFR level:</span>
           <Select
             value={selectedDifficulty}
             onValueChange={setSelectedDifficulty}
           >
-            <SelectTrigger className="w-64">
+            <SelectTrigger className="w-full sm:w-64">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -1234,15 +1234,15 @@ export function PronunciationPractice() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
               {filteredExercises.map(exercise => (
                 <Card
                   key={exercise.id}
                   className="cursor-pointer hover:shadow-md transition-shadow"
                 >
                   <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
+                    <div className="flex flex-col space-y-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
+                      <div className="flex-1">
                         <CardTitle className="text-lg">
                           {exercise.title}
                         </CardTitle>
@@ -1251,9 +1251,7 @@ export function PronunciationPractice() {
                         </CardDescription>
                       </div>
                       <Badge
-                        className={
-                          getDifficultyInfo(exercise.difficulty)?.color
-                        }
+                        className={`${getDifficultyInfo(exercise.difficulty)?.color} flex-shrink-0`}
                       >
                         {exercise.difficulty}
                       </Badge>
@@ -1261,11 +1259,15 @@ export function PronunciationPractice() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Target className="h-4 w-4" />
-                        {exercise.words.length} words to practice
-                        <BookOpen className="h-4 w-4 ml-2" />
-                        {exercise.minimalPairs.length} minimal pairs
+                      <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:gap-4 sm:space-y-0 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Target className="h-4 w-4" />
+                          {exercise.words.length} words to practice
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-4 w-4" />
+                          {exercise.minimalPairs.length} minimal pairs
+                        </div>
                       </div>
 
                       <div className="flex flex-wrap gap-1">
@@ -1304,19 +1306,29 @@ export function PronunciationPractice() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">{selectedExercise.title}</h2>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:items-start lg:justify-between lg:space-y-0">
+        <div className="flex-1">
+          <h2 className="text-xl sm:text-2xl font-bold">
+            {selectedExercise.title}
+          </h2>
+          <p className="text-muted-foreground text-sm sm:text-base">
             {selectedExercise.description}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={resetExercise}>
+        <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:gap-2">
+          <Button
+            variant="outline"
+            onClick={resetExercise}
+            className="w-full sm:w-auto"
+          >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset
           </Button>
-          <Button variant="outline" onClick={() => setSelectedExercise(null)}>
+          <Button
+            variant="outline"
+            onClick={() => setSelectedExercise(null)}
+            className="w-full sm:w-auto"
+          >
             Choose Different Exercise
           </Button>
         </div>
@@ -1335,21 +1347,37 @@ export function PronunciationPractice() {
 
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="words">Word Practice</TabsTrigger>
-          <TabsTrigger value="pairs">Minimal Pairs</TabsTrigger>
-          <TabsTrigger value="tips">Tips & Guide</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto sm:h-10 mb-6 sm:mb-8">
+          <TabsTrigger
+            value="words"
+            className="text-sm py-3 sm:py-2 data-[state=active]:bg-background data-[state=active]:text-foreground"
+          >
+            Word Practice
+          </TabsTrigger>
+          <TabsTrigger
+            value="pairs"
+            className="text-sm py-3 sm:py-2 data-[state=active]:bg-background data-[state=active]:text-foreground"
+          >
+            Minimal Pairs
+          </TabsTrigger>
+          <TabsTrigger
+            value="tips"
+            className="text-sm py-3 sm:py-2 data-[state=active]:bg-background data-[state=active]:text-foreground"
+          >
+            Tips & Guide
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="words" className="space-y-4">
           {/* Mode Selection */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:gap-2 sm:space-y-0">
             <span className="text-sm font-medium">Mode:</span>
-            <div className="flex bg-secondary rounded-md p-1">
+            <div className="flex bg-secondary rounded-md p-1 w-full sm:w-auto">
               <Button
                 variant={currentMode === "listen" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setCurrentMode("listen")}
+                className="flex-1 sm:flex-none"
               >
                 <Headphones className="h-4 w-4 mr-1" />
                 Listen
@@ -1358,6 +1386,7 @@ export function PronunciationPractice() {
                 variant={currentMode === "practice" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => setCurrentMode("practice")}
+                className="flex-1 sm:flex-none"
               >
                 <Mic className="h-4 w-4 mr-1" />
                 Practice
@@ -1366,17 +1395,18 @@ export function PronunciationPractice() {
           </div>
 
           {/* Word Navigation */}
-          <div className="flex items-center justify-center gap-4">
+          <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-center sm:gap-4 sm:space-y-0">
             <Button
               variant="outline"
               onClick={() =>
                 setCurrentWordIndex(Math.max(0, currentWordIndex - 1))
               }
               disabled={currentWordIndex === 0}
+              className="w-full sm:w-auto"
             >
               Previous
             </Button>
-            <span className="text-sm font-medium">
+            <span className="text-sm font-medium text-center">
               {currentWordIndex + 1} of {selectedExercise.words.length}
             </span>
             <Button
@@ -1390,6 +1420,7 @@ export function PronunciationPractice() {
                 )
               }
               disabled={currentWordIndex === selectedExercise.words.length - 1}
+              className="w-full sm:w-auto"
             >
               Next
             </Button>
@@ -1400,14 +1431,16 @@ export function PronunciationPractice() {
             <CardHeader>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-2">
-                  <h3 className="text-3xl font-bold">{currentWord.word}</h3>
+                  <h3 className="text-2xl sm:text-3xl font-bold">
+                    {currentWord.word}
+                  </h3>
                   {completedWords.includes(currentWord.word) && (
                     <CheckCircle className="h-6 w-6 text-green-500" />
                   )}
                 </div>
 
                 {showPhonetics && (
-                  <p className="text-lg text-muted-foreground font-mono">
+                  <p className="text-base sm:text-lg text-muted-foreground font-mono">
                     {currentWord.phonetic}
                   </p>
                 )}
@@ -1425,7 +1458,7 @@ export function PronunciationPractice() {
                     onClick={() => playWord(currentWord.word)}
                     disabled={isPlaying}
                     size="lg"
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 w-full sm:w-auto"
                   >
                     <Volume2 className="h-5 w-5" />
                     {isPlaying ? "Playing..." : "Listen to Pronunciation"}
@@ -1446,14 +1479,14 @@ export function PronunciationPractice() {
                       onClick={() => playWord(currentWord.word)}
                       disabled={isPlaying}
                       variant="outline"
-                      className="mb-4"
+                      className="mb-4 w-full sm:w-auto"
                     >
                       <Volume2 className="h-4 w-4 mr-2" />
                       Listen First
                     </Button>
                   </div>
 
-                  <div className="flex justify-center gap-3">
+                  <div className="flex flex-col space-y-3 sm:flex-row sm:justify-center sm:gap-3 sm:space-y-0">
                     <Button
                       onClick={() =>
                         isRecording
@@ -1462,6 +1495,7 @@ export function PronunciationPractice() {
                       }
                       variant={isRecording ? "destructive" : "default"}
                       size="lg"
+                      className="w-full sm:w-auto"
                     >
                       {isRecording ? (
                         <>
@@ -1481,6 +1515,7 @@ export function PronunciationPractice() {
                         <Button
                           variant="outline"
                           onClick={() => playRecording(currentWord.word)}
+                          className="w-full sm:w-auto"
                         >
                           <Play className="h-4 w-4 mr-2" />
                           Play Recording
@@ -1490,6 +1525,7 @@ export function PronunciationPractice() {
                           variant="outline"
                           onClick={() => getFeedback(currentWord.word)}
                           disabled={isProcessing}
+                          className="w-full sm:w-auto"
                         >
                           {isProcessing ? "Analyzing..." : "Get Feedback"}
                         </Button>
@@ -1502,7 +1538,7 @@ export function PronunciationPractice() {
                     <div className="text-center">
                       <div
                         className={cn(
-                          "text-2xl font-bold",
+                          "text-xl sm:text-2xl font-bold",
                           getScoreColor(scores[currentWord.word])
                         )}
                       >
@@ -1523,7 +1559,7 @@ export function PronunciationPractice() {
                   {/* Processing Indicator */}
                   {isProcessing && (
                     <div className="text-center">
-                      <div className="text-lg font-medium text-blue-600">
+                      <div className="text-base sm:text-lg font-medium text-blue-600">
                         Analyzing pronunciation...
                       </div>
                       <p className="text-sm text-muted-foreground">
@@ -1574,8 +1610,8 @@ export function PronunciationPractice() {
             <CardContent className="space-y-4">
               {selectedExercise.minimalPairs.map((pair, index) => (
                 <div key={index} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex gap-4">
+                  <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-2">
+                    <div className="flex flex-col space-y-3 sm:flex-row sm:gap-4 sm:space-y-0">
                       {pair.pair.map((word, wordIndex) => (
                         <div key={wordIndex} className="text-center">
                           <div className="text-lg font-semibold">{word}</div>
@@ -1583,7 +1619,7 @@ export function PronunciationPractice() {
                             variant="outline"
                             size="sm"
                             onClick={() => playWord(word)}
-                            className="mt-1"
+                            className="mt-1 w-full sm:w-auto"
                           >
                             <Volume2 className="h-3 w-3" />
                           </Button>

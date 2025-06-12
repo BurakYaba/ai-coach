@@ -2994,10 +2994,10 @@ export function GuidedPractice() {
     return (
       <div className="space-y-6">
         {/* Level Selection */}
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:gap-4 sm:space-y-0">
           <span className="font-medium">Select your level:</span>
           <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-            <SelectTrigger className="w-64">
+            <SelectTrigger className="w-full sm:w-64">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -3026,15 +3026,15 @@ export function GuidedPractice() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-1 md:grid-cols-2">
               {filteredScenarios.map(scenario => (
                 <Card
                   key={scenario.id}
                   className="cursor-pointer hover:shadow-md transition-shadow"
                 >
                   <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div>
+                    <div className="flex flex-col space-y-3 sm:flex-row sm:items-start sm:justify-between sm:space-y-0">
+                      <div className="flex-1">
                         <CardTitle className="text-lg">
                           {scenario.title}
                         </CardTitle>
@@ -3042,20 +3042,29 @@ export function GuidedPractice() {
                           {scenario.description}
                         </CardDescription>
                       </div>
-                      <Badge className={getLevelInfo(scenario.level)?.color}>
+                      <Badge
+                        className={`${getLevelInfo(scenario.level)?.color} flex-shrink-0`}
+                      >
                         {scenario.level.toUpperCase()}
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="h-4 w-4" />
-                        {scenario.estimatedTime}
-                        <Target className="h-4 w-4 ml-2" />
-                        {scenario.steps.length} steps
+                    <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                      <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:gap-4 sm:space-y-0 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          {scenario.estimatedTime}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Target className="h-4 w-4" />
+                          {scenario.steps.length} steps
+                        </div>
                       </div>
-                      <Button onClick={() => selectScenario(scenario)}>
+                      <Button
+                        onClick={() => selectScenario(scenario)}
+                        className="w-full sm:w-auto"
+                      >
                         Start Practice
                       </Button>
                     </div>
@@ -3081,16 +3090,16 @@ export function GuidedPractice() {
             <div className="mx-auto w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
-            <CardTitle className="text-2xl text-green-700 dark:text-green-300">
+            <CardTitle className="text-xl sm:text-2xl text-green-700 dark:text-green-300">
               🎉 Scenario Complete!
             </CardTitle>
-            <CardDescription className="text-lg">
+            <CardDescription className="text-base sm:text-lg">
               Congratulations! You've successfully completed "
               {selectedScenario.title}"
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="bg-green-50 dark:bg-green-950 p-6 rounded-lg">
+            <div className="bg-green-50 dark:bg-green-950 p-4 sm:p-6 rounded-lg">
               <h3 className="font-semibold text-green-800 dark:text-green-200 mb-3">
                 What you accomplished:
               </h3>
@@ -3098,9 +3107,9 @@ export function GuidedPractice() {
                 {selectedScenario.steps.map((step, index) => (
                   <div
                     key={step.id}
-                    className="flex items-center gap-3 text-green-700 dark:text-green-300"
+                    className="flex items-center gap-3 text-green-700 dark:text-green-300 text-sm sm:text-base"
                   >
-                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                     <span>
                       Step {index + 1}: {step.title}
                     </span>
@@ -3109,17 +3118,17 @@ export function GuidedPractice() {
               </div>
             </div>
 
-            <div className="text-muted-foreground">
+            <div className="text-muted-foreground text-sm sm:text-base">
               <p>
                 Your speaking skills are improving! Regular practice helps build
                 confidence and fluency.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col space-y-3 sm:flex-row sm:space-y-0 sm:gap-4 sm:justify-center">
               <Button
                 onClick={() => setSelectedScenario(null)}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto"
               >
                 <Target className="h-4 w-4" />
                 Try Another Scenario
@@ -3127,7 +3136,7 @@ export function GuidedPractice() {
               <Button
                 variant="outline"
                 onClick={() => resetScenario()}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto"
               >
                 <RotateCcw className="h-4 w-4" />
                 Practice This Again
@@ -3142,10 +3151,12 @@ export function GuidedPractice() {
   return (
     <div className="space-y-6">
       {/* Header with progress */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">{selectedScenario.title}</h2>
-          <p className="text-muted-foreground">
+      <div className="flex flex-col space-y-4 lg:flex-row lg:items-start lg:justify-between lg:space-y-0">
+        <div className="flex-1">
+          <h2 className="text-xl sm:text-2xl font-bold">
+            {selectedScenario.title}
+          </h2>
+          <p className="text-muted-foreground text-sm sm:text-base">
             {selectedScenario.description}
           </p>
           {speakingSessionId && (
@@ -3157,12 +3168,20 @@ export function GuidedPractice() {
             </div>
           )}
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => resetScenario()}>
+        <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:gap-2">
+          <Button
+            variant="outline"
+            onClick={() => resetScenario()}
+            className="w-full sm:w-auto"
+          >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset
           </Button>
-          <Button variant="outline" onClick={() => setSelectedScenario(null)}>
+          <Button
+            variant="outline"
+            onClick={() => setSelectedScenario(null)}
+            className="w-full sm:w-auto"
+          >
             Choose Different Scenario
           </Button>
         </div>
@@ -3182,22 +3201,24 @@ export function GuidedPractice() {
       {/* Current step */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
+          <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+            <div className="flex-1">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 Step {currentStep + 1}: {currentStepData.title}
                 {completedSteps.includes(currentStep) && (
                   <CheckCircle className="h-5 w-5 text-green-500" />
                 )}
               </CardTitle>
-              <CardDescription>{currentStepData.instruction}</CardDescription>
+              <CardDescription className="text-sm sm:text-base">
+                {currentStepData.instruction}
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Example */}
           <div className="bg-blue-50 dark:bg-blue-950 p-4 rounded-lg">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-2">
               <h4 className="font-medium text-blue-900 dark:text-blue-100">
                 Example:
               </h4>
@@ -3206,13 +3227,13 @@ export function GuidedPractice() {
                 size="sm"
                 onClick={() => playExample(currentStepData.example)}
                 disabled={isPlaying}
-                className="text-blue-700 dark:text-blue-300"
+                className="text-blue-700 dark:text-blue-300 w-full sm:w-auto"
               >
                 <Volume2 className="h-4 w-4 mr-1" />
                 {isPlaying ? "Playing..." : "Listen"}
               </Button>
             </div>
-            <p className="text-blue-800 dark:text-blue-200">
+            <p className="text-blue-800 dark:text-blue-200 text-sm sm:text-base">
               {currentStepData.example}
             </p>
           </div>
@@ -3222,16 +3243,16 @@ export function GuidedPractice() {
             <h4 className="font-medium text-green-900 dark:text-green-100 mb-2">
               Your turn:
             </h4>
-            <p className="text-green-800 dark:text-green-200 mb-3">
+            <p className="text-green-800 dark:text-green-200 mb-3 text-sm sm:text-base">
               {currentStepData.prompt}
             </p>
 
             {/* Recording controls */}
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:space-y-0 sm:gap-3">
               <Button
                 onClick={isRecording ? stopRecording : startRecording}
                 variant={isRecording ? "destructive" : "default"}
-                className="flex items-center gap-2"
+                className="flex items-center gap-2 w-full sm:w-auto"
               >
                 {isRecording ? (
                   <>
@@ -3251,7 +3272,7 @@ export function GuidedPractice() {
                   <Button
                     variant="outline"
                     onClick={() => playRecording(currentStep)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 w-full sm:w-auto"
                   >
                     <Play className="h-4 w-4" />
                     Play Recording
@@ -3260,6 +3281,7 @@ export function GuidedPractice() {
                     variant="outline"
                     onClick={() => getFeedback(currentStep)}
                     disabled={isProcessing}
+                    className="w-full sm:w-auto"
                   >
                     {isProcessing ? "Getting Feedback..." : "Get Feedback"}
                   </Button>
@@ -3286,21 +3308,22 @@ export function GuidedPractice() {
           </div>
 
           {/* Action buttons */}
-          <div className="flex justify-between">
+          <div className="flex flex-col space-y-3 sm:flex-row sm:justify-between sm:space-y-0">
             <Button
               variant="outline"
               onClick={() => setCurrentStep(Math.max(0, currentStep - 1))}
               disabled={currentStep === 0}
+              className="w-full sm:w-auto"
             >
               Previous Step
             </Button>
 
-            <div className="flex gap-2">
+            <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:gap-2">
               {recordings[currentStep] &&
                 !completedSteps.includes(currentStep) && (
                   <Button
                     onClick={completeStep}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 w-full sm:w-auto"
                   >
                     <CheckCircle className="h-4 w-4" />
                     Mark Complete
@@ -3310,7 +3333,7 @@ export function GuidedPractice() {
               {currentStep < selectedScenario.steps.length - 1 && (
                 <Button
                   onClick={() => setCurrentStep(currentStep + 1)}
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-2 w-full sm:w-auto"
                 >
                   Next Step
                   <ArrowRight className="h-4 w-4" />
@@ -3367,7 +3390,7 @@ const FeedbackDisplay = ({ analysisData }: { analysisData: any }) => {
       )}
 
       {/* First Row: Pronunciation Analysis + Language Analysis */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Pronunciation Analysis */}
         {analysisData.pronunciation && (
           <div className="bg-purple-50 dark:bg-purple-950 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
@@ -3480,7 +3503,7 @@ const FeedbackDisplay = ({ analysisData }: { analysisData: any }) => {
       </div>
 
       {/* Second Row: Strengths + Personalized Suggestions */}
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Strengths */}
         {analysisData.strengths && analysisData.strengths.length > 0 && (
           <div className="bg-emerald-50 dark:bg-emerald-950 p-4 rounded-lg border border-emerald-200 dark:border-emerald-800">

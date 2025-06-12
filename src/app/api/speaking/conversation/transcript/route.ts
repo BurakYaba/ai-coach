@@ -394,31 +394,54 @@ export async function POST(req: NextRequest) {
         "Running parallel processing for grammar analysis and database save"
       );
 
-      const [errorAnalysis] = await Promise.all([
-        // Grammar analysis (async)
-        detectPotentialGrammarErrors(transcribedText),
+      // Run grammar analysis in parallel but handle database saves carefully
+      const errorAnalysis = await detectPotentialGrammarErrors(transcribedText);
 
-        // Database save (async) - save transcription first
-        (async () => {
-          speakingSession.transcripts.push({
+      // PHASE 1 FIX: Save transcript with metadata in a single operation to avoid version conflicts
+      const maxRetries = 3;
+      let retryCount = 0;
+
+      while (retryCount < maxRetries) {
+        try {
+          // Refresh the document to get latest version
+          const freshSession =
+            await SpeakingSession.findById(speakingSessionId);
+
+          if (!freshSession) {
+            throw new Error("Speaking session not found during save");
+          }
+
+          // Add transcript with metadata in one operation
+          freshSession.transcripts.push({
             role: "user",
             text: transcribedText,
             timestamp: new Date(),
+            metadata: {
+              potentialGrammarErrors: errorAnalysis.potentialErrors,
+              markedText: errorAnalysis.markedText,
+            },
           });
-          return speakingSession.save();
-        })(),
-      ]);
 
-      // Update the saved transcript with grammar metadata (quick operation)
-      const lastTranscript =
-        speakingSession.transcripts[speakingSession.transcripts.length - 1];
-      if (lastTranscript) {
-        lastTranscript.metadata = {
-          potentialGrammarErrors: errorAnalysis.potentialErrors,
-          markedText: errorAnalysis.markedText,
-        };
-        // Save again with metadata (this is fast since it's just updating one field)
-        await speakingSession.save();
+          // Single save operation to prevent version conflicts
+          await freshSession.save();
+          console.log("Transcript saved successfully with metadata");
+          break; // Success, exit retry loop
+        } catch (saveError: any) {
+          retryCount++;
+          console.log(
+            `Save attempt ${retryCount}/${maxRetries} failed:`,
+            saveError.message
+          );
+
+          if (saveError.name === "VersionError" && retryCount < maxRetries) {
+            // Version conflict - wait a bit and retry with fresh document
+            await new Promise(resolve => setTimeout(resolve, 100 * retryCount));
+            continue;
+          } else {
+            // Non-recoverable error or max retries reached
+            throw saveError;
+          }
+        }
       }
 
       // Return both the transcription and potential errors

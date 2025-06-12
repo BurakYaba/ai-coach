@@ -36,6 +36,7 @@ export async function POST(req: Request) {
       voice = "alloy",
       isInitial = false,
       potentialGrammarErrors = [],
+      userName,
     } = body;
 
     // Validate required fields
@@ -54,6 +55,89 @@ export async function POST(req: Request) {
         { error: "Speaking session not found" },
         { status: 404 }
       );
+    }
+
+    // Handle fixed initial message for Free Conversation
+    if (isInitial && scenario === "free") {
+      const aiVoiceName = getAIVoiceName(voice);
+      const userDisplayName = userName || "there";
+      const fixedMessage = `Hi, ${userDisplayName}. I am ${aiVoiceName}. I am your speaking assistant today. What would you like to talk about?`;
+
+      // Generate speech for the fixed message
+      let speechResponse: any;
+      let audioUrl = null;
+
+      try {
+        speechResponse = await openai.audio.speech.create({
+          model: "tts-1",
+          voice: voice,
+          input: fixedMessage,
+          speed: 1.0,
+        });
+
+        if (speechResponse) {
+          const buffer = Buffer.from(await speechResponse.arrayBuffer());
+          const base64Audio = buffer.toString("base64");
+          audioUrl = `data:audio/mpeg;base64,${base64Audio}`;
+        }
+      } catch (audioError) {
+        console.error("Audio generation failed for fixed message:", audioError);
+        // Continue without audio if TTS fails
+      }
+
+      // Save the fixed message to the session with retry logic
+      const maxRetries = 3;
+      let retryCount = 0;
+
+      while (retryCount < maxRetries) {
+        try {
+          // Refresh the session document to get latest version
+          const freshSession =
+            await SpeakingSession.findById(speakingSessionId);
+
+          if (!freshSession) {
+            throw new Error(
+              "Speaking session not found during initial message save"
+            );
+          }
+
+          freshSession.transcripts.push({
+            role: "assistant",
+            text: fixedMessage,
+            timestamp: new Date(),
+          });
+
+          await freshSession.save();
+          console.log("Initial message saved successfully");
+          break; // Success, exit retry loop
+        } catch (saveError: any) {
+          retryCount++;
+          console.log(
+            `Initial message save attempt ${retryCount}/${maxRetries} failed:`,
+            saveError.message
+          );
+
+          if (saveError.name === "VersionError" && retryCount < maxRetries) {
+            // Version conflict - wait a bit and retry with fresh document
+            await new Promise(resolve => setTimeout(resolve, 100 * retryCount));
+            continue;
+          } else {
+            // Non-recoverable error or max retries reached
+            console.error(
+              "Failed to save initial message after retries:",
+              saveError
+            );
+            // Continue anyway since the message generation succeeded
+            break;
+          }
+        }
+      }
+
+      // Return the fixed response
+      return NextResponse.json({
+        text: fixedMessage,
+        audioUrl,
+      });
     }
 
     // Build conversation history from session transcripts
@@ -89,10 +173,25 @@ export async function POST(req: Request) {
     // Add user input if provided
     if (userInput) {
       // Add grammar error context if detected
-      if (potentialGrammarErrors.length > 0) {
+      let grammarErrors = [];
+
+      // Parse potentialGrammarErrors if it's a string (JSON)
+      if (potentialGrammarErrors) {
+        try {
+          grammarErrors =
+            typeof potentialGrammarErrors === "string"
+              ? JSON.parse(potentialGrammarErrors)
+              : potentialGrammarErrors;
+        } catch (parseError) {
+          console.warn("Failed to parse grammar errors:", parseError);
+          grammarErrors = [];
+        }
+      }
+
+      if (grammarErrors.length > 0) {
         messages.push({
           role: "system",
-          content: `The user's message may contain grammar errors. Please consider these potential issues when responding and offer corrections using "Did you mean [correction]?" format:\n${potentialGrammarErrors
+          content: `The user's message may contain grammar errors. Please consider these potential issues when responding and offer corrections using "Did you mean [correction]?" format:\n${grammarErrors
             .map(
               (error: any) =>
                 `Possible error: "${error.pattern}" - ${error.possibleError}`
@@ -111,13 +210,13 @@ export async function POST(req: Request) {
         openai.chat.completions.create({
           model: "gpt-3.5-turbo", // Using gpt-3.5-turbo for faster responses
           messages: messages as any,
-          max_tokens: 120, // OPTIMIZATION: Reduced from 200 to 120 for faster generation
-          temperature: 0.6, // OPTIMIZATION: Reduced from 0.7 to 0.6 for more focused responses
+          max_tokens: 120, // Increased from 80 to 120 for more verbose responses
+          temperature: 0.7, // Increased from 0.5 to 0.7 for more natural, varied responses
         }),
         new Promise((_, reject) =>
           setTimeout(
             () => reject(new Error("OpenAI chat completion timeout")),
-            15000 // OPTIMIZATION: Reduced from 20000 to 15000 for faster error recovery
+            12000 // PHASE 1 OPTIMIZATION: Reduced from 15000 to 12000 for faster error recovery
           )
         ),
       ]);
@@ -138,7 +237,7 @@ export async function POST(req: Request) {
 
     // SMART TTS: Check text length and adjust timeout accordingly
     const textLength = responseText.length;
-    const baseTtsTimeout = textLength > 80 ? 15000 : 12000; // PHASE 1: Reduced timeout (was 20-25s, now 12-15s)
+    const baseTtsTimeout = textLength > 60 ? 12000 : 8000; // PHASE 1 OPTIMIZATION: Reduced timeouts for faster response
 
     while (ttsAttempts < maxTtsAttempts && !speechResponse) {
       try {
@@ -207,14 +306,47 @@ export async function POST(req: Request) {
       }
     }
 
-    // Save the AI response to the session
-    speakingSession.transcripts.push({
-      role: "assistant",
-      text: responseText,
-      timestamp: new Date(),
-    });
+    // Save the AI response to the session with retry logic to prevent version conflicts
+    const maxRetries = 3;
+    let retryCount = 0;
 
-    await speakingSession.save();
+    while (retryCount < maxRetries) {
+      try {
+        // Refresh the session document to get latest version
+        const freshSession = await SpeakingSession.findById(speakingSessionId);
+
+        if (!freshSession) {
+          throw new Error("Speaking session not found during AI response save");
+        }
+
+        freshSession.transcripts.push({
+          role: "assistant",
+          text: responseText,
+          timestamp: new Date(),
+        });
+
+        await freshSession.save();
+        console.log("AI response saved successfully");
+        break; // Success, exit retry loop
+      } catch (saveError: any) {
+        retryCount++;
+        console.log(
+          `AI response save attempt ${retryCount}/${maxRetries} failed:`,
+          saveError.message
+        );
+
+        if (saveError.name === "VersionError" && retryCount < maxRetries) {
+          // Version conflict - wait a bit and retry with fresh document
+          await new Promise(resolve => setTimeout(resolve, 100 * retryCount));
+          continue;
+        } else {
+          // Non-recoverable error or max retries reached
+          console.error("Failed to save AI response after retries:", saveError);
+          // Continue anyway since the response generation succeeded
+          break;
+        }
+      }
+    }
 
     // Return the response
     return NextResponse.json({
@@ -238,24 +370,27 @@ function buildSystemPrompt(
   level: string,
   isInitial: boolean
 ): string {
-  // PHASE 2: More concise base system prompt
-  let prompt = `You are an English conversation tutor. User level: ${level.toUpperCase()}.
+  // Updated system prompt for more engaging, verbose responses
+  let prompt = `You are a friendly English conversation tutor. User level: ${level.toUpperCase()}.
 
-Rules:
-- Keep responses brief (2-3 sentences)
-- Ask follow-up questions
-- Correct grammar gently: "Did you mean [correction]?"
-- Focus on ${getGrammarFocus(level)}`;
+Guidelines:
+- Give engaging, natural responses (2-4 sentences)
+- Show genuine interest in the conversation
+- Ask follow-up questions to keep dialogue flowing
+- Gently correct errors: "Did you mean [correction]?"
+- Share relevant thoughts or experiences when appropriate
+- Focus on: ${getGrammarFocus(level)}`;
 
   // Add role-play scenario if not free conversation
   if (scenario !== "free") {
     const roleDescription = getAIRole(scenario);
-    prompt += `\n- You are: ${roleDescription}
-- Stay in character throughout the conversation`;
+    prompt += `\n- Role: Act as ${roleDescription}`;
 
     if (isInitial) {
-      prompt += `\n- Start with a natural greeting appropriate for your role`;
+      prompt += `\n- Begin with a warm, professional greeting`;
     }
+  } else if (isInitial) {
+    prompt += `\n- Start with a friendly greeting and ask what they'd like to discuss`;
   }
 
   return prompt;
@@ -355,4 +490,17 @@ function getAIRole(scenario: string): string {
   };
 
   return roles[scenario] || "a conversation partner";
+}
+
+function getAIVoiceName(voice: string): string {
+  const voiceNames: Record<string, string> = {
+    alloy: "Alloy",
+    echo: "Echo",
+    fable: "Fable",
+    onyx: "Onyx",
+    nova: "Nova",
+    shimmer: "Shimmer",
+  };
+
+  return voiceNames[voice] || "your AI assistant";
 }

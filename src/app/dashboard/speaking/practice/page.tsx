@@ -44,43 +44,58 @@ export default function SpeakingPracticePage() {
 
   return (
     <div className="container mx-auto py-6">
-      {/* Navigation */}
-      <div className="flex items-center gap-4 mb-6">
-        <Link href="/dashboard/speaking">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Speaking Dashboard
-          </Button>
-        </Link>
-      </div>
-
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Speaking Practice</h1>
-          <p className="text-muted-foreground">
-            Practice your speaking skills in real time. Choose from guided
-            speaking exercises, pronunciation practice, or free conversation
-            with Fluenta.
-          </p>
+        {/* Title and Back Button in same row */}
+        <div className="flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold mb-2">
+              Speaking Practice
+            </h1>
+            <p className="text-muted-foreground text-sm md:text-base">
+              Practice your speaking skills in real time. Choose from guided
+              speaking exercises, pronunciation practice, or free conversation
+              with Fluenta.
+            </p>
+          </div>
+
+          <Link href="/dashboard/speaking">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2 w-full md:w-auto"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Speaking Dashboard
+            </Button>
+          </Link>
         </div>
 
         <Tabs defaultValue="free-conversation" className="w-full">
-          <TabsList className="grid grid-cols-3 mb-8">
-            <TabsTrigger value="free-conversation">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto sm:h-10 mb-6 sm:mb-8">
+            <TabsTrigger
+              value="free-conversation"
+              className="text-sm py-3 sm:py-2 data-[state=active]:bg-background data-[state=active]:text-foreground"
+            >
               Free Conversation
             </TabsTrigger>
-            <TabsTrigger value="guided-practice">Guided Practice</TabsTrigger>
-            <TabsTrigger value="pronunciation">Pronunciation</TabsTrigger>
+            <TabsTrigger
+              value="guided-practice"
+              className="text-sm py-3 sm:py-2 data-[state=active]:bg-background data-[state=active]:text-foreground"
+            >
+              Guided Practice
+            </TabsTrigger>
+            <TabsTrigger
+              value="pronunciation"
+              className="text-sm py-3 sm:py-2 data-[state=active]:bg-background data-[state=active]:text-foreground"
+            >
+              Pronunciation
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="free-conversation" className="space-y-4">
             <Card>
               <CardHeader>
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div className="flex flex-col space-y-4 lg:flex-row lg:justify-between lg:items-start lg:space-y-0 gap-4">
                   <div>
                     <CardTitle>Free Conversation</CardTitle>
                     <CardDescription>
@@ -89,109 +104,70 @@ export default function SpeakingPracticePage() {
                     </CardDescription>
                   </div>
 
-                  <div className="flex flex-col items-start">
-                    <span className="text-sm font-medium mb-2">
-                      Conversation Mode:
-                    </span>
-                    <div className="flex items-center">
-                      <div className="bg-secondary rounded-md p-1 flex">
-                        {isAdmin ? (
-                          <>
-                            <Button
-                              variant={
-                                conversationMode === "realtime"
-                                  ? "default"
-                                  : "ghost"
-                              }
-                              size="sm"
-                              className="rounded-md"
-                              onClick={() => setConversationMode("realtime")}
-                              aria-label="Realtime conversation mode"
-                            >
-                              Realtime
-                            </Button>
-                            <Button
-                              variant={
-                                conversationMode === "turn-based"
-                                  ? "default"
-                                  : "ghost"
-                              }
-                              size="sm"
-                              className="rounded-md"
-                              onClick={() => setConversationMode("turn-based")}
-                              aria-label="Turn-based conversation mode"
-                            >
-                              Turn-based
-                            </Button>
-                          </>
-                        ) : (
-                          <>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="rounded-md opacity-50 cursor-not-allowed"
-                              disabled
-                              aria-label="Realtime conversation mode coming soon"
-                            >
-                              Realtime
-                            </Button>
-                            <Button
-                              variant="default"
-                              size="sm"
-                              className="rounded-md"
-                              onClick={() => setConversationMode("turn-based")}
-                              aria-label="Turn-based conversation mode"
-                            >
-                              Turn-based
-                            </Button>
-                          </>
-                        )}
-                      </div>
+                  {/* Only show conversation mode selector for admin users */}
+                  {isAdmin && (
+                    <div className="flex flex-col items-start lg:items-end">
+                      <span className="text-sm font-medium mb-2">
+                        Conversation Mode:
+                      </span>
+                      <div className="flex items-center w-full lg:w-auto">
+                        <div className="bg-secondary rounded-md p-1 flex flex-1 lg:flex-none">
+                          <Button
+                            variant={
+                              conversationMode === "realtime"
+                                ? "default"
+                                : "ghost"
+                            }
+                            size="sm"
+                            className="rounded-md flex-1 lg:flex-none"
+                            onClick={() => setConversationMode("realtime")}
+                            aria-label="Realtime conversation mode"
+                          >
+                            Realtime
+                          </Button>
+                          <Button
+                            variant={
+                              conversationMode === "turn-based"
+                                ? "default"
+                                : "ghost"
+                            }
+                            size="sm"
+                            className="rounded-md flex-1 lg:flex-none"
+                            onClick={() => setConversationMode("turn-based")}
+                            aria-label="Turn-based conversation mode"
+                          >
+                            Turn-based
+                          </Button>
+                        </div>
 
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="ml-1"
-                            >
-                              <Info className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent className="max-w-80">
-                            {isAdmin ? (
-                              <>
-                                <p>
-                                  <strong>Realtime:</strong> Natural
-                                  back-and-forth conversation with OpenAI&apos;s
-                                  Realtime API.
-                                </p>
-                                <p className="mt-2">
-                                  <strong>Turn-based:</strong> Record your
-                                  response, then listen to the AI response.
-                                  Includes role-play options.
-                                </p>
-                              </>
-                            ) : (
-                              <>
-                                <p>
-                                  <strong>Realtime:</strong> Coming soon!
-                                  Natural back-and-forth conversation with
-                                  OpenAI&apos;s Realtime API.
-                                </p>
-                                <p className="mt-2">
-                                  <strong>Turn-based:</strong> Record your
-                                  response, then listen to the AI response.
-                                  Includes role-play options.
-                                </p>
-                              </>
-                            )}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="ml-1 flex-shrink-0"
+                              >
+                                <Info className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-80">
+                              <p>
+                                <strong>Realtime:</strong> Natural
+                                back-and-forth conversation with OpenAI&apos;s
+                                Realtime API.
+                              </p>
+                              <p className="mt-2">
+                                <strong>Turn-based:</strong> Record your
+                                response, then listen to the AI response.
+                                Includes role-play options.
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </CardHeader>
               <CardContent>

@@ -1,9 +1,20 @@
 "use client";
 
-import { Mic, MicOff, Play, Square, Loader2 } from "lucide-react";
+import {
+  Mic,
+  MicOff,
+  Play,
+  Square,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Volume2,
+  Languages,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 
 import {
   AlertDialog,
@@ -29,6 +40,58 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { uploadSpeakingRecording } from "@/lib/client/audio-upload";
 import { cn } from "@/lib/utils";
+
+// Image mapping for scenarios
+const SCENARIO_IMAGE_MAP: Record<string, string> = {
+  free: "free conversation-min.jpg",
+  restaurant: "at a restaurant-min.jpg",
+  cafe: "coffee shop-min.jpg",
+  grocery_shopping: "grocery shopping-min.jpg",
+  food_delivery: "food delivery-min.jpg",
+  airport: "airport check-in-min.jpg",
+  taxi_uber: "taxi-rideshare-min.jpg",
+  public_transport: "public transport-min.jpg",
+  car_rental: "car rental-min.jpg",
+  train_station: "train station-min.jpg",
+  hotel: "hotel check-in-min.jpg",
+  airbnb_host: "airbnb check-in-min.jpg",
+  apartment_viewing: "apartment viewing-min.jpg",
+  shopping: "clothes shopping-min.jpg",
+  electronics_store: "electronics store-min.jpg",
+  pharmacy: "pharmacy-min.jpg",
+  post_office: "post office-min.jpg",
+  hair_salon: "hair saloon-min.jpg",
+  doctor: "doctor visit-min.jpg",
+  dentist: "dentist appointment-min.jpg",
+  gym_membership: "gym membership-min.jpg",
+  interview: "job interview-min.jpg",
+  workplace_meeting: "workplace meeting-min.jpg",
+  networking_event: "networking event-min.jpg",
+  customer_service: "customer service call-min.jpg",
+  business_presentation: "business presentation-min.jpg",
+  bank_visit: "bank visit-min.jpg",
+  insurance_consultation: "insurance consultation-min.jpg",
+  university_enrollment: "university enrollment-min.jpg",
+  library_visit: "library visit-min.jpg",
+  language_exchange: "language exchange-min.jpg",
+  party_invitation: "party-event planning-min.jpg",
+  movie_theater: "movie theatre-min.jpg",
+  sports_event: "sports event-min.jpg",
+  concert_venue: "concert-music venue-min.jpg",
+  tech_support: "tech support call-min.jpg",
+  phone_plan: "phone plan setup-min.jpg",
+  internet_setup: "internet plan setup-min.jpg",
+  emergency_call: "emergency call-min.jpg",
+  real_estate_agent: "real estate agent-min.jpg",
+  home_repair: "home repair service-min.jpg",
+  utility_services: "utility services-min.jpg",
+  museum_visit: "museum visit-min.jpg",
+  religious_service: "religious-community centre-min.jpg",
+  volunteer_work: "volunteer organization-min.jpg",
+  neighborhood_chat: "neighbourhood chat-min.jpg",
+  small_talk: "small talk & social chat-min.jpg",
+  hobby_discussion: "hobby&interest discussion-min.jpg",
+};
 
 // Constants for role play scenarios
 const ROLE_PLAY_SCENARIOS = [
@@ -365,15 +428,260 @@ const CEFR_LEVELS = [
   },
 ];
 
-// Voice options
+// Voice image mapping
+const VOICE_IMAGE_MAP: Record<string, string> = {
+  alloy: "alloy-min.jpg",
+  echo: "echo-min.jpg",
+  fable: "fable-min.jpg",
+  onyx: "onyx-min.jpg",
+  nova: "nova-min.jpg",
+  shimmer: "shimmer-min.jpg",
+};
+
+// Voice options with enhanced metadata
 const VOICE_OPTIONS = [
-  { id: "alloy", name: "Alloy" },
-  { id: "echo", name: "Echo" },
-  { id: "fable", name: "Fable" },
-  { id: "onyx", name: "Onyx" },
-  { id: "nova", name: "Nova" },
-  { id: "shimmer", name: "Shimmer" },
+  {
+    id: "alloy",
+    name: "Alloy",
+    gender: "female",
+    description: "Smokey, husky female voice with contralto range",
+  },
+  {
+    id: "echo",
+    name: "Echo",
+    gender: "male",
+    description: "Energetic and warm male tenor voice",
+  },
+  {
+    id: "fable",
+    name: "Fable",
+    gender: "male",
+    description: "Alto male voice with slight English accent",
+  },
+  {
+    id: "onyx",
+    name: "Onyx",
+    gender: "male",
+    description: "Deep bass-baritone male voice with rich tone",
+  },
+  {
+    id: "nova",
+    name: "Nova",
+    gender: "female",
+    description: "Clear alto female voice, very responsive",
+  },
+  {
+    id: "shimmer",
+    name: "Shimmer",
+    gender: "female",
+    description: "Soothing contralto female voice",
+  },
 ];
+
+// VoiceImageSelector Component
+function VoiceImageSelector({
+  voices,
+  selectedVoice,
+  onVoiceChange,
+}: {
+  voices: typeof VOICE_OPTIONS;
+  selectedVoice: string;
+  onVoiceChange: (voiceId: string) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <span className="text-sm font-medium block">AI Voice:</span>
+
+      {/* Centered grid layout */}
+      <div className="flex justify-center">
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-4 max-w-4xl w-full">
+          {voices.map(voice => {
+            const imageSrc = VOICE_IMAGE_MAP[voice.id];
+            const isSelected = selectedVoice === voice.id;
+
+            return (
+              <div
+                key={voice.id}
+                className={cn(
+                  "cursor-pointer transition-all duration-200 hover:scale-105",
+                  isSelected ? "ring-2 ring-primary ring-offset-2" : ""
+                )}
+                onClick={() => onVoiceChange(voice.id)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onVoiceChange(voice.id);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Select ${voice.name} voice: ${voice.description}`}
+                aria-pressed={isSelected}
+              >
+                <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 mx-auto">
+                  {imageSrc && (
+                    <Image
+                      src={`/images/voices/${imageSrc}`}
+                      alt={`${voice.name} voice`}
+                      fill
+                      className="object-cover transition-transform duration-200 hover:scale-110"
+                      sizes="(max-width: 640px) 64px, 80px"
+                      priority={voice.id === "alloy"} // Prioritize the default option
+                    />
+                  )}
+
+                  {/* Selected indicator */}
+                  {isSelected && (
+                    <div className="absolute top-1 right-1 w-3 h-3 sm:w-4 sm:h-4 bg-primary rounded-full flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Voice name */}
+                <div className="text-center mt-1">
+                  <p className="text-xs font-medium text-foreground">
+                    {voice.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground capitalize">
+                    {voice.gender}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Selected voice description */}
+      <div className="text-center">
+        <p className="text-xs text-muted-foreground">
+          {voices.find(v => v.id === selectedVoice)?.description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ScenarioImageSelector Component
+function ScenarioImageSelector({
+  scenarios,
+  selectedScenario,
+  onScenarioChange,
+}: {
+  scenarios: typeof ROLE_PLAY_SCENARIOS;
+  selectedScenario: string;
+  onScenarioChange: (scenarioId: string) => void;
+}) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: -200, behavior: "smooth" });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({ left: 200, behavior: "smooth" });
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <span className="text-sm font-medium block">Practice Scenario:</span>
+
+      <div className="flex items-center gap-1 sm:gap-2">
+        {/* Left scroll button */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8 rounded-full bg-background border shadow-lg flex-shrink-0"
+          onClick={scrollLeft}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+
+        {/* Scrollable container */}
+        <div
+          ref={scrollContainerRef}
+          className="flex gap-2 sm:gap-3 overflow-x-auto scrollbar-hide py-2 flex-1"
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+        >
+          {scenarios.map(scenario => {
+            const imageSrc = SCENARIO_IMAGE_MAP[scenario.id];
+            const isSelected = selectedScenario === scenario.id;
+
+            return (
+              <div
+                key={scenario.id}
+                className={cn(
+                  "flex-shrink-0 cursor-pointer transition-all duration-200 hover:scale-105",
+                  isSelected ? "ring-2 ring-primary ring-offset-2" : ""
+                )}
+                onClick={() => onScenarioChange(scenario.id)}
+                onKeyDown={e => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onScenarioChange(scenario.id);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Select ${scenario.name} scenario: ${scenario.description}`}
+                aria-pressed={isSelected}
+              >
+                <div className="relative w-24 h-16 sm:w-32 sm:h-20 md:w-40 md:h-24 rounded-lg overflow-hidden bg-gray-100">
+                  {imageSrc && (
+                    <Image
+                      src={`/images/speaking/${imageSrc}`}
+                      alt={scenario.name}
+                      fill
+                      className="object-cover transition-transform duration-200 hover:scale-110"
+                      sizes="(max-width: 640px) 96px, (max-width: 768px) 128px, 160px"
+                      priority={scenario.id === "free"} // Prioritize the default option
+                    />
+                  )}
+
+                  {/* Overlay with scenario name */}
+                  <div className="absolute inset-0 bg-black/40 flex items-end">
+                    <div className="p-1 sm:p-2 w-full">
+                      <p className="text-white text-xs font-medium leading-tight line-clamp-2">
+                        {scenario.name}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Selected indicator */}
+                  {isSelected && (
+                    <div className="absolute top-1 right-1 w-3 h-3 sm:w-4 sm:h-4 bg-primary rounded-full flex items-center justify-center">
+                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full" />
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right scroll button */}
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-8 w-8 rounded-full bg-background border shadow-lg flex-shrink-0"
+          onClick={scrollRight}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Selected scenario description */}
+      <p className="text-xs text-muted-foreground">
+        {scenarios.find(s => s.id === selectedScenario)?.description}
+      </p>
+    </div>
+  );
+}
 
 export function TurnBasedConversation() {
   const router = useRouter();
@@ -400,6 +708,11 @@ export function TurnBasedConversation() {
     Array<{ blob: Blob; url?: string; timestamp: Date }>
   >([]);
 
+  // REAL-TIME TRANSCRIPTION: New state for audio visualization and immediate transcription
+  const [audioLevel, setAudioLevel] = useState(0);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+
   // Evaluation state
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [evaluationProgress, setEvaluationProgress] = useState(0);
@@ -411,12 +724,36 @@ export function TurnBasedConversation() {
   const [estimatedTime, setEstimatedTime] = useState(60); // Default 60 seconds
   const [evaluationComplete, setEvaluationComplete] = useState(false); // New state to track true completion
 
+  // AI Audio and Translation state
+  const [aiAudioUrls, setAiAudioUrls] = useState<{
+    [messageIndex: number]: string;
+  }>({});
+  const [translations, setTranslations] = useState<{
+    [messageIndex: number]: string;
+  }>({});
+  const [loadingStates, setLoadingStates] = useState<{
+    audio: { [messageIndex: number]: boolean };
+    translation: { [messageIndex: number]: boolean };
+  }>({
+    audio: {},
+    translation: {},
+  });
+
   // Refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const conversationContainerRef = useRef<HTMLDivElement | null>(null);
   const pollingCleanupRef = useRef<(() => void) | null>(null);
+
+  // REAL-TIME TRANSCRIPTION: New refs for audio analysis and timing
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const recordingStartTimeRef = useRef<number | null>(null);
+  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const audioSimulationRef = useRef<NodeJS.Timeout | null>(null); // Add simulation cleanup ref
+  const isRecordingRef = useRef<boolean>(false); // Add ref to track recording state reliably
 
   // Auto-scroll to bottom when conversation updates
   useEffect(() => {
@@ -432,6 +769,22 @@ export function TurnBasedConversation() {
       // Clean up polling on unmount
       if (pollingCleanupRef.current) {
         pollingCleanupRef.current();
+      }
+
+      // REAL-TIME TRANSCRIPTION: Clean up audio analysis
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (recordingTimerRef.current) {
+        clearInterval(recordingTimerRef.current);
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+
+      // Clean up audio simulation
+      if (audioSimulationRef.current) {
+        clearTimeout(audioSimulationRef.current);
       }
     };
   }, []);
@@ -640,25 +993,27 @@ export function TurnBasedConversation() {
     try {
       setIsStartingSession(true);
 
-      // PHASE 1: Better progressive loading - show immediate feedback
+      // PHASE 1 OPTIMIZATION: Immediate session activation and feedback
+      setIsSessionActive(true);
+      setStatus("idle");
+
+      // Get the selected voice name for the initial message
+      const selectedVoiceName =
+        VOICE_OPTIONS.find(v => v.id === selectedVoice)?.name || "AI";
+
       setConversation([
         {
           role: "assistant",
-          text: "🔄 Connecting to conversation partner...",
+          text: `${selectedVoiceName} is getting ready. Please wait...`,
         },
       ]);
 
-      setStatus("processing");
-
-      // Initialize session with backend
       console.log("Starting conversation session");
 
-      // PHASE 1: Faster timeout for session creation
-      const controller = new AbortController();
-      const startTimeoutId = setTimeout(() => controller.abort(), 12000); // Reduced from 15000 to 12000
-
-      try {
-        const response = await fetch("/api/speaking/conversation/start", {
+      // PHASE 1 OPTIMIZATION: Parallel operations - session creation and microphone prep
+      const [sessionResponse] = await Promise.all([
+        // Priority: Create session (fast)
+        fetch("/api/speaking/conversation/start", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -669,46 +1024,51 @@ export function TurnBasedConversation() {
             scenario: selectedScenario,
             level: selectedLevel,
           }),
-          signal: controller.signal,
-        });
+        }),
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error("Session start error:", errorText);
-          throw new Error(`Failed to start session: ${errorText}`);
-        }
+        // Background: Prepare microphone access (parallel, non-blocking)
+        navigator.mediaDevices
+          .getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true,
+              sampleRate: 16000,
+              channelCount: 1,
+            },
+          })
+          .then(stream => {
+            // Release the stream immediately - we just wanted to get permission
+            stream.getTracks().forEach(track => track.stop());
+            console.log("Microphone access confirmed");
+          })
+          .catch(error => {
+            console.warn("Microphone prep failed:", error);
+            // Non-blocking - user can still try to record later
+          }),
+      ]);
 
-        const data = await response.json();
-        console.log("Session started with ID:", data.speakingSessionId);
-
-        // Set state with session ID and mark session as active
-        setSpeakingSessionId(data.speakingSessionId);
-        setIsSessionActive(true);
-
-        // PHASE 1: Show AI is preparing response
-        setConversation([
-          {
-            role: "assistant",
-            text: "✨ AI is preparing your conversation...",
-          },
-        ]);
-
-        // Generate initial AI greeting based on selected scenario
-        const initialPrompt = getInitialPrompt();
-        console.log("Initial prompt:", initialPrompt);
-
-        // Generate and play AI greeting - pass the session ID directly
-        await generateAIResponse(initialPrompt, true, data.speakingSessionId);
-      } catch (error: any) {
-        if (error.name === "AbortError") {
-          throw new Error("Connection timed out. Please try again.");
-        }
-        throw error;
-      } finally {
-        clearTimeout(startTimeoutId);
+      if (!sessionResponse.ok) {
+        const errorText = await sessionResponse.text();
+        console.error("Session start error:", errorText);
+        throw new Error(`Failed to start session: ${errorText}`);
       }
+
+      const data = await sessionResponse.json();
+      console.log("Session started with ID:", data.speakingSessionId);
+
+      // Set session ID
+      setSpeakingSessionId(data.speakingSessionId);
+
+      // PHASE 1 OPTIMIZATION: Load AI greeting in background (non-blocking)
+      loadInitialGreetingAsync(data.speakingSessionId);
     } catch (error) {
       console.error("Error starting session:", error);
+
+      // Reset session state on error
+      setIsSessionActive(false);
+      setStatus("error");
+
       toast({
         title: "Session error",
         description:
@@ -717,9 +1077,27 @@ export function TurnBasedConversation() {
             : "Failed to start conversation session",
         variant: "destructive",
       });
-      setStatus("error");
     } finally {
       setIsStartingSession(false);
+    }
+  };
+
+  // PHASE 1 OPTIMIZATION: Background greeting loader (non-blocking)
+  const loadInitialGreetingAsync = async (sessionId: string) => {
+    try {
+      const initialPrompt = getInitialPrompt();
+      console.log("Loading initial AI greeting:", initialPrompt);
+
+      await generateAIResponse(initialPrompt, true, sessionId);
+
+      // Replace "getting ready..." message with actual greeting when ready
+      setConversation(prev =>
+        prev.filter(msg => !msg.text.includes("is getting ready"))
+      );
+    } catch (error) {
+      console.warn("Initial greeting generation failed:", error);
+      // Continue without greeting - user can still record
+      // Keep the "Please wait..." message as fallback
     }
   };
 
@@ -808,6 +1186,14 @@ export function TurnBasedConversation() {
         setIsSessionActive(false);
         setSpeakingSessionId(null);
         setSessionRecordings([]);
+
+        // Clean up AI audio files from Cloudinary
+        await cleanupAIAudio();
+
+        // Reset AI audio and translation state
+        setAiAudioUrls({});
+        setTranslations({});
+        setLoadingStates({ audio: {}, translation: {} });
       } catch (error) {
         console.error("Error ending session:", error);
         toast({
@@ -824,12 +1210,48 @@ export function TurnBasedConversation() {
     if (!isSessionActive) return;
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // PHASE 1 OPTIMIZATION: WebRTC-grade audio settings for better quality
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true, // From WebRTC implementation
+          noiseSuppression: true, // From WebRTC implementation
+          autoGainControl: true, // From WebRTC implementation
+          sampleRate: 16000, // Optimized for speech recognition
+          channelCount: 1, // Mono for speech (smaller files)
+        },
+      });
 
-      // OPTIMIZATION: Configure MediaRecorder for better compression and faster processing
+      // Clean up any previous audio simulation
+      if (audioSimulationRef.current) {
+        clearTimeout(audioSimulationRef.current);
+        audioSimulationRef.current = null;
+      }
+
+      // REAL-TIME TRANSCRIPTION: Set up audio analysis for visualization
+      let audioAnalysisWorking = false;
+      try {
+        audioContextRef.current = new (window.AudioContext ||
+          (window as any).webkitAudioContext)();
+        const source = audioContextRef.current.createMediaStreamSource(stream);
+        analyserRef.current = audioContextRef.current.createAnalyser();
+
+        // Optimized settings for real-time voice detection
+        analyserRef.current.fftSize = 256; // Smaller for faster processing
+        analyserRef.current.smoothingTimeConstant = 0.1; // Minimal smoothing for immediate response
+
+        source.connect(analyserRef.current);
+        audioAnalysisWorking = true;
+
+        console.log("Audio analysis setup successful");
+      } catch (audioAnalysisError) {
+        console.warn("Audio analysis setup failed:", audioAnalysisError);
+        audioAnalysisWorking = false;
+      }
+
+      // PHASE 1 OPTIMIZATION: Better compression and faster processing
       const options = {
         mimeType: "audio/webm;codecs=opus", // Opus codec for better compression
-        audioBitsPerSecond: 64000, // Lower bitrate for faster upload (still good quality for speech)
+        audioBitsPerSecond: 32000, // OPTIMIZED: Reduced from 64000 for faster upload while maintaining quality
       };
 
       // Fallback for browsers that don't support the preferred format
@@ -855,15 +1277,61 @@ export function TurnBasedConversation() {
           type: mediaRecorder.mimeType || "audio/webm",
         });
         setAudioBlob(audioBlob);
-        processRecording(audioBlob);
+
+        // REAL-TIME TRANSCRIPTION: Start immediate transcription
+        processRecordingImmediate(audioBlob);
 
         // Stop all tracks to release the microphone
         stream.getTracks().forEach(track => track.stop());
+
+        // Clean up audio analysis
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+          audioContextRef.current = null;
+        }
+
+        // Clean up audio simulation
+        if (audioSimulationRef.current) {
+          clearTimeout(audioSimulationRef.current);
+          audioSimulationRef.current = null;
+        }
+
+        // Reset audio level and recording ref
+        setAudioLevel(0);
+        isRecordingRef.current = false;
       };
 
       mediaRecorder.start();
       setIsRecording(true);
+      isRecordingRef.current = true; // Set ref immediately
       setStatus("recording");
+
+      // REAL-TIME TRANSCRIPTION: Start recording timer and reset audio level
+      startRecordingTimer();
+      setAudioLevel(0);
+
+      // Start appropriate audio visualization AFTER isRecording is set
+      if (audioAnalysisWorking) {
+        console.log("Starting real audio analysis");
+        console.log("Analyser state:", {
+          analyser: !!analyserRef.current,
+          fftSize: analyserRef.current?.fftSize,
+          sampleRate: audioContextRef.current?.sampleRate,
+          state: audioContextRef.current?.state,
+          isRecording: true, // This should now be true
+        });
+
+        // Start immediately since isRecording is now true
+        console.log("Starting analyzeAudioLevel with isRecording: true");
+        analyzeAudioLevel();
+      } else {
+        console.log("Starting simulated audio visualization");
+        startAudioSimulation();
+      }
     } catch (error) {
       console.error("Error starting recording:", error);
       toast({
@@ -879,11 +1347,26 @@ export function TurnBasedConversation() {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      isRecordingRef.current = false; // Update ref immediately
+
+      // REAL-TIME TRANSCRIPTION: Stop timer and show transcribing state
+      stopRecordingTimer();
+      setIsTranscribing(true);
       setStatus("processing");
+
+      // Show immediate visual feedback that transcription is happening
+      setConversation(prev => [
+        ...prev,
+        {
+          role: "user",
+          text: "🔄 Transcribing...",
+        },
+      ]);
     }
   };
 
-  const processRecording = async (audioBlobToProcess: Blob) => {
+  // REAL-TIME TRANSCRIPTION: Immediate processing for faster UX
+  const processRecordingImmediate = async (audioBlobToProcess: Blob) => {
     if (!audioBlobToProcess || !speakingSessionId) {
       console.error("Missing audio blob or session ID", {
         hasAudioBlob: !!audioBlobToProcess,
@@ -893,67 +1376,71 @@ export function TurnBasedConversation() {
     }
 
     console.log(
-      "Starting processRecording with blob size:",
+      "Starting immediate transcription with blob size:",
       audioBlobToProcess.size
     );
-    setIsProcessing(true);
 
     try {
-      // Store the recording in our session recordings array
+      // Store the recording in our session recordings array immediately
       const newRecording = {
         blob: audioBlobToProcess,
         timestamp: new Date(),
       };
       setSessionRecordings(prev => [...prev, newRecording]);
 
-      // Try to upload to Cloudinary for later analysis
-      try {
-        console.log("Uploading audio recording to Cloudinary");
-        const uploadResult = await uploadSpeakingRecording(
-          audioBlobToProcess,
-          speakingSessionId
-        );
-
-        // Update the recording entry with the URL
-        setSessionRecordings(prev =>
-          prev.map((rec, index) =>
-            index === prev.length - 1 ? { ...rec, url: uploadResult.url } : rec
-          )
-        );
-
-        console.log("Audio recording uploaded:", uploadResult.url);
-      } catch (uploadError) {
-        // Don't fail the whole operation if upload fails
-        console.error("Error uploading audio recording:", uploadError);
-      }
-
-      // Create form data with the audio blob
-      console.log("Creating FormData for transcription");
+      // REAL-TIME TRANSCRIPTION: Start transcription immediately (priority operation)
+      console.log("Creating FormData for immediate transcription");
       const formData = new FormData();
       formData.append("audio", audioBlobToProcess, "recording.webm");
       formData.append("speakingSessionId", speakingSessionId);
 
+      console.log("Sending audio for immediate transcription");
+
+      // REAL-TIME TRANSCRIPTION: Parallel processing - transcription and upload
+      const [transcriptionResponse] = await Promise.all([
+        // Priority: Transcription (user needs to see this immediately)
+        fetch("/api/speaking/conversation/transcript", {
+          method: "POST",
+          body: formData,
+        }),
+
+        // Background: Upload to Cloudinary (for evaluation later, non-blocking)
+        uploadSpeakingRecording(audioBlobToProcess, speakingSessionId)
+          .then(uploadResult => {
+            // Update the recording entry with the URL when ready
+            setSessionRecordings(prev =>
+              prev.map((rec, index) =>
+                index === prev.length - 1
+                  ? { ...rec, url: uploadResult.url }
+                  : rec
+              )
+            );
+            console.log("Audio recording uploaded:", uploadResult.url);
+          })
+          .catch(uploadError => {
+            // Don't fail the whole operation if upload fails
+            console.error("Error uploading audio recording:", uploadError);
+          }),
+      ]);
+
       console.log(
-        "Sending audio for transcription to /api/speaking/conversation/transcript"
+        "Transcription response status:",
+        transcriptionResponse.status
       );
 
-      // Send to backend for transcription
-      const response = await fetch("/api/speaking/conversation/transcript", {
-        method: "POST",
-        body: formData,
-      });
-
-      console.log("Transcription response status:", response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Transcription failed:", response.status, errorText);
+      if (!transcriptionResponse.ok) {
+        const errorText = await transcriptionResponse.text();
+        console.error(
+          "Transcription failed:",
+          transcriptionResponse.status,
+          errorText
+        );
         throw new Error(
-          `Failed to transcribe audio: ${response.status} ${errorText}`
+          `Failed to transcribe audio: ${transcriptionResponse.status} ${errorText}`
         );
       }
 
-      const transcriptionResult = await response.json();
+      const transcriptionResult = await transcriptionResponse.json();
       console.log("Transcription result:", transcriptionResult);
 
       const { text, potentialGrammarErrors } = transcriptionResult;
@@ -962,14 +1449,44 @@ export function TurnBasedConversation() {
       console.log("User said:", text);
       console.log("Potential grammar errors:", potentialGrammarErrors);
 
-      // Add user message to conversation
-      setConversation(prev => [...prev, { role: "user", text }]);
+      // REAL-TIME TRANSCRIPTION: Replace transcribing message with actual transcript
+      setConversation(prev =>
+        prev.map((msg, i) =>
+          i === prev.length - 1 && msg.text.includes("🔄 Transcribing")
+            ? { role: "user", text }
+            : msg
+        )
+      );
+
+      // Get the selected voice name for the thinking message
+      const selectedVoiceName =
+        VOICE_OPTIONS.find(v => v.id === selectedVoice)?.name || "AI";
+
+      // REAL-TIME TRANSCRIPTION: Show AI thinking immediately with voice name
+      setConversation(prev => [
+        ...prev,
+        {
+          role: "assistant",
+          text: `💭 ${selectedVoiceName} is thinking...`,
+        },
+      ]);
 
       console.log("Generating AI response for user input:", text);
-      // Generate AI response with potential grammar errors included
-      await generateAIResponse(text, false, undefined, potentialGrammarErrors);
+
+      // Generate AI response asynchronously (non-blocking UI)
+      generateAIResponseAsync(text, potentialGrammarErrors);
     } catch (error) {
       console.error("Error processing recording:", error);
+
+      // Better error handling with user-friendly messages - replace transcribing message
+      setConversation(prev =>
+        prev.map((msg, i) =>
+          i === prev.length - 1 && msg.text.includes("🔄 Transcribing")
+            ? { role: "user", text: "❌ Speech processing failed" }
+            : msg
+        )
+      );
+
       toast({
         title: "Processing error",
         description: "Failed to process your recording",
@@ -977,7 +1494,42 @@ export function TurnBasedConversation() {
       });
       setStatus("error");
     } finally {
+      setIsTranscribing(false);
       setIsProcessing(false);
+    }
+  };
+
+  // PHASE 1 OPTIMIZATION: Separate async AI response function for non-blocking operation
+  const generateAIResponseAsync = async (
+    userInput: string,
+    potentialGrammarErrors?: any[]
+  ) => {
+    try {
+      // Convert grammar errors array to string format expected by generateAIResponse
+      const grammarErrorsString = potentialGrammarErrors
+        ? JSON.stringify(potentialGrammarErrors)
+        : undefined;
+
+      await generateAIResponse(
+        userInput,
+        false,
+        undefined,
+        grammarErrorsString
+      );
+    } catch (error) {
+      console.error("AI response generation failed:", error);
+
+      // Replace thinking message with error
+      setConversation(prev =>
+        prev.map((msg, i) =>
+          i === prev.length - 1 && msg.text.includes("💭")
+            ? {
+                role: "assistant",
+                text: "Sorry, I couldn't generate a response. Please try again.",
+              }
+            : msg
+        )
+      );
     }
   };
 
@@ -1036,6 +1588,8 @@ export function TurnBasedConversation() {
             voice: selectedVoice,
             isInitial,
             potentialGrammarErrors,
+            userName:
+              session?.user?.name || session?.user?.email?.split("@")[0],
           }),
           signal: controller.signal,
         });
@@ -1053,13 +1607,27 @@ export function TurnBasedConversation() {
         const data = await response.json();
         console.log("API response received:", data);
 
-        // PHASE 1: Add AI response immediately - better perceived performance
-        setConversation(prev => [
-          ...prev.filter(
-            msg => !msg.text.includes("🔄") && !msg.text.includes("✨")
-          ), // Remove loading messages
-          { role: "assistant", text: data.text },
-        ]);
+        // PHASE 1 OPTIMIZATION: Replace thinking message or add new response
+        setConversation(prev => {
+          const filtered = prev.filter(
+            msg =>
+              !msg.text.includes("🔄") &&
+              !msg.text.includes("✨") &&
+              !msg.text.includes("💭")
+          ); // Remove all loading/thinking messages
+          const newConversation = [
+            ...filtered,
+            { role: "assistant" as const, text: data.text },
+          ];
+
+          // Store AI audio for repeat functionality if audio is available
+          if (data.audioUrl) {
+            const messageIndex = newConversation.length - 1; // Index of the AI message we just added
+            storeAIAudio(data.audioUrl, messageIndex);
+          }
+
+          return newConversation;
+        });
 
         // PHASE 1: Handle audio loading with better feedback
         if (data.audioUrl && audioElementRef.current) {
@@ -1139,44 +1707,294 @@ export function TurnBasedConversation() {
     return "Hello!";
   };
 
+  // REAL-TIME TRANSCRIPTION: Audio level analysis for visualization
+  const analyzeAudioLevel = () => {
+    if (!analyserRef.current || !isRecordingRef.current) {
+      console.log(
+        "analyzeAudioLevel stopped - analyser:",
+        !!analyserRef.current,
+        "isRecording:",
+        isRecordingRef.current
+      );
+      return;
+    }
+
+    const bufferLength = analyserRef.current.fftSize;
+    const dataArray = new Uint8Array(bufferLength);
+
+    try {
+      analyserRef.current.getByteTimeDomainData(dataArray); // Use time domain for better voice detection
+
+      // Calculate the maximum amplitude for immediate response
+      let max = 0;
+      for (let i = 0; i < bufferLength; i++) {
+        const normalized = Math.abs(dataArray[i] - 128) / 128; // Center around 0 and normalize
+        if (normalized > max) {
+          max = normalized;
+        }
+      }
+
+      // Apply amplification for better visual response
+      const amplified = Math.min(max * 2.5, 1); // Amplify and cap at 1
+
+      // Debug: Log audio level more frequently for debugging
+      if (Math.random() < 0.1) {
+        // Log ~10% of the time for debugging
+        console.log(
+          "Audio level:",
+          amplified.toFixed(3),
+          "Raw max:",
+          max.toFixed(3),
+          "Buffer length:",
+          bufferLength,
+          "IsRecording:",
+          isRecordingRef.current
+        );
+      }
+
+      setAudioLevel(amplified);
+    } catch (error) {
+      console.error("Error in audio analysis:", error);
+      // Fall back to simulation if real analysis fails
+      if (isRecordingRef.current) {
+        console.log("Falling back to audio simulation due to analysis error");
+        startAudioSimulation();
+        return;
+      }
+    }
+
+    // Continue animation if still recording
+    if (isRecordingRef.current) {
+      animationFrameRef.current = requestAnimationFrame(analyzeAudioLevel);
+    } else {
+      console.log("Stopped audio analysis - recording ended");
+    }
+  };
+
+  // REAL-TIME TRANSCRIPTION: Fallback audio simulation with proper timing
+  const startAudioSimulation = () => {
+    if (!isRecordingRef.current) {
+      console.log("Not starting audio simulation - not recording");
+      return;
+    }
+
+    // Clean up any existing simulation first
+    if (audioSimulationRef.current) {
+      clearTimeout(audioSimulationRef.current);
+      audioSimulationRef.current = null;
+    }
+
+    console.log("Starting audio simulation fallback");
+
+    const updateLevel = () => {
+      if (!isRecordingRef.current) {
+        console.log("Stopping audio simulation - recording ended");
+        return;
+      }
+
+      // Generate more realistic audio levels that vary over time
+      const baseLevel = 0.15 + Math.random() * 0.7; // Random base level
+      const smoothLevel = Math.min(baseLevel, 1);
+
+      console.log("Simulated audio level:", smoothLevel.toFixed(3));
+      setAudioLevel(smoothLevel);
+
+      // Schedule next update
+      if (isRecordingRef.current) {
+        audioSimulationRef.current = setTimeout(
+          updateLevel,
+          80 + Math.random() * 40
+        ); // 80-120ms intervals for natural variation
+      }
+    };
+
+    // Start the simulation
+    updateLevel();
+  };
+
+  // REAL-TIME TRANSCRIPTION: Start recording timer
+  const startRecordingTimer = () => {
+    recordingStartTimeRef.current = Date.now();
+    setRecordingDuration(0);
+
+    recordingTimerRef.current = setInterval(() => {
+      if (recordingStartTimeRef.current) {
+        const elapsed = Math.floor(
+          (Date.now() - recordingStartTimeRef.current) / 1000
+        );
+        setRecordingDuration(elapsed);
+      }
+    }, 100); // Update every 100ms for smooth timer
+  };
+
+  // REAL-TIME TRANSCRIPTION: Stop recording timer
+  const stopRecordingTimer = () => {
+    if (recordingTimerRef.current) {
+      clearInterval(recordingTimerRef.current);
+      recordingTimerRef.current = null;
+    }
+    recordingStartTimeRef.current = null;
+  };
+
+  // Store AI audio response in Cloudinary for repeat functionality
+  const storeAIAudio = async (audioData: string, messageIndex: number) => {
+    if (!speakingSessionId) return;
+
+    setLoadingStates(prev => ({
+      ...prev,
+      audio: { ...prev.audio, [messageIndex]: true },
+    }));
+
+    try {
+      const response = await fetch("/api/speaking/ai-audio/store", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          audioData,
+          speakingSessionId,
+          messageIndex,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to store AI audio");
+      }
+
+      const data = await response.json();
+
+      setAiAudioUrls(prev => ({
+        ...prev,
+        [messageIndex]: data.audioUrl,
+      }));
+
+      console.log(
+        `AI audio stored for message ${messageIndex}:`,
+        data.audioUrl
+      );
+    } catch (error) {
+      console.error("Error storing AI audio:", error);
+      toast({
+        title: "Audio Storage Error",
+        description: "Could not store audio for repeat functionality.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingStates(prev => ({
+        ...prev,
+        audio: { ...prev.audio, [messageIndex]: false },
+      }));
+    }
+  };
+
+  // Repeat AI audio response
+  const repeatAIAudio = async (messageIndex: number) => {
+    const audioUrl = aiAudioUrls[messageIndex];
+
+    if (audioUrl && audioElementRef.current) {
+      try {
+        audioElementRef.current.src = audioUrl;
+        await audioElementRef.current.play();
+      } catch (error) {
+        console.error("Error playing AI audio:", error);
+        toast({
+          title: "Playback Error",
+          description: "Could not play the audio. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  // Translate AI response to Turkish
+  const translateAIResponse = async (text: string, messageIndex: number) => {
+    setLoadingStates(prev => ({
+      ...prev,
+      translation: { ...prev.translation, [messageIndex]: true },
+    }));
+
+    try {
+      const response = await fetch("/api/speaking/translate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to translate text");
+      }
+
+      const data = await response.json();
+
+      setTranslations(prev => ({
+        ...prev,
+        [messageIndex]: data.translatedText,
+      }));
+
+      toast({
+        title: "Translation Complete",
+        description: "AI response has been translated to Turkish.",
+      });
+    } catch (error) {
+      console.error("Error translating text:", error);
+      toast({
+        title: "Translation Error",
+        description: "Could not translate the text. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingStates(prev => ({
+        ...prev,
+        translation: { ...prev.translation, [messageIndex]: false },
+      }));
+    }
+  };
+
+  // Clean up AI audio files when session ends
+  const cleanupAIAudio = async () => {
+    if (!speakingSessionId) return;
+
+    try {
+      await fetch("/api/speaking/ai-audio/cleanup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ speakingSessionId }),
+      });
+
+      console.log(
+        `AI audio cleanup completed for session ${speakingSessionId}`
+      );
+    } catch (error) {
+      console.warn("AI audio cleanup failed:", error);
+      // Don't show error to user as this is background cleanup
+    }
+  };
+
   return (
     <div className="space-y-4">
       {!isSessionActive ? (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <span className="text-sm font-medium mb-1 block">
-                Practice Scenario:
-              </span>
-              <Select
-                value={selectedScenario}
-                onValueChange={setSelectedScenario}
-              >
-                <SelectTrigger aria-label="Select a practice scenario">
-                  <SelectValue placeholder="Select a scenario" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ROLE_PLAY_SCENARIOS.map(scenario => (
-                    <SelectItem key={scenario.id} value={scenario.id}>
-                      {scenario.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                {
-                  ROLE_PLAY_SCENARIOS.find(s => s.id === selectedScenario)
-                    ?.description
-                }
-              </p>
-            </div>
+          <ScenarioImageSelector
+            scenarios={ROLE_PLAY_SCENARIOS}
+            selectedScenario={selectedScenario}
+            onScenarioChange={setSelectedScenario}
+          />
 
+          <div className="space-y-4">
             <div>
               <span className="text-sm font-medium mb-1 block">
                 Language Level:
               </span>
               <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                <SelectTrigger aria-label="Select your language level">
+                <SelectTrigger
+                  aria-label="Select your language level"
+                  className="w-full"
+                >
                   <SelectValue placeholder="Select your level" />
                 </SelectTrigger>
                 <SelectContent>
@@ -1191,31 +2009,18 @@ export function TurnBasedConversation() {
                 {CEFR_LEVELS.find(l => l.id === selectedLevel)?.description}
               </p>
             </div>
-          </div>
 
-          <div>
-            <span className="text-sm font-medium mb-1 block">AI Voice:</span>
-            <Select value={selectedVoice} onValueChange={setSelectedVoice}>
-              <SelectTrigger
-                className="w-full md:w-[180px]"
-                aria-label="Select an AI voice"
-              >
-                <SelectValue placeholder="Select a voice" />
-              </SelectTrigger>
-              <SelectContent>
-                {VOICE_OPTIONS.map(voice => (
-                  <SelectItem key={voice.id} value={voice.id}>
-                    {voice.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <VoiceImageSelector
+              voices={VOICE_OPTIONS}
+              selectedVoice={selectedVoice}
+              onVoiceChange={setSelectedVoice}
+            />
           </div>
 
           <Button
             onClick={startSession}
             disabled={!session?.user || isStartingSession}
-            className="mt-4"
+            className="mt-4 w-full"
           >
             {isStartingSession ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1227,36 +2032,25 @@ export function TurnBasedConversation() {
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-medium">Status:</p>
-              <Badge variant={status === "error" ? "destructive" : "default"}>
-                {status === "idle" && "Ready for your response"}
-                {status === "recording" && "Recording your response..."}
-                {status === "processing" && "Processing..."}
-                {status === "speaking" && "AI is speaking..."}
-                {status === "error" && "Error"}
-              </Badge>
-
-              <Badge variant="outline">
-                {ROLE_PLAY_SCENARIOS.find(s => s.id === selectedScenario)?.name}
-              </Badge>
-
-              <Badge variant="outline">
-                Level: {selectedLevel.toUpperCase()}
-              </Badge>
-            </div>
-
-            <Button variant="destructive" onClick={endSession}>
+          {/* Free Conversation Title with End Conversation Button */}
+          <div className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-4">
+            <h3 className="text-lg font-semibold">Free Conversation</h3>
+            <Button
+              variant="destructive"
+              onClick={endSession}
+              className="w-full sm:w-auto text-sm"
+            >
               <Square className="mr-2 h-4 w-4" />
               End Conversation
             </Button>
           </div>
 
           {status === "error" && (
-            <div className="bg-destructive/10 border border-destructive rounded-lg p-4 mb-4">
-              <h3 className="text-destructive font-medium mb-2">Error</h3>
-              <p className="text-sm text-destructive/90 mb-3">
+            <div className="bg-destructive/10 border border-destructive rounded-lg p-3 sm:p-4 mb-4">
+              <h3 className="text-destructive font-medium mb-2 text-sm">
+                Error
+              </h3>
+              <p className="text-xs sm:text-sm text-destructive/90 mb-3">
                 There was a problem with the conversation. Please check the
                 console for more details.
               </p>
@@ -1271,7 +2065,8 @@ export function TurnBasedConversation() {
                   }
                 }}
                 variant="outline"
-                className="mr-2"
+                className="mr-2 text-sm"
+                size="sm"
               >
                 Retry
               </Button>
@@ -1280,10 +2075,10 @@ export function TurnBasedConversation() {
 
           <div
             ref={conversationContainerRef}
-            className="border rounded-lg p-4 space-y-4 max-h-[400px] overflow-y-auto"
+            className="border rounded-lg p-2 sm:p-4 space-y-3 sm:space-y-4 max-h-[350px] sm:max-h-[400px] overflow-y-auto"
           >
             {conversation.length === 0 ? (
-              <p className="text-center text-muted-foreground text-sm py-8">
+              <p className="text-center text-muted-foreground text-xs sm:text-sm py-6 sm:py-8">
                 Click "Start Conversation" to begin speaking practice
               </p>
             ) : (
@@ -1291,63 +2086,154 @@ export function TurnBasedConversation() {
                 <div
                   key={i}
                   className={cn(
-                    "flex items-start space-x-2",
+                    "flex items-start gap-2",
                     message.role === "user" ? "justify-end" : "justify-start"
                   )}
                 >
+                  {/* AI Voice Profile Image - only for assistant messages */}
+                  {message.role === "assistant" && (
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gray-100 border">
+                        {VOICE_IMAGE_MAP[selectedVoice] && (
+                          <Image
+                            src={`/images/voices/${VOICE_IMAGE_MAP[selectedVoice]}`}
+                            alt={`${VOICE_OPTIONS.find(v => v.id === selectedVoice)?.name} voice`}
+                            width={40}
+                            height={40}
+                            className="object-cover w-full h-full"
+                          />
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div
                     className={cn(
-                      "max-w-[80%] rounded-lg p-3",
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted"
+                      "flex flex-col min-w-0", // min-w-0 allows text to wrap properly
+                      message.role === "user" ? "items-end" : "items-start"
                     )}
                   >
-                    <p>{message.text}</p>
+                    <div
+                      className={cn(
+                        "rounded-lg p-2 sm:p-3 max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg",
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted"
+                      )}
+                    >
+                      <p className="text-xs sm:text-sm leading-relaxed break-words">
+                        {message.text}
+                      </p>
+
+                      {/* Translation display for AI messages */}
+                      {message.role === "assistant" && translations[i] && (
+                        <div className="mt-2 pt-2 border-t border-muted-foreground/20">
+                          <p className="text-xs text-muted-foreground italic break-words">
+                            🇹🇷 {translations[i]}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Repeat and Translate buttons for AI messages */}
+                    {message.role === "assistant" && (
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2 mt-2 w-full sm:w-auto">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => repeatAIAudio(i)}
+                          disabled={!aiAudioUrls[i] || loadingStates.audio[i]}
+                          className="h-6 sm:h-7 px-2 text-xs w-full sm:w-auto justify-start sm:justify-center"
+                        >
+                          {loadingStates.audio[i] ? (
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          ) : (
+                            <Volume2 className="h-3 w-3 mr-1" />
+                          )}
+                          {aiAudioUrls[i] ? "Repeat" : "Loading..."}
+                        </Button>
+
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => translateAIResponse(message.text, i)}
+                          disabled={
+                            loadingStates.translation[i] || !!translations[i]
+                          }
+                          className="h-6 sm:h-7 px-2 text-xs w-full sm:w-auto justify-start sm:justify-center"
+                        >
+                          {loadingStates.translation[i] ? (
+                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          ) : (
+                            <Languages className="h-3 w-3 mr-1" />
+                          )}
+                          {translations[i] ? "Translated" : "Translate"}
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))
             )}
 
-            {/* PHASE 1: Show processing indicator when AI is thinking */}
-            {status === "processing" && conversation.length > 0 && (
-              <div className="flex items-start space-x-2 justify-start">
-                <div className="bg-muted max-w-[80%] rounded-lg p-3">
-                  <div className="flex items-center space-x-2">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
-                      <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
-                      <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce"></div>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      AI is thinking...
-                    </p>
+            {/* REAL-TIME TRANSCRIPTION: Audio visualization during recording */}
+            {isRecording && (
+              <div className="flex items-start gap-2 justify-end">
+                <div className="flex justify-center">
+                  {/* Audio level bars with fixed height container */}
+                  <div className="flex items-end space-x-1 py-3 sm:py-4 h-12 sm:h-16">
+                    {[...Array(6)].map(
+                      (
+                        _,
+                        i // Reduced from 8 to 6 bars for mobile
+                      ) => (
+                        <div
+                          key={i}
+                          className={cn(
+                            "w-1.5 sm:w-2 bg-red-500 rounded-full transition-all duration-100",
+                            audioLevel > (i + 1) * 0.167 // Adjusted for 6 bars
+                              ? "opacity-100"
+                              : "opacity-30"
+                          )}
+                          style={{
+                            height:
+                              audioLevel > (i + 1) * 0.167
+                                ? `${Math.max(8, 8 + i * 3)}px` // Smaller bars for mobile
+                                : "8px",
+                          }}
+                        />
+                      )
+                    )}
                   </div>
                 </div>
               </div>
             )}
 
             {isProcessing && (
-              <div className="flex justify-center p-4">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <div className="flex justify-center p-3 sm:p-4">
+                <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-muted-foreground" />
               </div>
             )}
 
             {conversation.length === 0 &&
               !isProcessing &&
               status !== "error" && (
-                <div className="text-center text-muted-foreground p-4">
-                  <p>Starting conversation. Please wait...</p>
+                <div className="text-center text-muted-foreground p-3 sm:p-4">
+                  <p className="text-xs sm:text-sm">
+                    Starting conversation. Please wait...
+                  </p>
                 </div>
               )}
           </div>
 
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center mt-3 sm:mt-4 px-2 sm:px-0">
             {isRecording ? (
               <Button
                 variant="destructive"
                 onClick={stopRecording}
                 disabled={status === "processing" || status === "speaking"}
+                className="animate-pulse w-full sm:w-auto text-sm"
+                size="sm"
               >
                 <Square className="mr-2 h-4 w-4" />
                 Stop Recording
@@ -1359,8 +2245,11 @@ export function TurnBasedConversation() {
                   status === "processing" ||
                   status === "speaking" ||
                   isProcessing ||
+                  isTranscribing ||
                   status === "error"
                 }
+                className="w-full sm:w-auto text-sm"
+                size="sm"
               >
                 <Mic className="mr-2 h-4 w-4" />
                 Record Response
