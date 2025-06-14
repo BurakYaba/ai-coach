@@ -515,807 +515,958 @@ export default function ListeningSessionPage({
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-8 pb-24">
-      <div className="mb-6">
-        <Link
-          href="/dashboard/listening"
-          className="mb-4 flex items-center text-sm text-gray-500 hover:text-gray-900"
-        >
-          <ArrowLeft className="mr-1 h-4 w-4" />
-          Back to listening dashboard
-        </Link>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <Link
+            href="/dashboard/listening"
+            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-4 sm:mb-6 transition-colors"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to listening dashboard
+          </Link>
 
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight md:text-3xl">
-              {session.title}
-            </h1>
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge variant="outline">{session.level}</Badge>
-              <Badge variant="outline" className="capitalize">
-                {session.contentType}
-              </Badge>
-              <Badge variant="outline">{session.topic}</Badge>
-              <div className="flex items-center text-sm text-gray-500">
-                <Volume2 className="mr-1 h-4 w-4" />
-                {formatTime(session.duration || 0)}
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex-1">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-800 mb-3">
+                  {session.title}
+                </h1>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                  <Badge
+                    variant="outline"
+                    className="bg-blue-50 text-blue-700 border-blue-200 text-xs sm:text-sm"
+                  >
+                    {session.level}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="bg-green-50 text-green-700 border-green-200 capitalize text-xs sm:text-sm"
+                  >
+                    {session.contentType}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="bg-purple-50 text-purple-700 border-purple-200 text-xs sm:text-sm"
+                  >
+                    {session.topic}
+                  </Badge>
+                  <div className="flex items-center text-xs sm:text-sm text-gray-500 bg-gray-50 px-2 sm:px-3 py-1 rounded-full">
+                    <Volume2 className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                    {formatTime(session.duration || 0)}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Audio Player */}
-      <div className="mb-8 rounded-lg border bg-card p-4 shadow-sm">
-        <audio
-          ref={audioRef}
-          src={session.content?.audioUrl}
-          preload="metadata"
-          onLoadedMetadata={() => {
-            // Set initial duration when metadata is loaded
-            if (audioRef.current) {
-              const loadedDuration = audioRef.current.duration;
-              setDuration(loadedDuration);
-              console.log("Audio duration loaded:", {
-                loadedDuration,
-                isFinite: isFinite(loadedDuration),
-                formatted: formatTime(loadedDuration),
-                sessionDuration: session.duration,
-                formattedSession: formatTime(session.duration || 0),
-              });
-            }
-          }}
-          onTimeUpdate={() => {
-            // Update current time during playback
-            if (audioRef.current) {
-              setCurrentTime(audioRef.current.currentTime);
-            }
-          }}
-          onEnded={() => setIsPlaying(false)}
-          className="hidden"
-        >
-          <track kind="captions" src="" label="English captions" />
-          Your browser does not support the audio element.
-        </audio>
+        {/* Audio Player */}
+        <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg mb-6 sm:mb-8">
+          <audio
+            ref={audioRef}
+            src={session.content?.audioUrl}
+            preload="metadata"
+            onLoadedMetadata={() => {
+              // Set initial duration when metadata is loaded
+              if (audioRef.current) {
+                const loadedDuration = audioRef.current.duration;
+                setDuration(loadedDuration);
+                console.log("Audio duration loaded:", {
+                  loadedDuration,
+                  isFinite: isFinite(loadedDuration),
+                  formatted: formatTime(loadedDuration),
+                  sessionDuration: session.duration,
+                  formattedSession: formatTime(session.duration || 0),
+                });
+              }
+            }}
+            onTimeUpdate={() => {
+              // Update current time during playback
+              if (audioRef.current) {
+                setCurrentTime(audioRef.current.currentTime);
+              }
+            }}
+            onEnded={() => setIsPlaying(false)}
+            className="hidden"
+          >
+            <track kind="captions" src="" label="English captions" />
+            Your browser does not support the audio element.
+          </audio>
 
-        <div className="mb-4">
-          <div className="flex items-center justify-between">
-            <div className="text-sm font-medium">
-              {formatTime(currentTime)} /{" "}
-              {formatTime(
+          <div className="mb-4 sm:mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 gap-3">
+              <div className="text-sm font-medium text-gray-600 text-center sm:text-left">
+                {formatTime(currentTime)} /{" "}
+                {formatTime(
+                  duration && isFinite(duration) && duration > 0
+                    ? duration
+                    : session?.duration &&
+                        isFinite(session.duration) &&
+                        session.duration > 0
+                      ? session.duration
+                      : 0
+                )}
+              </div>
+              <div className="flex items-center justify-center sm:justify-end gap-2 sm:gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={toggleMute}
+                  className="hover:bg-gray-100 h-8 w-8 sm:h-10 sm:w-10"
+                >
+                  {isMuted ? (
+                    <VolumeX className="h-4 w-4 sm:h-5 sm:w-5" />
+                  ) : (
+                    <Volume2 className="h-4 w-4 sm:h-5 sm:w-5" />
+                  )}
+                </Button>
+                <Slider
+                  value={[isMuted ? 0 : volume]}
+                  min={0}
+                  max={100}
+                  step={1}
+                  onValueChange={handleVolumeChange}
+                  className="w-16 sm:w-20 lg:w-24"
+                />
+              </div>
+            </div>
+
+            <Slider
+              value={[currentTime]}
+              min={0}
+              max={
                 duration && isFinite(duration) && duration > 0
                   ? duration
                   : session?.duration &&
                       isFinite(session.duration) &&
                       session.duration > 0
                     ? session.duration
-                    : 0
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={toggleMute}>
-                {isMuted ? (
-                  <VolumeX className="h-5 w-5" />
-                ) : (
-                  <Volume2 className="h-5 w-5" />
-                )}
-              </Button>
-              <Slider
-                value={[isMuted ? 0 : volume]}
-                min={0}
-                max={100}
-                step={1}
-                onValueChange={handleVolumeChange}
-                className="w-24"
-              />
-            </div>
+                    : 100
+              }
+              step={0.1}
+              onValueChange={handleSeek}
+              className="mb-4 sm:mb-6"
+            />
           </div>
 
-          <Slider
-            value={[currentTime]}
-            min={0}
-            max={
-              duration && isFinite(duration) && duration > 0
-                ? duration
-                : session?.duration &&
-                    isFinite(session.duration) &&
-                    session.duration > 0
-                  ? session.duration
-                  : 100
-            }
-            step={0.1}
-            onValueChange={handleSeek}
-            className="mt-2"
-          />
+          <div className="flex items-center justify-center gap-3 sm:gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => {
+                if (audioRef.current) {
+                  audioRef.current.currentTime = Math.max(
+                    0,
+                    audioRef.current.currentTime - 10
+                  );
+                }
+              }}
+              className="h-10 w-10 sm:h-12 sm:w-12 hover:bg-gray-50"
+            >
+              <Repeat className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="sr-only">Repeat 10 seconds</span>
+            </Button>
+
+            <Button
+              size="lg"
+              variant="default"
+              className="h-12 w-12 sm:h-14 sm:w-14 lg:h-16 lg:w-16 rounded-full bg-blue-500 hover:bg-blue-600 shadow-lg"
+              onClick={togglePlay}
+            >
+              {isPlaying ? (
+                <Pause className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7" />
+              ) : (
+                <Play className="h-5 w-5 sm:h-6 sm:w-6 lg:h-7 lg:w-7 pl-0.5" />
+              )}
+              <span className="sr-only">{isPlaying ? "Pause" : "Play"}</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              onClick={() => setShowTranscript(!showTranscript)}
+              className="hover:bg-gray-50 text-xs sm:text-sm px-3 sm:px-4"
+            >
+              <BookOpen className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">
+                {showTranscript ? "Hide" : "Show"} Transcript
+              </span>
+              <span className="sm:hidden">
+                {showTranscript ? "Hide" : "Show"}
+              </span>
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center justify-center gap-4">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => {
-              if (audioRef.current) {
-                audioRef.current.currentTime = Math.max(
-                  0,
-                  audioRef.current.currentTime - 10
-                );
-              }
-            }}
-          >
-            <Repeat className="h-5 w-5" />
-            <span className="sr-only">Repeat 10 seconds</span>
-          </Button>
-
-          <Button
-            size="lg"
-            variant="default"
-            className="h-14 w-14 rounded-full"
-            onClick={togglePlay}
-          >
-            {isPlaying ? (
-              <Pause className="h-6 w-6" />
-            ) : (
-              <Play className="h-6 w-6 pl-1" />
-            )}
-            <span className="sr-only">{isPlaying ? "Pause" : "Play"}</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={() => setShowTranscript(!showTranscript)}
-          >
-            <BookOpen className="mr-2 h-4 w-4" />
-            {showTranscript ? "Hide" : "Show"} Transcript
-          </Button>
-        </div>
-      </div>
-
-      {/* Transcript (Collapsible) */}
-      <Collapsible open={showTranscript} className="mb-8">
-        <CollapsibleContent>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between text-lg">
-                Transcript
+        {/* Transcript (Collapsible) */}
+        <Collapsible open={showTranscript} className="mb-6 sm:mb-8">
+          <CollapsibleContent>
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg">
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-800">
+                  Transcript
+                </h3>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowTranscript(false)}
+                  className="hover:bg-gray-100"
                 >
                   <ChevronUp className="h-4 w-4" />
                 </Button>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="max-h-64 overflow-y-auto rounded-md bg-muted/30 p-4">
-                <p className="whitespace-pre-wrap text-sm">
+              </div>
+              <div className="max-h-48 sm:max-h-64 overflow-y-auto rounded-lg sm:rounded-xl bg-gray-50 p-4 sm:p-6">
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-gray-700">
                   {session.content?.transcript}
                 </p>
               </div>
-            </CardContent>
-          </Card>
-        </CollapsibleContent>
-      </Collapsible>
-
-      {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-6 grid w-full grid-cols-2">
-          <TabsTrigger value="vocabulary">
-            <BookOpen className="mr-2 h-4 w-4" />
-            Vocabulary
-          </TabsTrigger>
-          <TabsTrigger
-            value="questions"
-            disabled={session.questions?.length === 0}
-          >
-            <List className="mr-2 h-4 w-4" />
-            Questions
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="listen" className="space-y-6">
-          {/* Audio player and transcript remain in this tab */}
-        </TabsContent>
-
-        <TabsContent value="vocabulary" className="space-y-6">
-          <Card className="p-6">
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-2">
-                <h2 className="text-2xl font-bold">Vocabulary</h2>
-              </div>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="flex-1">
-                  <Progress
-                    value={
-                      session.userProgress?.vocabularyReviewed?.length
-                        ? Math.round(
-                            (session.userProgress.vocabularyReviewed.length /
-                              (session.vocabulary?.length || 1)) *
-                              100
-                          )
-                        : 0
-                    }
-                    className="h-2"
-                  />
-                </div>
-                <span className="text-sm text-gray-600">
-                  {session.userProgress?.vocabularyReviewed?.length || 0} of{" "}
-                  {session.vocabulary?.length || 0} words reviewed
-                </span>
-              </div>
-              <div className="flex gap-2 mb-4">
-                <Badge variant="default" className="cursor-pointer">
-                  All ({session.vocabulary?.length || 0})
-                </Badge>
-                <Badge variant="outline" className="cursor-pointer">
-                  Reviewed (
-                  {session.userProgress?.vocabularyReviewed?.length || 0})
-                </Badge>
-                <Badge variant="outline" className="cursor-pointer">
-                  Remaining (
-                  {(session.vocabulary?.length || 0) -
-                    (session.userProgress?.vocabularyReviewed?.length || 0)}
-                  )
-                </Badge>
-              </div>
             </div>
+          </CollapsibleContent>
+        </Collapsible>
 
-            <Accordion
-              type="multiple"
-              className="w-full"
-              onValueChange={values => {
-                // Find newly opened accordions and mark words as reviewed
-                if (values.length > 0) {
-                  const newlyOpenedItems = values.filter(value => {
-                    const index = parseInt(value.replace("item-", ""));
-                    if (
-                      isNaN(index) ||
-                      index < 0 ||
-                      index >= session.vocabulary.length
-                    )
-                      return false;
+        {/* Main Content Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="mb-6 sm:mb-8 grid w-full grid-cols-2 bg-white shadow-sm h-10 sm:h-12">
+            <TabsTrigger
+              value="vocabulary"
+              className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs sm:text-sm"
+            >
+              <BookOpen className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Vocabulary</span>
+              <span className="sm:hidden">Vocab</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="questions"
+              disabled={session.questions?.length === 0}
+              className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 text-xs sm:text-sm"
+            >
+              <List className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Questions</span>
+              <span className="sm:hidden">Quiz</span>
+            </TabsTrigger>
+          </TabsList>
 
-                    const word = session.vocabulary[index].word;
-                    return !session.userProgress?.vocabularyReviewed?.includes(
-                      word
-                    );
-                  });
+          <TabsContent value="listen" className="space-y-6">
+            {/* Audio player and transcript remain in this tab */}
+          </TabsContent>
 
-                  if (newlyOpenedItems.length > 0) {
-                    const updatedReviewedWords = [
-                      ...(session.userProgress?.vocabularyReviewed || []),
-                    ];
-
-                    newlyOpenedItems.forEach(item => {
-                      const index = parseInt(item.replace("item-", ""));
-                      if (
-                        !isNaN(index) &&
-                        index >= 0 &&
-                        index < session.vocabulary.length
-                      ) {
-                        const word = session.vocabulary[index].word;
-                        if (!updatedReviewedWords.includes(word)) {
-                          updatedReviewedWords.push(word);
-                        }
+          <TabsContent value="vocabulary" className="space-y-6">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg">
+              <div className="mb-6 sm:mb-8">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-3">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+                    Vocabulary
+                  </h2>
+                </div>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="flex-1">
+                    <Progress
+                      value={
+                        session.userProgress?.vocabularyReviewed?.length
+                          ? Math.round(
+                              (session.userProgress.vocabularyReviewed.length /
+                                (session.vocabulary?.length || 1)) *
+                                100
+                            )
+                          : 0
                       }
+                      className="h-2 sm:h-3"
+                    />
+                  </div>
+                  <span className="text-xs sm:text-sm text-gray-600 font-medium text-center sm:text-right whitespace-nowrap">
+                    {session.userProgress?.vocabularyReviewed?.length || 0} of{" "}
+                    {session.vocabulary?.length || 0} words reviewed
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+                  <Badge
+                    variant="default"
+                    className="cursor-pointer bg-blue-100 text-blue-800 hover:bg-blue-200 text-xs sm:text-sm"
+                  >
+                    All ({session.vocabulary?.length || 0})
+                  </Badge>
+                </div>
+              </div>
+
+              <Accordion
+                type="multiple"
+                className="w-full space-y-3 sm:space-y-4"
+                onValueChange={values => {
+                  // Find newly opened accordions and mark words as reviewed
+                  if (values.length > 0) {
+                    const newlyOpenedItems = values.filter(value => {
+                      const index = parseInt(value.replace("item-", ""));
+                      if (
+                        isNaN(index) ||
+                        index < 0 ||
+                        index >= session.vocabulary.length
+                      )
+                        return false;
+
+                      const word = session.vocabulary[index].word;
+                      return !session.userProgress?.vocabularyReviewed?.includes(
+                        word
+                      );
                     });
 
-                    // Update session progress
-                    if (
-                      updatedReviewedWords.length >
-                      (session.userProgress?.vocabularyReviewed?.length || 0)
-                    ) {
-                      // Check if this completes all vocabulary and all questions are answered
-                      const allVocabularyReviewed =
-                        updatedReviewedWords.length ===
-                        session.vocabulary?.length;
-                      const allQuestionsAnswered =
-                        session.userProgress?.questionsAnswered ===
-                        session.questions?.length;
+                    if (newlyOpenedItems.length > 0) {
+                      const updatedReviewedWords = [
+                        ...(session.userProgress?.vocabularyReviewed || []),
+                      ];
 
-                      // If all content is completed, set completionTime
-                      const updateData: any = {
-                        vocabularyReviewed: updatedReviewedWords,
-                      };
-
-                      if (
-                        allVocabularyReviewed &&
-                        allQuestionsAnswered &&
-                        !session.userProgress?.completionTime
-                      ) {
-                        updateData.completionTime = new Date().toISOString();
-                        console.log(
-                          "Setting completion time as all content has been completed"
-                        );
-
-                        // Set flag to record vocabulary review in gamification
-                        if (!session.userProgress?.completionTime) {
-                          setShouldRecordVocabActivity(true);
+                      newlyOpenedItems.forEach(item => {
+                        const index = parseInt(item.replace("item-", ""));
+                        if (
+                          !isNaN(index) &&
+                          index >= 0 &&
+                          index < session.vocabulary.length
+                        ) {
+                          const word = session.vocabulary[index].word;
+                          if (!updatedReviewedWords.includes(word)) {
+                            updatedReviewedWords.push(word);
+                          }
                         }
-                      }
-
-                      updateSessionProgress(params.id, updateData).then(() => {
-                        setSession((prev: any) => ({
-                          ...prev,
-                          userProgress: {
-                            ...prev.userProgress,
-                            vocabularyReviewed: updatedReviewedWords,
-                            ...(allVocabularyReviewed &&
-                            allQuestionsAnswered &&
-                            !prev.userProgress.completionTime
-                              ? { completionTime: new Date().toISOString() }
-                              : {}),
-                          },
-                        }));
                       });
+
+                      // Update session progress
+                      if (
+                        updatedReviewedWords.length >
+                        (session.userProgress?.vocabularyReviewed?.length || 0)
+                      ) {
+                        // Check if this completes all vocabulary and all questions are answered
+                        const allVocabularyReviewed =
+                          updatedReviewedWords.length ===
+                          session.vocabulary?.length;
+                        const allQuestionsAnswered =
+                          session.userProgress?.questionsAnswered ===
+                          session.questions?.length;
+
+                        // If all content is completed, set completionTime
+                        const updateData: any = {
+                          vocabularyReviewed: updatedReviewedWords,
+                        };
+
+                        if (
+                          allVocabularyReviewed &&
+                          allQuestionsAnswered &&
+                          !session.userProgress?.completionTime
+                        ) {
+                          updateData.completionTime = new Date().toISOString();
+                          console.log(
+                            "Setting completion time as all content has been completed"
+                          );
+
+                          // Set flag to record vocabulary review in gamification
+                          if (!session.userProgress?.completionTime) {
+                            setShouldRecordVocabActivity(true);
+                          }
+                        }
+
+                        updateSessionProgress(params.id, updateData).then(
+                          () => {
+                            setSession((prev: any) => ({
+                              ...prev,
+                              userProgress: {
+                                ...prev.userProgress,
+                                vocabularyReviewed: updatedReviewedWords,
+                                ...(allVocabularyReviewed &&
+                                allQuestionsAnswered &&
+                                !prev.userProgress.completionTime
+                                  ? { completionTime: new Date().toISOString() }
+                                  : {}),
+                              },
+                            }));
+                          }
+                        );
+                      }
                     }
                   }
-                }
-              }}
-            >
-              {session.vocabulary && session.vocabulary.length > 0 ? (
-                session.vocabulary.map((item: any, index: number) => (
-                  <AccordionItem key={index} value={`item-${index}`}>
-                    <AccordionTrigger className="hover:no-underline">
-                      <div className="flex items-center gap-4">
-                        <span className="font-semibold">{item.word}</span>
-                        <Badge
-                          variant="secondary"
-                          className={`${item.difficulty <= 3 ? "bg-green-100 text-green-800" : item.difficulty <= 7 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800"}`}
-                        >
-                          Level {item.difficulty}
-                        </Badge>
-                        {session.userProgress?.vocabularyReviewed?.includes(
-                          item.word
-                        ) && (
-                          <Badge
-                            variant="outline"
-                            className="bg-blue-100 text-blue-800"
-                          >
-                            Reviewed
-                          </Badge>
-                        )}
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <div className="p-4 bg-muted/20 rounded-md space-y-3">
-                        <div>
-                          <span className="font-semibold">Definition: </span>
-                          <span>{item.definition}</span>
-                        </div>
-                        <div>
-                          <span className="font-semibold">Context: </span>
-                          <span className="italic">"{item.context}"</span>
-                        </div>
-                        {item.examples && item.examples.length > 0 && (
-                          <div>
-                            <span className="font-semibold">Examples:</span>
-                            <ul className="list-disc pl-5 mt-1 space-y-1">
-                              {item.examples.map(
-                                (example: string, i: number) => (
-                                  <li key={i}>{example}</li>
-                                )
-                              )}
-                            </ul>
+                }}
+              >
+                {session.vocabulary && session.vocabulary.length > 0 ? (
+                  session.vocabulary.map((item: any, index: number) => (
+                    <AccordionItem
+                      key={index}
+                      value={`item-${index}`}
+                      className="border border-gray-200 rounded-lg sm:rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+                    >
+                      <AccordionTrigger className="hover:no-underline px-4 sm:px-6 py-3 sm:py-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full">
+                          <span className="font-semibold text-gray-800 text-left text-sm sm:text-base">
+                            {item.word}
+                          </span>
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                            <Badge
+                              variant="secondary"
+                              className={`text-xs ${item.difficulty <= 3 ? "bg-green-100 text-green-800" : item.difficulty <= 7 ? "bg-yellow-100 text-yellow-800" : "bg-red-100 text-red-800"}`}
+                            >
+                              Level {item.difficulty}
+                            </Badge>
+                            {session.userProgress?.vocabularyReviewed?.includes(
+                              item.word
+                            ) && (
+                              <Badge
+                                variant="outline"
+                                className="bg-blue-100 text-blue-800 border-blue-200 text-xs"
+                              >
+                                Reviewed
+                              </Badge>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))
-              ) : (
-                <div className="py-4 text-center text-gray-500">
-                  No vocabulary items available for this session.
-                </div>
-              )}
-            </Accordion>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="questions" className="space-y-6">
-          <Card className="p-6">
-            <div className="mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-2xl font-bold">Comprehension Questions</h2>
-                <span className="text-sm text-gray-600">
-                  Question {currentQuestionIndex + 1} of{" "}
-                  {session.questions?.length || 0}
-                </span>
-              </div>
-              <Progress
-                value={
-                  session.questions?.length
-                    ? Math.round(
-                        ((session.userProgress?.questionsAnswered || 0) /
-                          session.questions.length) *
-                          100
-                      )
-                    : 0
-                }
-                className="h-2"
-              />
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className="px-4 sm:px-6 pb-3 sm:pb-4">
+                        <div className="p-4 sm:p-6 bg-white rounded-lg space-y-3 sm:space-y-4 border border-gray-100">
+                          <div>
+                            <span className="font-semibold text-gray-800 text-sm sm:text-base">
+                              Definition:{" "}
+                            </span>
+                            <span className="text-gray-700 text-sm sm:text-base">
+                              {item.definition}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="font-semibold text-gray-800 text-sm sm:text-base">
+                              Context:{" "}
+                            </span>
+                            <span className="italic text-gray-700 text-sm sm:text-base">
+                              "{item.context}"
+                            </span>
+                          </div>
+                          {item.examples && item.examples.length > 0 && (
+                            <div>
+                              <span className="font-semibold text-gray-800 text-sm sm:text-base">
+                                Examples:
+                              </span>
+                              <ul className="list-disc pl-4 sm:pl-5 mt-2 space-y-1">
+                                {item.examples.map(
+                                  (example: string, i: number) => (
+                                    <li
+                                      key={i}
+                                      className="text-gray-700 text-sm sm:text-base"
+                                    >
+                                      {example}
+                                    </li>
+                                  )
+                                )}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))
+                ) : (
+                  <div className="py-8 sm:py-12 text-center text-gray-500">
+                    <div className="text-base sm:text-lg font-medium mb-2">
+                      No vocabulary items available for this session.
+                    </div>
+                    <p className="text-sm">
+                      This session focuses on listening practice.
+                    </p>
+                  </div>
+                )}
+              </Accordion>
             </div>
+          </TabsContent>
 
-            {session.questions && session.questions.length > 0 ? (
-              <>
-                {/* Question number buttons */}
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {Array.from(
-                    { length: session.questions.length },
-                    (_, idx: number) => {
-                      const isAnswered =
-                        session.userProgress?.userAnswers &&
-                        session.userProgress.userAnswers[
-                          session.questions[idx].id
-                        ];
-
-                      return (
-                        <Button
-                          key={idx}
-                          variant={
-                            currentQuestionIndex === idx
-                              ? "default"
-                              : isAnswered
-                                ? "outline"
-                                : "secondary"
-                          }
-                          size="sm"
-                          onClick={() => setCurrentQuestionIndex(idx)}
-                          className={`w-10 h-10 p-0 ${isAnswered ? "border-green-500" : ""}`}
-                        >
-                          {idx + 1}
-                        </Button>
-                      );
-                    }
-                  )}
+          <TabsContent value="questions" className="space-y-6">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg">
+              <div className="mb-6 sm:mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
+                    Comprehension Questions
+                  </h2>
+                  <span className="text-xs sm:text-sm text-gray-600 font-medium bg-gray-100 px-2 sm:px-3 py-1 rounded-full text-center">
+                    Question {currentQuestionIndex + 1} of{" "}
+                    {session.questions?.length || 0}
+                  </span>
                 </div>
+                <Progress
+                  value={
+                    session.questions?.length
+                      ? Math.round(
+                          ((session.userProgress?.questionsAnswered || 0) /
+                            session.questions.length) *
+                            100
+                        )
+                      : 0
+                  }
+                  className="h-2 sm:h-3"
+                />
+              </div>
 
-                {/* Current Question */}
-                <div className="space-y-6">
-                  <div className="text-lg font-medium">
-                    {session.questions[currentQuestionIndex]?.question}
+              {session.questions && session.questions.length > 0 ? (
+                <>
+                  {/* Question number buttons */}
+                  <div className="flex flex-wrap gap-2 sm:gap-3 mb-6 sm:mb-8 justify-center sm:justify-start">
+                    {Array.from(
+                      { length: session.questions.length },
+                      (_, idx: number) => {
+                        const isAnswered =
+                          session.userProgress?.userAnswers &&
+                          session.userProgress.userAnswers[
+                            session.questions[idx].id
+                          ];
+
+                        return (
+                          <Button
+                            key={idx}
+                            variant={
+                              currentQuestionIndex === idx
+                                ? "default"
+                                : isAnswered
+                                  ? "outline"
+                                  : "secondary"
+                            }
+                            size="sm"
+                            onClick={() => setCurrentQuestionIndex(idx)}
+                            className={`w-10 h-10 sm:w-12 sm:h-12 p-0 rounded-lg sm:rounded-xl font-semibold text-sm sm:text-base ${
+                              currentQuestionIndex === idx
+                                ? "bg-blue-500 hover:bg-blue-600 text-white"
+                                : isAnswered
+                                  ? "border-green-500 bg-green-50 text-green-700 hover:bg-green-100"
+                                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                            }`}
+                          >
+                            {idx + 1}
+                          </Button>
+                        );
+                      }
+                    )}
                   </div>
 
-                  {/* Multiple choice options */}
-                  {normalizeQuestionType(
-                    session.questions[currentQuestionIndex]?.type
-                  ) === "multiple-choice" && (
-                    <RadioGroup
-                      value={answers[currentQuestionIndex] || ""}
-                      onValueChange={value =>
-                        handleAnswerChange(currentQuestionIndex, value)
-                      }
-                      disabled={
-                        feedback &&
-                        feedback.answers &&
-                        feedback.answers[currentQuestionIndex]
-                      }
-                    >
-                      {session.questions[currentQuestionIndex]?.options?.map(
-                        (option: string, optIdx: number) => {
-                          const optionLetter = String.fromCharCode(65 + optIdx); // A, B, C, D
+                  {/* Current Question */}
+                  <div className="space-y-6 sm:space-y-8">
+                    <div className="bg-blue-50 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-blue-200">
+                      <div className="text-base sm:text-lg font-medium text-gray-800 leading-relaxed">
+                        {session.questions[currentQuestionIndex]?.question}
+                      </div>
+                    </div>
 
-                          return (
-                            <div
-                              key={`option-${optIdx}`}
-                              className="flex items-center space-x-2"
-                            >
-                              <RadioGroupItem
-                                value={option}
-                                id={`q${currentQuestionIndex}-opt${optIdx}`}
-                              />
-                              <Label
-                                htmlFor={`q${currentQuestionIndex}-opt${optIdx}`}
-                                className="text-base"
+                    {/* Multiple choice options */}
+                    {normalizeQuestionType(
+                      session.questions[currentQuestionIndex]?.type
+                    ) === "multiple-choice" && (
+                      <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200">
+                        <RadioGroup
+                          value={answers[currentQuestionIndex] || ""}
+                          onValueChange={value =>
+                            handleAnswerChange(currentQuestionIndex, value)
+                          }
+                          disabled={
+                            feedback &&
+                            feedback.answers &&
+                            feedback.answers[currentQuestionIndex]
+                          }
+                          className="space-y-3 sm:space-y-4"
+                        >
+                          {session.questions[
+                            currentQuestionIndex
+                          ]?.options?.map((option: string, optIdx: number) => {
+                            const optionLetter = String.fromCharCode(
+                              65 + optIdx
+                            ); // A, B, C, D
+
+                            return (
+                              <div
+                                key={`option-${optIdx}`}
+                                className="flex items-start sm:items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
                               >
-                                {optionLetter}. {option}
-                              </Label>
-                            </div>
-                          );
-                        }
-                      )}
-                    </RadioGroup>
-                  )}
-
-                  {/* True/False options */}
-                  {normalizeQuestionType(
-                    session.questions[currentQuestionIndex]?.type
-                  ) === "true-false" && (
-                    <RadioGroup
-                      value={answers[currentQuestionIndex] || ""}
-                      onValueChange={value =>
-                        handleAnswerChange(currentQuestionIndex, value)
-                      }
-                      disabled={
-                        feedback &&
-                        feedback.answers &&
-                        feedback.answers[currentQuestionIndex]
-                      }
-                    >
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value="True"
-                          id={`q${currentQuestionIndex}-opt-true`}
-                        />
-                        <Label htmlFor={`q${currentQuestionIndex}-opt-true`}>
-                          A. True
-                        </Label>
+                                <RadioGroupItem
+                                  value={option}
+                                  id={`q${currentQuestionIndex}-opt${optIdx}`}
+                                  className="text-blue-500 mt-0.5 sm:mt-0"
+                                />
+                                <Label
+                                  htmlFor={`q${currentQuestionIndex}-opt${optIdx}`}
+                                  className="text-sm sm:text-base font-medium text-gray-700 cursor-pointer flex-1 leading-relaxed"
+                                >
+                                  <span className="font-semibold text-blue-600 mr-2">
+                                    {optionLetter}.
+                                  </span>
+                                  {option}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </RadioGroup>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem
-                          value="False"
-                          id={`q${currentQuestionIndex}-opt-false`}
-                        />
-                        <Label htmlFor={`q${currentQuestionIndex}-opt-false`}>
-                          B. False
-                        </Label>
+                    )}
+
+                    {/* True/False options */}
+                    {normalizeQuestionType(
+                      session.questions[currentQuestionIndex]?.type
+                    ) === "true-false" && (
+                      <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200">
+                        <RadioGroup
+                          value={answers[currentQuestionIndex] || ""}
+                          onValueChange={value =>
+                            handleAnswerChange(currentQuestionIndex, value)
+                          }
+                          disabled={
+                            feedback &&
+                            feedback.answers &&
+                            feedback.answers[currentQuestionIndex]
+                          }
+                          className="space-y-3 sm:space-y-4"
+                        >
+                          <div className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                            <RadioGroupItem
+                              value="True"
+                              id={`q${currentQuestionIndex}-opt-true`}
+                              className="text-blue-500"
+                            />
+                            <Label
+                              htmlFor={`q${currentQuestionIndex}-opt-true`}
+                              className="text-sm sm:text-base font-medium text-gray-700 cursor-pointer flex-1"
+                            >
+                              <span className="font-semibold text-blue-600 mr-2">
+                                A.
+                              </span>{" "}
+                              True
+                            </Label>
+                          </div>
+                          <div className="flex items-center space-x-3 p-3 sm:p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+                            <RadioGroupItem
+                              value="False"
+                              id={`q${currentQuestionIndex}-opt-false`}
+                              className="text-blue-500"
+                            />
+                            <Label
+                              htmlFor={`q${currentQuestionIndex}-opt-false`}
+                              className="text-sm sm:text-base font-medium text-gray-700 cursor-pointer flex-1"
+                            >
+                              <span className="font-semibold text-blue-600 mr-2">
+                                B.
+                              </span>{" "}
+                              False
+                            </Label>
+                          </div>
+                        </RadioGroup>
                       </div>
-                    </RadioGroup>
-                  )}
+                    )}
 
-                  {/* Fill in the blank */}
-                  {normalizeQuestionType(
-                    session.questions[currentQuestionIndex]?.type
-                  ) === "fill-blank" && (
-                    <Input
-                      value={answers[currentQuestionIndex] || ""}
-                      onChange={e =>
-                        handleAnswerChange(currentQuestionIndex, e.target.value)
-                      }
-                      placeholder="Fill in the blank..."
-                      disabled={
-                        feedback &&
-                        feedback.answers &&
-                        feedback.answers[currentQuestionIndex]
-                      }
-                    />
-                  )}
+                    {/* Fill in the blank */}
+                    {normalizeQuestionType(
+                      session.questions[currentQuestionIndex]?.type
+                    ) === "fill-blank" && (
+                      <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200">
+                        <Input
+                          value={answers[currentQuestionIndex] || ""}
+                          onChange={e =>
+                            handleAnswerChange(
+                              currentQuestionIndex,
+                              e.target.value
+                            )
+                          }
+                          placeholder="Fill in the blank..."
+                          disabled={
+                            feedback &&
+                            feedback.answers &&
+                            feedback.answers[currentQuestionIndex]
+                          }
+                          className="text-sm sm:text-base p-3 sm:p-4 h-10 sm:h-12 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        />
+                      </div>
+                    )}
 
-                  {/* Current session feedback - show immediately after answering */}
-                  {session.userProgress?.userAnswers &&
-                    session.userProgress.userAnswers[
-                      session.questions[currentQuestionIndex].id
-                    ] &&
-                    currentSessionAnswers.has(
-                      session.questions[currentQuestionIndex].id
-                    ) && (
-                      <Alert
-                        className={`border mt-4 ${
-                          session.userProgress.userAnswers[
-                            session.questions[currentQuestionIndex].id
-                          ] ===
-                          session.questions[currentQuestionIndex].correctAnswer
-                            ? "bg-green-50 border-green-200"
-                            : "bg-red-50 border-red-200"
-                        }`}
-                      >
-                        <AlertDescription>
-                          <div className="font-semibold mb-2">
-                            {session.userProgress.userAnswers[
+                    {/* Current session feedback - show immediately after answering */}
+                    {session.userProgress?.userAnswers &&
+                      session.userProgress.userAnswers[
+                        session.questions[currentQuestionIndex].id
+                      ] &&
+                      currentSessionAnswers.has(
+                        session.questions[currentQuestionIndex].id
+                      ) && (
+                        <Alert
+                          className={`border-2 rounded-lg sm:rounded-xl p-4 sm:p-6 ${
+                            session.userProgress.userAnswers[
                               session.questions[currentQuestionIndex].id
                             ] ===
                             session.questions[currentQuestionIndex]
                               .correctAnswer
-                              ? "Correct!"
-                              : "Incorrect"}
-                          </div>
-                          <div>
-                            <span className="font-semibold">Your answer: </span>
-                            {
-                              session.userProgress.userAnswers[
-                                session.questions[currentQuestionIndex].id
-                              ]
-                            }
-                          </div>
-                          <div className="mt-2">
-                            <span className="font-semibold">
-                              The correct answer:{" "}
-                            </span>
-                            {
-                              session.questions[currentQuestionIndex]
-                                .correctAnswer
-                            }
-                          </div>
-                          {session.questions[currentQuestionIndex]
-                            .explanation && (
-                            <div className="mt-2">
-                              <span className="font-semibold">
-                                Explanation:{" "}
-                              </span>
-                              {
+                              ? "bg-green-50 border-green-200"
+                              : "bg-red-50 border-red-200"
+                          }`}
+                        >
+                          <AlertDescription>
+                            <div className="space-y-3">
+                              <div className="font-semibold text-base sm:text-lg">
+                                {session.userProgress.userAnswers[
+                                  session.questions[currentQuestionIndex].id
+                                ] ===
                                 session.questions[currentQuestionIndex]
-                                  .explanation
-                              }
+                                  .correctAnswer
+                                  ? "🎉 Correct!"
+                                  : "❌ Incorrect"}
+                              </div>
+                              <div className="bg-white rounded-lg p-3 sm:p-4 border">
+                                <span className="font-semibold text-gray-800 text-sm sm:text-base">
+                                  Your answer:{" "}
+                                </span>
+                                <span className="text-gray-700 text-sm sm:text-base">
+                                  {
+                                    session.userProgress.userAnswers[
+                                      session.questions[currentQuestionIndex].id
+                                    ]
+                                  }
+                                </span>
+                              </div>
+                              <div className="bg-white rounded-lg p-3 sm:p-4 border">
+                                <span className="font-semibold text-gray-800 text-sm sm:text-base">
+                                  The correct answer:{" "}
+                                </span>
+                                <span className="text-green-700 font-medium text-sm sm:text-base">
+                                  {
+                                    session.questions[currentQuestionIndex]
+                                      .correctAnswer
+                                  }
+                                </span>
+                              </div>
+                              {session.questions[currentQuestionIndex]
+                                .explanation && (
+                                <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
+                                  <span className="font-semibold text-gray-800 text-sm sm:text-base">
+                                    Explanation:{" "}
+                                  </span>
+                                  <span className="text-blue-800 text-sm sm:text-base">
+                                    {
+                                      session.questions[currentQuestionIndex]
+                                        .explanation
+                                    }
+                                  </span>
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </AlertDescription>
-                      </Alert>
-                    )}
-
-                  {/* Previous answer feedback */}
-                  {session.userProgress?.userAnswers &&
-                    session.userProgress.userAnswers[
-                      session.questions[currentQuestionIndex].id
-                    ] &&
-                    !currentSessionAnswers.has(
-                      session.questions[currentQuestionIndex].id
-                    ) && (
-                      <Alert className="bg-blue-50 border-blue-200">
-                        <AlertDescription>
-                          <div className="font-semibold mb-2">
-                            You've already answered this question
-                          </div>
-                          <div>
-                            <span className="font-semibold">Your answer: </span>
-                            {
-                              session.userProgress.userAnswers[
-                                session.questions[currentQuestionIndex].id
-                              ]
-                            }
-                          </div>
-                          <div className="mt-2">
-                            <span className="font-semibold">
-                              The correct answer:{" "}
-                            </span>
-                            {
-                              session.questions[currentQuestionIndex]
-                                .correctAnswer
-                            }
-                          </div>
-                          {session.questions[currentQuestionIndex]
-                            .explanation && (
-                            <div className="mt-2">
-                              <span className="font-semibold">
-                                Explanation:{" "}
-                              </span>
-                              {
-                                session.questions[currentQuestionIndex]
-                                  .explanation
-                              }
-                            </div>
-                          )}
-                        </AlertDescription>
-                      </Alert>
-                    )}
-                </div>
-
-                {/* Navigation buttons */}
-                <div className="flex justify-between mt-8">
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      setCurrentQuestionIndex(
-                        Math.max(0, currentQuestionIndex - 1)
-                      )
-                    }
-                    disabled={currentQuestionIndex === 0}
-                  >
-                    Previous
-                  </Button>
-
-                  {!(
-                    session.userProgress?.userAnswers &&
-                    session.userProgress.userAnswers[
-                      session.questions[currentQuestionIndex].id
-                    ]
-                  ) && (
-                    <Button
-                      variant="default"
-                      onClick={handleSubmitAnswers}
-                      disabled={!answers[currentQuestionIndex] || isSubmitting}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Submitting...
-                        </>
-                      ) : (
-                        "Submit Answer"
+                          </AlertDescription>
+                        </Alert>
                       )}
-                    </Button>
-                  )}
 
-                  <Button
-                    variant="outline"
-                    onClick={() =>
-                      setCurrentQuestionIndex(
-                        Math.min(
-                          session.questions.length - 1,
-                          currentQuestionIndex + 1
+                    {/* Previous answer feedback */}
+                    {session.userProgress?.userAnswers &&
+                      session.userProgress.userAnswers[
+                        session.questions[currentQuestionIndex].id
+                      ] &&
+                      !currentSessionAnswers.has(
+                        session.questions[currentQuestionIndex].id
+                      ) && (
+                        <Alert className="bg-blue-50 border-blue-200 border-2 rounded-lg sm:rounded-xl p-4 sm:p-6">
+                          <AlertDescription>
+                            <div className="space-y-3">
+                              <div className="font-semibold text-base sm:text-lg text-blue-800">
+                                📝 You've already answered this question
+                              </div>
+                              <div className="bg-white rounded-lg p-3 sm:p-4 border">
+                                <span className="font-semibold text-gray-800 text-sm sm:text-base">
+                                  Your answer:{" "}
+                                </span>
+                                <span className="text-gray-700 text-sm sm:text-base">
+                                  {
+                                    session.userProgress.userAnswers[
+                                      session.questions[currentQuestionIndex].id
+                                    ]
+                                  }
+                                </span>
+                              </div>
+                              <div className="bg-white rounded-lg p-3 sm:p-4 border">
+                                <span className="font-semibold text-gray-800 text-sm sm:text-base">
+                                  The correct answer:{" "}
+                                </span>
+                                <span className="text-green-700 font-medium text-sm sm:text-base">
+                                  {
+                                    session.questions[currentQuestionIndex]
+                                      .correctAnswer
+                                  }
+                                </span>
+                              </div>
+                              {session.questions[currentQuestionIndex]
+                                .explanation && (
+                                <div className="bg-blue-100 rounded-lg p-3 sm:p-4 border border-blue-300">
+                                  <span className="font-semibold text-gray-800 text-sm sm:text-base">
+                                    Explanation:{" "}
+                                  </span>
+                                  <span className="text-blue-800 text-sm sm:text-base">
+                                    {
+                                      session.questions[currentQuestionIndex]
+                                        .explanation
+                                    }
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                  </div>
+
+                  {/* Navigation buttons */}
+                  <div className="flex flex-col sm:flex-row justify-between items-center mt-6 sm:mt-8 pt-4 sm:pt-6 border-t border-gray-200 gap-4">
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setCurrentQuestionIndex(
+                          Math.max(0, currentQuestionIndex - 1)
                         )
-                      )
-                    }
-                    disabled={
-                      currentQuestionIndex === session.questions.length - 1
-                    }
-                  >
-                    Next
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <div className="py-4 text-center text-gray-500">
-                No questions available for this session.
-              </div>
-            )}
-          </Card>
-        </TabsContent>
+                      }
+                      disabled={currentQuestionIndex === 0}
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 h-10 sm:h-12 rounded-lg sm:rounded-xl hover:bg-gray-50 text-sm sm:text-base"
+                    >
+                      Previous
+                    </Button>
 
-        <TabsContent value="results" className="space-y-6">
-          {feedback && (
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Your Results</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-6 flex flex-col items-center">
-                    <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary/10 text-3xl font-bold text-primary">
+                    {!(
+                      session.userProgress?.userAnswers &&
+                      session.userProgress.userAnswers[
+                        session.questions[currentQuestionIndex].id
+                      ]
+                    ) && (
+                      <Button
+                        variant="default"
+                        onClick={handleSubmitAnswers}
+                        disabled={
+                          !answers[currentQuestionIndex] || isSubmitting
+                        }
+                        className="w-full sm:w-auto px-6 sm:px-8 py-2 sm:py-3 h-10 sm:h-12 rounded-lg sm:rounded-xl bg-blue-500 hover:bg-blue-600 font-semibold text-sm sm:text-base"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Submitting...
+                          </>
+                        ) : (
+                          "Submit Answer"
+                        )}
+                      </Button>
+                    )}
+
+                    <Button
+                      variant="outline"
+                      onClick={() =>
+                        setCurrentQuestionIndex(
+                          Math.min(
+                            session.questions.length - 1,
+                            currentQuestionIndex + 1
+                          )
+                        )
+                      }
+                      disabled={
+                        currentQuestionIndex === session.questions.length - 1
+                      }
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 h-10 sm:h-12 rounded-lg sm:rounded-xl hover:bg-gray-50 text-sm sm:text-base"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </>
+              ) : (
+                <div className="py-8 sm:py-12 text-center text-gray-500">
+                  <div className="text-base sm:text-lg font-medium mb-2">
+                    No questions available for this session.
+                  </div>
+                  <p className="text-sm">
+                    This session focuses on vocabulary and listening practice.
+                  </p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="results" className="space-y-6">
+            {feedback && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8 shadow-lg">
+                  <div className="text-center mb-6 sm:mb-8">
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
+                      Your Results
+                    </h2>
+                    <div className="flex h-24 w-24 sm:h-28 sm:w-28 lg:h-32 lg:w-32 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-2xl sm:text-3xl lg:text-4xl font-bold text-white mx-auto shadow-lg">
                       {feedback.score}%
                     </div>
-                    <p className="mt-4 text-center text-gray-700">
+                    <p className="mt-4 sm:mt-6 text-base sm:text-lg text-gray-700 leading-relaxed px-4">
                       {feedback.overallFeedback}
                     </p>
                   </div>
 
-                  <div className="space-y-6">
+                  <div className="space-y-4 sm:space-y-6">
                     {feedback.feedbackItems?.map((item: any, index: number) => (
-                      <Card key={index}>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-base">
+                      <div
+                        key={index}
+                        className="bg-gray-50 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200"
+                      >
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 sm:mb-4 gap-2">
+                          <h3 className="text-base sm:text-lg font-semibold text-gray-800">
                             Question {index + 1}
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="mb-2">{item.question}</p>
-                          <div className="mb-3 grid gap-3 md:grid-cols-2">
-                            <div className="rounded-lg bg-gray-50 p-3">
-                              <p className="text-xs text-gray-500">
-                                Your answer:
-                              </p>
-                              <p
-                                className={
-                                  item.isCorrect
-                                    ? "text-green-600 dark:text-green-400"
-                                    : "text-red-600 dark:text-red-400"
-                                }
-                              >
-                                {item.userAnswer || "(No answer)"}
-                              </p>
-                            </div>
-                            <div className="rounded-lg bg-gray-50 p-3">
-                              <p className="text-xs text-gray-500">
-                                Correct answer:
-                              </p>
-                              <p className="text-green-600">
-                                {item.correctAnswer}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="rounded-lg bg-blue-50 p-3">
-                            <p className="text-sm text-blue-800">
-                              {item.explanation}
+                          </h3>
+                          <Badge
+                            variant={item.isCorrect ? "default" : "destructive"}
+                            className={`w-fit text-xs sm:text-sm ${
+                              item.isCorrect
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {item.isCorrect ? "Correct" : "Incorrect"}
+                          </Badge>
+                        </div>
+                        <p className="mb-3 sm:mb-4 text-gray-700 font-medium text-sm sm:text-base leading-relaxed">
+                          {item.question}
+                        </p>
+                        <div className="grid gap-3 sm:gap-4 md:grid-cols-2 mb-3 sm:mb-4">
+                          <div className="bg-white rounded-lg p-3 sm:p-4 border">
+                            <p className="text-xs text-gray-500 font-medium mb-1">
+                              Your answer:
+                            </p>
+                            <p
+                              className={`font-medium text-sm sm:text-base ${
+                                item.isCorrect
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                              }`}
+                            >
+                              {item.userAnswer || "(No answer)"}
                             </p>
                           </div>
-                        </CardContent>
-                      </Card>
+                          <div className="bg-white rounded-lg p-3 sm:p-4 border">
+                            <p className="text-xs text-gray-500 font-medium mb-1">
+                              Correct answer:
+                            </p>
+                            <p className="text-green-600 font-medium text-sm sm:text-base">
+                              {item.correctAnswer}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="bg-blue-50 rounded-lg p-3 sm:p-4 border border-blue-200">
+                          <p className="text-xs sm:text-sm text-blue-800 leading-relaxed">
+                            {item.explanation}
+                          </p>
+                        </div>
+                      </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              <div className="flex justify-center gap-4">
-                <Link href="/dashboard/listening">
-                  <Button variant="outline">Back to Dashboard</Button>
-                </Link>
-                <Link href="/dashboard/listening/create">
-                  <Button>Practice More</Button>
-                </Link>
+                <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
+                  <Link href="/dashboard/listening">
+                    <Button
+                      variant="outline"
+                      className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 h-10 sm:h-12 rounded-lg sm:rounded-xl hover:bg-gray-50 text-sm sm:text-base"
+                    >
+                      Back to Dashboard
+                    </Button>
+                  </Link>
+                  <Link href="/dashboard/listening?tab=library">
+                    <Button className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 h-10 sm:h-12 rounded-lg sm:rounded-xl bg-blue-500 hover:bg-blue-600 text-sm sm:text-base">
+                      Practice More
+                    </Button>
+                  </Link>
+                </div>
               </div>
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
+            )}
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 }

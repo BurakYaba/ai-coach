@@ -12,10 +12,42 @@ interface ReadingSessionPageProps {
   };
 }
 
-export const metadata: Metadata = {
-  title: "Reading Session | Fluenta",
-  description: "Continue your reading practice session",
-};
+export async function generateMetadata({
+  params,
+}: ReadingSessionPageProps): Promise<Metadata> {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return {
+        title: "Reading Session - Fluenta",
+        description: "Continue your reading practice",
+      };
+    }
+
+    await dbConnect();
+    const readingSession = await ReadingSessionModel.findOne({
+      _id: params.id,
+      userId: session.user.id,
+    });
+
+    if (!readingSession) {
+      return {
+        title: "Reading Session Not Found - Fluenta",
+        description: "The reading session you're looking for doesn't exist",
+      };
+    }
+
+    return {
+      title: `${readingSession.title} - Fluenta`,
+      description: `Continue reading: ${readingSession.title}`,
+    };
+  } catch (error) {
+    return {
+      title: "Reading Session - Fluenta",
+      description: "Continue your reading practice",
+    };
+  }
+}
 
 async function getReadingSession(id: string) {
   try {
@@ -52,8 +84,10 @@ export default async function ReadingSessionPage({
   }
 
   return (
-    <div className="container mx-auto py-6">
-      <ReadingSession sessionId={params.id} />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-7xl mx-auto p-6">
+        <ReadingSession sessionId={params.id} />
+      </div>
     </div>
   );
 }

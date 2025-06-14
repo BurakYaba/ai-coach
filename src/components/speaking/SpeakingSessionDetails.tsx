@@ -19,6 +19,7 @@ import {
   Volume2,
   Plus,
   Check,
+  MessageSquare,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -616,81 +617,120 @@ export function SpeakingSessionDetails({
   // No session found
   if (!session) {
     return (
-      <div className="container mx-auto py-12 text-center">
-        <h1 className="text-4xl font-bold mb-4">Session Not Found</h1>
-        <p className="text-lg text-muted-foreground mb-8">
-          The speaking session you&apos;re looking for doesn&apos;t exist or you
-          don&apos;t have permission to view it.
-        </p>
-        <Button asChild>
-          <Link href="/dashboard/speaking">Back to Speaking Dashboard</Link>
-        </Button>
+      <div className="flex h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50">
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+            <AlertCircle className="h-8 w-8 text-red-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            Session Not Found
+          </h3>
+          <p className="text-gray-600 mb-6 max-w-sm">
+            The speaking session you're looking for doesn't exist or you don't
+            have permission to view it.
+          </p>
+          <Button
+            asChild
+            className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <Link href="/dashboard/speaking">Back to Speaking Dashboard</Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-6">
       {/* Header with back button */}
-      <div className="flex items-center gap-2 mb-6">
+      <div className="flex items-center gap-3 mb-8">
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon"
-          className="rounded-full"
+          className="bg-white hover:bg-gray-50 border-gray-300 shadow-sm hover:shadow-md transition-all duration-200"
           onClick={() => router.back()}
         >
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold">{getSessionType()}</h1>
-          <p className="text-muted-foreground">
-            {formatDate(session.startTime)}
-          </p>
+          <h1 className="text-3xl font-bold text-gray-800">
+            {getSessionType()}
+          </h1>
+          <p className="text-gray-600">{formatDate(session.startTime)}</p>
         </div>
       </div>
 
       {/* Session overview card */}
-      <Card>
+      <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
         <CardHeader>
-          <CardTitle>Session Overview</CardTitle>
-          <CardDescription>
-            Details about your speaking practice session
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-xl text-gray-800">
+                Session Overview
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Details about your speaking practice session
+              </CardDescription>
+            </div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+              <MicIcon className="h-6 w-6 text-blue-600" />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Date:</span>
-                <span>{formatDate(session.startTime)}</span>
+                <CalendarIcon className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-800">Date:</span>
+                <span className="text-gray-700">
+                  {formatDate(session.startTime)}
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <ClockIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Duration:</span>
-                <span>{formatDuration(session.duration)}</span>
+                <ClockIcon className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-800">
+                  Duration:
+                </span>
+                <span className="text-gray-700">
+                  {formatDuration(session.duration)}
+                </span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Status:</span>
+                <span className="text-sm font-medium text-gray-800">
+                  Status:
+                </span>
                 <span>{getStatusBadge(session.status)}</span>
               </div>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <MicIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">Voice:</span>
-                <span className="capitalize">{session.voice}</span>
+                <MicIcon className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium text-gray-800">
+                  Voice:
+                </span>
+                <span className="capitalize text-gray-700">
+                  {session.voice}
+                </span>
               </div>
               {session.metadata?.scenario && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Scenario:</span>
-                  <span>{getScenarioName(session.metadata.scenario)}</span>
+                  <span className="text-sm font-medium text-gray-800">
+                    Scenario:
+                  </span>
+                  <span className="text-gray-700">
+                    {getScenarioName(session.metadata.scenario)}
+                  </span>
                 </div>
               )}
               {session.metadata?.level && (
                 <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Level:</span>
-                  <span>CEFR {session.metadata.level.toUpperCase()}</span>
+                  <span className="text-sm font-medium text-gray-800">
+                    Level:
+                  </span>
+                  <span className="text-gray-700">
+                    CEFR {session.metadata.level.toUpperCase()}
+                  </span>
                 </div>
               )}
             </div>
@@ -705,16 +745,28 @@ export function SpeakingSessionDetails({
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
-        className="space-y-4"
+        className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="conversation">Conversation</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm">
+          <TabsTrigger
+            value="conversation"
+            className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+          >
+            <MessageSquare className="w-4 h-4 mr-2" />
+            Conversation
+          </TabsTrigger>
+          <TabsTrigger
+            value="analytics"
+            className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+          >
+            <BarChart className="w-4 h-4 mr-2" />
+            Analytics
+          </TabsTrigger>
         </TabsList>
 
         {/* Conversation tab content */}
         <TabsContent value="conversation" className="space-y-4">
-          <Card>
+          <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
             <CardContent className="p-6">
               {session.transcripts && session.transcripts.length > 0 ? (
                 <div className="space-y-6">
@@ -730,13 +782,20 @@ export function SpeakingSessionDetails({
                     >
                       <div
                         className={cn(
-                          "max-w-[80%] rounded-lg p-4 relative",
+                          "max-w-[80%] rounded-lg p-4 relative shadow-sm",
                           transcript.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
+                            ? "bg-blue-500 text-white"
+                            : "bg-gray-100 text-gray-800"
                         )}
                       >
-                        <div className="text-xs text-muted-foreground mb-1">
+                        <div
+                          className={cn(
+                            "text-xs mb-1",
+                            transcript.role === "user"
+                              ? "text-blue-100"
+                              : "text-gray-500"
+                          )}
+                        >
                           {transcript.role === "user" ? "You" : "AI"} •{" "}
                           {new Date(transcript.timestamp).toLocaleTimeString()}
                         </div>
@@ -746,10 +805,15 @@ export function SpeakingSessionDetails({
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-10">
-                  <p className="text-muted-foreground">
-                    No conversation transcripts available for this session.
-                  </p>
+                <div className="flex h-[200px] flex-col items-center justify-center">
+                  <div className="text-center">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                      <MessageSquare className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600">
+                      No conversation transcripts available for this session.
+                    </p>
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -758,46 +822,67 @@ export function SpeakingSessionDetails({
 
         {/* Analytics tab content */}
         <TabsContent value="analytics" className="space-y-4">
-          <Card>
+          <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
             <CardHeader>
-              <CardTitle>Speaking Analytics</CardTitle>
-              <CardDescription>
-                Statistics about your speaking practice
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl text-gray-800">
+                    Speaking Analytics
+                  </CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Statistics about your speaking practice
+                  </CardDescription>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                  <BarChart className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Word and message counts */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">Message Statistics</h3>
-                  <div className="space-y-2">
+                  <h3 className="text-lg font-medium text-gray-800">
+                    Message Statistics
+                  </h3>
+                  <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Your Messages:</span>
-                      <span className="font-medium">
+                      <span className="text-sm text-gray-600">
+                        Your Messages:
+                      </span>
+                      <span className="font-medium text-gray-800">
                         {analytics.userMessageCount}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">AI Messages:</span>
-                      <span className="font-medium">
+                      <span className="text-sm text-gray-600">
+                        AI Messages:
+                      </span>
+                      <span className="font-medium text-gray-800">
                         {analytics.assistantMessageCount}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Words You Spoke:</span>
-                      <span className="font-medium">
+                      <span className="text-sm text-gray-600">
+                        Words You Spoke:
+                      </span>
+                      <span className="font-medium text-gray-800">
                         {analytics.userWordCount}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Unique Words Used:</span>
-                      <span className="font-medium">
+                      <span className="text-sm text-gray-600">
+                        Unique Words Used:
+                      </span>
+                      <span className="font-medium text-gray-800">
                         {analytics.userUniqueWords}
                       </span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="text-sm">Avg. Message Length:</span>
-                      <span className="font-medium">
+                      <span className="text-sm text-gray-600">
+                        Avg. Message Length:
+                      </span>
+                      <span className="font-medium text-gray-800">
                         {analytics.avgUserMessageLength} words
                       </span>
                     </div>
@@ -806,22 +891,24 @@ export function SpeakingSessionDetails({
                   <Separator />
 
                   {/* Top words used */}
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-medium">Your Top Words</h3>
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-medium text-gray-800">
+                      Your Top Words
+                    </h3>
                     {analytics.topUserWords.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
                         {analytics.topUserWords.map((item, index) => (
                           <Badge
                             key={index}
-                            variant="secondary"
-                            className="text-xs"
+                            variant="outline"
+                            className="text-xs border-blue-300 bg-blue-50 text-blue-700"
                           >
                             {item.word} ({item.count})
                           </Badge>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-gray-500">
                         Not enough data to analyze your vocabulary.
                       </p>
                     )}

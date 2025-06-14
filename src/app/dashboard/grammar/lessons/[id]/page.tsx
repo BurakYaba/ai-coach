@@ -2,6 +2,14 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
+import {
+  ArrowLeft,
+  BookOpen,
+  CheckCircle,
+  XCircle,
+  Target,
+  Award,
+} from "lucide-react";
 
 import {
   Accordion,
@@ -170,26 +178,30 @@ export default function GrammarLessonPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-6 space-y-8">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-10 w-1/3" />
-          <Skeleton className="h-10 w-24" />
-        </div>
-        <Skeleton className="h-6 w-1/4 mb-2" />
-        <Skeleton className="h-4 w-full mb-1" />
-        <Skeleton className="h-4 w-full mb-1" />
-        <Skeleton className="h-4 w-full mb-1" />
-        <Skeleton className="h-4 w-3/4" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="max-w-4xl mx-auto p-6 space-y-8">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-10 w-1/3" />
+            <Skeleton className="h-10 w-24" />
+          </div>
+          <Skeleton className="h-6 w-1/4 mb-2" />
+          <Skeleton className="h-4 w-full mb-1" />
+          <Skeleton className="h-4 w-full mb-1" />
+          <Skeleton className="h-4 w-full mb-1" />
+          <Skeleton className="h-4 w-3/4" />
 
-        <Skeleton className="h-6 w-1/4 mb-2 mt-8" />
-        <div className="space-y-4">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="p-4 border rounded-lg">
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-full mb-2" />
-              <Skeleton className="h-4 w-1/2" />
-            </div>
-          ))}
+          <Skeleton className="h-6 w-1/4 mb-2 mt-8" />
+          <div className="space-y-4">
+            {[1, 2, 3].map(i => (
+              <Card key={i} className="border-2 bg-gray-50 shadow-lg">
+                <CardContent className="p-4">
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-1/2" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -197,118 +209,173 @@ export default function GrammarLessonPage() {
 
   if (!lesson) {
     return (
-      <div className="container mx-auto py-12 text-center">
-        <h1 className="text-2xl font-bold mb-4">Lesson not found</h1>
-        <p className="text-muted-foreground mb-6">
-          The lesson you are looking for might have been removed or doesn't
-          exist.
-        </p>
-        <Button onClick={() => router.push("/dashboard/grammar")}>
-          Back to Grammar Dashboard
-        </Button>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="max-w-4xl mx-auto p-6">
+          <div className="flex h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50">
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100">
+                <XCircle className="h-8 w-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                Lesson Not Found
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-sm">
+                The lesson you are looking for might have been removed or
+                doesn't exist.
+              </p>
+              <Button
+                onClick={() => router.push("/dashboard/grammar")}
+                className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Grammar Dashboard
+              </Button>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6 max-w-4xl">
-      {/* Header with title and level */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{lesson.title}</h1>
-          <div className="flex gap-2 mt-2">
-            <span className="px-2 py-1 rounded-full bg-primary/10 text-primary text-sm">
-              {lesson.category}
-            </span>
-            <span className="px-2 py-1 rounded-full bg-secondary/10 text-secondary text-sm">
-              {lesson.ceferLevel}
-            </span>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-4xl mx-auto p-6">
+        {/* Header with title and level */}
+        <div className="flex items-center gap-3 mb-8">
+          <Button
+            variant="outline"
+            size="icon"
+            className="bg-white hover:bg-gray-50 border-gray-300 shadow-sm hover:shadow-md transition-all duration-200"
+            onClick={() => router.push("/dashboard/grammar")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">{lesson.title}</h1>
+            <div className="flex gap-2 mt-2">
+              <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm font-medium">
+                {lesson.category}
+              </span>
+              <span className="px-3 py-1 rounded-full bg-green-100 text-green-800 text-sm font-medium">
+                CEFR {lesson.ceferLevel}
+              </span>
+            </div>
           </div>
         </div>
-        <Button
-          variant="outline"
-          onClick={() => router.push("/dashboard/grammar")}
-        >
-          Back to Grammar
-        </Button>
-      </div>
 
-      {/* Main content */}
-      <div className="space-y-8">
-        {/* Explanation section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Explanation</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="prose prose-slate max-w-none dark:prose-invert">
-              {lesson.content.explanation.split("\n\n").map((paragraph, i) => (
-                <p key={i}>{paragraph}</p>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Examples section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Examples</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {lesson.content.examples.map((example, index) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <div className="mb-2">
-                    <p className="text-muted-foreground mb-1">
-                      <span className="line-through">{example.incorrect}</span>
+        {/* Main content */}
+        <div className="space-y-6">
+          {/* Explanation section */}
+          <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+                  <BookOpen className="h-4 w-4 text-blue-600" />
+                </div>
+                <CardTitle className="text-xl text-gray-800">
+                  Explanation
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="prose prose-slate max-w-none text-gray-700">
+                {lesson.content.explanation
+                  .split("\n\n")
+                  .map((paragraph, i) => (
+                    <p key={i} className="mb-4 leading-relaxed">
+                      {paragraph}
                     </p>
-                    <p className="text-primary font-medium">
-                      {example.correct}
+                  ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Examples section */}
+          <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+                  <Target className="h-4 w-4 text-green-600" />
+                </div>
+                <CardTitle className="text-xl text-gray-800">
+                  Examples
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {lesson.content.examples.map((example, index) => (
+                  <div
+                    key={index}
+                    className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50"
+                  >
+                    <div className="mb-3">
+                      <p className="text-gray-600 mb-2 flex items-center gap-2">
+                        <XCircle className="h-4 w-4 text-red-500" />
+                        <span className="line-through">
+                          {example.incorrect}
+                        </span>
+                      </p>
+                      <p className="text-blue-700 font-medium flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-green-500" />
+                        {example.correct}
+                      </p>
+                    </div>
+                    <p className="text-sm border-l-4 border-blue-300 pl-3 mt-3 text-gray-700 bg-blue-50 py-2 rounded-r">
+                      {example.explanation}
                     </p>
                   </div>
-                  <p className="text-sm border-l-2 border-primary/20 pl-3 mt-2">
-                    {example.explanation}
-                  </p>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Exercises section */}
+          <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100">
+                  <Award className="h-4 w-4 text-purple-600" />
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <CardTitle className="text-xl text-gray-800">
+                  Exercises
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {lesson.content.exercises.length > 0 ? (
+                <div className="space-y-6">
+                  {lesson.content.exercises.map((exercise, index) => (
+                    <div
+                      key={index}
+                      className="border-2 border-gray-200 rounded-lg p-4 bg-gray-50"
+                    >
+                      <p className="font-medium mb-4 text-gray-800">
+                        {exercise.question}
+                      </p>
 
-        {/* Exercises section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Exercises</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {lesson.content.exercises.length > 0 ? (
-              <div className="space-y-8">
-                {lesson.content.exercises.map((exercise, index) => (
-                  <div key={index} className="border rounded-lg p-4">
-                    <p className="font-medium mb-4">{exercise.question}</p>
-
-                    {exercise.options ? (
-                      <RadioGroup
-                        value={answers[index]}
-                        onValueChange={value =>
-                          handleAnswerChange(index, value)
-                        }
-                        disabled={showResults}
-                      >
-                        <div className="space-y-2">
-                          {exercise.options.map((option, optionIndex) => (
-                            <div
-                              key={optionIndex}
-                              className="flex items-center space-x-2"
-                            >
-                              <RadioGroupItem
-                                value={option}
-                                id={`option-${index}-${optionIndex}`}
-                              />
-                              <label
-                                htmlFor={`option-${index}-${optionIndex}`}
-                                className={`
-                                  ${
+                      {exercise.options ? (
+                        <RadioGroup
+                          value={answers[index]}
+                          onValueChange={value =>
+                            handleAnswerChange(index, value)
+                          }
+                          disabled={showResults}
+                        >
+                          <div className="space-y-3">
+                            {exercise.options.map((option, optionIndex) => (
+                              <div
+                                key={optionIndex}
+                                className="flex items-center space-x-3"
+                              >
+                                <RadioGroupItem
+                                  value={option}
+                                  id={`option-${index}-${optionIndex}`}
+                                  className="border-gray-400"
+                                />
+                                <label
+                                  htmlFor={`option-${index}-${optionIndex}`}
+                                  className={`cursor-pointer ${
                                     showResults &&
                                     option === exercise.correctAnswer
                                       ? "text-green-600 font-medium"
@@ -316,112 +383,154 @@ export default function GrammarLessonPage() {
                                           answers[index] === option &&
                                           option !== exercise.correctAnswer
                                         ? "text-red-500 line-through"
-                                        : ""
-                                  }
-                                `}
-                              >
-                                {option}
-                              </label>
-                              {showResults &&
-                                option === exercise.correctAnswer && (
-                                  <span className="text-green-600 ml-2">✓</span>
-                                )}
-                            </div>
-                          ))}
-                        </div>
-                      </RadioGroup>
-                    ) : (
-                      <div className="mb-4">
-                        <input
-                          type="text"
-                          className="w-full p-2 border rounded"
-                          value={answers[index] || ""}
-                          onChange={e =>
-                            handleAnswerChange(index, e.target.value)
-                          }
-                          disabled={showResults}
-                          placeholder="Type your answer here..."
-                        />
-                      </div>
-                    )}
-
-                    {showResults && (
-                      <Accordion type="single" collapsible className="mt-4">
-                        <AccordionItem value="explanation">
-                          <AccordionTrigger
-                            className={
-                              answers[index] === exercise.correctAnswer
-                                ? "text-green-600"
-                                : "text-red-500"
+                                        : "text-gray-700"
+                                  }`}
+                                >
+                                  {option}
+                                </label>
+                                {showResults &&
+                                  option === exercise.correctAnswer && (
+                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                  )}
+                                {showResults &&
+                                  answers[index] === option &&
+                                  option !== exercise.correctAnswer && (
+                                    <XCircle className="h-4 w-4 text-red-500" />
+                                  )}
+                              </div>
+                            ))}
+                          </div>
+                        </RadioGroup>
+                      ) : (
+                        <div className="mb-4">
+                          <input
+                            type="text"
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                            value={answers[index] || ""}
+                            onChange={e =>
+                              handleAnswerChange(index, e.target.value)
                             }
+                            disabled={showResults}
+                            placeholder="Type your answer here..."
+                          />
+                        </div>
+                      )}
+
+                      {showResults && (
+                        <Accordion type="single" collapsible className="mt-4">
+                          <AccordionItem
+                            value="explanation"
+                            className="border-gray-300"
                           >
-                            {answers[index] === exercise.correctAnswer
-                              ? "Correct!"
-                              : "Incorrect"}
-                          </AccordionTrigger>
-                          <AccordionContent>
-                            <div className="p-3 bg-muted/30 rounded-md">
-                              <p className="mb-2">
-                                <span className="font-medium">
-                                  Correct answer:
-                                </span>{" "}
-                                {exercise.correctAnswer}
-                              </p>
-                              <p>{exercise.explanation}</p>
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      </Accordion>
-                    )}
-                  </div>
-                ))}
-
-                {showResults && (
-                  <div className="border rounded-lg p-4 bg-muted/20">
-                    <h3 className="text-xl font-medium mb-2">Your Results</h3>
-                    <div className="flex items-center gap-4 mb-4">
-                      <Progress value={score} className="h-2 flex-1" />
-                      <span className="font-medium">{score}%</span>
+                            <AccordionTrigger
+                              className={`hover:no-underline ${
+                                answers[index] === exercise.correctAnswer
+                                  ? "text-green-600"
+                                  : "text-red-500"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {answers[index] === exercise.correctAnswer ? (
+                                  <CheckCircle className="h-4 w-4" />
+                                ) : (
+                                  <XCircle className="h-4 w-4" />
+                                )}
+                                {answers[index] === exercise.correctAnswer
+                                  ? "Correct!"
+                                  : "Incorrect"}
+                              </div>
+                            </AccordionTrigger>
+                            <AccordionContent>
+                              <div className="p-4 bg-blue-50 rounded-md border-l-4 border-blue-300">
+                                <p className="mb-2 text-gray-800">
+                                  <span className="font-medium">
+                                    Correct answer:
+                                  </span>{" "}
+                                  <span className="text-blue-700 font-medium">
+                                    {exercise.correctAnswer}
+                                  </span>
+                                </p>
+                                <p className="text-gray-700">
+                                  {exercise.explanation}
+                                </p>
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        </Accordion>
+                      )}
                     </div>
-                    <p className="text-muted-foreground mb-4">
-                      You answered{" "}
-                      {
-                        lesson.content.exercises.filter(
-                          (_, index) =>
-                            answers[index] ===
-                            lesson.content.exercises[index].correctAnswer
-                        ).length
-                      }{" "}
-                      out of {lesson.content.exercises.length} questions
-                      correctly.
-                    </p>
-                    <Button onClick={resetExercises}>Try Again</Button>
-                  </div>
-                )}
+                  ))}
 
-                {!showResults && (
-                  <div className="flex justify-end mt-4">
-                    <Button
-                      onClick={submitExercises}
-                      disabled={
-                        isSubmitting ||
-                        Object.values(answers).some(answer => !answer) ||
-                        Object.keys(answers).length !==
-                          lesson.content.exercises.length
-                      }
-                    >
-                      {isSubmitting ? "Checking..." : "Check Answers"}
-                    </Button>
+                  {showResults && (
+                    <div className="border-2 border-green-300 rounded-lg p-6 bg-green-50">
+                      <h3 className="text-xl font-medium mb-4 text-gray-800 flex items-center gap-2">
+                        <Award className="h-5 w-5 text-green-600" />
+                        Your Results
+                      </h3>
+                      <div className="flex items-center gap-4 mb-4">
+                        <Progress value={score} className="h-3 flex-1" />
+                        <span className="font-bold text-lg text-gray-800">
+                          {score}%
+                        </span>
+                      </div>
+                      <p className="text-gray-700 mb-4">
+                        You answered{" "}
+                        <span className="font-medium text-green-700">
+                          {
+                            lesson.content.exercises.filter(
+                              (_, index) =>
+                                answers[index] ===
+                                lesson.content.exercises[index].correctAnswer
+                            ).length
+                          }
+                        </span>{" "}
+                        out of{" "}
+                        <span className="font-medium">
+                          {lesson.content.exercises.length}
+                        </span>{" "}
+                        questions correctly.
+                      </p>
+                      <Button
+                        onClick={resetExercises}
+                        className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                      >
+                        Try Again
+                      </Button>
+                    </div>
+                  )}
+
+                  {!showResults && (
+                    <div className="flex justify-end mt-6">
+                      <Button
+                        onClick={submitExercises}
+                        disabled={
+                          isSubmitting ||
+                          Object.values(answers).some(answer => !answer) ||
+                          Object.keys(answers).length !==
+                            lesson.content.exercises.length
+                        }
+                        className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
+                      >
+                        {isSubmitting ? "Checking..." : "Check Answers"}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex h-[200px] flex-col items-center justify-center">
+                  <div className="text-center">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                      <Award className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <p className="text-gray-600">
+                      No exercises available for this lesson.
+                    </p>
                   </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-muted-foreground">
-                No exercises available for this lesson.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

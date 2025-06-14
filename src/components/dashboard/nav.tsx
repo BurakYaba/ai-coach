@@ -45,24 +45,29 @@ export function DashboardNav() {
 
   return (
     <nav
-      className="flex items-center space-x-1 lg:space-x-2"
+      className="flex space-x-3 lg:space-x-4 xl:space-x-6 2xl:space-x-8"
       data-tour="dashboard-nav"
     >
-      {navItems.map(item => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className={cn(
-            "px-3 py-2 text-sm font-medium rounded-md transition-all duration-200 hover:bg-muted/50 hover:text-primary",
-            pathname === item.href ||
-              (item.href !== "/dashboard" && pathname?.startsWith(item.href))
-              ? "text-primary bg-primary/5 shadow-sm"
-              : "text-muted-foreground"
-          )}
-        >
-          {item.title}
-        </Link>
-      ))}
+      {navItems.map((item, index) => {
+        const isActive =
+          pathname === item.href ||
+          (item.href !== "/dashboard" && pathname?.startsWith(item.href));
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            className={cn(
+              "pb-2 px-1 text-xs lg:text-sm xl:text-sm font-medium transition-all duration-200 whitespace-nowrap",
+              isActive
+                ? "border-b-2 border-white text-white"
+                : "text-white/70 hover:text-white hover:border-b-2 hover:border-white/50"
+            )}
+          >
+            {item.title}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

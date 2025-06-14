@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { BookOpen, PenTool } from "lucide-react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -35,10 +36,17 @@ export default function WritingDashboardPage() {
 
   if (status === "loading") {
     return (
-      <div className="container mx-auto py-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-2/3 mb-6"></div>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-2/3 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-48 bg-gray-200 rounded-xl"></div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -49,93 +57,109 @@ export default function WritingDashboardPage() {
   }
 
   return (
-    <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
-        <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Writing Practice
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            Improve your writing skills with AI-powered feedback and analysis
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header */}
+        <div
+          className="flex justify-between items-start mb-8"
+          data-tour="writing-header"
+        >
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Writing Practice
+            </h1>
+            <p className="text-gray-600">
+              Improve your writing skills with AI-powered feedback and analysis
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <TakeTourButton onStartTour={manualStart} className="text-sm" />
+            <Link href="/dashboard/writing/new">
+              <Button
+                className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                data-tour="start-new-session"
+              >
+                <PenTool className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">New Writing Session</span>
+                <span className="sm:hidden">New Session</span>
+              </Button>
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-shrink-0">
-          <TakeTourButton
-            onStartTour={manualStart}
-            className="text-xs sm:text-sm order-2 sm:order-1"
-          />
-          <Link href="/dashboard/writing/new" className="order-1 sm:order-2">
-            <Button
-              size="sm"
-              className="w-full sm:w-auto text-xs sm:text-sm"
-              data-tour="start-new-session"
+
+        {/* Navigation Tabs */}
+        <Tabs defaultValue="sessions" className="mb-6" data-tour="writing-tabs">
+          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:grid-cols-3 bg-white shadow-sm">
+            <TabsTrigger
+              value="sessions"
+              data-tour="sessions-tab"
+              className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
             >
-              <span className="hidden sm:inline">New Writing Session</span>
-              <span className="sm:hidden">New Session</span>
-            </Button>
-          </Link>
-        </div>
+              <PenTool className="w-4 h-4" />
+              <span className="hidden sm:inline">My Sessions</span>
+              <span className="sm:hidden">Sessions</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="prompts"
+              data-tour="prompts-tab"
+              className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span className="hidden sm:inline">Writing Prompts</span>
+              <span className="sm:hidden">Prompts</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="progress"
+              data-tour="progress-tab"
+              className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span className="hidden sm:inline">My Progress</span>
+              <span className="sm:hidden">Progress</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tab Contents */}
+          <TabsContent value="sessions" className="mt-6">
+            <div
+              className="bg-white rounded-2xl p-6 shadow-lg"
+              data-tour="writing-sessions"
+            >
+              <WritingSessionList />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="prompts" className="mt-6">
+            <div
+              className="bg-white rounded-2xl p-6 shadow-lg"
+              data-tour="writing-prompts"
+            >
+              <WritingPromptList />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="progress" className="mt-6">
+            <div
+              className="bg-white rounded-2xl p-8 shadow-lg"
+              data-tour="writing-progress"
+            >
+              <h3 className="text-2xl font-bold text-gray-800 mb-6">
+                Your Progress Overview
+              </h3>
+              <WritingProgress />
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Module Tour */}
+        <ModuleTour
+          module="writing"
+          steps={tourSteps.writing}
+          isOpen={isOpen}
+          onClose={closeTour}
+          onComplete={completeTour}
+        />
       </div>
-
-      <Tabs
-        defaultValue="sessions"
-        className="space-y-4"
-        data-tour="writing-tabs"
-      >
-        <TabsList className="grid w-full grid-cols-3 text-xs sm:text-sm">
-          <TabsTrigger
-            value="sessions"
-            data-tour="sessions-tab"
-            className="text-xs sm:text-sm"
-          >
-            <span className="hidden sm:inline">My Sessions</span>
-            <span className="sm:hidden">Sessions</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="prompts"
-            data-tour="prompts-tab"
-            className="text-xs sm:text-sm"
-          >
-            <span className="hidden sm:inline">Writing Prompts</span>
-            <span className="sm:hidden">Prompts</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="progress"
-            data-tour="progress-tab"
-            className="text-xs sm:text-sm"
-          >
-            <span className="hidden sm:inline">My Progress</span>
-            <span className="sm:hidden">Progress</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="sessions" className="space-y-4">
-          <div data-tour="writing-sessions">
-            <WritingSessionList />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="prompts" className="space-y-4">
-          <div data-tour="writing-prompts">
-            <WritingPromptList />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="progress" className="space-y-4">
-          <div data-tour="writing-progress">
-            <WritingProgress />
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* Module Tour */}
-      <ModuleTour
-        module="writing"
-        steps={tourSteps.writing}
-        isOpen={isOpen}
-        onClose={closeTour}
-        onComplete={completeTour}
-      />
     </div>
   );
 }

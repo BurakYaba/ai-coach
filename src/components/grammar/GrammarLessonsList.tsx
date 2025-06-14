@@ -3,6 +3,7 @@
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { BookOpen, GraduationCap, CheckCircle, Clock } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -138,17 +139,43 @@ export default function GrammarLessonsList() {
   const currentLessons = lessons.slice(indexOfFirstLesson, indexOfLastLesson);
   const totalPages = Math.ceil(lessons.length / lessonsPerPage);
 
+  const getCardStyle = (completed: boolean) => {
+    if (completed) {
+      return "border-2 border-green-300 bg-green-50 shadow-lg hover:shadow-xl transition-all duration-300";
+    } else {
+      return "border-2 border-blue-300 bg-blue-50 shadow-lg hover:shadow-xl transition-all duration-300";
+    }
+  };
+
+  const getStatusBadge = (completed: boolean) => {
+    if (completed) {
+      return (
+        <Badge className="bg-green-100 text-green-800 border-green-300">
+          <CheckCircle className="w-3 h-3 mr-1" />
+          Completed
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge className="bg-blue-100 text-blue-800 border-blue-300">
+          <Clock className="w-3 h-3 mr-1" />
+          In Progress
+        </Badge>
+      );
+    }
+  };
+
   if (loading) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="flex flex-wrap gap-2 mb-4">
           <Skeleton className="h-10 w-40" />
           <Skeleton className="h-10 w-40" />
           <Skeleton className="h-10 w-40" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-            <Card key={i} className="h-full flex flex-col">
+            <Card key={i} className="border-2 bg-gray-50 shadow-lg">
               <CardHeader>
                 <Skeleton className="h-6 w-1/3" />
                 <Skeleton className="h-4 w-1/4 mt-2" />
@@ -170,13 +197,26 @@ export default function GrammarLessonsList() {
 
   if (lessons.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground mb-4">
-          No grammar lessons found. Generate lessons from your grammar issues.
-        </p>
-        <Button onClick={() => router.push("/dashboard/grammar")}>
-          Back to Grammar Dashboard
-        </Button>
+      <div className="flex h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50">
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+            <BookOpen className="h-8 w-8 text-blue-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            No Grammar Lessons Found
+          </h3>
+          <p className="text-gray-600 mb-6 max-w-sm">
+            Generate lessons from your grammar issues to start learning
+            personalized content.
+          </p>
+          <Button
+            onClick={() => router.push("/dashboard/grammar")}
+            className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            <GraduationCap className="w-4 h-4 mr-2" />
+            Back to Grammar Dashboard
+          </Button>
+        </div>
       </div>
     );
   }
@@ -186,7 +226,7 @@ export default function GrammarLessonsList() {
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-4 justify-end">
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-[150px] bg-white border-gray-300">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
           <SelectContent>
@@ -200,7 +240,7 @@ export default function GrammarLessonsList() {
         </Select>
 
         <Select value={levelFilter} onValueChange={setLevelFilter}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-[150px] bg-white border-gray-300">
             <SelectValue placeholder="Level" />
           </SelectTrigger>
           <SelectContent>
@@ -214,7 +254,7 @@ export default function GrammarLessonsList() {
         </Select>
 
         <Select value={completedFilter} onValueChange={setCompletedFilter}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-[150px] bg-white border-gray-300">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -226,39 +266,30 @@ export default function GrammarLessonsList() {
       </div>
 
       {/* Lessons grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {currentLessons.map(lesson => (
           <Card
             key={lesson._id}
-            className="h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer"
+            className={`h-full flex flex-col cursor-pointer ${getCardStyle(lesson.completed)}`}
             onClick={() => navigateToLesson(lesson._id)}
           >
             <CardHeader className="pb-2">
               <div className="flex justify-between items-start">
                 <div>
-                  <CardTitle className="text-base mb-1">
+                  <CardTitle className="text-base mb-1 text-gray-800">
                     {lesson.title}
                   </CardTitle>
-                  <CardDescription className="text-xs">
+                  <CardDescription className="text-xs text-gray-600">
                     {lesson.content.explanation.length} characters •{" "}
                     {lesson.content.exercises.length} exercises
                   </CardDescription>
                 </div>
-                <Badge
-                  variant="outline"
-                  className={
-                    lesson.completed
-                      ? "bg-green-50 text-green-700 border-green-200"
-                      : "bg-blue-50 text-blue-700 border-blue-200"
-                  }
-                >
-                  {lesson.completed ? "Completed" : "In Progress"}
-                </Badge>
+                {getStatusBadge(lesson.completed)}
               </div>
             </CardHeader>
 
             <CardContent className="flex-grow space-y-3 py-2">
-              <p className="text-muted-foreground text-sm line-clamp-2">
+              <p className="text-gray-600 text-sm line-clamp-2">
                 {lesson.content.explanation.substring(0, 120)}...
               </p>
             </CardContent>
@@ -273,18 +304,27 @@ export default function GrammarLessonsList() {
                         ? lesson.score
                         : 0
                   }
-                  className="h-1.5"
+                  className="h-2"
                 />
               </div>
 
               <div className="w-full flex justify-between items-center">
-                <div className="flex gap-2">
-                  <Badge variant="outline">{lesson.ceferLevel}</Badge>
-                  <Badge variant="outline" className="capitalize">
+                <div className="flex gap-1">
+                  <Badge variant="outline" className="text-xs border-gray-300">
+                    {lesson.ceferLevel}
+                  </Badge>
+                  <Badge
+                    variant="outline"
+                    className="text-xs capitalize border-gray-300"
+                  >
                     {lesson.category}
                   </Badge>
                 </div>
-                <Button variant="default" size="sm" className="text-xs h-7">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="text-xs h-7 hover:bg-gray-200 transition-colors"
+                >
                   {lesson.completed ? "Review Lesson" : "Continue Reading"}
                 </Button>
               </div>
@@ -295,41 +335,45 @@ export default function GrammarLessonsList() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <Pagination className="mt-6">
-          <PaginationContent>
-            {currentPage > 1 && (
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                  className="cursor-pointer"
-                />
-              </PaginationItem>
-            )}
+        <div className="mt-8 flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              {currentPage > 1 && (
+                <PaginationItem>
+                  <PaginationPrevious
+                    onClick={() =>
+                      setCurrentPage(prev => Math.max(prev - 1, 1))
+                    }
+                    className="cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  />
+                </PaginationItem>
+              )}
 
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  isActive={currentPage === page}
-                  onClick={() => setCurrentPage(page)}
-                  className="cursor-pointer"
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
-            ))}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    isActive={currentPage === page}
+                    onClick={() => setCurrentPage(page)}
+                    className="cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors data-[state=active]:bg-blue-100 data-[state=active]:text-blue-800"
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
 
-            {currentPage < totalPages && (
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() =>
-                    setCurrentPage(prev => Math.min(prev + 1, totalPages))
-                  }
-                  className="cursor-pointer"
-                />
-              </PaginationItem>
-            )}
-          </PaginationContent>
-        </Pagination>
+              {currentPage < totalPages && (
+                <PaginationItem>
+                  <PaginationNext
+                    onClick={() =>
+                      setCurrentPage(prev => Math.min(prev + 1, totalPages))
+                    }
+                    className="cursor-pointer hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                  />
+                </PaginationItem>
+              )}
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
     </div>
   );

@@ -209,7 +209,7 @@ export function SessionList({ filter = "all" }: SessionListProps) {
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {displayedSessions.map(session => {
           // Calculate progress
           const totalQuestions = session.questions?.length || 0;
@@ -245,90 +245,117 @@ export function SessionList({ filter = "all" }: SessionListProps) {
               .substring(0, 100)
               .trim() + "...";
 
+          // Get card styling based on completion status
+          const getCardStyling = () => {
+            if (isCompleted) {
+              return "border-green-300 bg-green-50";
+            } else {
+              return "border-blue-300 bg-blue-50";
+            }
+          };
+
           return (
-            <Card key={session._id} className="h-full flex flex-col">
+            <Card
+              key={session._id}
+              className={`border-2 hover:shadow-lg transition-all duration-300 group ${getCardStyling()}`}
+            >
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-base mb-1">
-                      {session.title}
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                      {formatDuration(session.duration)} • {session.contentType}
-                    </CardDescription>
-                  </div>
-                  <Badge
-                    variant={isCompleted ? "secondary" : "default"}
-                    className="text-xs"
-                  >
-                    {isCompleted ? "Completed" : "In Progress"}
+                <div className="flex justify-between items-start mb-2">
+                  <Badge variant="outline" className="text-xs font-semibold">
+                    {session.level}
                   </Badge>
+                  {progressPercentage > 0 && (
+                    <div className="w-full max-w-[100px] bg-gray-200 rounded-full h-1.5 ml-3">
+                      <div
+                        className={`h-1.5 rounded-full ${isCompleted ? "bg-green-500" : "bg-blue-500"}`}
+                        style={{ width: `${progressPercentage}%` }}
+                      ></div>
+                    </div>
+                  )}
+                </div>
+                <CardTitle className="text-lg font-semibold text-gray-800 leading-tight">
+                  {session.title}
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">{session.topic}</p>
+                <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+                  <span>{formatDuration(session.duration)}</span>
+                  <span>•</span>
+                  <span>{session.contentType}</span>
                 </div>
               </CardHeader>
-              <CardContent className="py-0 flex-grow">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Progress:</span>
-                    <span>{progressPercentage}%</span>
+
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge
+                      variant="secondary"
+                      className={`text-xs ${isCompleted ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}
+                    >
+                      {isCompleted ? "Completed" : "In Progress"}
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="text-xs bg-gray-100 text-gray-700"
+                    >
+                      {progressPercentage}% Complete
+                    </Badge>
                   </div>
-                  <Progress value={progressPercentage} className="h-1" />
-                </div>
-                <div className="mt-4">
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {description}
-                  </p>
+
+                  <div className="flex gap-2">
+                    <Button
+                      asChild
+                      className={`flex-1 text-white group-hover:opacity-90 transition-colors ${isCompleted ? "bg-green-500 hover:bg-green-600" : "bg-blue-500 hover:bg-blue-600"}`}
+                    >
+                      <Link href={`/dashboard/listening/${session._id}`}>
+                        {isCompleted ? (
+                          <>
+                            <CircleCheck className="w-4 h-4 mr-2" />
+                            Review
+                          </>
+                        ) : (
+                          <>
+                            <Play className="w-4 h-4 mr-2" />
+                            Continue
+                          </>
+                        )}
+                      </Link>
+                    </Button>
+                    <AlertDialog
+                      open={sessionToDelete === session._id}
+                      onOpenChange={open => !open && setSessionToDelete(null)}
+                    >
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="px-3"
+                          onClick={() => setSessionToDelete(session._id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This will permanently delete this listening session
+                            and all associated data. This action cannot be
+                            undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDelete(session._id)}
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
               </CardContent>
-              <CardFooter className="pt-2 flex justify-between">
-                <Button variant="ghost" size="sm" className="text-xs" asChild>
-                  <Link href={`/dashboard/listening/${session._id}`}>
-                    {isCompleted ? (
-                      <>
-                        <CircleCheck className="h-3.5 w-3.5 mr-1.5" />
-                        Review
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-3.5 w-3.5 mr-1.5" />
-                        Continue
-                      </>
-                    )}
-                  </Link>
-                </Button>
-                <AlertDialog
-                  open={sessionToDelete === session._id}
-                  onOpenChange={open => !open && setSessionToDelete(null)}
-                >
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs"
-                      onClick={() => setSessionToDelete(session._id)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5 mr-1.5" />
-                      Delete
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently delete this listening session and
-                        all associated data. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDelete(session._id)}
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </CardFooter>
             </Card>
           );
         })}
@@ -377,38 +404,30 @@ export function SessionList({ filter = "all" }: SessionListProps) {
 
 export function SessionSkeleton({ count = 8 }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
       {Array.from({ length: count }).map((_, index) => (
-        <Card key={index} className="h-full flex flex-col">
+        <Card key={index} className="border-2 bg-gray-50">
           <CardHeader className="pb-3">
-            <div className="flex justify-between items-start">
-              <div>
-                <Skeleton className="h-5 w-40 mb-1" />
-                <Skeleton className="h-3 w-24" />
-              </div>
-              <Skeleton className="h-5 w-20" />
+            <div className="flex justify-between items-start mb-2">
+              <Skeleton className="h-5 w-12" />
+              <Skeleton className="h-1.5 w-20" />
             </div>
+            <Skeleton className="h-6 w-full mb-2" />
+            <Skeleton className="h-4 w-3/4 mb-2" />
+            <Skeleton className="h-3 w-24" />
           </CardHeader>
-          <CardContent className="flex-grow pb-3">
+          <CardContent className="pt-0">
             <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <Skeleton className="h-3 w-16" />
-                  <Skeleton className="h-3 w-8" />
-                </div>
-                <Skeleton className="h-2 w-full" />
-              </div>
-              <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
               <div className="flex gap-2">
                 <Skeleton className="h-5 w-16" />
-                <Skeleton className="h-5 w-16" />
+                <Skeleton className="h-5 w-20" />
+              </div>
+              <div className="flex gap-2">
+                <Skeleton className="h-9 flex-1" />
+                <Skeleton className="h-9 w-12" />
               </div>
             </div>
           </CardContent>
-          <CardFooter className="pt-0">
-            <Skeleton className="h-9 w-full" />
-          </CardFooter>
         </Card>
       ))}
     </div>

@@ -65,37 +65,44 @@ export default async function DashboardPage({
   const showSchoolUserMessage = searchParams.message === "school-user";
 
   return (
-    <div className="space-y-8">
-      {/* Show message for school users redirected from pricing */}
-      {showSchoolUserMessage && (
-        <Alert className="mb-6">
-          <Info className="h-4 w-4" />
-          <AlertTitle>School User Notice</AlertTitle>
-          <AlertDescription>
-            As a school user, your subscription is managed by your school
-            administrator. Individual pricing plans are not available for school
-            accounts.
-          </AlertDescription>
-        </Alert>
-      )}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Show message for school users redirected from pricing */}
+        {showSchoolUserMessage && (
+          <Alert className="mb-6">
+            <Info className="h-4 w-4" />
+            <AlertTitle>School User Notice</AlertTitle>
+            <AlertDescription>
+              As a school user, your subscription is managed by your school
+              administrator. Individual pricing plans are not available for
+              school accounts.
+            </AlertDescription>
+          </Alert>
+        )}
 
-      <div
-        className="bg-gradient-to-r from-primary/5 to-secondary/5 p-6 rounded-xl backdrop-blur-sm border border-muted/10"
-        data-tour="dashboard-welcome"
-      >
-        <h1 className="text-3xl font-bold tracking-tight">
-          Welcome back, <span className="text-gradient">{userName}</span>!
-        </h1>
-        <p className="text-muted-foreground">
-          Here&apos;s an overview of your language learning progress
-        </p>
+        {/* Welcome Section */}
+        <div
+          className="bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-8 rounded-2xl shadow-sm border border-indigo-100 mb-8"
+          data-tour="dashboard-welcome"
+        >
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            Welcome back,{" "}
+            <span className="bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+              {userName}
+            </span>
+            !
+          </h2>
+          <p className="text-gray-600 text-lg">
+            Here's an overview of your language learning progress
+          </p>
+        </div>
+
+        {/* GamificationProfileStats replaces UserStats */}
+        <GamificationProfileStats />
+
+        {/* Dashboard Tour */}
+        <DashboardTourManager />
       </div>
-
-      {/* GamificationProfileStats replaces UserStats */}
-      <GamificationProfileStats />
-
-      {/* Dashboard Tour */}
-      <DashboardTourManager />
     </div>
   );
 }

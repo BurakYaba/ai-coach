@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Clock, Mic } from "lucide-react";
+import { Calendar, Clock, Mic, MessageSquare, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -151,19 +151,19 @@ export default function SpeakingDashboard() {
     switch (status) {
       case "completed":
         return (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100">
+          <Badge className="bg-green-100 text-green-800 border-green-300">
             Completed
           </Badge>
         );
       case "active":
         return (
-          <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100">
+          <Badge className="bg-blue-100 text-blue-800 border-blue-300">
             Active
           </Badge>
         );
       case "interrupted":
         return (
-          <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100">
+          <Badge className="bg-orange-100 text-orange-800 border-orange-300">
             Interrupted
           </Badge>
         );
@@ -246,322 +246,416 @@ export default function SpeakingDashboard() {
 
   const totalWords = countTotalWords();
 
-  return (
-    <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6">
-      <SpeakingTourManager />
+  const getCardStyle = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "border-2 border-green-300 bg-green-50 shadow-lg hover:shadow-xl transition-all duration-300";
+      case "active":
+        return "border-2 border-blue-300 bg-blue-50 shadow-lg hover:shadow-xl transition-all duration-300";
+      case "interrupted":
+        return "border-2 border-orange-300 bg-orange-50 shadow-lg hover:shadow-xl transition-all duration-300";
+      default:
+        return "border-2 border-gray-300 bg-gray-50 shadow-lg hover:shadow-xl transition-all duration-300";
+    }
+  };
 
-      <div
-        className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6"
-        data-tour="speaking-header"
-      >
-        <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold">Speaking Practice</h1>
-          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            Practice speaking with AI conversation partners and get real-time
-            feedback on pronunciation and fluency.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2 flex-shrink-0">
-          <Link href="/dashboard/speaking/practice" className="order-1">
-            <Button
-              className="w-full sm:w-auto text-xs sm:text-sm"
-              data-tour="practice-speaking-btn"
-            >
-              <Mic className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Practice Speaking</span>
-              <span className="sm:hidden">Practice</span>
-            </Button>
-          </Link>
-          <div className="order-2">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-7xl mx-auto p-6">
+        <SpeakingTourManager />
+
+        {/* Header */}
+        <div
+          className="flex justify-between items-start mb-8"
+          data-tour="speaking-header"
+        >
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Speaking Practice
+            </h1>
+            <p className="text-gray-600">
+              Practice speaking with AI conversation partners and get real-time
+              feedback on pronunciation and fluency
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
             <SpeakingTourTrigger />
+            <Link href="/dashboard/speaking/practice">
+              <Button
+                className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                data-tour="practice-speaking-btn"
+              >
+                <Mic className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Practice Speaking</span>
+                <span className="sm:hidden">Practice</span>
+              </Button>
+            </Link>
           </div>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <Card data-tour="speaking-overview">
-          <CardHeader>
-            <CardTitle>Overview</CardTitle>
-            <CardDescription>Your speaking practice statistics</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Total Sessions:</span>
-                <span className="font-bold">
-                  {loading ? (
-                    <Skeleton className="h-4 w-10" />
-                  ) : (
-                    pagination.total || sessions.length
-                  )}
-                </span>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Card
+            className="border-2 bg-blue-50 border-blue-300 shadow-lg hover:shadow-xl transition-all duration-300"
+            data-tour="speaking-overview"
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl text-gray-800">
+                    Overview
+                  </CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Your speaking practice statistics
+                  </CardDescription>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
+                  <BarChart3 className="h-6 w-6 text-blue-600" />
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">Completed Sessions:</span>
-                <span className="font-bold">
-                  {loading ? (
-                    <Skeleton className="h-4 w-10" />
-                  ) : (
-                    stats.completedSessions
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">
-                  Total Practice Time:
-                </span>
-                <span className="font-bold">
-                  {loading ? (
-                    <Skeleton className="h-4 w-20" />
-                  ) : (
-                    formatDuration(stats.totalTime)
-                  )}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm font-medium">
-                  Average Session Duration:
-                </span>
-                <span className="font-bold">
-                  {loading ? (
-                    <Skeleton className="h-4 w-20" />
-                  ) : (
-                    formatDuration(Math.round(stats.avgDuration))
-                  )}
-                </span>
-              </div>
-              {totalWords > 0 && (
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium">
-                    Total Words Spoken:
+                  <span className="text-sm font-medium text-gray-800">
+                    Total Sessions:
                   </span>
-                  <span className="font-bold">
+                  <span className="font-bold text-gray-800">
+                    {loading ? (
+                      <Skeleton className="h-4 w-10" />
+                    ) : (
+                      pagination.total || sessions.length
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-800">
+                    Completed Sessions:
+                  </span>
+                  <span className="font-bold text-gray-800">
+                    {loading ? (
+                      <Skeleton className="h-4 w-10" />
+                    ) : (
+                      stats.completedSessions
+                    )}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-800">
+                    Total Practice Time:
+                  </span>
+                  <span className="font-bold text-gray-800">
                     {loading ? (
                       <Skeleton className="h-4 w-20" />
                     ) : (
-                      totalWords.toLocaleString()
+                      formatDuration(stats.totalTime)
                     )}
                   </span>
                 </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card data-tour="recent-session">
-          <CardHeader>
-            <CardTitle>Most Recent Session</CardTitle>
-            <CardDescription>
-              Details about your last practice session
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="space-y-4">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            ) : sessions.length > 0 ? (
-              <div className="space-y-4">
-                <div className="flex items-center">
-                  <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">
-                    {formatDate(sessions[0].startTime)}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-800">
+                    Average Session Duration:
+                  </span>
+                  <span className="font-bold text-gray-800">
+                    {loading ? (
+                      <Skeleton className="h-4 w-20" />
+                    ) : (
+                      formatDuration(Math.round(stats.avgDuration))
+                    )}
                   </span>
                 </div>
-                <div className="flex items-center">
-                  <Clock className="mr-2 h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">
-                    Duration: {formatDuration(sessions[0].duration)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm">
-                    Status: {getStatusBadge(sessions[0].status, sessions[0])}
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <span className="text-sm">
-                    Type: {getSessionType(sessions[0])}
-                  </span>
-                </div>
-                {sessions[0].metadata?.scenario && (
-                  <div className="flex items-center">
-                    <span className="text-sm">
-                      Scenario: {getScenarioName(sessions[0].metadata.scenario)}
+                {totalWords > 0 && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-800">
+                      Total Words Spoken:
                     </span>
-                  </div>
-                )}
-                {sessions[0].transcripts && (
-                  <div className="flex items-center">
-                    <span className="text-sm">
-                      Messages: {sessions[0].transcripts.length}
+                    <span className="font-bold text-gray-800">
+                      {loading ? (
+                        <Skeleton className="h-4 w-20" />
+                      ) : (
+                        totalWords.toLocaleString()
+                      )}
                     </span>
                   </div>
                 )}
               </div>
-            ) : (
-              <div className="text-center py-4 text-muted-foreground">
-                No sessions yet. Start practicing to see your stats!
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
-      <div
-        className="flex justify-between items-center mb-4"
-        data-tour="session-history-header"
-      >
-        <h2 className="text-xl font-semibold">Session History</h2>
-      </div>
-
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, index) => (
-            <Card key={index} className="h-full flex flex-col">
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <Skeleton className="h-5 w-40 mb-1" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                  <Skeleton className="h-5 w-20" />
+          <Card
+            className="border-2 bg-green-50 border-green-300 shadow-lg hover:shadow-xl transition-all duration-300"
+            data-tour="recent-session"
+          >
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl text-gray-800">
+                    Most Recent Session
+                  </CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Details about your last practice session
+                  </CardDescription>
                 </div>
-              </CardHeader>
-              <CardContent className="flex-grow pb-3">
-                <div className="space-y-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
+                  <MessageSquare className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="space-y-4">
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
                 </div>
-              </CardContent>
-              <CardFooter className="pt-0">
-                <Skeleton className="h-9 w-full" />
-              </CardFooter>
-            </Card>
-          ))}
+              ) : sessions.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="flex items-center">
+                    <Calendar className="mr-2 h-4 w-4 text-gray-500" />
+                    <span className="text-sm font-medium text-gray-800">
+                      {formatDate(sessions[0].startTime)}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <Clock className="mr-2 h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-700">
+                      Duration: {formatDuration(sessions[0].duration)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-700">
+                      Status: {getStatusBadge(sessions[0].status, sessions[0])}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-sm text-gray-700">
+                      Type: {getSessionType(sessions[0])}
+                    </span>
+                  </div>
+                  {sessions[0].metadata?.scenario && (
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-700">
+                        Scenario:{" "}
+                        {getScenarioName(sessions[0].metadata.scenario)}
+                      </span>
+                    </div>
+                  )}
+                  {sessions[0].transcripts && (
+                    <div className="flex items-center">
+                      <span className="text-sm text-gray-700">
+                        Messages: {sessions[0].transcripts.length}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex h-[120px] flex-col items-center justify-center">
+                  <div className="text-center">
+                    <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                      <MessageSquare className="h-6 w-6 text-gray-400" />
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">
+                      No sessions yet
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Start practicing to see your stats!
+                    </p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
-      ) : sessions.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {sessions.map((session, index) => (
-              <Card
-                key={session._id}
-                className="h-full flex flex-col hover:border-primary cursor-pointer"
-                onClick={() => handleSessionClick(session._id)}
-                data-tour={index === 0 ? "session-card" : undefined}
-              >
-                <CardHeader className="pb-3">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-base mb-1">
-                        {getSessionType(session)}
-                      </CardTitle>
-                      <CardDescription className="text-xs">
-                        {formatDate(session.startTime)}
-                      </CardDescription>
-                    </div>
-                    {getStatusBadge(session.status, session)}
-                  </div>
-                </CardHeader>
-                <CardContent className="flex-grow pb-3 pt-0">
-                  <div className="space-y-3">
-                    <div className="text-sm">
-                      <div className="flex items-center justify-between text-xs mb-1">
-                        <span>Duration</span>
-                        <span>{formatDuration(session.duration)}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {session.metadata?.scenario && (
-                        <Badge variant="outline" className="text-xs">
-                          {getScenarioName(session.metadata.scenario)}
-                        </Badge>
-                      )}
-                      {session.metadata?.level && (
-                        <Badge variant="outline" className="text-xs">
-                          Level: {session.metadata.level.toUpperCase()}
-                        </Badge>
-                      )}
-                      <Badge variant="outline" className="text-xs">
-                        Voice: {session.voice}
-                      </Badge>
-                    </div>
-                    {session.transcripts && (
-                      <div className="text-xs text-muted-foreground">
-                        {session.transcripts.length} messages
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-                <CardFooter className="pt-0 flex flex-col gap-2">
-                  <Button
-                    variant="secondary"
-                    className="w-full"
-                    onClick={e => {
-                      e.stopPropagation();
-                      handleSessionClick(session._id);
-                    }}
-                  >
-                    View Details
-                  </Button>
-                  <DeleteSpeakingSessionButton sessionId={session._id} />
-                </CardFooter>
-              </Card>
-            ))}
+
+        {/* Session History */}
+        <div className="bg-white rounded-2xl p-6 shadow-lg">
+          <div
+            className="flex justify-between items-center mb-6"
+            data-tour="session-history-header"
+          >
+            <h2 className="text-2xl font-bold text-gray-800">
+              Session History
+            </h2>
           </div>
 
-          {pagination.pages > 1 && (
-            <Pagination className="mt-6" data-tour="speaking-pagination">
-              <PaginationContent>
-                {pagination.current > 1 && (
-                  <PaginationItem>
-                    <Link
-                      href={`/dashboard/speaking?page=${pagination.current - 1}`}
-                    >
-                      <PaginationPrevious />
-                    </Link>
-                  </PaginationItem>
-                )}
-                {Array.from({ length: pagination.pages }, (_, i) => i + 1).map(
-                  page => (
-                    <PaginationItem key={page}>
-                      <Link href={`/dashboard/speaking?page=${page}`}>
-                        <PaginationLink isActive={page === pagination.current}>
-                          {page}
-                        </PaginationLink>
-                      </Link>
-                    </PaginationItem>
-                  )
-                )}
-                {pagination.current < pagination.pages && (
-                  <PaginationItem>
-                    <Link
-                      href={`/dashboard/speaking?page=${pagination.current + 1}`}
-                    >
-                      <PaginationNext />
-                    </Link>
-                  </PaginationItem>
-                )}
-              </PaginationContent>
-            </Pagination>
-          )}
-        </>
-      ) : (
-        <Card data-tour="no-sessions-card">
-          <CardContent className="p-6 text-center">
-            <p className="text-muted-foreground">
-              No speaking sessions found. Start practicing to see your history!
-            </p>
-            <div className="mt-4">
-              <Link href="/dashboard/speaking/practice">
-                <Button>Start Speaking Practice</Button>
-              </Link>
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {Array.from({ length: 8 }).map((_, index) => (
+                <Card key={index} className="border-2 bg-gray-50 shadow-lg">
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <Skeleton className="h-5 w-40 mb-1" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <Skeleton className="h-5 w-20" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-grow pb-3">
+                    <div className="space-y-3">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-3/4" />
+                    </div>
+                  </CardContent>
+                  <CardFooter className="pt-0">
+                    <Skeleton className="h-9 w-full" />
+                  </CardFooter>
+                </Card>
+              ))}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          ) : sessions.length > 0 ? (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {sessions.map((session, index) => (
+                  <Card
+                    key={session._id}
+                    className={`h-full flex flex-col cursor-pointer ${getCardStyle(session.status)}`}
+                    onClick={() => handleSessionClick(session._id)}
+                    data-tour={index === 0 ? "session-card" : undefined}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <CardTitle className="text-base mb-1 text-gray-800">
+                            {getSessionType(session)}
+                          </CardTitle>
+                          <CardDescription className="text-xs text-gray-600">
+                            {formatDate(session.startTime)}
+                          </CardDescription>
+                        </div>
+                        {getStatusBadge(session.status, session)}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="flex-grow pb-3 pt-0">
+                      <div className="space-y-3">
+                        <div className="text-sm">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <span className="text-gray-600">Duration</span>
+                            <span className="font-medium text-gray-800">
+                              {formatDuration(session.duration)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-1">
+                          {session.metadata?.scenario && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs border-gray-300"
+                            >
+                              {getScenarioName(session.metadata.scenario)}
+                            </Badge>
+                          )}
+                          {session.metadata?.level && (
+                            <Badge
+                              variant="outline"
+                              className="text-xs border-gray-300"
+                            >
+                              Level: {session.metadata.level.toUpperCase()}
+                            </Badge>
+                          )}
+                          <Badge
+                            variant="outline"
+                            className="text-xs border-gray-300"
+                          >
+                            Voice: {session.voice}
+                          </Badge>
+                        </div>
+                        {session.transcripts && (
+                          <div className="text-xs text-gray-500">
+                            {session.transcripts.length} messages
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                    <CardFooter className="pt-0 flex flex-col gap-2">
+                      <Button
+                        variant="secondary"
+                        className="w-full hover:bg-gray-200 transition-colors"
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleSessionClick(session._id);
+                        }}
+                      >
+                        View Details
+                      </Button>
+                      <DeleteSpeakingSessionButton sessionId={session._id} />
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+
+              {pagination.pages > 1 && (
+                <div
+                  className="mt-8 flex justify-center"
+                  data-tour="speaking-pagination"
+                >
+                  <Pagination>
+                    <PaginationContent>
+                      {pagination.current > 1 && (
+                        <PaginationItem>
+                          <Link
+                            href={`/dashboard/speaking?page=${pagination.current - 1}`}
+                          >
+                            <PaginationPrevious className="hover:bg-blue-50 hover:text-blue-700 transition-colors" />
+                          </Link>
+                        </PaginationItem>
+                      )}
+                      {Array.from(
+                        { length: pagination.pages },
+                        (_, i) => i + 1
+                      ).map(page => (
+                        <PaginationItem key={page}>
+                          <Link href={`/dashboard/speaking?page=${page}`}>
+                            <PaginationLink
+                              isActive={page === pagination.current}
+                              className="hover:bg-blue-50 hover:text-blue-700 transition-colors data-[state=active]:bg-blue-100 data-[state=active]:text-blue-800"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </Link>
+                        </PaginationItem>
+                      ))}
+                      {pagination.current < pagination.pages && (
+                        <PaginationItem>
+                          <Link
+                            href={`/dashboard/speaking?page=${pagination.current + 1}`}
+                          >
+                            <PaginationNext className="hover:bg-blue-50 hover:text-blue-700 transition-colors" />
+                          </Link>
+                        </PaginationItem>
+                      )}
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
+            </>
+          ) : (
+            <div
+              className="flex h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50"
+              data-tour="no-sessions-card"
+            >
+              <div className="text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+                  <Mic className="h-8 w-8 text-blue-600" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                  No Speaking Sessions Yet
+                </h3>
+                <p className="text-gray-600 mb-6 max-w-sm">
+                  Start practicing to see your history! Your speaking sessions
+                  will appear here once you begin.
+                </p>
+                <Link href="/dashboard/speaking/practice">
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+                    <Mic className="w-4 h-4 mr-2" />
+                    Start Speaking Practice
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

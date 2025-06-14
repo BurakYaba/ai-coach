@@ -1,4 +1,4 @@
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Volume2, BookOpen } from "lucide-react";
 import { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -103,89 +103,101 @@ export default async function ListeningDashboardPage({
   const defaultTab = searchParams.tab || "library";
 
   return (
-    <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6">
-      <div className="mb-6" data-tour="listening-header">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
-          <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header */}
+        <div
+          className="flex justify-between items-start mb-8"
+          data-tour="listening-header"
+        >
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
               Listening Practice
             </h1>
-            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+            <p className="text-gray-600">
               Improve your listening skills with curated and personalized audio
               content
             </p>
           </div>
-          <div className="flex-shrink-0">
-            <ListeningTourTrigger />
-          </div>
+          <ListeningTourTrigger />
         </div>
-      </div>
 
-      {errorMessage && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{errorMessage}</AlertDescription>
-        </Alert>
-      )}
+        {errorMessage && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
 
-      {successMessage && (
-        <Alert className="mb-6 bg-green-50 text-green-800 border border-green-200">
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>{successMessage}</AlertDescription>
-        </Alert>
-      )}
+        {successMessage && (
+          <Alert className="mb-6 bg-green-50 text-green-800 border border-green-200">
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>{successMessage}</AlertDescription>
+          </Alert>
+        )}
 
-      <Tabs defaultValue={defaultTab} className="space-y-4">
-        <TabsList
-          data-tour="listening-tabs"
-          className="grid w-full grid-cols-4 text-xs sm:text-sm"
-        >
-          <TabsTrigger value="library" className="text-xs sm:text-sm">
-            <span className="hidden sm:inline">Listening Library</span>
-            <span className="sm:hidden">Library</span>
-          </TabsTrigger>
-          <TabsTrigger value="inprogress" className="text-xs sm:text-sm">
-            <span className="hidden sm:inline">In Progress</span>
-            <span className="sm:hidden">Progress</span>
-          </TabsTrigger>
-          <TabsTrigger value="completed" className="text-xs sm:text-sm">
-            Completed
-          </TabsTrigger>
-          <TabsTrigger
-            value="progress"
-            data-tour="progress-tab"
-            className="text-xs sm:text-sm"
+        {/* Navigation Tabs */}
+        <Tabs defaultValue={defaultTab} className="mb-6">
+          <TabsList
+            data-tour="listening-tabs"
+            className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4 bg-white shadow-sm"
           >
-            <span className="hidden sm:inline">My Progress</span>
-            <span className="sm:hidden">Stats</span>
-          </TabsTrigger>
-        </TabsList>
+            <TabsTrigger
+              value="library"
+              className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              <Volume2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Listening Library</span>
+              <span className="sm:hidden">Library</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="inprogress"
+              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              <span className="hidden sm:inline">In Progress</span>
+              <span className="sm:hidden">Progress</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="completed"
+              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              Completed
+            </TabsTrigger>
+            <TabsTrigger
+              value="progress"
+              data-tour="progress-tab"
+              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              <span className="hidden sm:inline">My Progress</span>
+              <span className="sm:hidden">Stats</span>
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="library" className="space-y-4">
-          <Suspense fallback={<LibraryBrowserSkeleton />}>
-            <LibraryBrowser />
-          </Suspense>
-        </TabsContent>
+          {/* Tab Contents */}
+          <TabsContent value="library" className="mt-6">
+            <Suspense fallback={<LibraryBrowserSkeleton />}>
+              <LibraryBrowser />
+            </Suspense>
+          </TabsContent>
 
-        <TabsContent value="inprogress" className="space-y-4">
-          <Suspense fallback={<SessionSkeleton count={6} />}>
-            <SessionList filter="inprogress" />
-          </Suspense>
-        </TabsContent>
+          <TabsContent value="inprogress" className="mt-6">
+            <Suspense fallback={<SessionSkeleton count={6} />}>
+              <SessionList filter="inprogress" />
+            </Suspense>
+          </TabsContent>
 
-        <TabsContent value="completed" className="space-y-4">
-          <Suspense fallback={<SessionSkeleton count={6} />}>
-            <SessionList filter="completed" />
-          </Suspense>
-        </TabsContent>
+          <TabsContent value="completed" className="mt-6">
+            <Suspense fallback={<SessionSkeleton count={6} />}>
+              <SessionList filter="completed" />
+            </Suspense>
+          </TabsContent>
 
-        <TabsContent value="progress" className="space-y-4">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">My Listening Progress</CardTitle>
-            </CardHeader>
-            <CardContent>
+          <TabsContent value="progress" className="mt-6">
+            <div className="bg-white rounded-2xl p-8 shadow-lg">
+              <h3 className="text-2xl font-bold text-gray-800 mb-6">
+                Your Progress Overview
+              </h3>
               <Suspense
                 fallback={
                   <div className="h-[200px]">
@@ -195,13 +207,13 @@ export default async function ListeningDashboardPage({
               >
                 <ListeningStats />
               </Suspense>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          </TabsContent>
+        </Tabs>
 
-      {/* Listening Tour */}
-      <ListeningTourManager />
+        {/* Listening Tour */}
+        <ListeningTourManager />
+      </div>
     </div>
   );
 }

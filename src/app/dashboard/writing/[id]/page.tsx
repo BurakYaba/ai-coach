@@ -2,6 +2,7 @@
 
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 
 import {
   AlertDialog,
@@ -28,6 +29,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { ArrowLeft } from "lucide-react";
 
 interface WritingSession {
   _id: string;
@@ -318,26 +320,18 @@ export default function WritingSessionPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
-        <div className="flex justify-between items-center">
-          <Skeleton className="h-8 w-1/3" />
-          <Skeleton className="h-10 w-24" />
-        </div>
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-6 w-2/3" />
-            <Skeleton className="h-4 w-1/2 mt-2" />
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full mt-2" />
-            <Skeleton className="h-4 w-2/3 mt-2" />
-          </CardContent>
-        </Card>
-        <Skeleton className="h-64 w-full" />
-        <div className="flex justify-between">
-          <Skeleton className="h-10 w-24" />
-          <Skeleton className="h-10 w-24" />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="animate-pulse space-y-8">
+            <div className="flex items-center gap-4">
+              <div className="h-10 w-10 bg-gray-200 rounded"></div>
+              <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="h-96 bg-gray-200 rounded-xl"></div>
+              <div className="h-96 bg-gray-200 rounded-xl"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -374,141 +368,168 @@ export default function WritingSessionPage() {
   );
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight capitalize">
-            {session.prompt.type}: {session.prompt.topic}
-          </h1>
-          <p className="text-muted-foreground">
-            {isEditable ? "Draft in progress" : "Submitted for analysis"}
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <div className="text-sm font-medium">Time</div>
-            <div className="text-2xl tabular-nums">
-              {formatTime(elapsedTime)}
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => router.push("/dashboard/writing")}
+              className="border-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                Writing Session
+              </h1>
+              <p className="text-gray-600">
+                {session.prompt.type}: {session.prompt.topic}
+              </p>
             </div>
           </div>
-          {isEditable && (
+          <div className="flex items-center gap-4">
+            <div className="text-right">
+              <div className="text-sm text-gray-600">Time Elapsed</div>
+              <div className="text-lg font-semibold text-gray-800">
+                {formatTime(elapsedTime)}
+              </div>
+            </div>
             <Button
               variant={isActive ? "destructive" : "default"}
               onClick={toggleTimer}
+              disabled={session.status !== "draft"}
+              className="shadow-lg hover:shadow-xl transition-all duration-200"
             >
-              {isActive ? "Pause" : "Resume"}
+              {isActive ? "Pause" : "Start"} Timer
             </Button>
-          )}
+          </div>
         </div>
-      </div>
 
-      {/* Grid layout for prompt and writing area */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Writing Prompt Card */}
-        <Card className="h-full">
-          <CardHeader>
-            <CardTitle>Writing Prompt</CardTitle>
-            <CardDescription>
-              Target length: {session.prompt.targetLength} words
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="mb-4">{session.prompt.text}</p>
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Requirements:</h4>
-              <ul className="list-disc pl-5 space-y-1">
-                {session.prompt.requirements.map((req, index) => (
-                  <li key={index}>{req}</li>
-                ))}
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Writing Area Card */}
-        <div className="flex flex-col space-y-4">
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <div className="text-sm">
-                Word Count: <span className="font-medium">{wordCount}</span> /{" "}
-                {session.prompt.targetLength}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Writing Prompt Card */}
+          <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300 h-full">
+            <CardHeader>
+              <CardTitle className="text-xl text-gray-800">
+                Writing Prompt
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Target length: {session.prompt.targetLength} words
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="mb-6 text-gray-700 leading-relaxed">
+                {session.prompt.text}
+              </p>
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-gray-800">
+                  Requirements:
+                </h4>
+                <ul className="list-disc pl-5 space-y-2">
+                  {session.prompt.requirements.map((req, index) => (
+                    <li key={index} className="text-sm text-gray-600">
+                      {req}
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <Badge
-                variant={progressPercentage >= 100 ? "default" : "outline"}
-              >
-                {progressPercentage}%
-              </Badge>
-            </div>
-            <Progress value={progressPercentage} className="h-2" />
-          </div>
+            </CardContent>
+          </Card>
 
-          <Textarea
-            value={content}
-            onChange={e => setContent(e.target.value)}
-            placeholder="Start writing here..."
-            className="min-h-[300px] font-mono text-base flex-grow"
-            disabled={!isEditable}
-          />
-
-          <div className="flex justify-between mt-auto">
-            <Button
-              variant="outline"
-              onClick={saveContent}
-              disabled={saving || !isEditable}
-            >
-              {saving ? "Saving..." : "Save Draft"}
-            </Button>
-
-            {isEditable ? (
-              <AlertDialog
-                open={showSubmitDialog}
-                onOpenChange={setShowSubmitDialog}
-              >
-                <AlertDialogTrigger asChild>
-                  <Button disabled={submitting || wordCount === 0}>
-                    Submit for Analysis
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Submit your writing?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {wordCount < session.prompt.targetLength ? (
-                        <>
-                          Your current word count ({wordCount}) is below the
-                          target length ({session.prompt.targetLength}). Are you
-                          sure you want to submit?
-                        </>
-                      ) : (
-                        <>
-                          Your writing will be submitted for analysis. You
-                          won&apos;t be able to edit it after submission. Are
-                          you sure you want to continue?
-                        </>
-                      )}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={submitWriting}
-                      disabled={submitting}
-                    >
-                      {submitting ? "Submitting..." : "Submit"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            ) : (
+          {/* Writing Area Card */}
+          <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+            <CardHeader>
+              <CardTitle className="text-xl text-gray-800">
+                Your Writing
+              </CardTitle>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <div className="text-sm text-gray-600">
+                    Word Count:{" "}
+                    <span className="font-medium text-gray-800">
+                      {wordCount}
+                    </span>{" "}
+                    / {session.prompt.targetLength}
+                  </div>
+                  <Badge
+                    variant={progressPercentage >= 100 ? "default" : "outline"}
+                    className={
+                      progressPercentage >= 100
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-700"
+                    }
+                  >
+                    {progressPercentage}%
+                  </Badge>
+                </div>
+                <Progress value={progressPercentage} className="h-2" />
+              </div>
+            </CardHeader>
+            <CardContent className="flex-grow flex flex-col">
+              <Textarea
+                value={content}
+                onChange={e => setContent(e.target.value)}
+                placeholder="Start writing here..."
+                className="min-h-[300px] font-mono text-base flex-grow border-2 focus:border-blue-300 transition-colors"
+                disabled={!isEditable}
+              />
+            </CardContent>
+            <CardFooter className="flex justify-between">
               <Button
-                onClick={() =>
-                  router.push(`/dashboard/writing/${sessionId}/feedback`)
-                }
+                variant="outline"
+                onClick={saveContent}
+                disabled={saving || !isEditable}
+                className="border-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
               >
-                View Feedback
+                {saving ? "Saving..." : "Save Draft"}
               </Button>
-            )}
-          </div>
+              {isEditable ? (
+                <AlertDialog
+                  open={showSubmitDialog}
+                  onOpenChange={setShowSubmitDialog}
+                >
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      disabled={wordCount === 0 || submitting}
+                      className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                    >
+                      {submitting ? "Submitting..." : "Submit for Analysis"}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>
+                        Submit Writing for Analysis?
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Once you submit your writing, you won't be able to edit
+                        it anymore. Your writing will be analyzed and you'll
+                        receive detailed feedback. Are you sure you want to
+                        continue?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Continue Writing</AlertDialogCancel>
+                      <AlertDialogAction onClick={submitWriting}>
+                        Yes, Submit for Analysis
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              ) : (
+                <Button
+                  asChild
+                  className="bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  <Link href={`/dashboard/writing/${sessionId}/feedback`}>
+                    View Feedback
+                  </Link>
+                </Button>
+              )}
+            </CardFooter>
+          </Card>
         </div>
       </div>
     </div>

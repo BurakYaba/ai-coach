@@ -396,7 +396,7 @@ export const NewReadingSession = memo(function NewReadingSession() {
   }, []);
 
   return (
-    <Card className="p-6">
+    <div className="p-8">
       {error && (
         <Alert variant="destructive" className="mb-6">
           <AlertCircle className="h-4 w-4" />
@@ -404,18 +404,23 @@ export const NewReadingSession = memo(function NewReadingSession() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-8">
         {/* Form fields in a single row */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="topic">Topic or Theme</Label>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="space-y-3">
+            <Label
+              htmlFor="topic"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Topic or Theme
+            </Label>
             <Select
               value={params.topic}
               onValueChange={(value: string) =>
                 setParams({ ...params, topic: value })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select a topic" />
               </SelectTrigger>
               <SelectContent>
@@ -428,15 +433,20 @@ export const NewReadingSession = memo(function NewReadingSession() {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="level">Difficulty Level</Label>
+          <div className="space-y-3">
+            <Label
+              htmlFor="level"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Difficulty Level
+            </Label>
             <Select
               value={params.level}
               onValueChange={(value: string) =>
                 setParams({ ...params, level: value })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select level" />
               </SelectTrigger>
               <SelectContent>
@@ -449,15 +459,20 @@ export const NewReadingSession = memo(function NewReadingSession() {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="length">Text Length</Label>
+          <div className="space-y-3">
+            <Label
+              htmlFor="length"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Text Length
+            </Label>
             <Select
               value={params.length}
               onValueChange={(value: string) =>
                 setParams({ ...params, length: value })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select length" />
               </SelectTrigger>
               <SelectContent>
@@ -470,15 +485,20 @@ export const NewReadingSession = memo(function NewReadingSession() {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="questionCount">Number of Questions</Label>
+          <div className="space-y-3">
+            <Label
+              htmlFor="questionCount"
+              className="text-sm font-semibold text-gray-700"
+            >
+              Number of Questions
+            </Label>
             <Select
               value={params.questionCount.toString()}
               onValueChange={(value: string) =>
                 setParams({ ...params, questionCount: parseInt(value) })
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select number of questions" />
               </SelectTrigger>
               <SelectContent>
@@ -492,11 +512,16 @@ export const NewReadingSession = memo(function NewReadingSession() {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label>Question Types</Label>
-          <div className="grid grid-cols-2 gap-2 mt-2">
+        <div className="space-y-4">
+          <Label className="text-sm font-semibold text-gray-700">
+            Question Types
+          </Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {questionTypes.map(type => (
-              <div key={type.value} className="flex items-center space-x-2">
+              <div
+                key={type.value}
+                className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+              >
                 <Checkbox
                   id={type.value}
                   checked={params.questionTypes.includes(type.value)}
@@ -518,7 +543,7 @@ export const NewReadingSession = memo(function NewReadingSession() {
                 />
                 <label
                   htmlFor={type.value}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   {type.label}
                 </label>
@@ -527,8 +552,11 @@ export const NewReadingSession = memo(function NewReadingSession() {
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="interests">
+        <div className="space-y-3">
+          <Label
+            htmlFor="interests"
+            className="text-sm font-semibold text-gray-700"
+          >
             Additional Interests or Requirements
           </Label>
           <Textarea
@@ -538,15 +566,15 @@ export const NewReadingSession = memo(function NewReadingSession() {
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
               setParams({ ...params, interests: e.target.value })
             }
-            className="h-24"
+            className="h-28 resize-none"
           />
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-4">
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-8 py-3 h-12"
           >
             {isLoading ? (
               <div className="flex items-center space-x-2">
@@ -560,28 +588,32 @@ export const NewReadingSession = memo(function NewReadingSession() {
         </div>
 
         {isLoading && (
-          <div className="mt-4 p-4 bg-muted rounded-md">
-            <h3 className="font-medium mb-2">Generation Progress</h3>
-            <ul className="space-y-2 text-sm">
-              <li className="flex items-center space-x-2">
+          <div className="mt-6 p-6 bg-blue-50 rounded-xl border border-blue-100">
+            <h3 className="font-semibold text-gray-800 mb-4">
+              Generation Progress
+            </h3>
+            <ul className="space-y-3 text-sm">
+              <li className="flex items-center space-x-3">
                 <div
-                  className={`h-2 w-2 rounded-full ${loadingStep.includes("Generating reading") ? "bg-primary animate-pulse" : loadingStep === "" ? "bg-muted-foreground" : "bg-green-500"}`}
+                  className={`h-3 w-3 rounded-full ${loadingStep.includes("Generating reading") ? "bg-blue-500 animate-pulse" : loadingStep === "" ? "bg-gray-300" : "bg-green-500"}`}
                 ></div>
-                <span>Generating reading content and materials</span>
+                <span className="text-gray-700">
+                  Generating reading content and materials
+                </span>
               </li>
-              <li className="flex items-center space-x-2">
+              <li className="flex items-center space-x-3">
                 <div
-                  className={`h-2 w-2 rounded-full ${loadingStep.includes("Creating reading") ? "bg-primary animate-pulse" : loadingStep === "" || !loadingStep.includes("Creating reading") ? "bg-muted-foreground" : "bg-green-500"}`}
+                  className={`h-3 w-3 rounded-full ${loadingStep.includes("Creating reading") ? "bg-blue-500 animate-pulse" : loadingStep === "" || !loadingStep.includes("Creating reading") ? "bg-gray-300" : "bg-green-500"}`}
                 ></div>
-                <span>Saving reading session</span>
+                <span className="text-gray-700">Saving reading session</span>
               </li>
             </ul>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-gray-600 mt-4">
               This process may take up to a minute. Please be patient.
             </p>
           </div>
         )}
       </form>
-    </Card>
+    </div>
   );
 });

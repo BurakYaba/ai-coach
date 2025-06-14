@@ -1,7 +1,9 @@
 "use client";
 
-import { ChevronsUp, Calendar, Book, Target, Award, Flame } from "lucide-react";
+import { useState } from "react";
+import { Calendar, Target, Award, Star, BarChart3 } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardContent,
@@ -103,6 +105,9 @@ export function GamificationProfileStats() {
     useUserAchievements();
   const { data: badges, isLoading: badgesLoading } = useUserBadges();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState<"achievements" | "badges">(
+    "achievements"
+  );
 
   // Calculate the XP thresholds and current progress using the new function
   const calculatedData = profile
@@ -119,15 +124,15 @@ export function GamificationProfileStats() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-10 w-1/3" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array(3)
             .fill(0)
             .map((_, i) => (
-              <Skeleton key={i} className="h-24 w-full" />
+              <Skeleton key={i} className="h-48 w-full" />
             ))}
         </div>
         <Skeleton className="h-8 w-1/4 mt-4" />
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {Array(4)
             .fill(0)
             .map((_, i) => (
@@ -148,172 +153,289 @@ export function GamificationProfileStats() {
     );
   }
 
+  // Calculate activity data
+  const activities = [
+    {
+      name: "Reading",
+      count: profile.stats.moduleActivity.reading,
+      color: "bg-blue-500",
+    },
+    {
+      name: "Writing",
+      count: profile.stats.moduleActivity.writing,
+      color: "bg-green-500",
+    },
+    {
+      name: "Listening",
+      count: profile.stats.moduleActivity.listening,
+      color: "bg-yellow-500",
+    },
+    {
+      name: "Speaking",
+      count: profile.stats.moduleActivity.speaking,
+      color: "bg-purple-500",
+    },
+  ];
+
+  const totalActivities = activities.reduce(
+    (sum, activity) => sum + activity.count,
+    0
+  );
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold tracking-tight">
+    <div className="space-y-8">
+      <h2 className="text-2xl font-bold text-gray-800">
         Your Learning Journey
       </h2>
 
       {/* Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* XP and Level Card */}
-        <Card data-tour="level-xp-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Level & XP</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center mb-2">
-              <div className="flex items-center">
-                <Award className="h-5 w-5 text-yellow-500 mr-2" />
-                <span className="text-2xl font-bold">
-                  Level {displayLevel} ✓
-                </span>
-              </div>
-              <span className="text-sm text-muted-foreground">
-                {profile.stats.totalXP} Total XP
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Level & XP Card */}
+        <div
+          className="bg-white p-4 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
+          data-tour="level-xp-card"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-gray-700">Level & XP</h3>
+            <div className="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+              <Award className="w-5 h-5 text-white" />
+            </div>
+          </div>
+
+          <div className="flex items-end space-x-3 mb-3">
+            <span className="text-3xl font-bold text-gray-800">
+              Level {displayLevel}
+            </span>
+            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center mb-1">
+              <span className="text-white text-xs font-bold">✓</span>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">
+                Progress to Level {displayLevel + 1}
+              </span>
+              <span className="font-medium text-gray-800">
+                {xpSinceCurrentLevel} / {xpNeededForNextLevel} XP
               </span>
             </div>
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span>Progress to Level {displayLevel + 1}</span>
-                <span>
-                  {xpSinceCurrentLevel} / {xpNeededForNextLevel} XP
-                </span>
-              </div>
-              <Progress value={progressPercentage} className="h-2" />
+
+            <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-orange-400 to-orange-600 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${progressPercentage}%` }}
+              />
             </div>
-          </CardContent>
-        </Card>
+
+            <div className="text-right text-sm text-gray-500">
+              {profile.stats.totalXP} Total XP
+            </div>
+          </div>
+        </div>
 
         {/* Streak Card */}
-        <Card data-tour="streak-card">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
+        <div
+          className="bg-white p-4 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
+          data-tour="streak-card"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-gray-700">
               Learning Streak
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
-                <Flame className="h-5 w-5 text-orange-500 mr-2" />
-                <span className="text-2xl font-bold">
-                  {profile.streak.current} days
-                </span>
-              </div>
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 text-muted-foreground mr-1" />
-                <span className="text-sm text-muted-foreground">
-                  Longest: {profile.streak.longest} days
-                </span>
-              </div>
+            </h3>
+            <div className="w-10 h-10 bg-gradient-to-r from-red-400 to-pink-500 rounded-full flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-white" />
             </div>
-            <div className="mt-2 text-xs text-muted-foreground">
-              Keep learning daily to maintain your streak!
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        {/* Activity Stats */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Activity Breakdown
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="grid grid-cols-2 gap-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs">Reading</span>
-                  <span className="text-xs font-medium">
-                    {profile.stats.moduleActivity.reading}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs">Writing</span>
-                  <span className="text-xs font-medium">
-                    {profile.stats.moduleActivity.writing}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs">Listening</span>
-                  <span className="text-xs font-medium">
-                    {profile.stats.moduleActivity.listening}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-xs">Speaking</span>
-                  <span className="text-xs font-medium">
-                    {profile.stats.moduleActivity.speaking}
-                  </span>
-                </div>
-              </div>
-              <div className="text-xs text-muted-foreground mt-2">
-                {profile.stats.activeDays} active days total
-              </div>
+          <div className="flex items-end space-x-2 mb-3">
+            <span className="text-3xl font-bold bg-gradient-to-r from-red-500 to-pink-600 bg-clip-text text-transparent">
+              {profile.streak.current} days
+            </span>
+            <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center mb-1">
+              <span className="text-white text-xs">🔥</span>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600">
+                📅 Longest: {profile.streak.longest} days
+              </span>
+            </div>
+
+            <div className="bg-gradient-to-r from-red-50 to-pink-50 p-2 rounded-lg border border-red-100">
+              <p className="text-sm text-red-700 font-medium">
+                Keep learning daily to maintain your streak!
+              </p>
+            </div>
+
+            <div className="text-sm text-gray-500">
+              {profile.stats.activeDays} active days total
+            </div>
+          </div>
+        </div>
+
+        {/* Activity Breakdown Card */}
+        <div className="bg-white p-4 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-700">
+              Activity Breakdown
+            </h3>
+            <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-white" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            {activities.map(activity => (
+              <div key={activity.name} className="text-center">
+                <div className="text-lg font-bold text-gray-800">
+                  {activity.count}
+                </div>
+                <div className="text-sm text-gray-600">{activity.name}</div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Achievements and Badges */}
-      <Tabs
-        defaultValue="achievements"
-        className="mt-6"
-        data-tour="achievements-section"
-      >
-        <TabsList className="mb-4">
-          <TabsTrigger value="achievements">
+      <div className="space-y-6">
+        <div className="flex items-center space-x-6">
+          <button
+            onClick={() => setActiveTab("achievements")}
+            className={`px-4 py-2 rounded-full font-medium shadow-lg transition-all duration-200 ${
+              activeTab === "achievements"
+                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-xl"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
+          >
             Achievements ({achievements?.length || 0})
-          </TabsTrigger>
-          <TabsTrigger value="badges">
+          </button>
+          <button
+            onClick={() => setActiveTab("badges")}
+            className={`px-4 py-2 rounded-full font-medium transition-colors duration-200 ${
+              activeTab === "badges"
+                ? "bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:shadow-xl"
+                : "text-gray-600 hover:text-gray-800"
+            }`}
+          >
             Badges ({badges?.length || 0})
-          </TabsTrigger>
-        </TabsList>
+          </button>
+        </div>
 
-        <TabsContent value="achievements" className="mt-0">
-          {achievementsLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {Array(4)
-                .fill(0)
-                .map((_, i) => (
-                  <Skeleton key={i} className="h-48 w-full" />
+        {/* Tab Content */}
+        <div data-tour="achievements-section">
+          {activeTab === "achievements" ? (
+            achievementsLoading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {Array(3)
+                  .fill(0)
+                  .map((_, i) => (
+                    <Skeleton key={i} className="h-48 w-full" />
+                  ))}
+              </div>
+            ) : achievements && achievements.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {achievements.map(achievement => (
+                  <div
+                    key={achievement.id}
+                    className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Star className="w-6 h-6 text-white" />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-gray-800 mb-1">
+                          {achievement.name}
+                        </h4>
+                        <p className="text-sm text-gray-600 mb-3">
+                          {achievement.description}
+                        </p>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">
+                            {achievement.unlockedAt
+                              ? new Date(
+                                  achievement.unlockedAt
+                                ).toLocaleDateString()
+                              : "Not unlocked"}
+                          </span>
+                          <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                            Milestone
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-            </div>
-          ) : achievements && achievements.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {achievements.map(achievement => (
-                <AchievementCard
-                  key={achievement.id}
-                  achievement={achievement}
-                  unlocked={true}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Target className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
-              <h3 className="text-lg font-medium mb-1">No Achievements Yet</h3>
-              <p className="text-sm text-muted-foreground">
-                Complete learning activities to earn achievements
-              </p>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="badges" className="mt-0">
-          {badgesLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {Array(4)
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <Target className="h-12 w-12 text-muted-foreground/50 mx-auto mb-3" />
+                <h3 className="text-lg font-medium mb-1">
+                  No Achievements Yet
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Complete learning activities to earn achievements
+                </p>
+              </div>
+            )
+          ) : badgesLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array(3)
                 .fill(0)
                 .map((_, i) => (
                   <Skeleton key={i} className="h-48 w-full" />
                 ))}
             </div>
           ) : badges && badges.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {badges.map(badge => (
-                <BadgeCard key={badge.id} badge={badge} unlocked={true} />
+                <div
+                  key={badge.id}
+                  className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-all duration-300"
+                >
+                  <div className="flex items-start space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Award className="w-6 h-6 text-white" />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-gray-800 mb-1">
+                        {badge.name}
+                      </h4>
+                      <p className="text-sm text-gray-600 mb-3">
+                        {badge.description}
+                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          {badge.unlockedAt
+                            ? new Date(badge.unlockedAt).toLocaleDateString()
+                            : "Not unlocked"}
+                        </span>
+                        <div
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${
+                            badge.tier === "gold"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : badge.tier === "silver"
+                                ? "bg-gray-100 text-gray-700"
+                                : badge.tier === "bronze"
+                                  ? "bg-orange-100 text-orange-700"
+                                  : "bg-purple-100 text-purple-700"
+                          }`}
+                        >
+                          {badge.tier?.charAt(0).toUpperCase() +
+                            badge.tier?.slice(1)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               ))}
             </div>
           ) : (
@@ -326,8 +448,8 @@ export function GamificationProfileStats() {
               </p>
             </div>
           )}
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
     </div>
   );
 }

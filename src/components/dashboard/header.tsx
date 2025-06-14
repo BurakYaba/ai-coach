@@ -1,8 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, GraduationCap } from "lucide-react";
+import { Menu, Star, Calendar, CreditCard, CalendarClock } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { differenceInDays } from "date-fns";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 import { DashboardNav } from "./nav";
 import { UserNav } from "./user-nav";
@@ -33,71 +44,292 @@ export default function DashboardHeader({
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-muted/20 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-2 sm:px-4 lg:px-8 flex h-16 items-center justify-between">
-        <div className="flex items-center">
-          <div className="flex items-center space-x-2 mr-4 sm:mr-6">
-            <GraduationCap className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl">Fluenta</span>
-          </div>
-          <div className="hidden md:flex">
-            <DashboardNav />
-          </div>
-        </div>
-        <div className="flex items-center space-x-1 sm:space-x-4">
-          {subscription && (
-            <div className="hidden min-[400px]:block">
-              <SubscriptionBadge
-                subscription={subscription}
-                isIndividualUser={isIndividualUser}
+    <header className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white shadow-lg">
+      <div className="w-full px-3 sm:px-4 md:px-6 py-4 sm:py-5 md:py-6">
+        {/* Full width layout with three sections */}
+        <div className="flex items-center justify-between w-full">
+          {/* Left side - Logo only */}
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-10 md:h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <Image
+                src="/favicon.svg"
+                alt="Fluenta"
+                width={24}
+                height={24}
+                className="w-6 h-6 sm:w-7 sm:h-7 md:w-6 md:h-6"
               />
             </div>
-          )}
-          <XpProgress />
-
-          {/* Tour button - always visible, positioned between XP and mobile menu */}
-          <DashboardTourTrigger />
-
-          {/* Only show UserNav on medium screens and above */}
-          <div className="hidden md:block">
-            <UserNav user={user} />
+            <h1 className="text-xl sm:text-2xl md:text-2xl font-bold">
+              Fluenta
+            </h1>
           </div>
 
-          {/* Mobile Menu */}
-          <div className="md:hidden">
-            <Sheet open={isOpen} onOpenChange={setIsOpen}>
-              <SheetTrigger asChild>
-                <button className="p-1 sm:p-2 focus:outline-none">
-                  <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
-                </button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-[80%] sm:w-[350px]">
-                <div className="flex flex-col h-full py-6">
-                  <div className="flex items-center justify-between mb-8">
-                    <span className="font-bold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                      Fluenta
-                    </span>
-                  </div>
+          {/* Center - Navigation (hidden on mobile and small tablets) */}
+          <div className="hidden lg:flex flex-1 justify-center">
+            <DashboardNav />
+          </div>
 
-                  {/* User profile in mobile menu */}
-                  <div className="mb-6 pb-6 border-b border-muted/20">
-                    <div className="flex items-center gap-4">
-                      <UserNav user={user} />
-                      <div>
-                        <p className="font-medium">{user.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {user.email}
-                        </p>
+          {/* Right side - User info and controls */}
+          <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4 lg:space-x-6 flex-shrink-0">
+            {/* Subscription Badge */}
+            {subscription && (
+              <div className="hidden sm:block">
+                <SubscriptionBadge
+                  subscription={subscription}
+                  isIndividualUser={isIndividualUser}
+                />
+              </div>
+            )}
+
+            {/* XP Progress */}
+            <div className="hidden xs:block">
+              <XpProgress />
+            </div>
+
+            {/* Tour button - hidden on mobile, shown on desktop */}
+            <div className="hidden lg:block">
+              <DashboardTourTrigger />
+            </div>
+
+            {/* User Navigation - hidden on mobile */}
+            <div className="hidden lg:block">
+              <UserNav user={user} />
+            </div>
+
+            {/* Mobile Menu */}
+            <div className="lg:hidden">
+              <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                <SheetTrigger asChild>
+                  <button className="p-2 sm:p-2 focus:outline-none">
+                    <Menu className="h-7 w-7 sm:h-8 sm:w-8" />
+                  </button>
+                </SheetTrigger>
+                <SheetContent
+                  side="right"
+                  className="w-[250px] sm:w-[350px] p-0"
+                >
+                  <div className="flex flex-col h-full bg-white">
+                    {/* Header */}
+                    <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-4">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                          <Image
+                            src="/favicon.svg"
+                            alt="Fluenta"
+                            width={16}
+                            height={16}
+                            className="w-4 h-4"
+                          />
+                        </div>
+                        <span className="font-bold text-lg text-white">
+                          Fluenta
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* User Profile Section */}
+                    <div className="p-4 border-b border-gray-100">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-lg">
+                          {user.name
+                            ? user.name
+                                .split(" ")
+                                .map(n => n[0])
+                                .join("")
+                                .toUpperCase()
+                            : "?"}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-800 text-base truncate">
+                            {user.name}
+                          </h4>
+                          <p className="text-sm text-gray-600 truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* XP Progress Section - Simplified for mobile */}
+                    <div className="p-4 border-b border-gray-100">
+                      <XpProgress showLabel={true} />
+                    </div>
+
+                    {/* Subscription Section - Simplified for mobile */}
+                    {subscription && (
+                      <div className="p-4 border-b border-gray-100">
+                        <HoverCard>
+                          <HoverCardTrigger asChild>
+                            <div className="flex items-center justify-between cursor-pointer w-full">
+                              <div className="flex items-center space-x-3">
+                                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                  <Calendar className="w-3 h-3 text-white" />
+                                </div>
+                                <span className="text-sm font-medium text-gray-700">
+                                  Subscription
+                                </span>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm font-medium text-gray-800 capitalize">
+                                  {subscription.type}
+                                </span>
+                                <span
+                                  className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                                    subscription.status === "active"
+                                      ? "bg-green-100 text-green-700"
+                                      : subscription.status === "expired"
+                                        ? "bg-red-100 text-red-700"
+                                        : "bg-yellow-100 text-yellow-700"
+                                  }`}
+                                >
+                                  {subscription.status}
+                                </span>
+                              </div>
+                            </div>
+                          </HoverCardTrigger>
+                          <HoverCardContent
+                            className="w-80 p-0 border-0 shadow-xl"
+                            align="end"
+                          >
+                            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                              <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-700">
+                                  Subscription Status
+                                </h3>
+                                <span
+                                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                    subscription.status === "active"
+                                      ? "bg-green-100 text-green-700"
+                                      : subscription.status === "expired"
+                                        ? "bg-red-100 text-red-700"
+                                        : "bg-yellow-100 text-yellow-700"
+                                  }`}
+                                >
+                                  {subscription.status === "active"
+                                    ? "Active"
+                                    : subscription.status === "expired"
+                                      ? "Expired"
+                                      : "Pending"}
+                                </span>
+                              </div>
+
+                              <div className="space-y-4">
+                                <div>
+                                  <div className="flex items-center justify-between text-sm mb-1">
+                                    <span className="text-gray-600">Type:</span>
+                                    <span className="font-medium text-gray-800 capitalize">
+                                      {subscription.type}
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {subscription.status === "active" &&
+                                  subscription.endDate && (
+                                    <div>
+                                      <div className="flex items-center justify-between text-sm mb-2">
+                                        <span className="text-gray-600">
+                                          Subscription Progress
+                                        </span>
+                                        <span className="font-medium text-gray-800">
+                                          {Math.max(
+                                            0,
+                                            differenceInDays(
+                                              new Date(subscription.endDate),
+                                              new Date()
+                                            )
+                                          )}{" "}
+                                          days left
+                                        </span>
+                                      </div>
+                                      <Progress
+                                        value={
+                                          subscription.startDate &&
+                                          subscription.endDate
+                                            ? 100 -
+                                              (Math.max(
+                                                0,
+                                                differenceInDays(
+                                                  new Date(
+                                                    subscription.endDate
+                                                  ),
+                                                  new Date()
+                                                )
+                                              ) /
+                                                Math.max(
+                                                  1,
+                                                  differenceInDays(
+                                                    new Date(
+                                                      subscription.endDate
+                                                    ),
+                                                    new Date(
+                                                      subscription.startDate
+                                                    )
+                                                  )
+                                                )) *
+                                                100
+                                            : 0
+                                        }
+                                        className="h-2"
+                                      />
+                                    </div>
+                                  )}
+
+                                {subscription.type === "free" && (
+                                  <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                                    <p className="text-sm text-blue-700">
+                                      You're currently on the free plan. Upgrade
+                                      to unlock premium features!
+                                    </p>
+                                  </div>
+                                )}
+
+                                {isIndividualUser && (
+                                  <div className="space-y-2">
+                                    <Link href="/pricing">
+                                      <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">
+                                        <CreditCard className="w-4 h-4 mr-2" />
+                                        {subscription.status !== "active" ||
+                                        subscription.type === "free"
+                                          ? "Upgrade Plan"
+                                          : "Manage Subscription"}
+                                      </Button>
+                                    </Link>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </HoverCardContent>
+                        </HoverCard>
+                      </div>
+                    )}
+
+                    {/* Navigation Links */}
+                    <div className="flex-1 p-4">
+                      <h5 className="text-sm font-medium text-gray-700 mb-3">
+                        Navigation
+                      </h5>
+                      <DashboardNavMobile
+                        onItemClick={() => setIsOpen(false)}
+                      />
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className="p-4 border-t border-gray-100 bg-gray-50">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-center">
+                          <DashboardTourTrigger />
+                        </div>
+                        <div className="pt-2 border-t border-gray-200">
+                          <div className="flex items-center justify-center">
+                            <UserNav user={user} />
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
-
-                  <div className="flex flex-col space-y-1">
-                    <DashboardNavMobile onItemClick={() => setIsOpen(false)} />
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
       </div>
@@ -107,29 +339,45 @@ export default function DashboardHeader({
 
 // Mobile navigation component with vertical layout
 function DashboardNavMobile({ onItemClick }: { onItemClick: () => void }) {
+  const pathname = usePathname();
+
   const navItems = [
-    { title: "Dashboard", href: "/dashboard" },
-    { title: "Listening", href: "/dashboard/listening" },
-    { title: "Reading", href: "/dashboard/reading" },
-    { title: "Vocabulary", href: "/dashboard/vocabulary" },
-    { title: "Writing", href: "/dashboard/writing" },
-    { title: "Speaking", href: "/dashboard/speaking" },
-    { title: "Grammar", href: "/dashboard/grammar" },
-    { title: "Games", href: "/dashboard/games" },
+    { title: "Dashboard", href: "/dashboard", icon: "🏠" },
+    { title: "Listening", href: "/dashboard/listening", icon: "🎧" },
+    { title: "Reading", href: "/dashboard/reading", icon: "📖" },
+    { title: "Vocabulary", href: "/dashboard/vocabulary", icon: "📝" },
+    { title: "Writing", href: "/dashboard/writing", icon: "✍️" },
+    { title: "Speaking", href: "/dashboard/speaking", icon: "🗣️" },
+    { title: "Grammar", href: "/dashboard/grammar", icon: "📚" },
+    { title: "Games", href: "/dashboard/games", icon: "🎮" },
   ];
 
   return (
-    <nav className="flex flex-col space-y-2">
-      {navItems.map(item => (
-        <a
-          key={item.href}
-          href={item.href}
-          className="px-3 py-3 text-sm font-medium rounded-md transition-all duration-200 hover:bg-muted/50 hover:text-primary"
-          onClick={onItemClick}
-        >
-          {item.title}
-        </a>
-      ))}
+    <nav className="space-y-1">
+      {navItems.map(item => {
+        const isActive =
+          pathname === item.href ||
+          (item.href !== "/dashboard" && pathname?.startsWith(item.href));
+
+        return (
+          <a
+            key={item.href}
+            href={item.href}
+            className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
+              isActive
+                ? "bg-blue-50 text-blue-700 border border-blue-200 shadow-sm"
+                : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            }`}
+            onClick={onItemClick}
+          >
+            <span className="text-base">{item.icon}</span>
+            <span className="font-medium text-sm">{item.title}</span>
+            {isActive && (
+              <div className="ml-auto w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+            )}
+          </a>
+        );
+      })}
     </nav>
   );
 }

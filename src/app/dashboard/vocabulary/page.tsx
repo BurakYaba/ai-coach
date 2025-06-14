@@ -149,30 +149,41 @@ export default function VocabularyDashboard() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6 space-y-8">
-        <h1 className="text-3xl font-bold">Vocabulary Dashboard</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {Array(4)
-            .fill(0)
-            .map((_, i) => (
-              <Card key={i}>
-                <CardHeader className="pb-2">
-                  <Skeleton className="h-4 w-24" />
-                </CardHeader>
-                <CardContent>
-                  <Skeleton className="h-8 w-12" />
-                </CardContent>
-              </Card>
-            ))}
-        </div>
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {Array(8)
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+            <div className="flex-1">
+              <Skeleton className="h-8 w-64 mb-2" />
+              <Skeleton className="h-4 w-96" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-24" />
+              <Skeleton className="h-9 w-20" />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array(4)
               .fill(0)
               .map((_, i) => (
-                <Skeleton key={i} className="h-40 w-full" />
+                <Card key={i} className="border-2 bg-white shadow-sm">
+                  <CardHeader className="pb-3">
+                    <Skeleton className="h-4 w-24" />
+                  </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-8 w-16" />
+                  </CardContent>
+                </Card>
               ))}
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {Array(8)
+                .fill(0)
+                .map((_, i) => (
+                  <Skeleton key={i} className="h-48 w-full" />
+                ))}
+            </div>
           </div>
         </div>
       </div>
@@ -181,77 +192,88 @@ export default function VocabularyDashboard() {
 
   if (error) {
     return (
-      <div className="container mx-auto py-6">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            Failed to load vocabulary data. Please try again later.
-          </AlertDescription>
-        </Alert>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto">
+          <Alert variant="destructive" className="border-2">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              Failed to load vocabulary data. Please try again later.
+            </AlertDescription>
+          </Alert>
+        </div>
       </div>
     );
   }
 
   if (!vocabularyBank || vocabularyBank.words.length === 0) {
     return (
-      <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6">
-        <VocabularyTourManager />
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <VocabularyTourManager />
 
-        <div
-          className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6"
-          data-tour="vocabulary-header"
-        >
-          <div className="flex-1">
-            <h1 className="text-2xl sm:text-3xl font-bold">
-              Vocabulary Dashboard
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-              Build your vocabulary systematically with spaced repetition,
-              contextual learning, and personalized word lists.
-            </p>
-          </div>
           <div
-            className="flex flex-col sm:flex-row gap-2 flex-shrink-0"
-            data-tour="vocabulary-actions"
+            className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4"
+            data-tour="vocabulary-header"
           >
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push("/dashboard/vocabulary/flashcards")}
-              className="flex items-center gap-1 text-xs sm:text-sm"
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-800 mb-2">
+                Vocabulary Dashboard
+              </h1>
+              <p className="text-gray-600">
+                Build your vocabulary systematically with spaced repetition,
+                contextual learning, and personalized word lists.
+              </p>
+            </div>
+            <div
+              className="flex flex-col sm:flex-row gap-3 flex-shrink-0"
+              data-tour="vocabulary-actions"
             >
-              <FlipHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="hidden min-[480px]:inline">Flashcards</span>
-              <span className="min-[480px]:hidden">Cards</span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              className="flex items-center gap-1 text-xs sm:text-sm"
-            >
-              <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
-              Refresh
-            </Button>
-            <VocabularyTourTrigger />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push("/dashboard/vocabulary/flashcards")}
+                className="flex items-center gap-2 border-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+              >
+                <FlipHorizontal className="h-4 w-4" />
+                <span className="hidden min-[480px]:inline">Flashcards</span>
+                <span className="min-[480px]:hidden">Cards</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                className="flex items-center gap-2 border-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+              >
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
+              <VocabularyTourTrigger />
+            </div>
+          </div>
+
+          <div className="flex h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50">
+            <div className="text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+                <BookOpen className="h-8 w-8 text-blue-600" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                No vocabulary words yet
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-sm">
+                Start adding words from your reading sessions to build your
+                vocabulary.
+              </p>
+              <Button
+                onClick={() => router.push("/dashboard/reading")}
+                className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                Go to Reading Sessions
+              </Button>
+            </div>
           </div>
         </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>No vocabulary words yet</CardTitle>
-            <CardDescription>
-              Start adding words from your reading sessions to build your
-              vocabulary.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push("/dashboard/reading")}>
-              Go to Reading Sessions
-            </Button>
-          </CardContent>
-        </Card>
       </div>
     );
   }
@@ -277,358 +299,428 @@ export default function VocabularyDashboard() {
   }).length;
 
   return (
-    <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6 space-y-6">
-      <VocabularyTourManager />
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 p-4 sm:p-6">
+      <div className="max-w-7xl mx-auto space-y-8">
+        <VocabularyTourManager />
 
-      <div
-        className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6"
-        data-tour="vocabulary-header"
-      >
-        <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold">
-            Vocabulary Dashboard
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            Build your vocabulary systematically with spaced repetition,
-            contextual learning, and personalized word lists.
-          </p>
-        </div>
         <div
-          className="flex flex-col sm:flex-row gap-2 flex-shrink-0"
-          data-tour="vocabulary-actions"
+          className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4"
+          data-tour="vocabulary-header"
         >
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push("/dashboard/vocabulary/flashcards")}
-            className="flex items-center gap-1 text-xs sm:text-sm"
+          <div className="flex-1">
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Vocabulary Dashboard
+            </h1>
+            <p className="text-gray-600">
+              Build your vocabulary systematically with spaced repetition,
+              contextual learning, and personalized word lists.
+            </p>
+          </div>
+          <div
+            className="flex flex-col sm:flex-row gap-3 flex-shrink-0"
+            data-tour="vocabulary-actions"
           >
-            <FlipHorizontal className="h-3 w-3 sm:h-4 sm:w-4" />
-            <span className="hidden min-[480px]:inline">Flashcards</span>
-            <span className="min-[480px]:hidden">Cards</span>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleRefresh}
-            className="flex items-center gap-1 text-xs sm:text-sm"
-          >
-            <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
-            Refresh
-          </Button>
-          <VocabularyTourTrigger />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => router.push("/dashboard/vocabulary/flashcards")}
+              className="flex items-center gap-2 border-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+            >
+              <FlipHorizontal className="h-4 w-4" />
+              <span className="hidden min-[480px]:inline">Flashcards</span>
+              <span className="min-[480px]:hidden">Cards</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRefresh}
+              className="flex items-center gap-2 border-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+            >
+              <RefreshCw className="h-4 w-4" />
+              Refresh
+            </Button>
+            <VocabularyTourTrigger />
+          </div>
         </div>
-      </div>
 
-      <div
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-        data-tour="vocabulary-stats"
-      >
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total Words</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <BookOpen className="mr-2 h-4 w-4 text-blue-500" />
-              <div className="text-2xl font-bold">{stats.totalWords}</div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Mastered Words
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Check className="mr-2 h-4 w-4 text-green-500" />
-              <div className="text-2xl font-bold">
-                {stats.masteredWords} ({masteredPercentage}%)
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Words to Review
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center">
-              <Clock className="mr-2 h-4 w-4 text-amber-500" />
-              <div className="text-2xl font-bold">{wordsNeedingReview}</div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">
-              Average Mastery
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col">
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+          data-tour="vocabulary-stats"
+        >
+          <Card className="border-2 bg-white shadow-sm hover:shadow-lg transition-all duration-300 group">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Total Words
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="flex items-center">
-                <Star className="mr-2 h-4 w-4 text-yellow-500" />
-                <div className="text-2xl font-bold">
-                  {stats.averageMastery}%
+                <div className="p-2 bg-blue-100 rounded-lg mr-3">
+                  <BookOpen className="h-5 w-5 text-blue-600" />
+                </div>
+                <div className="text-2xl font-bold text-gray-800">
+                  {stats.totalWords}
                 </div>
               </div>
-              <div className="w-full mt-2">
-                <Progress value={stats.averageMastery} className="h-2" />
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 bg-white shadow-sm hover:shadow-lg transition-all duration-300 group">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Mastered Words
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <div className="p-2 bg-green-100 rounded-lg mr-3">
+                  <Check className="h-5 w-5 text-green-600" />
+                </div>
+                <div className="text-2xl font-bold text-gray-800">
+                  {stats.masteredWords} ({masteredPercentage}%)
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
-      <div className="space-y-4">
-        <div className="flex justify-between items-center">
-          <Tabs
-            value={activeTab}
-            onValueChange={setActiveTab}
-            className="w-full"
-            data-tour="vocabulary-tabs"
-          >
-            <TabsList>
-              <TabsTrigger value="all">
-                All Words ({vocabularyBank.words.length})
-              </TabsTrigger>
-              <TabsTrigger value="review">
-                Need Review ({wordsNeedingReview})
-              </TabsTrigger>
-              <TabsTrigger value="mastered">
-                Mastered ({stats.masteredWords})
-              </TabsTrigger>
-              <TabsTrigger value="learning">
-                Learning ({stats.learningWords})
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <Card className="border-2 bg-white shadow-sm hover:shadow-lg transition-all duration-300 group">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Words to Review
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center">
+                <div className="p-2 bg-amber-100 rounded-lg mr-3">
+                  <Clock className="h-5 w-5 text-amber-600" />
+                </div>
+                <div className="text-2xl font-bold text-gray-800">
+                  {wordsNeedingReview}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          <Button
-            onClick={handleStartReview}
-            disabled={wordsNeedingReview === 0}
-            data-tour="start-review-btn"
-          >
-            Start Review
-          </Button>
+          <Card className="border-2 bg-white shadow-sm hover:shadow-lg transition-all duration-300 group">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Average Mastery
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col">
+                <div className="flex items-center mb-2">
+                  <div className="p-2 bg-yellow-100 rounded-lg mr-3">
+                    <Star className="h-5 w-5 text-yellow-600" />
+                  </div>
+                  <div className="text-2xl font-bold text-gray-800">
+                    {stats.averageMastery}%
+                  </div>
+                </div>
+                <div className="w-full">
+                  <Progress value={stats.averageMastery} className="h-2" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
-          data-tour="vocabulary-grid"
-        >
-          {currentWords.length > 0 ? (
-            currentWords.map((word, index) => (
-              <Card
-                key={word._id}
-                className="overflow-hidden h-full flex flex-col"
-                data-tour={index === 0 ? "word-card" : undefined}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex justify-between items-start">
-                    <CardTitle className="text-base font-bold">
-                      {word.word}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => handleToggleFavorite(word._id)}
-                        disabled={
-                          toggleFavoriteMutation.isPending &&
-                          toggleFavoriteMutation.variables === word._id
-                        }
-                      >
-                        {toggleFavoriteMutation.isPending &&
-                        toggleFavoriteMutation.variables === word._id ? (
-                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
-                        ) : (
-                          <Heart
-                            className={`h-4 w-4 ${
-                              word.tags?.includes("favorite")
-                                ? "fill-red-500 text-red-500"
-                                : "text-muted-foreground"
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="w-full sm:w-auto"
+              data-tour="vocabulary-tabs"
+            >
+              <TabsList className="grid w-full grid-cols-4 sm:w-auto">
+                <TabsTrigger value="all" className="text-xs sm:text-sm">
+                  All ({vocabularyBank.words.length})
+                </TabsTrigger>
+                <TabsTrigger value="review" className="text-xs sm:text-sm">
+                  Review ({wordsNeedingReview})
+                </TabsTrigger>
+                <TabsTrigger value="mastered" className="text-xs sm:text-sm">
+                  Mastered ({stats.masteredWords})
+                </TabsTrigger>
+                <TabsTrigger value="learning" className="text-xs sm:text-sm">
+                  Learning ({stats.learningWords})
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
+            <Button
+              onClick={handleStartReview}
+              disabled={wordsNeedingReview === 0}
+              data-tour="start-review-btn"
+              className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
+            >
+              Start Review
+            </Button>
+          </div>
+
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+            data-tour="vocabulary-grid"
+          >
+            {currentWords.length > 0 ? (
+              currentWords.map((word, index) => {
+                // Get card styling based on mastery level (similar to reading cards)
+                const getCardStyling = () => {
+                  if (word.mastery >= 90) {
+                    return "border-green-300 bg-green-50";
+                  } else if (word.mastery >= 50) {
+                    return "border-blue-300 bg-blue-50";
+                  } else {
+                    return "border-orange-300 bg-orange-50";
+                  }
+                };
+
+                return (
+                  <Card
+                    key={word._id}
+                    className={`border-2 hover:shadow-lg transition-all duration-300 group h-full flex flex-col ${getCardStyling()}`}
+                    data-tour={index === 0 ? "word-card" : undefined}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex justify-between items-start">
+                        <CardTitle className="text-lg font-bold text-gray-800">
+                          {word.word}
+                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 hover:bg-red-50"
+                            onClick={() => handleToggleFavorite(word._id)}
+                            disabled={
+                              toggleFavoriteMutation.isPending &&
+                              toggleFavoriteMutation.variables === word._id
+                            }
+                          >
+                            {toggleFavoriteMutation.isPending &&
+                            toggleFavoriteMutation.variables === word._id ? (
+                              <span className="h-4 w-4 animate-spin rounded-full border-2 border-red-500 border-t-transparent" />
+                            ) : (
+                              <Heart
+                                className={`h-4 w-4 ${
+                                  word.tags?.includes("favorite")
+                                    ? "fill-red-500 text-red-500"
+                                    : "text-gray-400 hover:text-red-500"
+                                }`}
+                              />
+                            )}
+                            <span className="sr-only">
+                              {word.tags?.includes("favorite")
+                                ? "Remove from favorites"
+                                : "Add to favorites"}
+                            </span>
+                          </Button>
+                          <Badge
+                            variant="secondary"
+                            className={`text-xs ${
+                              word.mastery >= 90
+                                ? "bg-green-100 text-green-700"
+                                : word.mastery >= 50
+                                  ? "bg-blue-100 text-blue-700"
+                                  : "bg-orange-100 text-orange-700"
                             }`}
-                          />
-                        )}
-                        <span className="sr-only">
-                          {word.tags?.includes("favorite")
-                            ? "Remove from favorites"
-                            : "Add to favorites"}
-                        </span>
-                      </Button>
-                      <Badge
-                        variant={
-                          word.mastery >= 90
-                            ? "default"
-                            : word.mastery >= 50
-                              ? "secondary"
-                              : "outline"
+                          >
+                            {word.mastery}%
+                          </Badge>
+                        </div>
+                      </div>
+                      <CardDescription className="text-sm text-gray-600">
+                        {word.partOfSpeech}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pb-4 flex-grow">
+                      <p className="text-sm text-gray-700 mb-3">
+                        {word.definition}
+                      </p>
+                      {word.context && word.context.length > 0 && (
+                        <p className="text-xs text-gray-500 italic mb-3">
+                          &ldquo;{word.context[0]}&rdquo;
+                        </p>
+                      )}
+                      <div className="flex flex-wrap gap-1 mb-3">
+                        {word.tags &&
+                          word.tags
+                            .filter(tag => tag !== "favorite")
+                            .map((tag, i) => (
+                              <Badge
+                                key={i}
+                                variant="outline"
+                                className="text-xs bg-gray-50"
+                              >
+                                {tag}
+                              </Badge>
+                            ))}
+                      </div>
+
+                      {word.relationships && (
+                        <div className="space-y-2 mb-3">
+                          {word.relationships.synonyms &&
+                            word.relationships.synonyms?.length > 0 && (
+                              <div className="flex flex-wrap gap-1 items-center">
+                                <span className="text-xs text-gray-500">
+                                  Synonyms:
+                                </span>
+                                {word.relationships.synonyms
+                                  .slice(0, 2)
+                                  .map((synonym, i) => (
+                                    <Badge
+                                      key={i}
+                                      variant="outline"
+                                      className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                                    >
+                                      {synonym}
+                                    </Badge>
+                                  ))}
+                                {word.relationships.synonyms?.length > 2 && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    +
+                                    {(word.relationships.synonyms?.length ||
+                                      0) - 2}{" "}
+                                    more
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                          {word.relationships.antonyms &&
+                            word.relationships.antonyms?.length > 0 && (
+                              <div className="flex flex-wrap gap-1 items-center">
+                                <span className="text-xs text-gray-500">
+                                  Antonyms:
+                                </span>
+                                {word.relationships.antonyms
+                                  .slice(0, 2)
+                                  .map((antonym, i) => (
+                                    <Badge
+                                      key={i}
+                                      variant="outline"
+                                      className="text-xs bg-red-50 text-red-700 border-red-200"
+                                    >
+                                      {antonym}
+                                    </Badge>
+                                  ))}
+                                {word.relationships.antonyms?.length > 2 && (
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
+                                    +
+                                    {(word.relationships.antonyms?.length ||
+                                      0) - 2}{" "}
+                                    more
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
+                        </div>
+                      )}
+
+                      <div className="flex justify-end">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs h-8 px-3 hover:bg-blue-50 hover:text-blue-700 transition-colors"
+                          onClick={() =>
+                            router.push(
+                              `/dashboard/vocabulary/word/${word._id}`
+                            )
+                          }
+                        >
+                          <BookOpenCheck className="h-3 w-3 mr-1" />
+                          Details
+                          {word.relationships?.synonyms &&
+                            word.relationships.synonyms.length > 0 && (
+                              <Badge
+                                variant="secondary"
+                                className="ml-2 text-xs"
+                              >
+                                {word.relationships.synonyms.length} relations
+                              </Badge>
+                            )}
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            ) : (
+              <div className="col-span-full flex h-[300px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50">
+                <div className="text-center">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
+                    <BookOpen className="h-6 w-6 text-gray-500" />
+                  </div>
+                  <p className="text-gray-600 mb-2">
+                    No words found for the selected filter.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setActiveTab("all")}
+                    className="border-2 hover:bg-blue-50 hover:border-blue-300"
+                  >
+                    View All Words
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-8">
+              <Pagination data-tour="vocabulary-pagination">
+                <PaginationContent>
+                  {currentPage > 1 && (
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() =>
+                          setCurrentPage(prev => Math.max(prev - 1, 1))
                         }
-                        className="text-xs"
-                      >
-                        {word.mastery}%
-                      </Badge>
-                    </div>
-                  </div>
-                  <CardDescription className="text-xs">
-                    {word.partOfSpeech}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="pb-3 flex-grow">
-                  <p className="text-sm mb-2">{word.definition}</p>
-                  {word.context && word.context.length > 0 && (
-                    <p className="text-xs text-muted-foreground italic">
-                      &ldquo;{word.context[0]}&rdquo;
-                    </p>
-                  )}
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {word.tags &&
-                      word.tags
-                        .filter(tag => tag !== "favorite")
-                        .map((tag, i) => (
-                          <Badge key={i} variant="outline" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                  </div>
-
-                  {word.relationships && (
-                    <div className="mt-2 space-y-1">
-                      {word.relationships.synonyms &&
-                        word.relationships.synonyms?.length > 0 && (
-                          <div className="flex flex-wrap gap-1 items-center">
-                            <span className="text-xs text-muted-foreground">
-                              Synonyms:
-                            </span>
-                            {word.relationships.synonyms
-                              .slice(0, 2)
-                              .map((synonym, i) => (
-                                <Badge
-                                  key={i}
-                                  variant="outline"
-                                  className="text-xs"
-                                >
-                                  {synonym}
-                                </Badge>
-                              ))}
-                            {word.relationships.synonyms?.length > 2 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +
-                                {(word.relationships.synonyms?.length || 0) - 2}{" "}
-                                more
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                      {word.relationships.antonyms &&
-                        word.relationships.antonyms?.length > 0 && (
-                          <div className="flex flex-wrap gap-1 items-center">
-                            <span className="text-xs text-muted-foreground">
-                              Antonyms:
-                            </span>
-                            {word.relationships.antonyms
-                              .slice(0, 2)
-                              .map((antonym, i) => (
-                                <Badge
-                                  key={i}
-                                  variant="outline"
-                                  className="text-xs"
-                                >
-                                  {antonym}
-                                </Badge>
-                              ))}
-                            {word.relationships.antonyms?.length > 2 && (
-                              <Badge variant="secondary" className="text-xs">
-                                +
-                                {(word.relationships.antonyms?.length || 0) - 2}{" "}
-                                more
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                    </div>
+                        className="cursor-pointer hover:bg-blue-50 hover:text-blue-700"
+                      />
+                    </PaginationItem>
                   )}
 
-                  <div className="mt-2 flex justify-end">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-xs h-7 px-2"
-                      onClick={() =>
-                        router.push(`/dashboard/vocabulary/word/${word._id}`)
-                      }
-                    >
-                      <BookOpenCheck className="h-3 w-3 mr-1" />
-                      Details
-                      {word.relationships?.synonyms &&
-                        word.relationships.synonyms.length > 0 && (
-                          <Badge variant="secondary" className="ml-2 text-xs">
-                            {word.relationships.synonyms.length} relations
-                          </Badge>
-                        )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            <div className="col-span-full text-center py-8">
-              <p className="text-muted-foreground">
-                No words found for the selected filter.
-              </p>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    page => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          isActive={page === currentPage}
+                          onClick={() => setCurrentPage(page)}
+                          className={`cursor-pointer ${
+                            page === currentPage
+                              ? "bg-blue-500 text-white"
+                              : "hover:bg-blue-50 hover:text-blue-700"
+                          }`}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
+                  )}
+
+                  {currentPage < totalPages && (
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() =>
+                          setCurrentPage(prev => Math.min(prev + 1, totalPages))
+                        }
+                        className="cursor-pointer hover:bg-blue-50 hover:text-blue-700"
+                      />
+                    </PaginationItem>
+                  )}
+                </PaginationContent>
+              </Pagination>
             </div>
           )}
         </div>
-
-        {totalPages > 1 && (
-          <Pagination className="mt-4" data-tour="vocabulary-pagination">
-            <PaginationContent>
-              {currentPage > 1 && (
-                <PaginationItem>
-                  <PaginationPrevious
-                    onClick={() =>
-                      setCurrentPage(prev => Math.max(prev - 1, 1))
-                    }
-                    className="cursor-pointer"
-                  />
-                </PaginationItem>
-              )}
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <PaginationItem key={page}>
-                  <PaginationLink
-                    isActive={page === currentPage}
-                    onClick={() => setCurrentPage(page)}
-                    className="cursor-pointer"
-                  >
-                    {page}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-
-              {currentPage < totalPages && (
-                <PaginationItem>
-                  <PaginationNext
-                    onClick={() =>
-                      setCurrentPage(prev => Math.min(prev + 1, totalPages))
-                    }
-                    className="cursor-pointer"
-                  />
-                </PaginationItem>
-              )}
-            </PaginationContent>
-          </Pagination>
-        )}
       </div>
     </div>
   );

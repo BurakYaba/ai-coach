@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { PenTool, TrendingUp, FileText, BarChart3 } from "lucide-react";
 
 import {
   Card,
@@ -10,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 
@@ -66,63 +68,40 @@ export function WritingProgress() {
 
   if (!stats || !stats.hasData) {
     return (
-      <Card className="col-span-full">
-        <CardHeader>
-          <CardTitle>No Writing Data Available</CardTitle>
-          <CardDescription>
-            Complete some writing sessions to see your progress
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-12 w-12 text-muted-foreground mb-4"
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            <h3 className="text-lg font-medium mt-2">No data to display yet</h3>
-            <p className="text-sm text-muted-foreground mt-1 max-w-md">
-              Submit your first writing session and get it analyzed to start
-              tracking your progress. Your writing statistics will appear here
-              once you have completed sessions.
-            </p>
+      <div className="flex h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50">
+        <div className="text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+            <BarChart3 className="h-8 w-8 text-blue-600" />
           </div>
-        </CardContent>
-      </Card>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            No Writing Data Available
+          </h3>
+          <p className="text-gray-600 mb-6 max-w-sm">
+            Complete some writing sessions to see your progress. Your writing
+            statistics will appear here once you have completed sessions.
+          </p>
+        </div>
+      </div>
     );
   }
 
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        <Card className="border-2 bg-blue-50 border-blue-300 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium text-gray-800">
               Total Sessions
             </CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100">
+              <PenTool className="h-4 w-4 text-blue-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalSessions}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-gray-800">
+              {stats.totalSessions}
+            </div>
+            <p className="text-sm text-gray-600 mt-1">
               {stats.sessionsLastWeek > 0
                 ? `+${stats.sessionsLastWeek} from last week`
                 : "No new sessions this week"}
@@ -130,25 +109,20 @@ export function WritingProgress() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Score</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M16 18V6m-8 6v6M8 6v4" />
-            </svg>
+        <Card className="border-2 bg-green-50 border-green-300 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium text-gray-800">
+              Average Score
+            </CardTitle>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.averageScore}%</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-2xl font-bold text-gray-800">
+              {stats.averageScore}%
+            </div>
+            <p className="text-sm text-gray-600 mt-1">
               {stats.scoreChange > 0
                 ? `+${stats.scoreChange}% from last month`
                 : stats.scoreChange < 0
@@ -158,28 +132,20 @@ export function WritingProgress() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Words Written</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <rect width="20" height="14" x="2" y="5" rx="2" />
-              <path d="M6 9h12M6 12h12M6 15h12" />
-            </svg>
+        <Card className="border-2 bg-purple-50 border-purple-300 shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+            <CardTitle className="text-sm font-medium text-gray-800">
+              Words Written
+            </CardTitle>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100">
+              <FileText className="h-4 w-4 text-purple-600" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold text-gray-800">
               {stats.totalWords.toLocaleString()}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-gray-600 mt-1">
               {stats.wordsLastMonth > 0
                 ? `+${stats.wordsLastMonth.toLocaleString()} from last month`
                 : "No new words this month"}
@@ -188,78 +154,88 @@ export function WritingProgress() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
         <CardHeader>
-          <CardTitle>Writing Skills Progress</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl text-gray-800">
+            Writing Skills Progress
+          </CardTitle>
+          <CardDescription className="text-gray-600">
             Your progress across different writing skills
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="space-y-2">
+          <div className="space-y-6">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">Grammar</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm font-medium text-gray-800">Grammar</div>
+                <div className="text-sm font-semibold text-gray-700">
                   {stats.skillProgress.grammar}%
                 </div>
               </div>
-              <div className="h-2 w-full rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${stats.skillProgress.grammar}%` }}
-                ></div>
-              </div>
+              <Progress
+                value={stats.skillProgress.grammar}
+                className="h-3"
+                style={{
+                  background: "#e5e7eb",
+                }}
+              />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">Vocabulary</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm font-medium text-gray-800">
+                  Vocabulary
+                </div>
+                <div className="text-sm font-semibold text-gray-700">
                   {stats.skillProgress.vocabulary}%
                 </div>
               </div>
-              <div className="h-2 w-full rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${stats.skillProgress.vocabulary}%` }}
-                ></div>
-              </div>
+              <Progress
+                value={stats.skillProgress.vocabulary}
+                className="h-3"
+                style={{
+                  background: "#e5e7eb",
+                }}
+              />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">Coherence</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm font-medium text-gray-800">
+                  Coherence
+                </div>
+                <div className="text-sm font-semibold text-gray-700">
                   {stats.skillProgress.coherence}%
                 </div>
               </div>
-              <div className="h-2 w-full rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${stats.skillProgress.coherence}%` }}
-                ></div>
-              </div>
+              <Progress
+                value={stats.skillProgress.coherence}
+                className="h-3"
+                style={{
+                  background: "#e5e7eb",
+                }}
+              />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="text-sm font-medium">Style</div>
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm font-medium text-gray-800">Style</div>
+                <div className="text-sm font-semibold text-gray-700">
                   {stats.skillProgress.style}%
                 </div>
               </div>
-              <div className="h-2 w-full rounded-full bg-secondary">
-                <div
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${stats.skillProgress.style}%` }}
-                ></div>
-              </div>
+              <Progress
+                value={stats.skillProgress.style}
+                className="h-3"
+                style={{
+                  background: "#e5e7eb",
+                }}
+              />
             </div>
           </div>
         </CardContent>
         <CardFooter>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-gray-500">
             Based on your last 5 writing sessions
           </p>
         </CardFooter>
@@ -271,22 +247,22 @@ export function WritingProgress() {
 function WritingProgressSkeleton() {
   return (
     <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
         {[1, 2, 3].map(i => (
-          <Card key={i}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card key={i} className="border-2 bg-gray-50 shadow-lg">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
               <Skeleton className="h-5 w-[120px]" />
-              <Skeleton className="h-4 w-4" />
+              <Skeleton className="h-8 w-8 rounded-full" />
             </CardHeader>
             <CardContent>
-              <Skeleton className="h-8 w-[60px] mb-1" />
+              <Skeleton className="h-8 w-[60px] mb-2" />
               <Skeleton className="h-4 w-[140px]" />
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Card>
+      <Card className="border-2 bg-white shadow-lg">
         <CardHeader>
           <Skeleton className="h-6 w-[180px] mb-2" />
           <Skeleton className="h-4 w-[250px]" />
@@ -294,12 +270,12 @@ function WritingProgressSkeleton() {
         <CardContent>
           <div className="space-y-6">
             {[1, 2, 3, 4].map(i => (
-              <div key={i} className="space-y-2">
+              <div key={i} className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Skeleton className="h-4 w-[100px]" />
                   <Skeleton className="h-4 w-[40px]" />
                 </div>
-                <Skeleton className="h-2 w-full" />
+                <Skeleton className="h-3 w-full" />
               </div>
             ))}
           </div>

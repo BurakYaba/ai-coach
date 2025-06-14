@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { PlayCircle, Clock, BookOpen, Bookmark, Search } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -38,9 +39,13 @@ interface LibraryItem {
   category?: string;
   tags?: string[];
   createdAt: string;
+  content?: any;
+  questions?: any[];
+  vocabulary?: any[];
 }
 
 export function LibraryBrowser() {
+  const router = useRouter();
   const [items, setItems] = useState<LibraryItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +54,7 @@ export function LibraryBrowser() {
   const [searchTerm, setSearchTerm] = useState("");
   const [levelFilter, setLevelFilter] = useState<string>("all");
   const [contentTypeFilter, setContentTypeFilter] = useState<string>("all");
+  const [startingSession, setStartingSession] = useState<string | null>(null);
 
   const fetchLibraryItems = async () => {
     setLoading(true);
@@ -88,6 +94,58 @@ export function LibraryBrowser() {
     fetchLibraryItems();
   }, [currentPage, levelFilter, contentTypeFilter, searchTerm]);
 
+  const startSession = async (item: LibraryItem) => {
+    setStartingSession(item._id);
+    try {
+      // First fetch the full library item details to get content, questions, and vocabulary
+      const itemResponse = await fetch(`/api/library/${item._id}`);
+      if (!itemResponse.ok) {
+        throw new Error("Failed to fetch library item details");
+      }
+      const fullItem = await itemResponse.json();
+
+      // Create a new session from the library item
+      const response = await fetch("/api/listening/session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          title: fullItem.title,
+          level: fullItem.level,
+          topic: fullItem.topic,
+          content: fullItem.content,
+          contentType: fullItem.contentType,
+          duration: fullItem.duration,
+          fromLibrary: true,
+          libraryItemId: fullItem._id,
+          questions: fullItem.questions || [],
+          vocabulary: fullItem.vocabulary || [],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create session");
+      }
+
+      const sessionData = await response.json();
+
+      // Redirect directly to the listening exercise
+      router.push(`/dashboard/listening/${sessionData._id}`);
+
+      // Prefetch the dashboard page for better navigation experience
+      router.prefetch("/dashboard/listening?tab=inprogress");
+    } catch (err) {
+      console.error("Error starting session:", err);
+      toast({
+        title: "Error",
+        description: "Failed to start the listening session",
+        variant: "destructive",
+      });
+      setStartingSession(null);
+    }
+  };
+
   // Function to get background color based on level
   const getLevelColor = (level: string) => {
     const colors: Record<string, string> = {
@@ -99,6 +157,19 @@ export function LibraryBrowser() {
       C2: "bg-purple-200",
     };
     return colors[level] || "bg-gray-100";
+  };
+
+  // Function to get card border and background color based on level
+  const getLevelCardColor = (level: string) => {
+    const colors: Record<string, string> = {
+      A1: "border-green-300 bg-green-50",
+      A2: "border-green-300 bg-green-50",
+      B1: "border-blue-300 bg-blue-50",
+      B2: "border-blue-300 bg-blue-50",
+      C1: "border-purple-300 bg-purple-50",
+      C2: "border-purple-300 bg-purple-50",
+    };
+    return colors[level] || "border-gray-300 bg-gray-50";
   };
 
   if (loading && items.length === 0) {
@@ -115,20 +186,24 @@ export function LibraryBrowser() {
 
   return (
     <div className="space-y-6">
+      {/* Search and Filters */}
       <div
-        className="flex flex-wrap gap-4 justify-between"
+        className="flex flex-col sm:flex-row gap-4"
         data-tour="search-filters"
       >
-        <Input
-          placeholder="Search by title or topic..."
-          className="max-w-sm"
-          value={searchTerm}
-          onChange={e => {
-            setSearchTerm(e.target.value);
-            setCurrentPage(1); // Reset to first page when search changes
-          }}
-        />
-        <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Input
+            placeholder="Search by title or topic..."
+            value={searchTerm}
+            onChange={e => {
+              setSearchTerm(e.target.value);
+              setCurrentPage(1); // Reset to first page when search changes
+            }}
+            className="pl-10 bg-white"
+          />
+        </div>
+        <div className="flex gap-3">
           <Select
             value={levelFilter}
             onValueChange={value => {
@@ -136,17 +211,17 @@ export function LibraryBrowser() {
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-[140px] bg-white">
               <SelectValue placeholder="All Levels" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Levels</SelectItem>
-              <SelectItem value="A1">A1 (Beginner)</SelectItem>
-              <SelectItem value="A2">A2 (Elementary)</SelectItem>
-              <SelectItem value="B1">B1 (Intermediate)</SelectItem>
-              <SelectItem value="B2">B2 (Upper Int.)</SelectItem>
-              <SelectItem value="C1">C1 (Advanced)</SelectItem>
-              <SelectItem value="C2">C2 (Proficient)</SelectItem>
+              <SelectItem value="A1">A1</SelectItem>
+              <SelectItem value="A2">A2</SelectItem>
+              <SelectItem value="B1">B1</SelectItem>
+              <SelectItem value="B2">B2</SelectItem>
+              <SelectItem value="C1">C1</SelectItem>
+              <SelectItem value="C2">C2</SelectItem>
             </SelectContent>
           </Select>
 
@@ -157,7 +232,7 @@ export function LibraryBrowser() {
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-[150px]">
+            <SelectTrigger className="w-[140px] bg-white">
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
@@ -181,54 +256,67 @@ export function LibraryBrowser() {
         </div>
       ) : (
         <div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
           data-tour="content-library"
         >
           {items.map((item, index) => (
             <Card
               key={item._id}
-              className="h-full flex flex-col"
+              className={`border-2 hover:shadow-lg transition-all duration-300 group ${getLevelCardColor(item.level)}`}
               data-tour={index === 0 ? "content-card" : undefined}
             >
-              <div className={`h-1.5 ${getLevelColor(item.level)}`} />
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <CardTitle className="text-base mb-1">
-                      {item.title}
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                      {formatDuration(item.duration)} • {item.contentType}
-                    </CardDescription>
-                  </div>
-                  <Badge variant="outline" className="text-xs">
+                <div className="flex justify-between items-start mb-2">
+                  <Badge variant="outline" className="text-xs font-semibold">
                     {item.level}
                   </Badge>
                 </div>
+                <CardTitle className="text-lg font-semibold text-gray-800 leading-tight">
+                  {item.title}
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">{item.topic}</p>
+                <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+                  <span>{formatDuration(item.duration)}</span>
+                  <span>•</span>
+                  <span>{item.contentType}</span>
+                </div>
               </CardHeader>
-              <CardContent className="py-0 flex-grow">
-                <p className="text-sm text-muted-foreground line-clamp-2">
-                  {item.topic}
-                </p>
 
-                {item.tags && item.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {item.tags.slice(0, 2).map((tag, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
+              <CardContent className="pt-0">
+                <div className="space-y-3">
+                  {item.tags && item.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {item.tags.slice(0, 2).map((tag, i) => (
+                        <Badge
+                          key={i}
+                          variant="secondary"
+                          className="text-xs bg-green-100 text-green-700 hover:bg-green-200"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  <Button
+                    onClick={() => startSession(item)}
+                    disabled={startingSession === item._id}
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white group-hover:bg-blue-600 transition-colors"
+                  >
+                    {startingSession === item._id ? (
+                      <>
+                        <LoadingSpinner size="sm" className="mr-2" />
+                        Starting...
+                      </>
+                    ) : (
+                      <>
+                        <PlayCircle className="w-4 h-4 mr-2" />
+                        Start Session
+                      </>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
-              <CardFooter className="pt-2">
-                <Button asChild className="w-full text-xs" size="sm">
-                  <Link href={`/dashboard/listening/library/${item._id}`}>
-                    <PlayCircle className="mr-2 h-3.5 w-3.5" />
-                    Start Session
-                  </Link>
-                </Button>
-              </CardFooter>
             </Card>
           ))}
         </div>

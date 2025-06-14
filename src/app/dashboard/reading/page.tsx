@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, Suspense } from "react";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, BookOpen, Clock } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -23,44 +23,22 @@ export default function ReadingPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isOpen, markFirstVisit, completeTour, closeTour, manualStart } =
-    useTour("reading");
 
-  // Handle authentication
-  useEffect(() => {
-    if (status === "loading") return;
-    if (!session?.user) {
-      router.push("/login");
-      return;
-    }
+  // Tour functionality
+  const { isOpen, closeTour, completeTour } = useTour("reading");
 
-    // Mark first visit when component mounts
-    markFirstVisit();
-  }, [session, status, markFirstVisit]);
-
-  if (status === "loading") {
-    return (
-      <div className="container mx-auto py-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-2/3 mb-6"></div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!session?.user) {
-    return null;
-  }
+  // Handle manual tour start
+  const manualStart = () => {
+    // Tour logic handled by useTour hook
+  };
 
   // Handle success and error messages from URL parameters
   let errorMessage: string | null = null;
   let successMessage: string | null = null;
 
   // Set error message based on URL parameter
-  const error = searchParams?.get("error");
-  if (error) {
-    switch (error) {
+  if (searchParams?.get("error")) {
+    switch (searchParams.get("error")) {
       case "invalid-id":
         errorMessage = "Invalid session ID. Please try again.";
         break;
@@ -80,86 +58,167 @@ export default function ReadingPage() {
     successMessage = "Reading session deleted successfully.";
   }
 
-  return (
-    <div className="container mx-auto py-4 px-4 sm:py-6 sm:px-6">
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
-        <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Reading Practice
-          </h1>
-          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            Improve your reading comprehension with AI-generated content
-            tailored to your level.
-          </p>
-        </div>
-        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 flex-shrink-0">
-          <TakeTourButton
-            onStartTour={manualStart}
-            className="text-xs sm:text-sm order-2 sm:order-1"
-          />
-          <Link href="/dashboard/reading/new" className="order-1 sm:order-2">
-            <Button
-              size="sm"
-              className="w-full sm:w-auto text-xs sm:text-sm"
-              data-tour="start-new-session"
-            >
-              <span className="hidden sm:inline">Start New Session</span>
-              <span className="sm:hidden">Start Practice</span>
-            </Button>
-          </Link>
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="max-w-7xl mx-auto p-6">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-2/3 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-48 bg-gray-200 rounded-xl"></div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
+    );
+  }
 
-      {errorMessage && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{errorMessage}</AlertDescription>
-        </Alert>
-      )}
+  if (!session?.user) {
+    return null;
+  }
 
-      {successMessage && (
-        <Alert className="mb-6 bg-green-50 text-green-800 border border-green-200">
-          <AlertTitle>Success</AlertTitle>
-          <AlertDescription>{successMessage}</AlertDescription>
-        </Alert>
-      )}
+  // Determine default tab (can be controlled via URL parameter)
+  const defaultTab = searchParams?.get("tab") || "sessions";
 
-      <Tabs
-        defaultValue="sessions"
-        className="space-y-4"
-        data-tour="reading-tabs"
-      >
-        <TabsList>
-          <TabsTrigger value="sessions" data-tour="sessions-tab">
-            My Sessions
-          </TabsTrigger>
-          <TabsTrigger value="progress" data-tour="progress-tab">
-            My Progress
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="sessions" className="space-y-4">
-          <div data-tour="reading-sessions">
-            <ReadingSessionList />
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header */}
+        <div
+          className="flex justify-between items-start mb-8"
+          data-tour="reading-header"
+        >
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+              Reading Practice
+            </h1>
+            <p className="text-gray-600">
+              Improve your reading comprehension with AI-generated content
+              tailored to your level
+            </p>
           </div>
-        </TabsContent>
-
-        <TabsContent value="progress" className="space-y-4">
-          <div data-tour="reading-progress">
-            <ReadingProgressPage />
+          <div className="flex items-center gap-3">
+            <TakeTourButton onStartTour={manualStart} className="text-sm" />
+            <Link href="/dashboard/reading/new">
+              <Button
+                className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                data-tour="start-new-session"
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Start New Session</span>
+                <span className="sm:hidden">Start Practice</span>
+              </Button>
+            </Link>
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
 
-      {/* Module Tour */}
-      <ModuleTour
-        module="reading"
-        steps={tourSteps.reading}
-        isOpen={isOpen}
-        onClose={closeTour}
-        onComplete={completeTour}
-      />
+        {errorMessage && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
+
+        {successMessage && (
+          <Alert className="mb-6 bg-green-50 text-green-800 border border-green-200">
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>{successMessage}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Navigation Tabs */}
+        <Tabs defaultValue={defaultTab} className="mb-6">
+          <TabsList
+            data-tour="reading-tabs"
+            className="grid w-full grid-cols-2 lg:w-auto lg:grid-cols-2 bg-white shadow-sm"
+          >
+            <TabsTrigger
+              value="sessions"
+              data-tour="sessions-tab"
+              className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              <BookOpen className="w-4 h-4" />
+              <span className="hidden sm:inline">My Sessions</span>
+              <span className="sm:hidden">Sessions</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="progress"
+              data-tour="progress-tab"
+              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              <Clock className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">My Progress</span>
+              <span className="sm:hidden">Progress</span>
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Tab Contents */}
+          <TabsContent value="sessions" className="mt-6">
+            <div
+              className="bg-white rounded-2xl p-6 shadow-lg"
+              data-tour="reading-sessions"
+            >
+              <Suspense fallback={<ReadingSessionsSkeleton />}>
+                <ReadingSessionList />
+              </Suspense>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="progress" className="mt-6">
+            <div
+              className="bg-white rounded-2xl p-8 shadow-lg"
+              data-tour="reading-progress"
+            >
+              <h3 className="text-2xl font-bold text-gray-800 mb-6">
+                Your Progress Overview
+              </h3>
+              <Suspense
+                fallback={
+                  <div className="h-[200px]">
+                    <div className="h-full w-full bg-muted/10 animate-pulse rounded-lg"></div>
+                  </div>
+                }
+              >
+                <ReadingProgressPage />
+              </Suspense>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Module Tour */}
+        <ModuleTour
+          module="reading"
+          steps={tourSteps.reading}
+          isOpen={isOpen}
+          onClose={closeTour}
+          onComplete={completeTour}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Skeleton loader for reading sessions
+function ReadingSessionsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {[...Array(8)].map((_, i) => (
+        <div
+          key={i}
+          className="h-48 bg-gray-100 animate-pulse rounded-xl"
+        ></div>
+      ))}
     </div>
   );
 }

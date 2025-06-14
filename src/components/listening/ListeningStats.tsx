@@ -85,39 +85,45 @@ export function ListeningStats() {
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
-        <StatCard
-          icon={<Clock className="h-4 w-4" />}
-          label="Total Listening"
-          value={`${overview.totalListeningTime} min`}
-        />
-        <StatCard
-          icon={<Trophy className="h-4 w-4" />}
-          label="Average Score"
-          value={`${overview.averageScore}%`}
-        />
-        <StatCard
-          icon={<BarChart className="h-4 w-4" />}
-          label="Completed"
-          value={`${overview.completedSessions}/${overview.totalSessions}`}
-        />
+      {/* Main Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="text-center p-6 bg-blue-50 rounded-xl">
+          <div className="text-3xl font-bold text-blue-600">
+            {overview.completedSessions}
+          </div>
+          <div className="text-sm text-gray-600">Exercises Completed</div>
+        </div>
+        <div className="text-center p-6 bg-green-50 rounded-xl">
+          <div className="text-3xl font-bold text-green-600">
+            {overview.totalListeningTime}m
+          </div>
+          <div className="text-sm text-gray-600">Total Listening Time</div>
+        </div>
+        <div className="text-center p-6 bg-purple-50 rounded-xl">
+          <div className="text-3xl font-bold text-purple-600">
+            {overview.averageScore}%
+          </div>
+          <div className="text-sm text-gray-600">Average Score</div>
+        </div>
       </div>
 
       {/* Library Sessions Section */}
       {overview.librarySessionsTotal > 0 && (
-        <div className="mt-6">
-          <h3 className="text-sm font-medium mb-2">Library Sessions</h3>
-          <div className="flex items-center justify-between p-3 rounded-lg border">
+        <div className="bg-gray-50 p-4 rounded-xl">
+          <h3 className="text-sm font-medium mb-3">
+            Library Sessions Progress
+          </h3>
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="rounded-md bg-primary/10 p-2 text-primary">
                 <BookOpen className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-xs text-gray-500">Library Sessions</p>
                 <p className="font-semibold">
                   {overview.librarySessionsCompleted}/
                   {overview.librarySessionsTotal} completed
                 </p>
+                <p className="text-xs text-gray-500">Library Sessions</p>
               </div>
             </div>
             <Progress
@@ -132,28 +138,33 @@ export function ListeningStats() {
         </div>
       )}
 
-      <div className="space-y-2">
-        <h3 className="text-sm font-medium">Progress by Level</h3>
-        <div className="space-y-3">
-          {progressByLevel?.map(level => (
-            <div key={level.level} className="space-y-1">
-              <div className="flex justify-between text-xs">
-                <span>Level {level.level}</span>
-                <span>
-                  {level.completed}/{level.total} completed
-                </span>
+      {/* Progress by Level */}
+      {progressByLevel && progressByLevel.length > 0 && (
+        <div className="bg-gray-50 p-4 rounded-xl">
+          <h3 className="text-sm font-medium mb-3">Progress by Level</h3>
+          <div className="space-y-3">
+            {progressByLevel.map(level => (
+              <div key={level.level} className="space-y-1">
+                <div className="flex justify-between text-xs">
+                  <span>Level {level.level}</span>
+                  <span>
+                    {level.completed}/{level.total} completed
+                  </span>
+                </div>
+                <Progress value={level.percentage} className="h-2" />
               </div>
-              <Progress value={level.percentage} className="h-2" />
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Content Type Stats */}
       {progressByContentType &&
         progressByContentType.some(item => item.total > 0) && (
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium">Progress by Content Type</h3>
+          <div className="bg-gray-50 p-4 rounded-xl">
+            <h3 className="text-sm font-medium mb-3">
+              Progress by Content Type
+            </h3>
             <div className="space-y-3">
               {progressByContentType
                 .filter(item => item.total > 0)
@@ -172,33 +183,36 @@ export function ListeningStats() {
           </div>
         )}
 
-      {/* Common Categories */}
-      {commonCategories && commonCategories.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Popular Categories</h3>
-          <div className="flex flex-wrap gap-2">
-            {commonCategories.map((item, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                {item.category} ({item.count})
-              </Badge>
-            ))}
+      {/* Common Categories and Topics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Common Categories */}
+        {commonCategories && commonCategories.length > 0 && (
+          <div className="bg-gray-50 p-4 rounded-xl">
+            <h3 className="text-sm font-medium mb-3">Popular Categories</h3>
+            <div className="flex flex-wrap gap-2">
+              {commonCategories.map((item, index) => (
+                <Badge key={index} variant="secondary" className="text-xs">
+                  {item.category} ({item.count})
+                </Badge>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Common Topics */}
-      {commonTopics && commonTopics.length > 0 && (
-        <div className="space-y-2">
-          <h3 className="text-sm font-medium">Popular Topics</h3>
-          <div className="flex flex-wrap gap-2">
-            {commonTopics.map((item, index) => (
-              <Badge key={index} variant="outline" className="text-xs">
-                {item.topic} ({item.count})
-              </Badge>
-            ))}
+        {/* Common Topics */}
+        {commonTopics && commonTopics.length > 0 && (
+          <div className="bg-gray-50 p-4 rounded-xl">
+            <h3 className="text-sm font-medium mb-3">Popular Topics</h3>
+            <div className="flex flex-wrap gap-2">
+              {commonTopics.map((item, index) => (
+                <Badge key={index} variant="outline" className="text-xs">
+                  {item.topic} ({item.count})
+                </Badge>
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
