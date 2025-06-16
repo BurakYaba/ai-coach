@@ -7,6 +7,7 @@ import { AnalyticsProvider } from "@/components/providers/AnalyticsProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import GoogleAnalytics from "@/components/analytics/GoogleAnalytics";
+import TurkishGoogleAnalytics from "@/components/analytics/TurkishGoogleAnalytics";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
@@ -32,6 +33,10 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://www.fluenta-ai.com"),
   alternates: {
     canonical: "/",
+    languages: {
+      en: "/",
+      tr: "/tr",
+    },
   },
   openGraph: {
     type: "website",
@@ -87,6 +92,23 @@ export default function RootLayout({
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#3b82f6" />
+
+        {/* Hreflang for internationalization */}
+        <link
+          rel="alternate"
+          hrefLang="en"
+          href="https://www.fluenta-ai.com/"
+        />
+        <link
+          rel="alternate"
+          hrefLang="tr"
+          href="https://www.fluenta-ai.com/tr/"
+        />
+        <link
+          rel="alternate"
+          hrefLang="x-default"
+          href="https://www.fluenta-ai.com/"
+        />
 
         {/* Explicit Open Graph tags for better social media compatibility */}
         <meta
@@ -145,6 +167,7 @@ export default function RootLayout({
         )}
       >
         <GoogleAnalytics />
+        <TurkishGoogleAnalytics />
         <NextAuthSessionProvider>
           <QueryProvider>
             <AnalyticsProvider>{children}</AnalyticsProvider>

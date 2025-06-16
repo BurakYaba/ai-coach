@@ -3,7 +3,6 @@ import Image from "next/image";
 import { Metadata } from "next";
 
 import { Button } from "@/components/ui/button";
-import { GradientButton } from "@/components/ui/gradient-button";
 import {
   GradientCard,
   GradientCardSimple,

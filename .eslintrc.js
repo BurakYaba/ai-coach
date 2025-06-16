@@ -71,4 +71,19 @@ module.exports = {
       },
     },
   },
+  overrides: [
+    {
+      files: ["scripts/**/*.js"],
+      rules: {
+        "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-unused-vars": "off",
+      },
+      env: {
+        node: true,
+      },
+      parserOptions: {
+        sourceType: "script", // Allow CommonJS
+      },
+    },
+  ],
 };
