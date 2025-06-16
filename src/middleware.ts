@@ -68,7 +68,7 @@ export async function middleware(request: NextRequest) {
   // Skip middleware for static files (images, fonts, etc.) - Enhanced check
   if (
     pathname.match(
-      /\.(jpg|jpeg|png|gif|svg|ico|woff|woff2|ttf|eot|css|js|json|xml|txt)$/
+      /\.(jpg|jpeg|png|gif|svg|ico|webp|woff|woff2|ttf|eot|css|js|json|xml|txt)$/
     ) ||
     pathname.startsWith("/og-images/") ||
     pathname.startsWith("/images/") ||
