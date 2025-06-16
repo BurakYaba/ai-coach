@@ -1,0 +1,14 @@
+total 92
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 ./
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 ../
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 basari-hikayeleri/
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 blog/
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 cerez-politikasi/
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 fiyatlandirma/
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 gizlilik-politikasi/
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 hakkimizda/
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 iletisim/
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 kullanim-kosullari/
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 moduller/
+-rw-r--r-- 1 user 197121 77027 Jun 16 22:14 page.tsx
+drwxr-xr-x 1 user 197121     0 Jun 16 22:14 sss/

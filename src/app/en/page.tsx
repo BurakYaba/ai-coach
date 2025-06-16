@@ -18,7 +18,6 @@ import {
   useMobileDetection,
   useReducedMotion,
 } from "@/hooks/use-mobile-detection";
-import { MainNav } from "@/components/navigation/main-nav";
 
 // Custom components based on Brainwave design
 const Tagline = ({ children }: { children: React.ReactNode }) => (
@@ -70,9 +69,23 @@ const BackgroundGradient = () => {
   );
 };
 
-export default function TurkishLandingPage() {
+export default function LandingPage() {
   const { isMobile, isLoaded } = useMobileDetection();
   const prefersReducedMotion = useReducedMotion();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu when screen size changes to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        // lg breakpoint
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Mobile-optimized hero background style
   const getHeroBackgroundStyle = () => {
@@ -97,8 +110,210 @@ export default function TurkishLandingPage() {
       {/* Global background effect */}
       <BackgroundGradient />
 
-      {/* Navigation */}
-      <MainNav currentPath="/" language="tr" />
+      {/* Navigation - Mobile Responsive */}
+      <header className="fixed top-0 z-50 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white shadow-lg backdrop-blur supports-[backdrop-filter]:bg-opacity-95">
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center">
+                <Image
+                  src="/favicon.svg"
+                  alt="Fluenta"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5 sm:w-6 sm:h-6"
+                />
+              </div>
+              <span className="font-bold text-lg sm:text-xl text-white">
+                Fluenta
+              </span>
+            </div>
+
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
+              <Link
+                href="/en/modules"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
+              >
+                Modules
+              </Link>
+              <Link
+                href="#features"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
+              >
+                Features
+              </Link>
+              <Link
+                href="/en/blog"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
+              >
+                Blog
+              </Link>
+              <Link
+                href="/en/testimonials"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
+              >
+                Success Stories
+              </Link>
+              <Link
+                href="/en/faq"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
+              >
+                FAQ
+              </Link>
+              <Link
+                href="#pricing"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
+              >
+                Pricing
+              </Link>
+            </nav>
+
+            {/* Right side - Language + Auth + Mobile Menu */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Language Switcher */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Link
+                  href="/en"
+                  className="px-2 py-1 rounded text-xs sm:text-sm font-medium text-white bg-white/20 transition-all duration-200"
+                >
+                  EN
+                </Link>
+                <span className="text-white/50 text-xs sm:text-sm">|</span>
+                <Link
+                  href="/"
+                  className="px-2 py-1 rounded text-xs sm:text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200"
+                >
+                  TR
+                </Link>
+              </div>
+
+              {/* Desktop Auth Buttons */}
+              <div className="hidden sm:flex items-center gap-2 lg:gap-3">
+                <Link href="/login">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200 hover:scale-105 transform text-sm px-3 py-2"
+                  >
+                    Login
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button
+                    size="sm"
+                    className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-3 sm:px-4 py-2 text-sm transition-all duration-200 hover:scale-105 transform shadow-lg"
+                  >
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-2 rounded-md text-white hover:bg-white/10 transition-colors duration-200"
+                aria-label="Toggle mobile menu"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  {isMobileMenuOpen ? (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  ) : (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  )}
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden border-t border-white/20 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                <Link
+                  href="/en/modules"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Modules
+                </Link>
+                <Link
+                  href="#features"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Features
+                </Link>
+                <Link
+                  href="/en/blog"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Blog
+                </Link>
+                <Link
+                  href="/en/testimonials"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Success Stories
+                </Link>
+                <Link
+                  href="/en/faq"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  FAQ
+                </Link>
+                <Link
+                  href="#pricing"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Pricing
+                </Link>
+
+                {/* Mobile Auth Buttons */}
+                <div className="pt-4 border-t border-white/20 space-y-2">
+                  <Link href="/login" className="block">
+                    <Button
+                      variant="ghost"
+                      className="w-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200 justify-start"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Login
+                    </Button>
+                  </Link>
+                  <Link href="/register" className="block">
+                    <Button
+                      className="w-full bg-white text-blue-600 hover:bg-gray-100 font-semibold transition-all duration-200 shadow-lg"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Get Started
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
 
       {/* Hero Section */}
       <section
@@ -118,7 +333,7 @@ export default function TurkishLandingPage() {
                     : "2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)",
                 }}
               >
-                Kapsamlı İngilizce Öğrenme Platformu
+                Complete English Learning Platform
               </span>
             </Tagline>
             <h1
@@ -135,20 +350,9 @@ export default function TurkishLandingPage() {
                     : "2px 2px 4px rgba(0,0,0,0.7)",
                 }}
               >
-                İngilizce'yi
+                Master English with
               </span>
               <span className="text-gradient"> Fluenta</span>
-              <span
-                className="text-gray-100"
-                style={{
-                  textShadow: isMobile
-                    ? "1px 1px 2px rgba(0,0,0,0.7)"
-                    : "2px 2px 4px rgba(0,0,0,0.7)",
-                }}
-              >
-                {" "}
-                ile Öğrenin
-              </span>
             </h1>
             <p
               className="max-w-[42rem] mx-auto leading-normal sm:text-xl sm:leading-8 text-center mb-8 text-gray-100 font-medium drop-shadow-lg"
@@ -158,9 +362,9 @@ export default function TurkishLandingPage() {
                   : "1px 1px 3px rgba(0,0,0,0.8)",
               }}
             >
-              İnteraktif okuma, yazma, dinleme, konuşma, kelime ve gramer
-              modülleri ile İngilizce öğrenin. Tüm dil becerilerinizde
-              kişiselleştirilmiş AI geri bildirim alın.
+              The all-in-one platform for learning English through interactive
+              reading, writing, listening, speaking, vocabulary, and grammar
+              modules. Get personalized AI feedback on all your language skills.
             </p>
             <div className="flex gap-4 justify-center flex-col sm:flex-row">
               <Link href="/register">
@@ -173,7 +377,7 @@ export default function TurkishLandingPage() {
                   }`}
                   style={{ animationDuration: "3s" }}
                 >
-                  Hemen Öğrenmeye Başla
+                  Start Learning Now
                 </Button>
               </Link>
               <Link href="#modules">
@@ -186,7 +390,7 @@ export default function TurkishLandingPage() {
                       : ""
                   }`}
                 >
-                  Modülleri Keşfet
+                  Explore Modules
                 </Button>
               </Link>
             </div>
@@ -200,13 +404,13 @@ export default function TurkishLandingPage() {
         className="container mx-auto px-5 py-16 md:py-24 space-y-16 relative"
       >
         <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <Tagline>Kapsamlı Öğrenme</Tagline>
+          <Tagline>Comprehensive Learning</Tagline>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Tüm Dil Becerilerini Geliştirme
+            Complete Language Skills Development
           </h2>
           <p className="text-muted-foreground">
-            Platformumuz dil öğreniminin tüm yönleri için interaktif modüller
-            sunar
+            Our platform offers interactive modules for all aspects of language
+            learning
           </p>
         </div>
 
@@ -240,13 +444,12 @@ export default function TurkishLandingPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-white group-hover:text-blue-200 transition-colors duration-300">
-                Okuma Modülü
+                Reading Module
               </h3>
               <p className="text-sm text-gray-100 leading-relaxed">
-                Seviyenize ve ilgi alanlarınıza uygun AI tarafından oluşturulan
-                içeriklerle okuma anlama becerinizi geliştirin. İnteraktif
-                sorular yanıtlayın, kelimeleri bağlam içinde öğrenin ve
-                ilerlemenizi takip edin.
+                Improve your reading comprehension with AI-generated content
+                tailored to your level and interests. Answer interactive
+                questions, learn vocabulary in context, and track your progress.
               </p>
               <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
@@ -262,7 +465,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Kişiselleştirilmiş okuma metinleri
+                  Personalized reading passages
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -277,7 +480,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Anlama soruları
+                  Comprehension questions
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -292,7 +495,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Bağlam içinde kelime öğrenimi
+                  Vocabulary in context
                 </li>
               </ul>
             </div>
@@ -329,12 +532,12 @@ export default function TurkishLandingPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-white group-hover:text-green-200 transition-colors duration-300">
-                Yazma Modülü
+                Writing Module
               </h3>
               <p className="text-sm text-gray-100 leading-relaxed">
-                Rehberli yazma konuları ve AI destekli geri bildirimlerle yazma
-                becerilerinizi geliştirin. Gramer, kelime kullanımı, cümle
-                yapısı ve daha fazlası hakkında detaylı analiz alın.
+                Enhance your writing skills with guided prompts and AI-powered
+                feedback. Get detailed analysis on grammar, vocabulary usage,
+                sentence structure, and more.
               </p>
               <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
@@ -350,7 +553,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Çeşitli yazma konuları
+                  Diverse writing prompts
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -365,7 +568,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Detaylı yazma analizi
+                  Detailed writing analysis
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -380,7 +583,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  İlerleme takibi
+                  Progress tracking
                 </li>
               </ul>
             </div>
@@ -415,12 +618,12 @@ export default function TurkishLandingPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-white group-hover:text-purple-200 transition-colors duration-300">
-                Dinleme Modülü
+                Listening Module
               </h3>
               <p className="text-sm text-gray-100 leading-relaxed">
-                Ses içeriği kütüphanesi ile dinleme becerilerinizi
-                keskinleştirin. Konuşmaları dinleyin, soruları yanıtlayın ve ana
-                dili konuşanları anlamayı pratik edin.
+                Sharpen your listening skills with a library of audio content.
+                Listen to conversations, answer questions, and practice
+                understanding native speakers.
               </p>
               <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
@@ -436,7 +639,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Çeşitli ses içerikleri
+                  Diverse audio content
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -451,7 +654,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  İnteraktif egzersizler
+                  Interactive exercises
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -466,7 +669,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Transkript desteği
+                  Transcript support
                 </li>
               </ul>
             </div>
@@ -503,12 +706,12 @@ export default function TurkishLandingPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-white group-hover:text-red-200 transition-colors duration-300">
-                Konuşma Modülü
+                Speaking Module
               </h3>
               <p className="text-sm text-gray-100 leading-relaxed">
-                AI konuşma partnerleri ile İngilizce konuşma pratiği yapın.
-                Telaffuz, akıcılık, gramer ve kelime kullanımı hakkında gerçek
-                zamanlı geri bildirim alın.
+                Practice speaking English with AI conversation partners. Get
+                feedback on pronunciation, fluency, grammar, and vocabulary in
+                real-time.
               </p>
               <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
@@ -524,7 +727,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Gerçek zamanlı konuşmalar
+                  Real-time conversations
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -539,7 +742,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Detaylı telaffuz geri bildirimi
+                  Detailed pronunciation feedback
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -554,7 +757,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Çeşitli konuşma senaryoları
+                  Various conversation scenarios
                 </li>
               </ul>
             </div>
@@ -595,12 +798,12 @@ export default function TurkishLandingPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-white group-hover:text-yellow-200 transition-colors duration-300">
-                Kelime Modülü
+                Vocabulary Module
               </h3>
               <p className="text-sm text-gray-100 leading-relaxed">
-                Kişiselleştirilmiş kelime bankası, aralıklı tekrar sistemi ve
-                interaktif kelime kartları ile kelime hazinenizi geliştirin ve
-                ustalık seviyenizi takip edin.
+                Build your vocabulary with a personalized word bank, spaced
+                repetition review system, and interactive flashcards to track
+                your mastery level.
               </p>
               <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
@@ -616,7 +819,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Kişiselleştirilmiş kelime bankası
+                  Personalized word bank
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -631,7 +834,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Aralıklı tekrar sistemi
+                  Spaced repetition system
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -646,7 +849,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  İnteraktif kelime kartları
+                  Interactive flashcards
                 </li>
               </ul>
             </div>
@@ -681,12 +884,12 @@ export default function TurkishLandingPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-semibold text-white group-hover:text-indigo-200 transition-colors duration-300">
-                Gramer Modülü
+                Grammar Module
               </h3>
               <p className="text-sm text-gray-100 leading-relaxed">
-                Yapılandırılmış dersler, interaktif egzersizler ve yaygın
-                hatalarınıza ve öğrenme ilerlemenize dayalı kişiselleştirilmiş
-                pratiklerle İngilizce gramerde ustalaşın.
+                Master English grammar with structured lessons, interactive
+                exercises, and personalized practice based on your common
+                mistakes and learning progress.
               </p>
               <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
@@ -702,7 +905,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Yapılandırılmış gramer dersleri
+                  Structured grammar lessons
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -717,7 +920,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  İnteraktif egzersizler
+                  Interactive exercises
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -732,7 +935,7 @@ export default function TurkishLandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Kişiselleştirilmiş pratik
+                  Personalized practice
                 </li>
               </ul>
             </div>
@@ -746,22 +949,23 @@ export default function TurkishLandingPage() {
         className="container mx-auto px-5 py-16 md:py-24 space-y-16 relative"
       >
         <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <Tagline>Güçlü Özellikler</Tagline>
+          <Tagline>Key Features</Tagline>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Neden Fluenta'yı Seçmelisiniz?
+            A Complete Language Learning Experience
           </h2>
           <p className="text-muted-foreground">
-            Dil öğrenme deneyiminizi dönüştüren gelişmiş özellikler
+            Our platform offers powerful tools to enhance your language learning
+            journey
           </p>
         </div>
 
-        {/* Features Grid */}
+        {/* Bento Box Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6 h-auto lg:h-[600px]">
           {/* AI-Powered Learning - Large card */}
           <div className="md:col-span-2 lg:col-span-2 lg:row-span-2 group relative overflow-hidden rounded-2xl border bg-card hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
             <Image
               src="/AI_Learning_1200.webp"
-              alt="AI destekli öğrenme görseli"
+              alt="AI-Powered Learning illustration"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 66vw, 50vw"
@@ -785,12 +989,12 @@ export default function TurkishLandingPage() {
                 </svg>
               </div>
               <h3 className="text-2xl lg:text-3xl font-bold text-white mb-4">
-                AI Destekli Öğrenme
+                AI-Powered Learning
               </h3>
               <p className="text-gray-100 text-lg leading-relaxed">
-                Gelişmiş AI motorumuz içeriği kişiselleştirir, performansınızı
-                analiz eder ve dersleri öğrenme tarzınıza ve ilerlemenize göre
-                uyarlar.
+                Our advanced AI engine personalizes content, analyzes your
+                performance, and adapts lessons to your learning style and
+                progress.
               </p>
             </div>
           </div>
@@ -799,7 +1003,7 @@ export default function TurkishLandingPage() {
           <div className="md:col-span-1 lg:col-span-1 lg:row-span-1 group relative overflow-hidden rounded-2xl border bg-card hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
             <Image
               src="/feedback_1200.webp"
-              alt="Kapsamlı geri bildirim görseli"
+              alt="Comprehensive feedback illustration"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
@@ -821,11 +1025,11 @@ export default function TurkishLandingPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-white mb-3">
-                Kapsamlı Geri Bildirim
+                Comprehensive Feedback
               </h3>
               <p className="text-gray-100 text-sm">
-                Yazma, konuşma ve gramer konularında detaylı, uygulanabilir geri
-                bildirim alın.
+                Get detailed, actionable feedback on your writing, speaking, and
+                grammar.
               </p>
             </div>
           </div>
@@ -834,7 +1038,7 @@ export default function TurkishLandingPage() {
           <div className="md:col-span-1 lg:col-span-1 lg:row-span-1 group relative overflow-hidden rounded-2xl border bg-card hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
             <Image
               src="/interactive_practice_1200.webp"
-              alt="İnteraktif pratik görseli"
+              alt="Interactive practice illustration"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 33vw, 25vw"
@@ -858,11 +1062,11 @@ export default function TurkishLandingPage() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-white mb-3">
-                İnteraktif Pratik
+                Interactive Practice
               </h3>
               <p className="text-gray-100 text-sm">
-                Öğrenmeyi keyifli hale getiren interaktif egzersizler ve dil
-                oyunları ile pratik yapın.
+                Engage with interactive exercises and language games that make
+                learning enjoyable.
               </p>
             </div>
           </div>
@@ -871,7 +1075,7 @@ export default function TurkishLandingPage() {
           <div className="md:col-span-3 lg:col-span-2 lg:row-span-1 group relative overflow-hidden rounded-2xl border bg-card hover:shadow-xl transition-all duration-300 hover:scale-[1.02]">
             <Image
               src="/gamification_1200.webp"
-              alt="Oyunlaştırma ve ödüller görseli"
+              alt="Gamification and rewards illustration"
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, 50vw"
@@ -895,11 +1099,11 @@ export default function TurkishLandingPage() {
                 </svg>
               </div>
               <h3 className="text-2xl font-bold text-white mb-4">
-                Oyunlaştırma ve Ödüller
+                Gamification & Rewards
               </h3>
               <p className="text-gray-100 text-lg max-w-lg">
-                Puan, rozet, seri ve seviye ilerlemesi ile İngilizce öğrenmeyi
-                bağımlılık yapan ve eğlenceli hale getiren motivasyon sistemi.
+                Stay motivated with points, badges, streaks, and level
+                progression that make learning English addictive and fun.
               </p>
             </div>
           </div>
@@ -925,12 +1129,13 @@ export default function TurkishLandingPage() {
       >
         <div className="container mx-auto px-5 relative z-10">
           <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
-            <Tagline>Kullanıcı Yorumları</Tagline>
+            <Tagline>User Testimonials</Tagline>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Kullanıcılarımız Ne Diyor
+              What Our Users Say
             </h2>
             <p className="text-muted-foreground">
-              Dil becerilerini dönüştüren binlerce memnun öğrenciye katılın
+              Join thousands of satisfied learners who have transformed their
+              language skills
             </p>
           </div>
 
@@ -945,19 +1150,19 @@ export default function TurkishLandingPage() {
               </div>
               <div className="space-y-4">
                 <p className="italic text-muted-foreground">
-                  "Okuma, yazma, dinleme ve konuşma modüllerinin kombinasyonu
-                  İngilizce öğrenme yolculuğumu dönüştürdü. Konuşma ve yazma
-                  konularındaki kişiselleştirilmiş geri bildirimler inanılmaz
-                  derecede detaylı ve faydalı."
+                  "The combination of reading, writing, listening and speaking
+                  modules has transformed my English learning journey. The
+                  personalized feedback on my speaking and writing is incredibly
+                  detailed and helpful."
                 </p>
                 <div className="flex items-center gap-3 pt-3 border-t border-foreground border-opacity-5">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent bg-opacity-30 flex items-center justify-center">
                     <span className="text-sm font-semibold">S</span>
                   </div>
                   <div>
-                    <h4 className="font-semibold">Selin K.</h4>
+                    <h4 className="font-semibold">Sarah J.</h4>
                     <p className="text-sm text-muted-foreground">
-                      İş Profesyoneli
+                      Business Professional
                     </p>
                   </div>
                 </div>
@@ -974,19 +1179,19 @@ export default function TurkishLandingPage() {
               </div>
               <div className="space-y-4">
                 <p className="italic text-muted-foreground">
-                  "Kelime ve gramer modülleri mükemmel bir uyum içinde
-                  çalışıyor. Uygulamanın zorlandığım kelimeleri takip etmesi ve
-                  yaygın hatalarıma dayalı özelleştirilmiş gramer dersleri
-                  oluşturması harika. İlerleme takibi beni motive ediyor."
+                  "The vocabulary and grammar modules work together beautifully.
+                  I love how the app tracks words I struggle with and creates
+                  customized grammar lessons based on my common mistakes. The
+                  progress tracking keeps me motivated."
                 </p>
                 <div className="flex items-center gap-3 pt-3 border-t border-foreground border-opacity-5">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent bg-opacity-30 flex items-center justify-center">
                     <span className="text-sm font-semibold">M</span>
                   </div>
                   <div>
-                    <h4 className="font-semibold">Mehmet T.</h4>
+                    <h4 className="font-semibold">Michael T.</h4>
                     <p className="text-sm text-muted-foreground">
-                      Üniversite Öğrencisi
+                      University Student
                     </p>
                   </div>
                 </div>
@@ -1003,20 +1208,20 @@ export default function TurkishLandingPage() {
               </div>
               <div className="space-y-4">
                 <p className="italic text-muted-foreground">
-                  "Bir dil öğretmeni olarak kapsamlı yaklaşımdan etkilendim.
-                  İnteraktif oyunlar öğrenmeyi eğlenceli hale getiriyor ve
-                  kelime bölümündeki aralıklı tekrar sistemi öğrencilerimin
-                  öğrendiklerini hatırlamalarını sağlıyor. Konuşma modülünün
-                  geri bildirimi olağanüstü."
+                  "As a language teacher, I'm impressed by the comprehensive
+                  approach. The interactive games make learning fun, and the
+                  spaced repetition system in the vocabulary section ensures my
+                  students retain what they learn. The speaking module's
+                  feedback is remarkable."
                 </p>
                 <div className="flex items-center gap-3 pt-3 border-t border-foreground border-opacity-5">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent bg-opacity-30 flex items-center justify-center">
                     <span className="text-sm font-semibold">E</span>
                   </div>
                   <div>
-                    <h4 className="font-semibold">Elif K.</h4>
+                    <h4 className="font-semibold">Elena K.</h4>
                     <p className="text-sm text-muted-foreground">
-                      Dil Öğretmeni
+                      Language Teacher
                     </p>
                   </div>
                 </div>
@@ -1027,14 +1232,8 @@ export default function TurkishLandingPage() {
 
         {/* Decorative background elements */}
         <div className="absolute -z-10 pointer-events-none inset-0 opacity-20">
-          <div
-            className="absolute top-1/4 left-0 w-72 h-72 bg-primary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
-            style={{ animationDuration: "8s" }}
-          />
-          <div
-            className="absolute bottom-1/4 right-0 w-72 h-72 bg-secondary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
-            style={{ animationDuration: "6s", animationDelay: "2s" }}
-          />
+          <div className="absolute top-1/2 right-0 w-96 h-96 bg-accent bg-opacity-20 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-primary bg-opacity-20 rounded-full blur-3xl" />
         </div>
       </section>
 
@@ -1044,26 +1243,32 @@ export default function TurkishLandingPage() {
         className="container mx-auto px-5 py-16 md:py-24 space-y-16 relative"
       >
         <div className="text-center space-y-4 max-w-3xl mx-auto">
-          <Tagline>Basit Fiyatlandırma</Tagline>
+          <Tagline>Simple Pricing</Tagline>
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Herkes İçin Uygun Fiyat
+            Invest in Your Language Skills
           </h2>
           <p className="text-muted-foreground">
-            Tüm özellikler dahil. Gizli ücret yok. İstediğiniz zaman iptal edin.
+            Choose a plan that works best for your learning journey
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8">
           {/* Monthly Plan */}
-          <GradientCard>
-            <div className="p-8 h-full flex flex-col">
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold mb-2">Aylık Plan</h3>
-                <div className="mb-4">
+          <GradientCard className="group relative hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1">
+            <div className="absolute top-0 right-0 bg-primary text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-medium">
+              MOST FLEXIBLE
+            </div>
+            <div className="p-8 flex flex-col h-full">
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold mb-4">Monthly Plan</h3>
+                <div className="flex items-baseline mb-4">
                   <span className="text-4xl font-bold">$14.99</span>
-                  <span className="text-muted-foreground">/ay</span>
+                  <span className="text-muted-foreground ml-2">/month</span>
                 </div>
-                <p className="text-muted-foreground">Tüm özellikler dahil</p>
+                <p className="text-muted-foreground">
+                  Perfect for short-term learning goals or trying out all
+                  features
+                </p>
               </div>
 
               <ul className="space-y-3 mb-8 flex-grow">
@@ -1080,7 +1285,7 @@ export default function TurkishLandingPage() {
                   >
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
-                  Tüm 6 öğrenme modülü
+                  Full access to all 6 learning modules
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -1095,7 +1300,7 @@ export default function TurkishLandingPage() {
                   >
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
-                  AI destekli kişiselleştirilmiş öğrenme
+                  Unlimited AI-powered feedback
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -1110,7 +1315,7 @@ export default function TurkishLandingPage() {
                   >
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
-                  Sınırsız pratik ve egzersiz
+                  Personalized learning path
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -1125,7 +1330,7 @@ export default function TurkishLandingPage() {
                   >
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
-                  Detaylı ilerleme raporları
+                  Progress tracking & analytics
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -1140,51 +1345,39 @@ export default function TurkishLandingPage() {
                   >
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
-                  Mobil ve web erişimi
-                </li>
-                <li className="flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-5 w-5 mr-3 text-primary"
-                  >
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                  E-posta desteği
+                  Cancel anytime
                 </li>
               </ul>
 
               <Link href="/register?plan=monthly">
-                <Button className="w-full" size="lg">
-                  Aylık Planı Başlat
+                <Button
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform"
+                  size="lg"
+                >
+                  Start Monthly Plan
                 </Button>
               </Link>
             </div>
           </GradientCard>
 
           {/* Annual Plan */}
-          <GradientCard>
-            <div className="p-8 h-full flex flex-col relative">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-gradient-to-r from-green-500 to-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-                  En Popüler
-                </span>
-              </div>
-
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-bold mb-2">Yıllık Plan</h3>
-                <div className="mb-4">
+          <GradientCard className="group relative hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 border-2 border-primary">
+            <div className="absolute top-0 right-0 bg-primary text-white text-xs px-3 py-1 rounded-bl-lg rounded-tr-lg font-medium">
+              BEST VALUE
+            </div>
+            <div className="p-8 flex flex-col h-full">
+              <div className="mb-6">
+                <h3 className="text-2xl font-bold mb-4">Annual Plan</h3>
+                <div className="flex items-baseline mb-4">
                   <span className="text-4xl font-bold">$149.99</span>
-                  <span className="text-muted-foreground">/yıl</span>
-                  <p className="text-sm text-green-600 font-medium mt-1">
-                    %17 Tasarruf
-                  </p>
+                  <span className="text-muted-foreground ml-2">/year</span>
                 </div>
+                <p className="text-muted-foreground">
+                  Save over $29 compared to monthly billing
+                  <span className="ml-2 inline-block bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                    Save 17%
+                  </span>
+                </p>
               </div>
 
               <ul className="space-y-3 mb-8 flex-grow">
@@ -1201,7 +1394,7 @@ export default function TurkishLandingPage() {
                   >
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
-                  Aylık plandaki her şey
+                  Everything in monthly plan
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -1216,7 +1409,7 @@ export default function TurkishLandingPage() {
                   >
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
-                  Öncelikli müşteri desteği
+                  Priority customer support
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -1231,7 +1424,7 @@ export default function TurkishLandingPage() {
                   >
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
-                  Özel gelişmiş içerik
+                  Exclusive advanced content
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -1246,7 +1439,7 @@ export default function TurkishLandingPage() {
                   >
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
-                  Yeni özelliklere erken erişim
+                  Early access to new features
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -1261,7 +1454,7 @@ export default function TurkishLandingPage() {
                   >
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
-                  Fiyat kilidi garantisi
+                  Price lock guarantee
                 </li>
               </ul>
 
@@ -1270,7 +1463,7 @@ export default function TurkishLandingPage() {
                   className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform"
                   size="lg"
                 >
-                  Yıllık Planı Başlat
+                  Start Annual Plan
                 </Button>
               </Link>
             </div>
@@ -1279,11 +1472,11 @@ export default function TurkishLandingPage() {
 
         <div className="text-center max-w-2xl mx-auto pt-8">
           <div className="p-4 bg-muted rounded-lg border border-border">
-            <h4 className="font-medium mb-2">%100 Memnuniyet Garantisi</h4>
+            <h4 className="font-medium mb-2">100% Satisfaction Guarantee</h4>
             <p className="text-sm text-muted-foreground">
-              Platformumuzdan memnun değil misiniz? Satın alma işleminizden
-              sonraki 14 gün içinde bize bildirin, tam para iadesi yapalım.
-              Hiçbir soru sorulmaz.
+              Not satisfied with our platform? Let us know within 14 days of
+              your purchase, and we'll provide a full refund. No questions
+              asked.
             </p>
           </div>
         </div>
@@ -1304,16 +1497,17 @@ export default function TurkishLandingPage() {
       {/* CTA Section */}
       <section className="border-t border-foreground border-opacity-5 bg-background bg-opacity-30 backdrop-blur-sm relative">
         <div className="container mx-auto px-5 py-16 md:py-24 space-y-8 text-center relative z-10">
-          <Tagline>Yolculuğunuzu Başlatın</Tagline>
+          <Tagline>Start Your Journey</Tagline>
           <h2
             className="text-3xl md:text-4xl font-bold animate-float"
             style={{ animationDuration: "5s" }}
           >
-            Tüm İngilizce Becerilerinde Tek Platformda Ustalaşın
+            Master All English Skills in One Platform
           </h2>
           <p className="text-muted-foreground max-w-[42rem] mx-auto">
-            Kapsamlı AI destekli dil koçumuz ile okuma, yazma, dinleme, konuşma,
-            kelime ve gramer becerilerini geliştiren binlerce öğrenciye katılın.
+            Join thousands of learners improving their reading, writing,
+            listening, speaking, vocabulary, and grammar with our comprehensive
+            AI-powered language coach.
           </p>
           <div className="flex justify-center">
             <Link href="/register">
@@ -1322,7 +1516,7 @@ export default function TurkishLandingPage() {
                 className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-semibold px-8 py-3 text-base shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 transform animate-pulse-glow"
                 style={{ animationDuration: "3s" }}
               >
-                Hemen Öğrenmeye Başla
+                Start Learning Now
               </Button>
             </Link>
           </div>
@@ -1343,66 +1537,66 @@ export default function TurkishLandingPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Fluenta</h3>
             <p className="text-sm text-muted-foreground">
-              Okuma, yazma, dinleme, konuşma, kelime ve gramer ile İngilizce
-              ustası olmak için hepsi bir arada AI destekli platformunuz.
+              Your all-in-one AI-powered platform for mastering English through
+              reading, writing, listening, speaking, vocabulary, and grammar.
             </p>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Şirket</h3>
+            <h3 className="text-lg font-semibold">Company</h3>
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/hakkimizda"
+                  href="/en/about"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Hakkımızda
+                  About Us
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/iletisim"
+                  href="/en/contact"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  İletişim
+                  Contact
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/kariyer"
+                  href="/en/careers"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Kariyer
+                  Careers
                 </Link>
               </li>
             </ul>
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Yasal</h3>
+            <h3 className="text-lg font-semibold">Legal</h3>
             <ul className="space-y-2">
               <li>
                 <Link
-                  href="/gizlilik-politikasi"
+                  href="/en/privacy"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Gizlilik Politikası
+                  Privacy Policy
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/kullanim-kosullari"
+                  href="/en/terms"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Kullanım Koşulları
+                  Terms of Service
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/cerez-politikasi"
+                  href="/en/cookie-policy"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Çerez Politikası
+                  Cookie Policy
                 </Link>
               </li>
             </ul>
@@ -1411,7 +1605,7 @@ export default function TurkishLandingPage() {
 
         <div className="container mx-auto px-5 mt-8 pt-8 border-t border-foreground border-opacity-5 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Fluenta. Tüm hakları saklıdır.
+            © {new Date().getFullYear()} Fluenta. All rights reserved.
           </p>
           <div className="flex gap-4">
             <Link
@@ -1453,7 +1647,7 @@ export default function TurkishLandingPage() {
                 fill="currentColor"
                 viewBox="0 0 16 16"
               >
-                <path d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z" />
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.82-.48-1.44-1.28-1.72-2.28-.12-4.84 1.84-6.72 2.34-6.84.48.08.84.84.84 1.2.36A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
               </svg>
             </Link>
           </div>
@@ -1462,3 +1656,105 @@ export default function TurkishLandingPage() {
     </div>
   );
 }
+
+const features = [
+  {
+    title: "AI-Powered Learning",
+    description:
+      "Our advanced AI engine personalizes content, analyzes your performance, and adapts lessons to your learning style and progress.",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-6 w-6 text-primary group-hover:scale-110 transition-transform duration-300"
+      >
+        <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
+        <path d="M21.17 8H12V2.83c2.44.4 4.77 1.69 6.6 3.67 1.77 1.91 2.57 4 2.57 4z" />
+      </svg>
+    ),
+  },
+  {
+    title: "Comprehensive Feedback",
+    description:
+      "Get detailed, actionable feedback on your writing, speaking, and grammar with suggestions for improvement.",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-6 w-6 text-accent group-hover:scale-110 transition-transform duration-300"
+      >
+        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
+      </svg>
+    ),
+  },
+  {
+    title: "Interactive Practice",
+    description:
+      "Engage with interactive exercises, conversations, and language games that make learning enjoyable.",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-6 w-6 text-secondary group-hover:scale-110 transition-transform duration-300"
+      >
+        <path d="m7 11 2-2-2-2"></path>
+        <path d="M11 13h4"></path>
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+      </svg>
+    ),
+  },
+  {
+    title: "Gamification & Rewards",
+    description:
+      "Stay motivated with points, badges, streaks, and level progression that make learning English addictive and fun.",
+    icon: (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="h-6 w-6 text-primary group-hover:scale-110 transition-transform duration-300"
+      >
+        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+        <path d="m15 9-6 6"></path>
+        <path d="m9 9 6 6"></path>
+      </svg>
+    ),
+  },
+];
+
+const testimonials = [
+  {
+    name: "Sarah J.",
+    title: "Business Professional",
+    text: "The combination of reading, writing, listening and speaking modules has transformed my English learning journey. The personalized feedback on my speaking and writing is incredibly detailed and helpful.",
+  },
+  {
+    name: "Michael T.",
+    title: "University Student",
+    text: "The vocabulary and grammar modules work together beautifully. I love how the app tracks words I struggle with and creates customized grammar lessons based on my common mistakes. The progress tracking keeps me motivated.",
+  },
+  {
+    name: "Elena K.",
+    title: "Language Teacher",
+    text: "As a language teacher, I'm impressed by the comprehensive approach. The interactive games make learning fun, and the spaced repetition system in the vocabulary section ensures my students retain what they learn. The speaking module's feedback is remarkable.",
+  },
+];

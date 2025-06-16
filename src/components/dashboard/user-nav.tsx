@@ -30,9 +30,10 @@ interface UserNavProps {
     name?: string | null;
     email?: string | null;
   };
+  children?: React.ReactNode;
 }
 
-export function UserNav({ user }: UserNavProps) {
+export function UserNav({ user, children }: UserNavProps) {
   const { data: session } = useSession();
   const userRole = session?.user?.role;
 
@@ -44,15 +45,20 @@ export function UserNav({ user }: UserNavProps) {
         .toUpperCase()
     : "?";
 
+  const defaultTrigger = (
+    <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center font-bold text-white hover:shadow-lg transition-all duration-200">
+      {initials}
+    </div>
+  );
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         className="focus:outline-none group transition-transform hover:scale-105"
         data-tour="user-nav"
+        asChild={!!children}
       >
-        <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center font-bold text-white hover:shadow-lg transition-all duration-200">
-          {initials}
-        </div>
+        {children || defaultTrigger}
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-64 p-4 bg-white shadow-xl border border-gray-100 rounded-2xl">
         <div className="mb-4">

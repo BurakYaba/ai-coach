@@ -4,291 +4,260 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GradientCard } from "@/components/ui/gradient-card";
+import { MainNav } from "@/components/navigation/main-nav";
 
 export const metadata: Metadata = {
-  title: "English Learning Blog | AI-Powered Tips & Strategies | Fluenta",
+  title:
+    "İngilizce Öğrenme Blog | AI Destekli İpuçları ve Stratejiler | Fluenta",
   description:
-    "Discover expert tips, AI-powered strategies, and proven methods for learning English. From IELTS preparation to daily speaking practice, unlock your English potential with Fluenta.",
+    "İngilizce öğrenme konusunda uzman ipuçları, AI destekli stratejiler ve kanıtlanmış yöntemleri keşfedin. IELTS hazırlığından günlük konuşma pratiğine kadar İngilizce potansiyelinizi Fluenta ile açığa çıkarın.",
   keywords:
-    "English learning blog, AI English tools, IELTS preparation, English speaking practice, language learning tips, English grammar, vocabulary building, English pronunciation, language learning AI",
+    "İngilizce öğrenme blog, AI İngilizce araçları, IELTS hazırlık, İngilizce konuşma pratiği, dil öğrenme ipuçları, İngilizce gramer, kelime hazinesi geliştirme, İngilizce telaffuz, dil öğrenme AI",
+  alternates: {
+    canonical: "/blog",
+    languages: {
+      en: "/en/blog",
+      tr: "/blog",
+    },
+  },
   openGraph: {
-    title: "English Learning Blog | AI-Powered Tips & Strategies | Fluenta",
+    title:
+      "İngilizce Öğrenme Blog | AI Destekli İpuçları ve Stratejiler | Fluenta",
     description:
-      "Discover expert tips, AI-powered strategies, and proven methods for learning English. From IELTS preparation to daily speaking practice, unlock your English potential with Fluenta.",
+      "İngilizce öğrenme konusunda uzman ipuçları, AI destekli stratejiler ve kanıtlanmış yöntemleri keşfedin. IELTS hazırlığından günlük konuşma pratiğine kadar İngilizce potansiyelinizi Fluenta ile açığa çıkarın.",
     type: "website",
+    locale: "tr_TR",
     images: [
       {
-        url: "https://www.fluenta-ai.com/og-images/og-blog.png",
+        url: "https://www.fluenta-ai.com/og-images/og-blog-tr.png",
         width: 1200,
         height: 630,
-        alt: "Fluenta English Learning Blog",
+        alt: "Fluenta İngilizce Öğrenme Blog",
       },
     ],
   },
 };
 
+// Tagline component matching the modules page
+const Tagline = ({ children }: { children: React.ReactNode }) => (
+  <div className="relative z-1 max-w-[62rem] mx-auto text-center mb-[1rem] md:mb-4 lg:mb-[1.5rem]">
+    <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 border border-blue-200/50 dark:border-blue-700/50">
+      <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+        {children}
+      </span>
+    </div>
+  </div>
+);
+
 const blogPosts = [
-  // New SEO-optimized blog posts (featured)
+  // Featured Turkish SEO-optimized blog posts
   {
-    id: "english-pronunciation-practice-online",
-    title:
-      "English Pronunciation Practice Online: 10 Best Tools & Techniques 2025",
+    id: "ai-ile-ingilizce-ogrenme",
+    title: "2025'te AI ile İngilizce Öğrenme: Geleceğin Eğitim Yöntemi",
     excerpt:
-      "Master English pronunciation with the best online tools and techniques. Discover AI-powered pronunciation coaches, free practice resources, and proven methods to improve your accent.",
-    category: "Pronunciation",
-    readTime: "15 min read",
-    publishDate: "2024-12-20",
+      "Yapay zeka teknolojisinin İngilizce öğrenmeyi nasıl devrimleştirdiğini keşfedin. Kişiselleştirilmiş öğrenme planları, gerçek zamanlı geri bildirim ve daha fazlası.",
+    category: "AI Teknoloji",
+    readTime: "8 dk okuma",
+    publishDate: "2024-12-30",
     featured: true,
-    tags: ["Pronunciation", "Online Tools", "AI Coach", "Practice"],
+    tags: ["AI", "Teknoloji", "İngilizce Öğrenme", "Gelecek"],
   },
   {
-    id: "ai-english-grammar-checker",
-    title: "AI English Grammar Checker: Top 8 Tools Compared [2025 Review]",
+    id: "ingilizce-telaffuz-gelistirme",
+    title: "İngilizce Telaffuzunu Geliştirmenin 10 Etkili Yolu",
     excerpt:
-      "Discover the best AI English grammar checkers in 2025. Compare Grammarly, Fluenta, QuillBot, and more. Find the perfect grammar checking tool for error-free writing.",
-    category: "Grammar",
-    readTime: "12 min read",
-    publishDate: "2024-12-22",
+      "Mükemmel İngilizce telaffuza sahip olmak için gereken teknikleri öğrenin. AI destekli telaffuz antrenörü ile pratik yapmak da dahil.",
+    category: "Telaffuz",
+    readTime: "12 dk okuma",
+    publishDate: "2024-12-29",
     featured: true,
-    tags: ["Grammar", "AI Tools", "Writing", "Comparison"],
+    tags: ["Telaffuz", "Konuşma", "Pratik", "AI"],
   },
   {
-    id: "english-conversation-practice-app",
-    title: "Best English Conversation Practice Apps 2025: Top 10 Reviewed",
+    id: "ingilizce-gramer-rehberi",
+    title: "İngilizce Gramer Rehberi: Temellerden İleri Seviyeye",
     excerpt:
-      "Transform your English speaking skills with these top conversation practice apps. From AI-powered tutors to real human conversations, find the perfect app to boost your confidence.",
-    category: "Speaking",
-    readTime: "14 min read",
-    publishDate: "2024-12-25",
-    featured: true,
-    tags: ["Speaking", "Apps", "Conversation", "Practice"],
-  },
-  {
-    id: "free-english-level-test",
-    title: "Free English Level Test: Assess Your Skills Today [CEFR A1-C2]",
-    excerpt:
-      "Take our free English level test to discover your proficiency level. Comprehensive assessment covering reading, writing, listening, speaking, grammar, and vocabulary. Get instant results.",
-    category: "Assessment",
-    readTime: "8 min read",
+      "İngilizce gramerinin tüm inceliklerini öğrenin. Başlangıç seviyesinden ileri seviyeye kadar kapsamlı rehber ve pratik örnekler.",
+    category: "Gramer",
+    readTime: "15 dk okuma",
     publishDate: "2024-12-28",
     featured: true,
-    tags: ["Assessment", "CEFR", "Level Test", "Free"],
+    tags: ["Gramer", "Temel Bilgiler", "İleri Seviye", "Rehber"],
   },
-  // Existing blog posts
   {
-    id: "5-ai-tools-improve-english-2025",
-    title: "5 AI Tools to Improve Your English in 2025",
+    id: "is-ingilizcesi-rehberi",
+    title: "İş İngilizcesi Rehberi: Kariyerinizi Geliştirin",
     excerpt:
-      "Discover the latest AI-powered tools that are revolutionizing English language learning. From personalized tutors to pronunciation coaches, these tools will accelerate your progress.",
-    category: "AI Tools",
-    readTime: "8 min read",
-    publishDate: "2024-12-15",
+      "Profesyonel hayatta İngilizce kullanmanın püf noktalarını öğrenin. İş görüşmelerinden sunum yapmaya kadar kapsamlı rehber.",
+    category: "İş İngilizcesi",
+    readTime: "10 dk okuma",
+    publishDate: "2024-12-27",
     featured: false,
-    tags: ["AI", "Technology", "Tools", "2025"],
+    tags: ["İş İngilizcesi", "Kariyer", "Profesyonel", "İletişim"],
   },
   {
-    id: "ielts-preparation-ai-guide",
-    title: "How to Prepare for IELTS Using AI: Complete Guide",
+    id: "ielts-hazirlik-rehberi",
+    title: "IELTS Hazırlık Rehberi 2025: Yüksek Puan Almanın Sırları",
     excerpt:
-      "Master IELTS with AI-powered preparation strategies. Learn how artificial intelligence can help you achieve your target band score faster and more efficiently.",
+      "IELTS sınavından yüksek puan almak için gereken tüm stratejileri öğrenin. AI destekli hazırlık araçları ile pratik yapın.",
     category: "IELTS",
-    readTime: "12 min read",
-    publishDate: "2024-12-10",
+    readTime: "18 dk okuma",
+    publishDate: "2024-12-26",
     featured: false,
-    tags: ["IELTS", "AI", "Test Preparation", "Band Score"],
+    tags: ["IELTS", "Sınav Hazırlığı", "Yüksek Puan", "Strateji"],
   },
   {
-    id: "daily-english-speaking-practice-beginners",
-    title: "Daily English Speaking Practice for Beginners: Your 30-Day Plan",
+    id: "gunluk-ingilizce-konusma-pratigi",
+    title: "Günlük İngilizce Konuşma Pratiği: 30 Günde Akıcılığa Ulaşın",
     excerpt:
-      "Transform your English speaking skills with this comprehensive 30-day practice plan. Perfect for beginners who want to build confidence and fluency.",
-    category: "Speaking",
-    readTime: "10 min read",
-    publishDate: "2024-12-05",
+      "Günlük konuşma pratiği ile İngilizce akıcılığınızı geliştirin. 30 günlük pratik planı ve AI konuşma partneri ile egzersizler.",
+    category: "Konuşma",
+    readTime: "9 dk okuma",
+    publishDate: "2024-12-25",
     featured: false,
-    tags: ["Speaking", "Beginners", "Practice", "30-Day Plan"],
+    tags: ["Konuşma", "Günlük Pratik", "Akıcılık", "30 Gün"],
   },
   {
-    id: "ai-english-conversation-practice",
-    title: "AI English Conversation Practice: The Future of Language Learning",
+    id: "kelime-hazinesi-gelistirme-yontemleri",
+    title: "Kelime Hazinesi Geliştirme: En Etkili 7 Yöntem",
     excerpt:
-      "Explore how AI conversation partners are changing the way we practice English. Get personalized feedback and improve your fluency 24/7.",
-    category: "AI Tools",
-    readTime: "7 min read",
-    publishDate: "2024-12-01",
+      "İngilizce kelime hazinezi ni hızla geliştirmenin en etkili yöntemlerini keşfedin. Spaced repetition ve AI destekli teknikler dahil.",
+    category: "Kelime Hazinesi",
+    readTime: "11 dk okuma",
+    publishDate: "2024-12-24",
     featured: false,
-    tags: ["AI", "Conversation", "Practice", "Fluency"],
+    tags: ["Kelime Hazinesi", "Öğrenme Teknikleri", "Hafıza", "AI"],
   },
   {
-    id: "english-grammar-mistakes-avoid",
-    title: "10 Common English Grammar Mistakes and How to Avoid Them",
+    id: "ingilizce-dinleme-becerisi-gelistirme",
+    title: "İngilizce Dinleme Becerisini Geliştirmenin 8 Yolu",
     excerpt:
-      "Learn about the most common grammar mistakes English learners make and get practical tips to avoid them. Improve your writing and speaking accuracy.",
-    category: "Grammar",
-    readTime: "9 min read",
-    publishDate: "2024-11-28",
+      "Farklı aksanları anlama, hızlı konuşmaları takip etme ve dinleme becerinizi geliştirme teknikleri.",
+    category: "Dinleme",
+    readTime: "13 dk okuma",
+    publishDate: "2024-12-23",
     featured: false,
-    tags: ["Grammar", "Mistakes", "Writing", "Accuracy"],
-  },
-  {
-    id: "vocabulary-building-strategies-2025",
-    title: "Advanced Vocabulary Building Strategies for 2025",
-    excerpt:
-      "Discover proven methods to expand your English vocabulary effectively. From spaced repetition to contextual learning, master these advanced techniques.",
-    category: "Vocabulary",
-    readTime: "11 min read",
-    publishDate: "2024-11-25",
-    featured: false,
-    tags: ["Vocabulary", "Strategies", "Advanced", "Memory"],
+    tags: ["Dinleme", "Aksan", "Anlama", "Gelişim"],
   },
 ];
 
 const categories = [
-  "All",
-  "AI Tools",
-  "Pronunciation",
-  "Grammar",
-  "Speaking",
-  "Assessment",
-  "IELTS",
-  "Vocabulary",
+  { name: "Tümü", count: blogPosts.length, active: true },
+  { name: "AI Teknoloji", count: 2, active: false },
+  { name: "Telaffuz", count: 1, active: false },
+  { name: "Gramer", count: 1, active: false },
+  { name: "İş İngilizcesi", count: 1, active: false },
+  { name: "IELTS", count: 1, active: false },
+  { name: "Konuşma", count: 2, active: false },
 ];
 
-export default function BlogPage() {
+export default function TurkishBlogPage() {
   const featuredPosts = blogPosts.filter(post => post.featured);
   const regularPosts = blogPosts.filter(post => !post.featured);
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className="font-bold text-xl hover:text-primary transition-colors"
-            >
-              Fluenta
-            </Link>
-            <nav className="hidden md:flex items-center gap-6">
-              <Link
-                href="/"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Home
-              </Link>
-              <Link href="/blog" className="text-sm font-medium text-primary">
-                Blog
-              </Link>
-              <Link
-                href="/modules/speaking"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Modules
-              </Link>
-              <Link
-                href="/faq"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                FAQ
-              </Link>
-              <Link
-                href="/testimonials"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Success Stories
-              </Link>
-              <Link
-                href="/pricing"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Pricing
-              </Link>
-            </nav>
-            <div className="flex items-center gap-2">
-              <Link href="/login">
-                <Button variant="ghost" size="sm">
-                  Login
-                </Button>
-              </Link>
-              <Link href="/register">
-                <Button size="sm">Get Started</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Navigation */}
+      <MainNav currentPath="/blog" language="tr" />
 
-      <main className="container mx-auto px-4 py-8">
-        {/* Hero Section */}
-        <section className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Master English with
-            <span className="text-gradient"> AI-Powered</span> Learning
+      <main className="container mx-auto px-5 py-16 md:py-24 pt-24 space-y-16">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Link href="/" className="hover:text-primary">
+            Ana Sayfa
+          </Link>
+          <span>›</span>
+          <span>Blog</span>
+        </nav>
+
+        {/* Header */}
+        <section className="text-center space-y-4 max-w-4xl mx-auto">
+          <Tagline>Uzman İpuçları & AI Destekli Stratejiler</Tagline>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            İngilizce Öğrenme Blog
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto mb-8">
-            Discover expert tips, proven strategies, and the latest AI tools to
-            accelerate your English learning journey. From IELTS preparation to
-            daily conversation practice, we've got you covered.
+          <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+            AI destekli stratejiler, uzman ipuçları ve kanıtlanmış yöntemlerle
+            İngilizce öğrenme yolculuğunuzda size rehberlik ediyoruz. IELTS
+            hazırlığından günlük konuşma pratiğine kadar her konuda değerli
+            bilgiler.
           </p>
-          <div className="flex flex-wrap gap-2 justify-center">
-            {categories.map(category => (
+        </section>
+
+        {/* Categories */}
+        <section className="space-y-8">
+          <div className="text-center space-y-4">
+            <h2 className="text-2xl md:text-3xl font-bold">
+              Blog Kategorileri
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-3 justify-center">
+            {categories.map((category, index) => (
               <Badge
-                key={category}
-                variant="secondary"
-                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                key={index}
+                variant={category.active ? "default" : "outline"}
+                className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors px-4 py-2"
               >
-                {category}
+                {category.name} ({category.count})
               </Badge>
             ))}
           </div>
         </section>
 
         {/* Featured Posts */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Featured Articles</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <section className="space-y-12">
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold">
+              Öne Çıkan Yazılar
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              En popüler ve güncel İngilizce öğrenme içeriklerimiz
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredPosts.map(post => (
               <GradientCard
                 key={post.id}
-                className="group hover:shadow-xl transition-all duration-300 hover:scale-105"
+                className="h-full hover:scale-105 hover:-translate-y-2 transition-all duration-300"
               >
                 <CardHeader>
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge variant="outline">{post.category}</Badge>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge variant="secondary">{post.category}</Badge>
                     <span className="text-sm text-muted-foreground">
                       {post.readTime}
                     </span>
                   </div>
-                  <CardTitle className="group-hover:text-primary transition-colors">
-                    <Link href={`/blog/${post.id}`}>{post.title}</Link>
+                  <CardTitle className="line-clamp-2">
+                    <Link
+                      href={`/blog/${post.id}`}
+                      className="hover:text-primary transition-colors"
+                    >
+                      {post.title}
+                    </Link>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">{post.excerpt}</p>
+                <CardContent className="flex-grow flex flex-col">
+                  <p className="text-muted-foreground mb-4 line-clamp-3 flex-grow">
+                    {post.excerpt}
+                  </p>
                   <div className="flex flex-wrap gap-1 mb-4">
-                    {post.tags.map(tag => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
+                    {post.tags.slice(0, 3).map((tag, tagIndex) => (
+                      <Badge
+                        key={tagIndex}
+                        variant="outline"
+                        className="text-xs"
+                      >
                         {tag}
                       </Badge>
                     ))}
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(post.publishDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </span>
-                    <Link href={`/blog/${post.id}`}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="group-hover:text-primary"
-                      >
-                        Read More →
-                      </Button>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground mt-auto">
+                    <span>{post.publishDate}</span>
+                    <Link
+                      href={`/blog/${post.id}`}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Devamını Oku →
                     </Link>
                   </div>
                 </CardContent>
@@ -297,51 +266,59 @@ export default function BlogPage() {
           </div>
         </section>
 
-        {/* Recent Posts */}
-        <section>
-          <h2 className="text-2xl font-bold mb-6">Recent Articles</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Regular Posts */}
+        <section className="space-y-12">
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold">Tüm Yazılar</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              İngilizce öğrenme yolculuğunuzda size yardımcı olacak kapsamlı
+              içerikler
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-8">
             {regularPosts.map(post => (
               <Card
                 key={post.id}
-                className="group hover:shadow-lg transition-all duration-300 hover:scale-105"
+                className="hover:shadow-lg hover:scale-105 transition-all duration-300 h-full flex flex-col"
               >
                 <CardHeader>
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2 mb-2">
                     <Badge variant="outline">{post.category}</Badge>
                     <span className="text-sm text-muted-foreground">
                       {post.readTime}
                     </span>
                   </div>
-                  <CardTitle className="group-hover:text-primary transition-colors">
-                    <Link href={`/blog/${post.id}`}>{post.title}</Link>
+                  <CardTitle className="line-clamp-2">
+                    <Link
+                      href={`/blog/${post.id}`}
+                      className="hover:text-primary transition-colors"
+                    >
+                      {post.title}
+                    </Link>
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground mb-4">{post.excerpt}</p>
+                <CardContent className="flex-grow flex flex-col">
+                  <p className="text-muted-foreground mb-4 line-clamp-2 flex-grow">
+                    {post.excerpt}
+                  </p>
                   <div className="flex flex-wrap gap-1 mb-4">
-                    {post.tags.map(tag => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
+                    {post.tags.slice(0, 4).map((tag, tagIndex) => (
+                      <Badge
+                        key={tagIndex}
+                        variant="outline"
+                        className="text-xs"
+                      >
                         {tag}
                       </Badge>
                     ))}
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">
-                      {new Date(post.publishDate).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </span>
-                    <Link href={`/blog/${post.id}`}>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="group-hover:text-primary"
-                      >
-                        Read More →
-                      </Button>
+                  <div className="flex items-center justify-between text-sm text-muted-foreground mt-auto">
+                    <span>{post.publishDate}</span>
+                    <Link
+                      href={`/blog/${post.id}`}
+                      className="text-primary hover:underline font-medium"
+                    >
+                      Devamını Oku →
                     </Link>
                   </div>
                 </CardContent>
@@ -350,65 +327,114 @@ export default function BlogPage() {
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="text-center mt-16 py-12 rounded-lg bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10">
-          <h2 className="text-3xl font-bold mb-4">
-            Ready to Start Your English Learning Journey?
-          </h2>
-          <p className="text-lg text-muted-foreground mb-6 max-w-2xl mx-auto">
-            Join thousands of learners who are already improving their English
-            with Fluenta's AI-powered platform.
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Link href="/register">
-              <Button size="lg" className="text-lg px-8">
-                Start Learning Free
-              </Button>
-            </Link>
-            <Link href="/">
-              <Button variant="outline" size="lg" className="text-lg px-8">
-                Explore Features
-              </Button>
-            </Link>
+        {/* Newsletter Signup */}
+        <section className="text-center">
+          <GradientCard>
+            <div className="p-8 md:p-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                İngilizce Öğrenme İpuçlarını Kaçırmayın
+              </h2>
+              <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
+                Haftalık İngilizce öğrenme ipuçları, AI destekli stratejiler ve
+                yeni blog yazılarımızdan haberdar olmak için ücretsiz hesap
+                oluşturun.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/register">
+                  <Button
+                    size="lg"
+                    className="text-lg px-8 py-3 w-full sm:w-auto"
+                  >
+                    Ücretsiz Hesap Oluştur
+                  </Button>
+                </Link>
+                <Link href="/moduller">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="text-lg px-8 py-3 w-full sm:w-auto"
+                  >
+                    Öğrenme Modüllerini Keşfet
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </GradientCard>
+        </section>
+
+        {/* Related Links */}
+        <section className="space-y-12">
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold">İlgili Kaynaklar</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              İngilizce öğrenme yolculuğunuzda size yardımcı olacak diğer
+              kaynaklar
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <Card className="text-center hover:shadow-lg hover:scale-105 transition-all duration-300">
+              <CardContent className="pt-6">
+                <div className="text-4xl mb-4">🎯</div>
+                <h3 className="text-xl font-semibold mb-2">Seviye Testi</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  İngilizce seviyenizi belirleyin
+                </p>
+                <Link href="/seviye-testi">
+                  <Button variant="outline" size="sm">
+                    Test Et
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+            <Card className="text-center hover:shadow-lg hover:scale-105 transition-all duration-300">
+              <CardContent className="pt-6">
+                <div className="text-4xl mb-4">📖</div>
+                <h3 className="text-xl font-semibold mb-2">
+                  Öğrenme Modülleri
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  AI destekli öğrenme modülleri
+                </p>
+                <Link href="/moduller">
+                  <Button variant="outline" size="sm">
+                    Keşfet
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+            <Card className="text-center hover:shadow-lg hover:scale-105 transition-all duration-300">
+              <CardContent className="pt-6">
+                <div className="text-4xl mb-4">⭐</div>
+                <h3 className="text-xl font-semibold mb-2">
+                  Başarı Hikayeleri
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Kullanıcı deneyimlerini okuyun
+                </p>
+                <Link href="/basari-hikayeleri">
+                  <Button variant="outline" size="sm">
+                    Oku
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+            <Card className="text-center hover:shadow-lg hover:scale-105 transition-all duration-300">
+              <CardContent className="pt-6">
+                <div className="text-4xl mb-4">❓</div>
+                <h3 className="text-xl font-semibold mb-2">SSS</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Sık sorulan sorular
+                </p>
+                <Link href="/sss">
+                  <Button variant="outline" size="sm">
+                    Görüntüle
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
           </div>
         </section>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t mt-16">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <Link href="/" className="font-bold text-xl">
-                Fluenta
-              </Link>
-              <p className="text-sm text-muted-foreground mt-1">
-                Master English with AI-powered learning
-              </p>
-            </div>
-            <div className="flex gap-6">
-              <Link
-                href="/blog"
-                className="text-sm hover:text-primary transition-colors"
-              >
-                Blog
-              </Link>
-              <Link
-                href="/pricing"
-                className="text-sm hover:text-primary transition-colors"
-              >
-                Pricing
-              </Link>
-              <Link
-                href="/contact"
-                className="text-sm hover:text-primary transition-colors"
-              >
-                Contact
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

@@ -129,202 +129,94 @@ export default function DashboardHeader({
 
                     {/* User Profile Section */}
                     <div className="p-4 border-b border-gray-100">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-lg">
-                          {user.name
-                            ? user.name
-                                .split(" ")
-                                .map(n => n[0])
-                                .join("")
-                                .toUpperCase()
-                            : "?"}
+                      <UserNav user={user}>
+                        <div className="flex items-center space-x-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors w-full">
+                          <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-lg">
+                            {user.name
+                              ? user.name
+                                  .split(" ")
+                                  .map(n => n[0])
+                                  .join("")
+                                  .toUpperCase()
+                              : "?"}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold text-gray-800 text-base truncate">
+                              {user.name}
+                            </h4>
+                            <p className="text-sm text-gray-600 truncate">
+                              {user.email}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-800 text-base truncate">
-                            {user.name}
-                          </h4>
-                          <p className="text-sm text-gray-600 truncate">
-                            {user.email}
-                          </p>
-                        </div>
-                      </div>
+                      </UserNav>
                     </div>
 
-                    {/* XP Progress Section - Simplified for mobile */}
+                    {/* XP Progress Section - Clickable for mobile */}
                     <div className="p-4 border-b border-gray-100">
-                      <XpProgress showLabel={true} />
+                      <Link
+                        href="/dashboard/profile"
+                        onClick={() => setIsOpen(false)}
+                      >
+                        <div className="flex items-center justify-between w-full cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors">
+                          <div className="flex items-center space-x-3">
+                            <div className="w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                              <Star className="w-3 h-3 text-white" />
+                            </div>
+                            <span className="text-sm font-medium text-gray-700">
+                              Level & XP
+                            </span>
+                          </div>
+                          <XpProgress />
+                        </div>
+                      </Link>
                     </div>
 
-                    {/* Subscription Section - Simplified for mobile */}
+                    {/* Subscription Section - Clickable for mobile */}
                     {subscription && (
                       <div className="p-4 border-b border-gray-100">
-                        <HoverCard>
-                          <HoverCardTrigger asChild>
-                            <div className="flex items-center justify-between cursor-pointer w-full">
-                              <div className="flex items-center space-x-3">
-                                <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                                  <Calendar className="w-3 h-3 text-white" />
-                                </div>
-                                <span className="text-sm font-medium text-gray-700">
-                                  Subscription
-                                </span>
+                        <Link
+                          href="/dashboard/subscription"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <div className="flex items-center justify-between w-full cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                <Calendar className="w-3 h-3 text-white" />
                               </div>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-sm font-medium text-gray-800 capitalize">
-                                  {subscription.type}
-                                </span>
-                                <span
-                                  className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
-                                    subscription.status === "active"
-                                      ? "bg-green-100 text-green-700"
-                                      : subscription.status === "expired"
-                                        ? "bg-red-100 text-red-700"
-                                        : "bg-yellow-100 text-yellow-700"
-                                  }`}
-                                >
-                                  {subscription.status}
-                                </span>
-                              </div>
+                              <span className="text-sm font-medium text-gray-700">
+                                Subscription
+                              </span>
                             </div>
-                          </HoverCardTrigger>
-                          <HoverCardContent
-                            className="w-80 p-0 border-0 shadow-xl"
-                            align="end"
-                          >
-                            <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
-                              <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold text-gray-700">
-                                  Subscription Status
-                                </h3>
-                                <span
-                                  className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                    subscription.status === "active"
-                                      ? "bg-green-100 text-green-700"
-                                      : subscription.status === "expired"
-                                        ? "bg-red-100 text-red-700"
-                                        : "bg-yellow-100 text-yellow-700"
-                                  }`}
-                                >
-                                  {subscription.status === "active"
-                                    ? "Active"
+                            <div className="flex items-center space-x-2">
+                              <span className="text-sm font-medium text-gray-800 capitalize">
+                                {subscription.type}
+                              </span>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                                  subscription.status === "active"
+                                    ? "bg-green-100 text-green-700"
                                     : subscription.status === "expired"
-                                      ? "Expired"
-                                      : "Pending"}
-                                </span>
-                              </div>
-
-                              <div className="space-y-4">
-                                <div>
-                                  <div className="flex items-center justify-between text-sm mb-1">
-                                    <span className="text-gray-600">Type:</span>
-                                    <span className="font-medium text-gray-800 capitalize">
-                                      {subscription.type}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {subscription.status === "active" &&
-                                  subscription.endDate && (
-                                    <div>
-                                      <div className="flex items-center justify-between text-sm mb-2">
-                                        <span className="text-gray-600">
-                                          Subscription Progress
-                                        </span>
-                                        <span className="font-medium text-gray-800">
-                                          {Math.max(
-                                            0,
-                                            differenceInDays(
-                                              new Date(subscription.endDate),
-                                              new Date()
-                                            )
-                                          )}{" "}
-                                          days left
-                                        </span>
-                                      </div>
-                                      <Progress
-                                        value={
-                                          subscription.startDate &&
-                                          subscription.endDate
-                                            ? 100 -
-                                              (Math.max(
-                                                0,
-                                                differenceInDays(
-                                                  new Date(
-                                                    subscription.endDate
-                                                  ),
-                                                  new Date()
-                                                )
-                                              ) /
-                                                Math.max(
-                                                  1,
-                                                  differenceInDays(
-                                                    new Date(
-                                                      subscription.endDate
-                                                    ),
-                                                    new Date(
-                                                      subscription.startDate
-                                                    )
-                                                  )
-                                                )) *
-                                                100
-                                            : 0
-                                        }
-                                        className="h-2"
-                                      />
-                                    </div>
-                                  )}
-
-                                {subscription.type === "free" && (
-                                  <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
-                                    <p className="text-sm text-blue-700">
-                                      You're currently on the free plan. Upgrade
-                                      to unlock premium features!
-                                    </p>
-                                  </div>
-                                )}
-
-                                {isIndividualUser && (
-                                  <div className="space-y-2">
-                                    <Link href="/pricing">
-                                      <Button className="w-full bg-blue-500 hover:bg-blue-600 text-white">
-                                        <CreditCard className="w-4 h-4 mr-2" />
-                                        {subscription.status !== "active" ||
-                                        subscription.type === "free"
-                                          ? "Upgrade Plan"
-                                          : "Manage Subscription"}
-                                      </Button>
-                                    </Link>
-                                  </div>
-                                )}
-                              </div>
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-yellow-100 text-yellow-700"
+                                }`}
+                              >
+                                {subscription.status}
+                              </span>
                             </div>
-                          </HoverCardContent>
-                        </HoverCard>
+                          </div>
+                        </Link>
                       </div>
                     )}
 
                     {/* Navigation Links */}
-                    <div className="flex-1 p-4">
+                    <div className="flex-1 p-4 overflow-y-auto">
                       <h5 className="text-sm font-medium text-gray-700 mb-3">
                         Navigation
                       </h5>
                       <DashboardNavMobile
                         onItemClick={() => setIsOpen(false)}
                       />
-                    </div>
-
-                    {/* Footer Actions */}
-                    <div className="p-4 border-t border-gray-100 bg-gray-50">
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-center">
-                          <DashboardTourTrigger />
-                        </div>
-                        <div className="pt-2 border-t border-gray-200">
-                          <div className="flex items-center justify-center">
-                            <UserNav user={user} />
-                          </div>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </SheetContent>
