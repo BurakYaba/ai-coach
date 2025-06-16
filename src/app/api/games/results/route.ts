@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import { recordGameCompletion } from "@/lib/gamification/activity-recorder";
 
 type LevelKey = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
 
@@ -72,6 +73,20 @@ export async function POST(req: NextRequest) {
     }
 
     await user.save();
+
+    // Record activity for gamification
+    try {
+      // Determine game type based on gameId or use a default
+      const gameType = gameId.includes("word-scramble")
+        ? "word-scramble"
+        : "general";
+
+      await recordGameCompletion(session.user.id, gameType, score);
+      console.log("Successfully recorded game completion");
+    } catch (error) {
+      console.error("Error recording game completion:", error);
+      // Don't fail the request if gamification fails
+    }
 
     return NextResponse.json({
       success: true,

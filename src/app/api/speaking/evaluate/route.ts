@@ -45,14 +45,14 @@ interface EvaluationResults {
  * analyze it with both systems, and update the session with the combined results.
  */
 export async function POST(req: NextRequest) {
-  console.log("Speaking evaluation endpoint called");
+  // console.log("Speaking evaluation endpoint called");
 
   try {
     const body = await req.json();
     const { speakingSessionId, audioUrls } = body;
 
-    console.log(`Evaluation request for session ID: ${speakingSessionId}`);
-    console.log(`Audio URLs provided: ${audioUrls?.length || 0}`);
+    // console.log(`Evaluation request for session ID: ${speakingSessionId}`);
+    // console.log(`Audio URLs provided: ${audioUrls?.length || 0}`);
 
     let userId: string | undefined;
     let isInternalCall = false;
@@ -62,38 +62,38 @@ export async function POST(req: NextRequest) {
     const expectedApiKey = process.env.NEXTAUTH_SECRET || "internal-api-key";
 
     // Log the headers for debugging (safely)
-    console.log("Headers received:", {
-      "content-type": req.headers.get("content-type"),
-      "x-internal-api-key": internalApiKey
-        ? "present (value hidden)"
-        : "missing",
-      "other-headers": Array.from(req.headers.keys()).filter(
-        key =>
-          !["content-type", "x-internal-api-key"].includes(key.toLowerCase())
-      ),
-    });
+    // console.log("Headers received:", {
+    //   "content-type": req.headers.get("content-type"),
+    //   "x-internal-api-key": internalApiKey
+    //     ? "present (value hidden)"
+    //     : "missing",
+    //   "other-headers": Array.from(req.headers.keys()).filter(
+    //     key =>
+    //       !["content-type", "x-internal-api-key"].includes(key.toLowerCase())
+    //   ),
+    // });
 
     // Log API key details (safely)
-    console.log("Expected API key available:", !!expectedApiKey);
+    // console.log("Expected API key available:", !!expectedApiKey);
     if (expectedApiKey) {
       const safeExpectedKey = `${expectedApiKey.substring(0, 3)}...${expectedApiKey.substring(expectedApiKey.length - 3)}`;
-      console.log("Expected API key format:", safeExpectedKey);
+      // console.log("Expected API key format:", safeExpectedKey);
     }
 
     if (internalApiKey) {
       const safeReceivedKey = `${internalApiKey.substring(0, 3)}...${internalApiKey.substring(internalApiKey.length - 3)}`;
-      console.log("Received API key format:", safeReceivedKey);
-      console.log("API keys match:", internalApiKey === expectedApiKey);
+      // console.log("Received API key format:", safeReceivedKey);
+      // console.log("API keys match:", internalApiKey === expectedApiKey);
     }
 
     // Authenticate using either the API key or the user session
     if (internalApiKey === expectedApiKey) {
       isInternalCall = true;
-      console.log("Internal API key authentication successful");
+      // console.log("Internal API key authentication successful");
       // For internal calls, we'll extract the user ID from the session directly
     } else {
       // Authenticate user via NextAuth
-      console.log("Attempting to authenticate via NextAuth session");
+      // console.log("Attempting to authenticate via NextAuth session");
       const session = await getServerSession(authOptions);
 
       if (!session?.user) {
@@ -101,9 +101,9 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
       }
 
-      console.log(
-        `User session authentication successful for user: ${session.user.id}`
-      );
+      // console.log(
+      //   `User session authentication successful for user: ${session.user.id}`
+      // );
       userId = session.user.id;
     }
 
@@ -138,9 +138,9 @@ export async function POST(req: NextRequest) {
     const processingFlag = processingCache[processingKey];
 
     if (processingFlag) {
-      console.log(
-        `Evaluation already in progress for session ${speakingSessionId}, skipping duplicate call`
-      );
+      // console.log(
+      //   `Evaluation already in progress for session ${speakingSessionId}, skipping duplicate call`
+      // );
       return NextResponse.json({
         message: "Evaluation already in progress for this session",
         alreadyProcessing: true,
@@ -207,7 +207,7 @@ export async function POST(req: NextRequest) {
       // Clear the processing flag regardless of outcome
       setTimeout(() => {
         delete processingCache[processingKey];
-        console.log(`Cleared processing flag for session ${speakingSessionId}`);
+        // console.log(`Cleared processing flag for session ${speakingSessionId}`);
       }, 30000); // Keep flag for 30 seconds to prevent rapid re-requests
     }
   } catch (error: any) {
@@ -250,7 +250,7 @@ async function processAudioEvaluation(
     );
 
     // OPTIMIZATION: Download audio files more efficiently in parallel
-    console.log(`Starting to download ${audioUrls.length} audio files...`);
+    // console.log(`Starting to download ${audioUrls.length} audio files...`);
     const downloadPromises = userTranscripts.map(async (transcript, index) => {
       // Be more flexible with index matching - use available URLs even if they don't match transcript count
       const audioUrl = audioUrls[index] || audioUrls[0] || "";
@@ -310,13 +310,13 @@ async function processAudioEvaluation(
     const MAX_BATCH_SIZE = 2;
 
     if (validAudioBuffers.length > MAX_BATCH_SIZE) {
-      console.log(
-        `Processing ${validAudioBuffers.length} audio files in smaller batches of ${MAX_BATCH_SIZE}`
-      );
+      // console.log(
+      //   `Processing ${validAudioBuffers.length} audio files in smaller batches of ${MAX_BATCH_SIZE}`
+      // );
 
       // Process first batch
       const initialBatch = validAudioBuffers.slice(0, MAX_BATCH_SIZE);
-      console.log(`Processing first batch of ${initialBatch.length} files`);
+      // console.log(`Processing first batch of ${initialBatch.length} files`);
       results = await analyzeSessionRecordings(initialBatch);
 
       // Update progress to 40% - first batch of audio files analyzed
@@ -340,7 +340,7 @@ async function processAudioEvaluation(
             MAX_BATCH_SIZE + maxRemainingToProcess
           );
 
-          console.log(`Processing second batch of ${secondBatch.length} files`);
+          // console.log(`Processing second batch of ${secondBatch.length} files`);
           const secondResults = await analyzeSessionRecordings(secondBatch);
 
           // Update progress to 60% - second batch of audio files analyzed
@@ -355,9 +355,9 @@ async function processAudioEvaluation(
 
           // If there are still more files, log that we're skipping them
           if (validAudioBuffers.length > MAX_BATCH_SIZE * 2) {
-            console.log(
-              `Skipping analysis of ${validAudioBuffers.length - MAX_BATCH_SIZE * 2} additional files to avoid timeout`
-            );
+            // console.log(
+            //   `Skipping analysis of ${validAudioBuffers.length - MAX_BATCH_SIZE * 2} additional files to avoid timeout`
+            // );
           }
         } catch (batchError) {
           console.error(
@@ -397,9 +397,9 @@ async function processAudioEvaluation(
       try {
         // Get a fresh copy of the session if this is a retry
         if (attempts > 1) {
-          console.log(
-            `Retrying session update (attempt ${attempts}/${maxAttempts})`
-          );
+          // console.log(
+          //   `Retrying session update (attempt ${attempts}/${maxAttempts})`
+          // );
           speakingSession = await SpeakingSession.findById(speakingSession._id);
           if (!speakingSession) {
             throw new Error("Session no longer exists");
@@ -410,9 +410,9 @@ async function processAudioEvaluation(
         // Don't set evaluationProgress here as we'll update it to 100% after cleanup
         await speakingSession.save();
         updated = true;
-        console.log(
-          `Successfully updated session feedback (attempt ${attempts})`
-        );
+        // console.log(
+        //   `Successfully updated session feedback (attempt ${attempts})`
+        // );
       } catch (saveError: any) {
         if (attempts < maxAttempts) {
           console.warn(
@@ -431,16 +431,16 @@ async function processAudioEvaluation(
 
     // After successful evaluation, delete the audio files from Cloudinary
     try {
-      console.log(
-        "Deleting audio files from Cloudinary after successful evaluation"
-      );
+      // console.log(
+      //   "Deleting audio files from Cloudinary after successful evaluation"
+      // );
       const deletionResults = await deleteCloudinaryFiles(audioUrls);
 
       // Log results but don't fail if deletion has issues
       const successCount = deletionResults.filter(r => r.success).length;
-      console.log(
-        `Successfully deleted ${successCount}/${audioUrls.length} audio files`
-      );
+      // console.log(
+      //   `Successfully deleted ${successCount}/${audioUrls.length} audio files`
+      // );
 
       // Remove the audio URLs from the session metadata since they've been deleted
       if (
@@ -469,9 +469,9 @@ async function processAudioEvaluation(
             { new: true }
           );
 
-          console.log(
-            "Updated session metadata to remove deleted audio URLs and marked evaluation as complete"
-          );
+          // console.log(
+          //   "Updated session metadata to remove deleted audio URLs and marked evaluation as complete"
+          // );
         } catch (updateError) {
           console.error("Error updating session metadata:", updateError);
           // Still mark as complete even if metadata update fails
@@ -563,9 +563,9 @@ async function processAudioEvaluation(
           await recordSpeakingCompletion(userId, sessionId, duration);
         }
 
-        console.log(
-          `Recorded gamification activity for speaking session ${sessionId}`
-        );
+        // console.log(
+        //   `Recorded gamification activity for speaking session ${sessionId}`
+        // );
       }
     } catch (gamificationError) {
       // Log but don't fail the overall request if gamification recording fails

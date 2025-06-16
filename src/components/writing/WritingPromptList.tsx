@@ -66,7 +66,6 @@ export function WritingPromptList() {
         }
         const data = await response.json();
         setPrompts(data.prompts);
-        console.log(`Fetched ${data.prompts.length} prompts`);
       } catch (error) {
         console.error("Error fetching writing prompts:", error);
         toast({

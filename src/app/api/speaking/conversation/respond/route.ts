@@ -108,14 +108,14 @@ export async function POST(req: Request) {
           });
 
           await freshSession.save();
-          console.log("Initial message saved successfully");
+          // console.log("Initial message saved successfully");
           break; // Success, exit retry loop
         } catch (saveError: any) {
           retryCount++;
-          console.log(
-            `Initial message save attempt ${retryCount}/${maxRetries} failed:`,
-            saveError.message
-          );
+          // console.log(
+          //   `Initial message save attempt ${retryCount}/${maxRetries} failed:`,
+          //   saveError.message
+          // );
 
           if (saveError.name === "VersionError" && retryCount < maxRetries) {
             // Version conflict - wait a bit and retry with fresh document

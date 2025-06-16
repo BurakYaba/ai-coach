@@ -5,6 +5,7 @@ import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import GrammarIssue from "@/models/GrammarIssue";
 import User from "@/models/User";
+import { recordGrammarLessonCompletion } from "@/lib/gamification/activity-recorder";
 
 // POST /api/grammar/challenge/submit - Submit daily grammar challenge answer
 export async function POST(req: NextRequest) {
@@ -110,6 +111,16 @@ export async function POST(req: NextRequest) {
 
     // Save user with updated progress
     await user.save();
+
+    // Record activity for gamification
+    try {
+      const score = isCorrect ? 100 : 0;
+      await recordGrammarLessonCompletion(session.user.id, challengeId, score);
+      console.log("Successfully recorded grammar challenge completion");
+    } catch (error) {
+      console.error("Error recording grammar challenge completion:", error);
+      // Don't fail the request if gamification fails
+    }
 
     return NextResponse.json({
       newStreak: 0,

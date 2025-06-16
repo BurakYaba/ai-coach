@@ -56,7 +56,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { DeleteSpeakingSessionButton } from "@/components/speaking/DeleteSpeakingSessionButton";
-import { useRecordActivity } from "@/hooks/use-gamification";
 
 interface SpeakingSessionDetailsProps {
   sessionId: string;
@@ -153,12 +152,10 @@ export function SpeakingSessionDetails({
   const [isAddingGrammarIssue, setIsAddingGrammarIssue] = useState<
     Record<string, boolean>
   >({});
+  const [error, setError] = useState<string | null>(null);
 
-  // Track if we've already recorded this session for gamification
-  const hasRecordedActivity = useRef<boolean>(false);
-
-  // Get the recordActivity hook for gamification
-  const recordActivity = useRecordActivity();
+  // Note: Gamification tracking is now handled by the backend evaluate endpoint
+  // to prevent duplicate activity records
 
   // Function to go to the previous grammar issue
   const prevGrammarIssue = () => {
@@ -212,11 +209,7 @@ export function SpeakingSessionDetails({
         }
       } catch (error) {
         console.error("Error fetching speaking session:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load speaking session details",
-          variant: "destructive",
-        });
+        setError("Failed to load session details");
       } finally {
         setLoading(false);
       }
@@ -226,47 +219,6 @@ export function SpeakingSessionDetails({
       fetchSession();
     }
   }, [sessionId]);
-
-  // Add gamification integration to record completed speaking sessions
-  useEffect(() => {
-    // Only proceed if we have a session and it's completed
-    if (
-      session &&
-      session.status === "completed" &&
-      !hasRecordedActivity.current
-    ) {
-      // Check if the session already has feedback/scores indicating completion
-      const isFullyEvaluated =
-        session.feedback &&
-        (session.feedback.overallScore !== undefined ||
-          session.feedback.fluencyScore !== undefined);
-
-      if (isFullyEvaluated) {
-        // Mark that we've recorded this activity to prevent duplicate records
-        hasRecordedActivity.current = true;
-
-        // Determine if this was a conversation session based on metadata
-        const isConversation =
-          session.metadata?.mode === "realtime" ||
-          session.metadata?.mode === "turn-based";
-
-        // Record the appropriate activity type
-        recordActivity.mutate({
-          module: "speaking",
-          activityType: isConversation
-            ? "conversation_session"
-            : "complete_session",
-          metadata: {
-            sessionId: sessionId,
-            duration: session.duration || 300, // Default to 5 minutes if duration not available
-            // Include additional metadata for more detailed analysis
-            transcriptCount: session.transcripts?.length || 0,
-            score: session.feedback?.overallScore || 0,
-          },
-        });
-      }
-    }
-  }, [session, sessionId, recordActivity]);
 
   // Calculate conversation analytics
   const calculateAnalytics = (transcripts: Transcript[]) => {
@@ -477,7 +429,7 @@ export function SpeakingSessionDetails({
           setIsPlayingAudio(false);
           toast({
             title: "Error",
-            description: "Could not play the pronunciation",
+            description: "Failed to play pronunciation. Please try again.",
             variant: "destructive",
           });
         };
@@ -490,7 +442,7 @@ export function SpeakingSessionDetails({
       console.error("Error playing pronunciation:", error);
       toast({
         title: "Error",
-        description: "Could not load the pronunciation",
+        description: "Failed to play pronunciation. Please try again.",
         variant: "destructive",
       });
     } finally {

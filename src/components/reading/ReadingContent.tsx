@@ -38,7 +38,6 @@ export function ReadingContent({
 
     try {
       setIsLoadingAudio(true);
-      console.log("Starting TTS generation...");
 
       // OpenAI TTS has a 4096 character limit, so we need to handle longer texts
       let textToSpeak = content;
@@ -59,8 +58,6 @@ export function ReadingContent({
         });
       }
 
-      console.log("Sending TTS request with text length:", textToSpeak.length);
-
       // Use OpenAI TTS API to generate natural speech
       const response = await fetch("/api/tts", {
         method: "POST",
@@ -73,8 +70,6 @@ export function ReadingContent({
         }),
       });
 
-      console.log("TTS response status:", response.status);
-
       if (!response.ok) {
         const errorData = await response.json();
         console.error("TTS API error:", errorData);
@@ -82,10 +77,6 @@ export function ReadingContent({
       }
 
       const data = await response.json();
-      console.log(
-        "TTS response received, audio URL length:",
-        data.audioUrl?.length
-      );
 
       // Create audio element if it doesn't exist
       if (!audioRef.current) {
@@ -93,16 +84,13 @@ export function ReadingContent({
 
         // Set up event handlers for the audio element
         audioRef.current.onplay = () => {
-          console.log("Audio started playing");
           setIsSpeaking(true);
           setIsLoadingAudio(false);
         };
         audioRef.current.onended = () => {
-          console.log("Audio finished playing");
           setIsSpeaking(false);
         };
         audioRef.current.onpause = () => {
-          console.log("Audio paused");
           setIsSpeaking(false);
         };
         audioRef.current.onerror = e => {
@@ -118,12 +106,10 @@ export function ReadingContent({
       }
 
       // Set the audio source and play
-      console.log("Setting audio source and attempting to play...");
       audioRef.current.src = data.audioUrl;
 
       try {
         await audioRef.current.play();
-        console.log("Audio play() called successfully");
       } catch (playError) {
         console.error("Audio play failed:", playError);
 

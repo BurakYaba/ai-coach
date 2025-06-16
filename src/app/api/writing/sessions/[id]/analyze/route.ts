@@ -174,8 +174,6 @@ async function analyzeWriting(writingSession: IWritingSession) {
   const targetLength = prompt.targetLength || 0;
   const actualLength = submission.finalVersion?.wordCount || 0;
 
-  console.log("Using OpenAI for writing analysis...");
-
   // Check for user's language level in their profile, fallback to 'intermediate'
   // In a real app, you would fetch this from the user's profile
   const userLevel = "intermediate";
@@ -200,8 +198,6 @@ async function analyzeWriting(writingSession: IWritingSession) {
       prompt: writingPrompt as any,
       level: userLevel,
     });
-
-    console.log("OpenAI analysis successful");
 
     // Assessment of the length requirement
     const lengthAssessment = assessLength(actualLength, targetLength);

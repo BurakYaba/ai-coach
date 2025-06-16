@@ -110,10 +110,6 @@ export async function POST(
 
       // Record the writing completion for gamification
       await recordWritingCompletion(userId, params.id, wordCount, timeSpent);
-
-      console.log(
-        `Successfully awarded XP for completed writing session ${params.id}`
-      );
     } catch (error) {
       console.error(
         `Error awarding XP for writing session ${params.id}:`,

@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import SpeakingSession from "@/models/SpeakingSession";
+import { recordSpeakingCompletion } from "@/lib/gamification/activity-recorder";
 
 // This tells Next.js that this is a dynamic route that shouldn't be statically optimized
 export const dynamic = "force-dynamic";
@@ -88,6 +89,19 @@ export async function POST(req: NextRequest) {
       "Guided practice session marked as completed with duration:",
       duration
     );
+
+    // Record activity for gamification
+    try {
+      await recordSpeakingCompletion(
+        session.user.id,
+        speakingSession._id.toString(),
+        duration
+      );
+      console.log("Successfully recorded speaking completion");
+    } catch (error) {
+      console.error("Error recording speaking completion:", error);
+      // Don't fail the request if gamification fails
+    }
 
     // Trigger evaluation process asynchronously
     triggerEvaluation(speakingSession._id.toString());

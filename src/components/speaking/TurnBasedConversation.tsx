@@ -824,9 +824,9 @@ export function TurnBasedConversation() {
       try {
         attempts++;
         const currentElapsed = Math.floor((Date.now() - startTime) / 1000);
-        console.log(
-          `Checking evaluation status (attempt ${attempts}, elapsed ${currentElapsed}s)...`
-        );
+        // console.log(
+        //   `Checking evaluation status (attempt ${attempts}, elapsed ${currentElapsed}s)...`
+        // );
 
         // Calculate adaptive polling interval based on elapsed time and estimated time
         // Poll more frequently at the beginning and end, less in the middle
@@ -850,13 +850,13 @@ export function TurnBasedConversation() {
         }
 
         const data = await response.json();
-        console.log("Evaluation progress check:", {
-          progress: data.session?.evaluationProgress,
-          hasFeedback: !!data.session?.feedback,
-          feedbackScores: data.session?.feedback
-            ? `Overall: ${data.session.feedback.overallScore}, Fluency: ${data.session.feedback.fluencyScore}`
-            : "None",
-        });
+        // console.log("Evaluation progress check:", {
+        //   progress: data.session?.evaluationProgress,
+        //   hasFeedback: !!data.session?.feedback,
+        //   feedbackScores: data.session?.feedback
+        //     ? `Overall: ${data.session.feedback.overallScore}, Fluency: ${data.session.feedback.fluencyScore}`
+        //     : "None",
+        // });
 
         // Check if the session has evaluationProgress field and use that value
         if (
@@ -893,7 +893,7 @@ export function TurnBasedConversation() {
             data.session.feedback?.overallScore &&
             currentElapsed > 10
           ) {
-            console.log("Evaluation completed with full feedback!");
+            // console.log("Evaluation completed with full feedback!");
             setEvaluationProgress(100);
             setEvaluationComplete(true);
             isCompleted = true;
@@ -901,9 +901,9 @@ export function TurnBasedConversation() {
           }
           // If progress is 100% but no feedback yet, we're still processing
           else if (backendProgress >= 100 && !hasFeedback) {
-            console.log(
-              "Backend reports 100% but feedback not yet available, continuing to poll..."
-            );
+            // console.log(
+            //   "Backend reports 100% but feedback not yet available, continuing to poll..."
+            // );
             // Keep polling, the backend might be finalizing the evaluation
           }
         } else {
@@ -926,7 +926,7 @@ export function TurnBasedConversation() {
             data.session.feedback.overallScore &&
             currentElapsed > 10
           ) {
-            console.log("Evaluation completed (based on feedback)!");
+            // console.log("Evaluation completed (based on feedback)!");
             setEvaluationProgress(100);
             setEvaluationComplete(true);
             isCompleted = true;
@@ -1008,7 +1008,7 @@ export function TurnBasedConversation() {
         },
       ]);
 
-      console.log("Starting conversation session");
+      // console.log("Starting conversation session");
 
       // PHASE 1 OPTIMIZATION: Parallel operations - session creation and microphone prep
       const [sessionResponse] = await Promise.all([
@@ -1040,7 +1040,7 @@ export function TurnBasedConversation() {
           .then(stream => {
             // Release the stream immediately - we just wanted to get permission
             stream.getTracks().forEach(track => track.stop());
-            console.log("Microphone access confirmed");
+            // console.log("Microphone access confirmed");
           })
           .catch(error => {
             console.warn("Microphone prep failed:", error);
@@ -1055,7 +1055,7 @@ export function TurnBasedConversation() {
       }
 
       const data = await sessionResponse.json();
-      console.log("Session started with ID:", data.speakingSessionId);
+      // console.log("Session started with ID:", data.speakingSessionId);
 
       // Set session ID
       setSpeakingSessionId(data.speakingSessionId);
@@ -1086,7 +1086,7 @@ export function TurnBasedConversation() {
   const loadInitialGreetingAsync = async (sessionId: string) => {
     try {
       const initialPrompt = getInitialPrompt();
-      console.log("Loading initial AI greeting:", initialPrompt);
+      // console.log("Loading initial AI greeting:", initialPrompt);
 
       await generateAIResponse(initialPrompt, true, sessionId);
 
@@ -1132,14 +1132,14 @@ export function TurnBasedConversation() {
           .filter(rec => rec.url)
           .map(rec => rec.url as string);
 
-        console.log(`Ending session with ${audioUrls.length} audio recordings`);
+        // console.log(`Ending session with ${audioUrls.length} audio recordings`);
 
         // Estimate evaluation time based on number of recordings
         // Each recording takes ~5-10 seconds to process, plus 20s base time
         const recordingsCount = audioUrls.length;
         const estimatedSeconds = Math.max(60, 20 + recordingsCount * 8);
         setEstimatedTime(estimatedSeconds);
-        console.log(`Estimated evaluation time: ${estimatedSeconds} seconds`);
+        // console.log(`Estimated evaluation time: ${estimatedSeconds} seconds`);
 
         // Send session end request with audio URLs - evaluation will be triggered by the server
         const response = await fetch("/api/speaking/conversation/end", {
@@ -1165,10 +1165,10 @@ export function TurnBasedConversation() {
         }
 
         const responseData = await response.json();
-        console.log(
-          "Session ended successfully, server will evaluate recordings",
-          responseData
-        );
+        // console.log(
+        //   "Session ended successfully, server will evaluate recordings",
+        //   responseData
+        // );
 
         // Store the session ID for polling
         setCompletedSessionId(speakingSessionId);
@@ -1242,7 +1242,7 @@ export function TurnBasedConversation() {
         source.connect(analyserRef.current);
         audioAnalysisWorking = true;
 
-        console.log("Audio analysis setup successful");
+        // console.log("Audio analysis setup successful");
       } catch (audioAnalysisError) {
         console.warn("Audio analysis setup failed:", audioAnalysisError);
         audioAnalysisWorking = false;
@@ -1259,7 +1259,7 @@ export function TurnBasedConversation() {
       try {
         mediaRecorder = new MediaRecorder(stream, options);
       } catch (e) {
-        console.log("Preferred audio format not supported, using default");
+        // console.log("Preferred audio format not supported, using default");
         mediaRecorder = new MediaRecorder(stream);
       }
 
@@ -1375,10 +1375,10 @@ export function TurnBasedConversation() {
       return;
     }
 
-    console.log(
-      "Starting immediate transcription with blob size:",
-      audioBlobToProcess.size
-    );
+    // console.log(
+    //   "Starting immediate transcription with blob size:",
+    //   audioBlobToProcess.size
+    // );
 
     try {
       // Store the recording in our session recordings array immediately
@@ -1389,12 +1389,12 @@ export function TurnBasedConversation() {
       setSessionRecordings(prev => [...prev, newRecording]);
 
       // REAL-TIME TRANSCRIPTION: Start transcription immediately (priority operation)
-      console.log("Creating FormData for immediate transcription");
+      // console.log("Creating FormData for immediate transcription");
       const formData = new FormData();
       formData.append("audio", audioBlobToProcess, "recording.webm");
       formData.append("speakingSessionId", speakingSessionId);
 
-      console.log("Sending audio for immediate transcription");
+      // console.log("Sending audio for immediate transcription");
 
       // REAL-TIME TRANSCRIPTION: Parallel processing - transcription and upload
       const [transcriptionResponse] = await Promise.all([
@@ -1415,7 +1415,7 @@ export function TurnBasedConversation() {
                   : rec
               )
             );
-            console.log("Audio recording uploaded:", uploadResult.url);
+            // console.log("Audio recording uploaded:", uploadResult.url);
           })
           .catch(uploadError => {
             // Don't fail the whole operation if upload fails
@@ -1423,10 +1423,10 @@ export function TurnBasedConversation() {
           }),
       ]);
 
-      console.log(
-        "Transcription response status:",
-        transcriptionResponse.status
-      );
+      // console.log(
+      //   "Transcription response status:",
+      //   transcriptionResponse.status
+      // );
 
       if (!transcriptionResponse.ok) {
         const errorText = await transcriptionResponse.text();
@@ -1441,13 +1441,13 @@ export function TurnBasedConversation() {
       }
 
       const transcriptionResult = await transcriptionResponse.json();
-      console.log("Transcription result:", transcriptionResult);
+      // console.log("Transcription result:", transcriptionResult);
 
       const { text, potentialGrammarErrors } = transcriptionResult;
       setUserTranscript(text);
 
-      console.log("User said:", text);
-      console.log("Potential grammar errors:", potentialGrammarErrors);
+      // console.log("User said:", text);
+      // console.log("Potential grammar errors:", potentialGrammarErrors);
 
       // REAL-TIME TRANSCRIPTION: Replace transcribing message with actual transcript
       setConversation(prev =>
@@ -1471,7 +1471,7 @@ export function TurnBasedConversation() {
         },
       ]);
 
-      console.log("Generating AI response for user input:", text);
+      // console.log("Generating AI response for user input:", text);
 
       // Generate AI response asynchronously (non-blocking UI)
       generateAIResponseAsync(text, potentialGrammarErrors);
@@ -1558,17 +1558,17 @@ export function TurnBasedConversation() {
     }
 
     setStatus("processing");
-    console.log(
-      `Generating AI response${isInitial ? " (initial greeting)" : ""}`
-    );
-    console.log("User input:", userInput);
-    console.log("Session ID:", activeSessionId);
-    console.log("Scenario:", selectedScenario);
-    console.log("Level:", selectedLevel);
+    // console.log(
+    //   `Generating AI response${isInitial ? " (initial greeting)" : ""}`
+    // );
+    // console.log("User input:", userInput);
+    // console.log("Session ID:", activeSessionId);
+    // console.log("Scenario:", selectedScenario);
+    // console.log("Level:", selectedLevel);
 
     try {
       // Send user input to backend for AI response
-      console.log("Sending request to /api/speaking/conversation/respond");
+      // console.log("Sending request to /api/speaking/conversation/respond");
 
       // PHASE 1: Faster timeout for better responsiveness
       const controller = new AbortController();
@@ -1605,7 +1605,7 @@ export function TurnBasedConversation() {
         }
 
         const data = await response.json();
-        console.log("API response received:", data);
+        // console.log("API response received:", data);
 
         // PHASE 1 OPTIMIZATION: Replace thinking message or add new response
         setConversation(prev => {
@@ -1631,7 +1631,7 @@ export function TurnBasedConversation() {
 
         // PHASE 1: Handle audio loading with better feedback
         if (data.audioUrl && audioElementRef.current) {
-          console.log("Loading audio response...");
+          // console.log("Loading audio response...");
           audioElementRef.current.src = data.audioUrl;
 
           // PHASE 1: Faster audio loading timeout
@@ -1653,7 +1653,7 @@ export function TurnBasedConversation() {
 
           audioElementRef.current.onended = () => {
             clearTimeout(audioLoadTimeout);
-            console.log("Audio playback completed");
+            // console.log("Audio playback completed");
             setStatus("idle");
           };
 
@@ -1663,8 +1663,8 @@ export function TurnBasedConversation() {
             setStatus("idle");
           };
         } else {
-          console.log("No audio URL received or audio element not ready");
-          console.log("Continuing conversation in text-only mode");
+          // console.log("No audio URL received or audio element not ready");
+          // console.log("Continuing conversation in text-only mode");
           setStatus("idle");
         }
       } catch (error: any) {
@@ -1710,12 +1710,12 @@ export function TurnBasedConversation() {
   // REAL-TIME TRANSCRIPTION: Audio level analysis for visualization
   const analyzeAudioLevel = () => {
     if (!analyserRef.current || !isRecordingRef.current) {
-      console.log(
-        "analyzeAudioLevel stopped - analyser:",
-        !!analyserRef.current,
-        "isRecording:",
-        isRecordingRef.current
-      );
+      // console.log(
+      //   "analyzeAudioLevel stopped - analyser:",
+      //   !!analyserRef.current,
+      //   "isRecording:",
+      //   isRecordingRef.current
+      // );
       return;
     }
 
@@ -1740,16 +1740,16 @@ export function TurnBasedConversation() {
       // Debug: Log audio level more frequently for debugging
       if (Math.random() < 0.1) {
         // Log ~10% of the time for debugging
-        console.log(
-          "Audio level:",
-          amplified.toFixed(3),
-          "Raw max:",
-          max.toFixed(3),
-          "Buffer length:",
-          bufferLength,
-          "IsRecording:",
-          isRecordingRef.current
-        );
+        // console.log(
+        //   "Audio level:",
+        //   amplified.toFixed(3),
+        //   "Raw max:",
+        //   max.toFixed(3),
+        //   "Buffer length:",
+        //   bufferLength,
+        //   "IsRecording:",
+        //   isRecordingRef.current
+        // );
       }
 
       setAudioLevel(amplified);
@@ -1757,7 +1757,7 @@ export function TurnBasedConversation() {
       console.error("Error in audio analysis:", error);
       // Fall back to simulation if real analysis fails
       if (isRecordingRef.current) {
-        console.log("Falling back to audio simulation due to analysis error");
+        // console.log("Falling back to audio simulation due to analysis error");
         startAudioSimulation();
         return;
       }
@@ -1767,14 +1767,14 @@ export function TurnBasedConversation() {
     if (isRecordingRef.current) {
       animationFrameRef.current = requestAnimationFrame(analyzeAudioLevel);
     } else {
-      console.log("Stopped audio analysis - recording ended");
+      // console.log("Stopped audio analysis - recording ended");
     }
   };
 
   // REAL-TIME TRANSCRIPTION: Fallback audio simulation with proper timing
   const startAudioSimulation = () => {
     if (!isRecordingRef.current) {
-      console.log("Not starting audio simulation - not recording");
+      // console.log("Not starting audio simulation - not recording");
       return;
     }
 
@@ -1784,11 +1784,11 @@ export function TurnBasedConversation() {
       audioSimulationRef.current = null;
     }
 
-    console.log("Starting audio simulation fallback");
+    // console.log("Starting audio simulation fallback");
 
     const updateLevel = () => {
       if (!isRecordingRef.current) {
-        console.log("Stopping audio simulation - recording ended");
+        // console.log("Stopping audio simulation - recording ended");
         return;
       }
 
@@ -1796,7 +1796,7 @@ export function TurnBasedConversation() {
       const baseLevel = 0.15 + Math.random() * 0.7; // Random base level
       const smoothLevel = Math.min(baseLevel, 1);
 
-      console.log("Simulated audio level:", smoothLevel.toFixed(3));
+      // console.log("Simulated audio level:", smoothLevel.toFixed(3));
       setAudioLevel(smoothLevel);
 
       // Schedule next update
@@ -1869,10 +1869,10 @@ export function TurnBasedConversation() {
         [messageIndex]: data.audioUrl,
       }));
 
-      console.log(
-        `AI audio stored for message ${messageIndex}:`,
-        data.audioUrl
-      );
+      // console.log(
+      //   `AI audio stored for message ${messageIndex}:`,
+      //   data.audioUrl
+      // );
     } catch (error) {
       console.error("Error storing AI audio:", error);
       toast({
@@ -1966,9 +1966,9 @@ export function TurnBasedConversation() {
         body: JSON.stringify({ speakingSessionId }),
       });
 
-      console.log(
-        `AI audio cleanup completed for session ${speakingSessionId}`
-      );
+      // console.log(
+      //   `AI audio cleanup completed for session ${speakingSessionId}`
+      // );
     } catch (error) {
       console.warn("AI audio cleanup failed:", error);
       // Don't show error to user as this is background cleanup

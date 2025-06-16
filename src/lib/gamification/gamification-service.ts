@@ -270,10 +270,37 @@ export class GamificationService {
     // Check if we need to update streak
     const streakResult = this.updateStreak(profile);
 
-    // Record the activity - but only if it's a session completion or it's not part of a completed session
-    // This helps prevent double-counting of activities
+    // Check for duplicate activity if sessionId is provided
+    let isDuplicate = false;
+    if (
+      metadata.sessionId &&
+      (activityType === "complete_session" ||
+        activityType === "conversation_session")
+    ) {
+      const existingActivity = await UserActivity.findOne({
+        userId: objectId,
+        module,
+        $or: [
+          { activityType: "complete_session" },
+          { activityType: "conversation_session" },
+        ],
+        "metadata.sessionId": metadata.sessionId,
+      });
+
+      if (existingActivity) {
+        console.log(
+          `Duplicate activity detected for session ${metadata.sessionId}, skipping record creation`
+        );
+        isDuplicate = true;
+      }
+    }
+
+    // Record the activity - but only if it's not a duplicate and meets other criteria
     const shouldRecordActivity =
-      activityType === "complete_session" || !metadata.isPartOfCompletedSession;
+      !isDuplicate &&
+      (activityType === "complete_session" ||
+        activityType === "conversation_session" ||
+        !metadata.isPartOfCompletedSession);
 
     if (shouldRecordActivity) {
       await UserActivity.create({
@@ -286,17 +313,23 @@ export class GamificationService {
     }
 
     // Update module activity count - only for session completion activities to avoid double counting
-    // Also do not increment count for activities that are part of a completed session
+    // Also do not increment count for activities that are part of a completed session or duplicates
     if (
       module in profile.stats.moduleActivity &&
+      !isDuplicate &&
       (activityType === "complete_session" ||
+        activityType === "conversation_session" ||
         !metadata.isPartOfCompletedSession)
     ) {
       // Only increment the count if:
-      // 1. It's a complete_session activity OR
+      // 1. It's a complete_session or conversation_session activity OR
       // 2. It's NOT marked as part of a completed session
-      if (activityType === "complete_session") {
-        // Always increment for complete_session activities
+      // 3. It's NOT a duplicate
+      if (
+        activityType === "complete_session" ||
+        activityType === "conversation_session"
+      ) {
+        // Always increment for session completion activities (if not duplicate)
         profile.stats.moduleActivity[
           module as keyof typeof profile.stats.moduleActivity
         ] += 1;
@@ -312,7 +345,7 @@ export class GamificationService {
       }
     }
 
-    // Add XP to profile
+    // Add XP to profile (even for duplicates, as user still earned the XP)
     const newTotalXP = profile.experience + xpAmount;
     profile.experience = newTotalXP;
     profile.stats.totalXP += xpAmount;
@@ -334,6 +367,7 @@ export class GamificationService {
       experienceToNextLevel: experienceToNextLevel,
       fullCalculation: calculateLevelFromXP(newTotalXP),
       isPartOfCompletedSession: metadata.isPartOfCompletedSession,
+      isDuplicate: isDuplicate,
     });
 
     // Check for new achievements

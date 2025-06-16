@@ -249,19 +249,6 @@ export async function POST(req: NextRequest) {
         : [data.topic],
     };
 
-    console.log(
-      `Creating reading session for user: ${session.user.id}, title: ${data.title}`
-    );
-
-    // Log vocabulary information
-    if (data.vocabulary && data.vocabulary.length > 0) {
-      console.log(
-        `Reading session includes ${data.vocabulary.length} vocabulary words`
-      );
-    } else {
-      console.log("No vocabulary words included in this reading session");
-    }
-
     // Ensure vocabulary items have all required fields
     const vocabulary = data.vocabulary
       ? data.vocabulary.map((word: any) => ({
@@ -298,17 +285,10 @@ export async function POST(req: NextRequest) {
       grammarFocus: data.grammarFocus || [],
     });
 
-    console.log(
-      `Successfully created reading session with ID: ${readingSession._id}`
-    );
-
     // Add vocabulary words to the user's vocabulary bank
     if (data.vocabulary && data.vocabulary.length > 0) {
       // We're no longer automatically adding vocabulary to the bank
       // Users will add words manually from the VocabularyPanel
-      console.log(
-        `Reading session created with ${data.vocabulary.length} vocabulary words. Words can be added to vocabulary bank manually.`
-      );
     }
 
     return NextResponse.json(readingSession);

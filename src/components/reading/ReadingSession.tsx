@@ -103,7 +103,6 @@ export function ReadingSession({ sessionId }: ReadingSessionProps) {
     // Use a debounced function to avoid too many updates
     const saveProgress = async () => {
       try {
-        console.log("Saving reading session progress...");
         const response = await fetch(`/api/reading/sessions/${sessionId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },

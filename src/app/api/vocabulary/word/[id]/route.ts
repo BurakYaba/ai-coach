@@ -9,6 +9,7 @@ import {
   calculateNextReview,
 } from "@/lib/spaced-repetition";
 import { VocabularyBank } from "@/models/VocabularyBank";
+import { recordVocabularyReview } from "@/lib/gamification/activity-recorder";
 
 // Define the SpacedRepetitionItem type
 interface SpacedRepetitionItem {
@@ -163,6 +164,9 @@ export async function PATCH(
       return NextResponse.json({ error: "Word not found" }, { status: 404 });
     }
 
+    // Store the current word for comparison
+    const currentWord = vocabBank.words[wordIndex];
+
     // Only allow updating specific fields
     const allowedUpdates = [
       "definition",
@@ -185,9 +189,22 @@ export async function PATCH(
       }
     }
 
+    // Track if this is a vocabulary review for gamification
+    let isVocabularyReview = false;
+    let isMastery = false;
+
     // Update review-related fields if mastery is being updated but nextReview is not provided
     if ("mastery" in updates && !("nextReview" in updates)) {
       updates.lastReviewed = new Date();
+      isVocabularyReview = true;
+
+      // Check if word is becoming mastered (reaching 100% mastery)
+      const newMastery =
+        typeof updates.mastery === "number" ? updates.mastery : 0;
+      const oldMastery = currentWord.mastery || 0;
+      if (newMastery >= 100 && oldMastery < 100) {
+        isMastery = true;
+      }
 
       // If reviewHistory is being updated and contains a performance rating, use it
       let performance = PerformanceRating.HESITANT; // Default to hesitant if no performance rating
@@ -200,9 +217,6 @@ export async function PATCH(
       }
 
       // Use the spaced repetition utility to calculate the next review date
-      const currentWord = vocabBank.words[wordIndex];
-
-      // Extract easiness factor and repetitions from the word if available
       const wordData: SpacedRepetitionItem = {
         mastery:
           typeof updates.mastery === "number"
@@ -247,7 +261,7 @@ export async function PATCH(
     // Handle direct performance rating updates
     else if ("performance" in body && !("mastery" in updates)) {
       const performance = Number(body.performance);
-      const currentWord = vocabBank.words[wordIndex];
+      isVocabularyReview = true;
 
       // Calculate new mastery based on performance
       const currentMastery = currentWord.mastery || 0;
@@ -277,6 +291,11 @@ export async function PATCH(
         Math.max(0, currentMastery + masteryChange)
       );
       updates.mastery = newMastery;
+
+      // Check if word is becoming mastered
+      if (newMastery >= 100 && currentMastery < 100) {
+        isMastery = true;
+      }
 
       // Update last reviewed date
       updates.lastReviewed = new Date();
@@ -414,6 +433,17 @@ export async function PATCH(
         } else {
           // If it's not a version error, rethrow
           throw saveError;
+        }
+      }
+
+      // Record vocabulary activity for gamification
+      if (isVocabularyReview) {
+        try {
+          await recordVocabularyReview(userId, params.id, isMastery);
+          console.log("Successfully recorded vocabulary review");
+        } catch (error) {
+          console.error("Error recording vocabulary review:", error);
+          // Don't fail the request if gamification fails
         }
       }
 

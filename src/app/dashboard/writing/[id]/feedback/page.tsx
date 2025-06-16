@@ -286,14 +286,11 @@ export default function FeedbackPage() {
   useEffect(() => {
     async function fetchSession() {
       try {
-        console.log("Fetching session data for:", sessionId);
         const response = await fetch(`/api/writing/sessions/${sessionId}`);
         if (!response.ok) {
           throw new Error("Failed to fetch session");
         }
         const data = await response.json();
-        console.log("Session data received:", data.session);
-        console.log("Analysis data:", data.session.analysis);
         setSession(data.session);
 
         // If session is not analyzed, redirect to analyze page

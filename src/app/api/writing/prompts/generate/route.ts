@@ -79,10 +79,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    console.log(
-      `Generating prompt with validated parameters: type=${type}, level=${level}, topic=${topic || "not specified"}`
-    );
-
     // Generate prompt using the function from parent route file with parameters in the correct order:
     // generatePrompt(level: string, type: string, topic?: string)
     const generatedPrompt = await generatePrompt(level, type, topic);
@@ -117,18 +113,12 @@ export async function POST(req: NextRequest) {
         if (textSimilarity > 0.7) {
           isDuplicate = true;
           similarPrompt = existingPrompt;
-          console.log(
-            `Found similar prompt with ID: ${existingPrompt._id} (similarity: ${textSimilarity.toFixed(2)})`
-          );
           break;
         }
       }
 
       if (isDuplicate && similarPrompt) {
         // If a similar prompt exists, return it instead of creating a duplicate
-        console.log(
-          `Returning existing similar prompt instead of creating duplicate`
-        );
         return NextResponse.json({ prompt: similarPrompt });
       }
 
@@ -138,9 +128,6 @@ export async function POST(req: NextRequest) {
         userId: session.user.id,
       };
       const savedPrompt = await WritingPrompt.create(promptData);
-      console.log(
-        `Saved generated prompt to database with ID: ${savedPrompt._id}`
-      );
 
       // Return the saved prompt (which now has an _id)
       return NextResponse.json({ prompt: savedPrompt });

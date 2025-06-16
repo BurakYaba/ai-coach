@@ -120,11 +120,6 @@ export async function generatePrompt(
   type: string,
   topic?: string
 ): Promise<IWritingPrompt> {
-  // Add debug logging to see what parameters are received
-  console.log(
-    `Generating prompt with level: ${level}, type: ${type}, topic: ${topic}`
-  );
-
   // Validate type parameter
   if (!["essay", "letter", "story", "argument"].includes(type)) {
     console.warn(
@@ -211,8 +206,6 @@ Remember that the language complexity of your prompt MUST match CEFR level ${lev
       suggestedLength[level as keyof typeof suggestedLength] ||
       suggestedLength.B1;
 
-    console.log("Calling OpenAI to generate writing prompt...");
-
     // Call OpenAI API
     const completion = await openai.chat.completions.create({
       model:
@@ -231,8 +224,6 @@ Remember that the language complexity of your prompt MUST match CEFR level ${lev
     const aiResponse = JSON.parse(
       completion.choices[0].message.content || "{}"
     );
-
-    console.log("Successfully generated AI writing prompt");
 
     // Create prompt object with the AI-generated content
     const prompt: Partial<IWritingPrompt> = {
@@ -272,8 +263,6 @@ Remember that the language complexity of your prompt MUST match CEFR level ${lev
     console.error("Error generating AI writing prompt:", error);
 
     // Fallback to template-based prompt if AI fails
-    console.log("Falling back to template-based prompt generation");
-
     return generateTemplatePrompt(level, type, topic);
   }
 }
@@ -590,10 +579,6 @@ function generateTemplatePrompt(
     promptTemplates[type as keyof typeof promptTemplates] ||
     promptTemplates.essay;
   const template = templates[Math.floor(Math.random() * templates.length)];
-
-  console.log(
-    `Selected template for ${type} with topic: ${topic}. Template text: ${template.text.substring(0, 50)}...`
-  );
 
   // Create prompt object
   const prompt: Partial<IWritingPrompt> = {

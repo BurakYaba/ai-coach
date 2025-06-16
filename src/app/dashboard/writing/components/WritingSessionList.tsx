@@ -1,9 +1,9 @@
-import { Plus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
-import { Button } from '@/components/ui/button';
-import { toast } from '@/hooks/use-toast';
+import { Button } from "@/components/ui/button";
+import { toast } from "@/hooks/use-toast";
 
 const WritingSessionList = () => {
   const router = useRouter();
@@ -14,40 +14,37 @@ const WritingSessionList = () => {
   const fetchSessions = async () => {
     setIsLoading(true);
     try {
-      console.log('Fetching sessions using debug endpoint');
-      const response = await fetch('/api/writing/sessions/debug', {
-        method: 'POST',
+      const response = await fetch("/api/writing/sessions/debug", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          action: 'listAll',
+          action: "listAll",
         }),
       });
 
       if (!response.ok) {
-        console.error('Error response status:', response.status);
+        console.error("Error response status:", response.status);
         const errorText = await response.text();
-        console.error('Error response body:', errorText);
+        console.error("Error response body:", errorText);
         throw new Error(`Failed to fetch sessions: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('Sessions response:', data);
 
       if (data && Array.isArray(data.sessions)) {
-        console.log(`Found ${data.sessions.length} sessions`);
         setSessions(data.sessions);
       } else {
-        console.error('Invalid data format received:', data);
+        console.error("Invalid data format received:", data);
         setSessions([]);
       }
     } catch (error: unknown) {
-      console.error('Error fetching writing sessions:', error);
+      console.error("Error fetching writing sessions:", error);
       toast({
-        title: 'Error',
-        description: `Failed to fetch writing sessions: ${error instanceof Error ? error.message : 'Unknown error'}`,
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to fetch writing sessions: ${error instanceof Error ? error.message : "Unknown error"}`,
+        variant: "destructive",
       });
       setSessions([]);
     } finally {
@@ -61,14 +58,14 @@ const WritingSessionList = () => {
         <h2 className="text-2xl font-bold">Your Writing Sessions</h2>
         <div className="flex gap-2">
           <Button
-            onClick={() => router.push('/dashboard/writing/new')}
+            onClick={() => router.push("/dashboard/writing/new")}
             variant="default"
           >
             <Plus className="mr-1 h-4 w-4" /> New Session
           </Button>
 
           <Button
-            onClick={() => router.push('/dashboard/writing/debug')}
+            onClick={() => router.push("/dashboard/writing/debug")}
             variant="outline"
             size="sm"
           >

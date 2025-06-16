@@ -1,15 +1,15 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 
 import { authOptions } from "@/lib/auth";
-import dbConnect from "@/lib/db";
+import { dbConnect } from "@/lib/db";
 import SpeakingSession from "@/models/SpeakingSession";
 
 // This tells Next.js that this is a dynamic route that shouldn't be statically optimized
 export const dynamic = "force-dynamic";
 
-export async function POST(req: Request) {
-  console.log("Start speaking session endpoint called");
+export async function POST(req: NextRequest) {
+  // console.log("Start speaking session endpoint called");
   try {
     // Check if user is authenticated
     const session = await getServerSession(authOptions);
@@ -17,11 +17,11 @@ export async function POST(req: Request) {
       console.error("Authentication failed");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    console.log("User authenticated:", session.user.id);
+    // console.log("User authenticated:", session.user.id);
 
-    // Parse request body
+    // Get request body and validate
     const body = await req.json();
-    console.log("Request body:", body);
+    // console.log("Request body:", body);
 
     const {
       voice = "alloy",
@@ -41,39 +41,32 @@ export async function POST(req: Request) {
     }
 
     // Connect to database
-    console.log("Connecting to database");
+    // console.log("Connecting to database");
     await dbConnect();
 
-    // Create a new speaking session
-    console.log("Creating speaking session with parameters:", {
+    // Create new speaking session
+    const speakingSession = new SpeakingSession({
+      user: session.user.id,
       voice,
       mode,
       scenario,
       level,
-    });
-    const speakingSession = await SpeakingSession.create({
-      user: session.user.id,
-      startTime: new Date(),
-      voice,
-      modelName:
-        mode === "realtime"
-          ? "gpt-4o-mini-realtime-preview-2024-12-17"
-          : "gpt-3.5-turbo", // Using gpt-3.5-turbo for turn-based mode for faster responses
       status: "active",
-      metadata: {
-        mode,
-        scenario,
-        level,
-      },
+      startTime: new Date(),
       transcripts: [],
+      metadata: {
+        userAgent: req.headers.get("user-agent") || "unknown",
+        startedAt: new Date().toISOString(),
+      },
     });
-    console.log("Speaking session created with ID:", speakingSession._id);
 
-    // For realtime mode, generate an ephemeral key
-    let ephemeralKey = null;
+    await speakingSession.save();
+    // console.log("Speaking session created with ID:", speakingSession._id);
 
+    // For realtime mode, get ephemeral key from OpenAI
     if (mode === "realtime") {
-      console.log("Requesting ephemeral key for realtime mode");
+      // console.log("Requesting ephemeral key for realtime mode");
+
       // Request ephemeral key from OpenAI
       const response = await fetch(
         "https://api.openai.com/v1/realtime/sessions",
@@ -100,29 +93,31 @@ export async function POST(req: Request) {
       }
 
       const data = await response.json();
-      console.log("Received ephemeral key response from OpenAI");
+      // console.log("Received ephemeral key response from OpenAI");
 
-      // Check if client_secret is present
       if (!data.client_secret?.value) {
         console.error("No client_secret.value in OpenAI response");
         return NextResponse.json(
-          { error: "No ephemeral key received from OpenAI" },
+          { error: "Failed to get OpenAI ephemeral key" },
           { status: 500 }
         );
       }
 
-      ephemeralKey = data.client_secret.value;
-      console.log("Successfully retrieved ephemeral key");
+      // console.log("Successfully retrieved ephemeral key");
+
+      return NextResponse.json({
+        speakingSessionId: speakingSession._id,
+        ephemeralKey: data.client_secret.value,
+      });
     }
 
-    // Return speaking session ID and ephemeral key if available
-    console.log(
-      "Returning speaking session ID:",
-      speakingSession._id.toString()
-    );
+    // For turn-based mode, just return the session ID
+    // console.log(
+    //   "Turn-based mode session created successfully, returning session ID"
+    // );
+
     return NextResponse.json({
-      speakingSessionId: speakingSession._id.toString(),
-      ...(ephemeralKey && { ephemeralKey }),
+      speakingSessionId: speakingSession._id,
     });
   } catch (error: any) {
     console.error("Error starting speaking session:", error);

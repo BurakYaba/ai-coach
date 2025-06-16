@@ -13,8 +13,6 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log(`Processing GET request for reading session: ${params.id}`);
-
     // Validate session ID format
     if (!mongoose.Types.ObjectId.isValid(params.id)) {
       console.warn(`Invalid session ID format: ${params.id}`);
@@ -47,7 +45,6 @@ export async function GET(
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
     await dbConnect();
-    console.log(`Fetching reading session ${params.id} for user: ${userId}`);
 
     const readingSession = await ReadingSession.findOne({
       _id: params.id,
@@ -64,7 +61,6 @@ export async function GET(
       );
     }
 
-    console.log(`Successfully retrieved reading session: ${params.id}`);
     return NextResponse.json(readingSession);
   } catch (error) {
     console.error(`Error fetching reading session ${params.id}:`, error);
@@ -84,8 +80,6 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log(`Processing PATCH request for reading session: ${params.id}`);
-
     // Validate session ID format
     if (!mongoose.Types.ObjectId.isValid(params.id)) {
       console.warn(`Invalid session ID format: ${params.id}`);
@@ -130,9 +124,6 @@ export async function PATCH(
       );
     }
 
-    console.log(
-      `Checking if reading session ${params.id} exists for user: ${userId}`
-    );
     const readingSession = await ReadingSession.findOne({
       _id: params.id,
       userId: userObjectId,
@@ -171,12 +162,6 @@ export async function PATCH(
         { status: 400 }
       );
     }
-
-    console.log(
-      `Updating reading session ${params.id} with fields: ${updateFields.join(
-        ", "
-      )}`
-    );
 
     // Handle special case for vocabularyReviewed to avoid duplicates
     if (body["userProgress.vocabularyReviewed"]) {
@@ -260,7 +245,6 @@ export async function PATCH(
       body["userProgress.completionTime"] &&
       !readingSession.userProgress.completionTime
     ) {
-      console.log(`Session ${params.id} completed, awarding XP`);
       try {
         // Award XP for completing the session
         await GamificationService.awardXP(
@@ -303,17 +287,12 @@ export async function PATCH(
             isPartOfCompletedSession: true,
           });
         }
-
-        console.log(
-          `Successfully awarded XP for completed reading session ${params.id}`
-        );
       } catch (error) {
         console.error(`Error awarding XP for session ${params.id}:`, error);
         // Don't fail the request if gamification fails
       }
     }
 
-    console.log(`Successfully updated reading session: ${params.id}`);
     return NextResponse.json(updatedSession);
   } catch (error) {
     console.error(`Error updating reading session ${params.id}:`, error);
@@ -346,8 +325,6 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    console.log(`Processing DELETE request for reading session: ${params.id}`);
-
     // Validate session ID format
     if (!mongoose.Types.ObjectId.isValid(params.id)) {
       console.warn(`Invalid session ID format: ${params.id}`);
@@ -380,9 +357,6 @@ export async function DELETE(
     const userObjectId = new mongoose.Types.ObjectId(userId);
 
     await dbConnect();
-    console.log(
-      `Checking if reading session ${params.id} exists for user: ${userId}`
-    );
 
     const readingSession = await ReadingSession.findOne({
       _id: params.id,
@@ -399,10 +373,8 @@ export async function DELETE(
       );
     }
 
-    console.log(`Deleting reading session: ${params.id}`);
     await ReadingSession.findByIdAndDelete(params.id);
 
-    console.log(`Successfully deleted reading session: ${params.id}`);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error(`Error deleting reading session ${params.id}:`, error);
