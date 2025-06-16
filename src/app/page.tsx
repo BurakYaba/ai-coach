@@ -64,69 +64,75 @@ export default function LandingPage() {
       {/* Global background effect */}
       <BackgroundGradient />
 
-      {/* Navigation */}
-      <header className="fixed top-0 z-50 w-full border-b bg-background backdrop-blur supports-[backdrop-filter]:bg-background bg-opacity-95">
+      {/* Navigation - Updated to match dashboard header */}
+      <header className="fixed top-0 z-50 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white shadow-lg backdrop-blur supports-[backdrop-filter]:bg-opacity-95">
         <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center relative">
-              <span className="text-white font-black text-sm">F</span>
-              <div className="absolute top-1 right-1 w-1 h-1 bg-white rounded-full opacity-80"></div>
+          <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center">
+              <Image
+                src="/favicon.svg"
+                alt="Fluenta"
+                width={20}
+                height={20}
+                className="w-5 h-5 sm:w-6 sm:h-6"
+              />
             </div>
-            <span className="font-bold text-xl">Fluenta</span>
+            <span className="font-bold text-lg sm:text-xl text-white">
+              Fluenta
+            </span>
           </div>
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
             <Link
               href="/modules/speaking"
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
             >
               Modules
             </Link>
             <Link
               href="#features"
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
             >
               Features
             </Link>
             <Link
               href="/blog"
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
             >
               Blog
             </Link>
             <Link
               href="/testimonials"
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
             >
               Success Stories
             </Link>
             <Link
               href="/faq"
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
             >
               FAQ
             </Link>
             <Link
               href="#pricing"
-              className="text-sm font-medium hover:text-primary transition-colors"
+              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
             >
               Pricing
             </Link>
           </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Link href="/login">
               <Button
                 variant="ghost"
-                className="transition-colors hover:text-primary"
+                className="text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200 hover:scale-105 transform"
               >
                 Login
               </Button>
             </Link>
-            <GradientButton
-              href="/register"
-              className="text-sm sm:text-base px-3 sm:px-6"
-            >
-              Get Started
-            </GradientButton>
+            <Link href="/register">
+              <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-4 sm:px-6 transition-all duration-200 hover:scale-105 transform shadow-lg">
+                Get Started
+              </Button>
+            </Link>
           </div>
         </div>
       </header>
@@ -139,11 +145,17 @@ export default function LandingPage() {
           backgroundImage: "url('/hero.png')",
         }}
       >
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-purple-900/70 to-indigo-900/80 backdrop-blur-sm"></div>
         <div className="container relative mx-auto px-5 pb-16 pt-20 md:pb-24 md:pt-24 lg:pb-32 lg:pt-36 relative z-10">
           <div className="relative z-1 max-w-[62rem] mx-auto text-center mb-[4rem] md:mb-16 lg:mb-[6rem]">
             <Tagline>
-              <span className="text-gray-100 font-medium drop-shadow-lg">
+              <span
+                className="text-white font-medium drop-shadow-lg"
+                style={{
+                  textShadow:
+                    "2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)",
+                }}
+              >
                 Complete English Learning Platform
               </span>
             </Tagline>
@@ -168,22 +180,24 @@ export default function LandingPage() {
               modules. Get personalized AI feedback on all your language skills.
             </p>
             <div className="flex gap-4 justify-center">
-              <GradientButton
-                href="/register"
-                size="lg"
-                className="animate-pulse-glow text-xs sm:text-base font-semibold drop-shadow-lg"
-                style={{ animationDuration: "4s" }}
-              >
-                Start Learning Now
-              </GradientButton>
-              <GradientButton
-                href="#modules"
-                variant="outline"
-                size="lg"
-                className="text-sm sm:text-base font-semibold drop-shadow-lg bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20"
-              >
-                Explore Modules
-              </GradientButton>
+              <Link href="/register">
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-semibold px-8 py-3 text-base shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 transform animate-pulse-glow"
+                  style={{ animationDuration: "3s" }}
+                >
+                  Start Learning Now
+                </Button>
+              </Link>
+              <Link href="#modules">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 font-semibold px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform"
+                >
+                  Explore Modules
+                </Button>
+              </Link>
             </div>
           </div>
         </div>
@@ -205,10 +219,10 @@ export default function LandingPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Reading Module */}
           <div
-            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            className="group relative overflow-hidden rounded-2xl border border-blue-200/50 dark:border-blue-700/50 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 hover:scale-105 hover:-translate-y-2"
             style={{
               backgroundImage: "url('/reading.jpg?v=1')",
               backgroundSize: "cover",
@@ -217,9 +231,9 @@ export default function LandingPage() {
               minHeight: "400px",
             }}
           >
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-blue-800/70 to-blue-900/80 group-hover:from-blue-900/70 group-hover:via-blue-800/60 group-hover:to-blue-900/70 transition-all duration-300"></div>
             <div className="p-6 space-y-4 relative z-10">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg group-hover:shadow-blue-500/50 transition-all duration-300 group-hover:scale-110">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -234,10 +248,10 @@ export default function LandingPage() {
                   <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold text-white group-hover:text-blue-200 transition-colors duration-300">
                 Reading Module
               </h3>
-              <p className="text-sm text-gray-100">
+              <p className="text-sm text-gray-100 leading-relaxed">
                 Improve your reading comprehension with AI-generated content
                 tailored to your level and interests. Answer interactive
                 questions, learn vocabulary in context, and track your progress.
@@ -294,7 +308,7 @@ export default function LandingPage() {
 
           {/* Writing Module */}
           <div
-            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            className="group relative overflow-hidden rounded-2xl border border-green-200/50 dark:border-green-700/50 hover:shadow-xl hover:shadow-green-500/20 transition-all duration-300 hover:scale-105 hover:-translate-y-2"
             style={{
               backgroundImage: "url('/writing.jpg?v=1')",
               backgroundSize: "cover",
@@ -303,9 +317,9 @@ export default function LandingPage() {
               minHeight: "400px",
             }}
           >
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-green-900/80 via-green-800/70 to-green-900/80 group-hover:from-green-900/70 group-hover:via-green-800/60 group-hover:to-green-900/70 transition-all duration-300"></div>
             <div className="p-6 space-y-4 relative z-10">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white shadow-lg">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white shadow-lg group-hover:shadow-green-500/50 transition-all duration-300 group-hover:scale-110">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -322,10 +336,10 @@ export default function LandingPage() {
                   <circle cx="11" cy="11" r="2"></circle>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold text-white group-hover:text-green-200 transition-colors duration-300">
                 Writing Module
               </h3>
-              <p className="text-sm text-gray-100">
+              <p className="text-sm text-gray-100 leading-relaxed">
                 Enhance your writing skills with guided prompts and AI-powered
                 feedback. Get detailed analysis on grammar, vocabulary usage,
                 sentence structure, and more.
@@ -382,7 +396,7 @@ export default function LandingPage() {
 
           {/* Listening Module */}
           <div
-            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            className="group relative overflow-hidden rounded-2xl border border-purple-200/50 dark:border-purple-700/50 hover:shadow-xl hover:shadow-purple-500/20 transition-all duration-300 hover:scale-105 hover:-translate-y-2"
             style={{
               backgroundImage: "url('/listening.jpg?v=1')",
               backgroundSize: "cover",
@@ -391,9 +405,9 @@ export default function LandingPage() {
               minHeight: "400px",
             }}
           >
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-purple-900/80 via-purple-800/70 to-purple-900/80 group-hover:from-purple-900/70 group-hover:via-purple-800/60 group-hover:to-purple-900/70 transition-all duration-300"></div>
             <div className="p-6 space-y-4 relative z-10">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-lg group-hover:shadow-purple-500/50 transition-all duration-300 group-hover:scale-110">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -408,10 +422,10 @@ export default function LandingPage() {
                   <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold text-white group-hover:text-purple-200 transition-colors duration-300">
                 Listening Module
               </h3>
-              <p className="text-sm text-gray-100">
+              <p className="text-sm text-gray-100 leading-relaxed">
                 Sharpen your listening skills with a library of audio content.
                 Listen to conversations, answer questions, and practice
                 understanding native speakers.
@@ -468,7 +482,7 @@ export default function LandingPage() {
 
           {/* Speaking Module */}
           <div
-            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            className="group relative overflow-hidden rounded-2xl border border-red-200/50 dark:border-red-700/50 hover:shadow-xl hover:shadow-red-500/20 transition-all duration-300 hover:scale-105 hover:-translate-y-2"
             style={{
               backgroundImage: "url('/speaking.jpg?v=1')",
               backgroundSize: "cover",
@@ -477,9 +491,9 @@ export default function LandingPage() {
               minHeight: "400px",
             }}
           >
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-red-900/80 via-red-800/70 to-red-900/80 group-hover:from-red-900/70 group-hover:via-red-800/60 group-hover:to-red-900/70 transition-all duration-300"></div>
             <div className="p-6 space-y-4 relative z-10">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white shadow-lg">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white shadow-lg group-hover:shadow-red-500/50 transition-all duration-300 group-hover:scale-110">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -496,10 +510,10 @@ export default function LandingPage() {
                   <line x1="8" y1="23" x2="16" y2="23"></line>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold text-white group-hover:text-red-200 transition-colors duration-300">
                 Speaking Module
               </h3>
-              <p className="text-sm text-gray-100">
+              <p className="text-sm text-gray-100 leading-relaxed">
                 Practice speaking English with AI conversation partners. Get
                 feedback on pronunciation, fluency, grammar, and vocabulary in
                 real-time.
@@ -556,7 +570,7 @@ export default function LandingPage() {
 
           {/* Vocabulary Module */}
           <div
-            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            className="group relative overflow-hidden rounded-2xl border border-yellow-200/50 dark:border-yellow-700/50 hover:shadow-xl hover:shadow-yellow-500/20 transition-all duration-300 hover:scale-105 hover:-translate-y-2"
             style={{
               backgroundImage: "url('/vocabulary.jpg?v=1')",
               backgroundSize: "cover",
@@ -565,9 +579,9 @@ export default function LandingPage() {
               minHeight: "400px",
             }}
           >
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-yellow-900/80 via-yellow-800/70 to-yellow-900/80 group-hover:from-yellow-900/70 group-hover:via-yellow-800/60 group-hover:to-yellow-900/70 transition-all duration-300"></div>
             <div className="p-6 space-y-4 relative z-10">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center text-white shadow-lg">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-yellow-600 flex items-center justify-center text-white shadow-lg group-hover:shadow-yellow-500/50 transition-all duration-300 group-hover:scale-110">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -588,10 +602,10 @@ export default function LandingPage() {
                   <path d="M15 21h4"></path>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold text-white group-hover:text-yellow-200 transition-colors duration-300">
                 Vocabulary Module
               </h3>
-              <p className="text-sm text-gray-100">
+              <p className="text-sm text-gray-100 leading-relaxed">
                 Build your vocabulary with a personalized word bank, spaced
                 repetition review system, and interactive flashcards to track
                 your mastery level.
@@ -610,7 +624,22 @@ export default function LandingPage() {
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Spaced repetition learning
+                  Personalized word bank
+                </li>
+                <li className="flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="h-4 w-4 mr-2 text-yellow-300"
+                  >
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                  Spaced repetition system
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -627,28 +656,13 @@ export default function LandingPage() {
                   </svg>
                   Interactive flashcards
                 </li>
-                <li className="flex items-center">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-yellow-300"
-                  >
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
-                  Mastery tracking
-                </li>
               </ul>
             </div>
           </div>
 
           {/* Grammar Module */}
           <div
-            className="group hover:shadow-xl transition-all duration-300 backdrop-blur-sm hover:scale-105 hover:-translate-y-1 relative overflow-hidden rounded-lg border"
+            className="group relative overflow-hidden rounded-2xl border border-indigo-200/50 dark:border-indigo-700/50 hover:shadow-xl hover:shadow-indigo-500/20 transition-all duration-300 hover:scale-105 hover:-translate-y-2"
             style={{
               backgroundImage: "url('/grammar.jpg?v=1')",
               backgroundSize: "cover",
@@ -657,9 +671,9 @@ export default function LandingPage() {
               minHeight: "400px",
             }}
           >
-            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-all duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/80 via-indigo-800/70 to-indigo-900/80 group-hover:from-indigo-900/70 group-hover:via-indigo-800/60 group-hover:to-indigo-900/70 transition-all duration-300"></div>
             <div className="p-6 space-y-4 relative z-10">
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-500 to-cyan-600 flex items-center justify-center text-white shadow-lg">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center text-white shadow-lg group-hover:shadow-indigo-500/50 transition-all duration-300 group-hover:scale-110">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 24 24"
@@ -672,21 +686,15 @@ export default function LandingPage() {
                 >
                   <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                   <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                  <line x1="12" y1="6" x2="16" y2="6"></line>
-                  <line x1="12" y1="10" x2="16" y2="10"></line>
-                  <line x1="12" y1="14" x2="16" y2="14"></line>
-                  <line x1="8" y1="6" x2="8" y2="6"></line>
-                  <line x1="8" y1="10" x2="8" y2="10"></line>
-                  <line x1="8" y1="14" x2="8" y2="14"></line>
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-white">
+              <h3 className="text-xl font-semibold text-white group-hover:text-indigo-200 transition-colors duration-300">
                 Grammar Module
               </h3>
-              <p className="text-sm text-gray-100">
-                Master English grammar with personalized lessons targeting your
-                weak areas. Take daily challenges and get detailed explanations
-                for grammar rules.
+              <p className="text-sm text-gray-100 leading-relaxed">
+                Master English grammar with structured lessons, interactive
+                exercises, and personalized practice based on your common
+                mistakes and learning progress.
               </p>
               <ul className="text-sm space-y-2 text-gray-100">
                 <li className="flex items-center">
@@ -698,11 +706,11 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-cyan-300"
+                    className="h-4 w-4 mr-2 text-indigo-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Personalized grammar lessons
+                  Structured grammar lessons
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -713,11 +721,11 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-cyan-300"
+                    className="h-4 w-4 mr-2 text-indigo-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Daily grammar challenges
+                  Interactive exercises
                 </li>
                 <li className="flex items-center">
                   <svg
@@ -728,11 +736,11 @@ export default function LandingPage() {
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    className="h-4 w-4 mr-2 text-cyan-300"
+                    className="h-4 w-4 mr-2 text-indigo-300"
                   >
                     <polyline points="20 6 9 17 4 12"></polyline>
                   </svg>
-                  Error pattern recognition
+                  Personalized practice
                 </li>
               </ul>
             </div>
@@ -1146,13 +1154,14 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-              <GradientButton
-                href="/register?plan=monthly"
-                className="w-full"
-                size="lg"
-              >
-                Start Monthly Plan
-              </GradientButton>
+              <Link href="/register?plan=monthly">
+                <Button
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform"
+                  size="lg"
+                >
+                  Start Monthly Plan
+                </Button>
+              </Link>
             </div>
           </GradientCard>
 
@@ -1254,14 +1263,14 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-              <GradientButton
-                href="/register?plan=annual"
-                className="w-full"
-                size="lg"
-                variant="default"
-              >
-                Start Annual Plan
-              </GradientButton>
+              <Link href="/register?plan=annual">
+                <Button
+                  className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform"
+                  size="lg"
+                >
+                  Start Annual Plan
+                </Button>
+              </Link>
             </div>
           </GradientCard>
         </div>
@@ -1306,14 +1315,15 @@ export default function LandingPage() {
             AI-powered language coach.
           </p>
           <div className="flex justify-center">
-            <GradientButton
-              href="/register"
-              size="lg"
-              className="animate-pulse-glow text-xs sm:text-base"
-              style={{ animationDuration: "3s" }}
-            >
-              Start Learning Now
-            </GradientButton>
+            <Link href="/register">
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-semibold px-8 py-3 text-base shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 transform animate-pulse-glow"
+                style={{ animationDuration: "3s" }}
+              >
+                Start Learning Now
+              </Button>
+            </Link>
           </div>
 
           {/* Decorative background elements */}

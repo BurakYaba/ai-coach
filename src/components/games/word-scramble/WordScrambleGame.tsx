@@ -3,6 +3,9 @@
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
 // Dynamic import for Phaser
 
 import { PlayButton } from "@/components/ui/play-button";
@@ -44,6 +47,7 @@ export default function WordScrambleGame({
   onComplete,
 }: WordScrambleGameProps) {
   const { data: session } = useSession();
+  const router = useRouter();
   const [difficulty, setDifficulty] = useState<
     "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
   >("A1");
@@ -207,35 +211,39 @@ export default function WordScrambleGame({
     const percentage = Math.round((correctAnswers / totalQuestions) * 100);
 
     return (
-      <Card className="mb-6">
+      <Card className="mb-6 border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
         <CardHeader>
-          <CardTitle>Game Results</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl text-gray-800">Game Results</CardTitle>
+          <CardDescription className="text-gray-600">
             Here&apos;s how you did in Word Scramble
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Score:</span>
-              <span className="text-xl font-bold">{score} points</span>
+          <div className="space-y-3">
+            <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
+              <span className="font-medium text-gray-700">Score:</span>
+              <span className="text-2xl font-bold text-blue-600">
+                {score} points
+              </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Words Completed:</span>
-              <span>
+            <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
+              <span className="font-medium text-gray-700">
+                Words Completed:
+              </span>
+              <span className="text-lg font-semibold text-green-600">
                 {correctAnswers} out of {totalQuestions}
               </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="font-medium">Success Rate:</span>
+            <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
+              <span className="font-medium text-gray-700">Success Rate:</span>
               <span
-                className={
+                className={`text-lg font-semibold ${
                   percentage >= 80
                     ? "text-green-600"
                     : percentage >= 50
                       ? "text-amber-600"
                       : "text-red-600"
-                }
+                }`}
               >
                 {percentage}%
               </span>
@@ -243,7 +251,12 @@ export default function WordScrambleGame({
           </div>
         </CardContent>
         <CardFooter className="flex justify-center">
-          <PlayButton onClick={startGame}>PLAY AGAIN</PlayButton>
+          <PlayButton
+            onClick={startGame}
+            className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          >
+            PLAY AGAIN
+          </PlayButton>
         </CardFooter>
       </Card>
     );
@@ -253,211 +266,276 @@ export default function WordScrambleGame({
   const renderGameSettings = () => {
     return (
       <div className="space-y-6">
-        <div className="p-6 bg-card rounded-lg shadow-sm">
-          <h3 className="text-lg font-medium mb-4">Game Settings</h3>
+        <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+          <CardHeader>
+            <CardTitle className="text-xl text-gray-800">
+              Game Settings
+            </CardTitle>
+            <CardDescription className="text-gray-600">
+              Customize your word scramble experience
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <label
+                  htmlFor="difficulty-select"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Difficulty Level
+                </label>
+                <Select
+                  value={difficulty}
+                  onValueChange={(
+                    value: "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
+                  ) => setDifficulty(value)}
+                >
+                  <SelectTrigger
+                    id="difficulty-select"
+                    className="border-2 border-gray-300 focus:border-blue-500"
+                  >
+                    <SelectValue placeholder="Select difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="A1">A1 (Beginner)</SelectItem>
+                    <SelectItem value="A2">A2 (Elementary)</SelectItem>
+                    <SelectItem value="B1">B1 (Intermediate)</SelectItem>
+                    <SelectItem value="B2">B2 (Upper Intermediate)</SelectItem>
+                    <SelectItem value="C1">C1 (Advanced)</SelectItem>
+                    <SelectItem value="C2">C2 (Proficiency)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label
-                htmlFor="difficulty-select"
-                className="text-sm font-medium"
-              >
-                Difficulty Level
-              </label>
-              <Select
-                value={difficulty}
-                onValueChange={(
-                  value: "A1" | "A2" | "B1" | "B2" | "C1" | "C2"
-                ) => setDifficulty(value)}
-              >
-                <SelectTrigger id="difficulty-select">
-                  <SelectValue placeholder="Select difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="A1">A1 (Beginner)</SelectItem>
-                  <SelectItem value="A2">A2 (Elementary)</SelectItem>
-                  <SelectItem value="B1">B1 (Intermediate)</SelectItem>
-                  <SelectItem value="B2">B2 (Upper Intermediate)</SelectItem>
-                  <SelectItem value="C1">C1 (Advanced)</SelectItem>
-                  <SelectItem value="C2">C2 (Proficiency)</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-3">
+                <label
+                  htmlFor="word-count-select"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Number of Words
+                </label>
+                <Select
+                  value={wordCount.toString()}
+                  onValueChange={value => setWordCount(parseInt(value))}
+                >
+                  <SelectTrigger
+                    id="word-count-select"
+                    className="border-2 border-gray-300 focus:border-blue-500"
+                  >
+                    <SelectValue placeholder="Select word count" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5 words</SelectItem>
+                    <SelectItem value="10">10 words</SelectItem>
+                    <SelectItem value="15">15 words</SelectItem>
+                    <SelectItem value="20">20 words</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3">
+                <label
+                  htmlFor="time-limit-select"
+                  className="text-sm font-medium text-gray-700"
+                >
+                  Time Limit
+                </label>
+                <Select
+                  value={timeLimit.toString()}
+                  onValueChange={value => setTimeLimit(parseInt(value))}
+                >
+                  <SelectTrigger
+                    id="time-limit-select"
+                    className="border-2 border-gray-300 focus:border-blue-500"
+                  >
+                    <SelectValue placeholder="Select time limit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">30 seconds (Quick)</SelectItem>
+                    <SelectItem value="60">60 seconds (Normal)</SelectItem>
+                    <SelectItem value="120">120 seconds (Relaxed)</SelectItem>
+                    <SelectItem value="180">180 seconds (Extended)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="word-count-select"
-                className="text-sm font-medium"
-              >
-                Number of Words
-              </label>
-              <Select
-                value={wordCount.toString()}
-                onValueChange={value => setWordCount(parseInt(value))}
-              >
-                <SelectTrigger id="word-count-select">
-                  <SelectValue placeholder="Select word count" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5 words</SelectItem>
-                  <SelectItem value="10">10 words</SelectItem>
-                  <SelectItem value="15">15 words</SelectItem>
-                  <SelectItem value="20">20 words</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="time-limit-select"
-                className="text-sm font-medium"
-              >
-                Time Limit
-              </label>
-              <Select
-                value={timeLimit.toString()}
-                onValueChange={value => setTimeLimit(parseInt(value))}
-              >
-                <SelectTrigger id="time-limit-select">
-                  <SelectValue placeholder="Select time limit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="30">30 seconds (Quick)</SelectItem>
-                  <SelectItem value="60">60 seconds (Normal)</SelectItem>
-                  <SelectItem value="120">120 seconds (Relaxed)</SelectItem>
-                  <SelectItem value="180">180 seconds (Extended)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex justify-center">
-          <PlayButton onClick={startGame}>START GAME</PlayButton>
-        </div>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <PlayButton
+              onClick={startGame}
+              className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              START GAME
+            </PlayButton>
+          </CardFooter>
+        </Card>
       </div>
     );
   };
 
   return (
-    <div className="word-scramble-game">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Word Scramble</h1>
-        <p className="text-muted-foreground">
-          Unscramble the jumbled words to improve your vocabulary and spelling
-          skills.
-        </p>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-4xl mx-auto p-6">
+        {/* Header with back button */}
+        <div className="flex items-center gap-3 mb-8">
+          <Button
+            variant="outline"
+            size="icon"
+            className="bg-white hover:bg-gray-50 border-gray-300 shadow-sm hover:shadow-md transition-all duration-200"
+            onClick={() => router.push("/dashboard/games")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800">Word Scramble</h1>
+            <p className="text-gray-600">
+              Unscramble the jumbled words to improve your vocabulary and
+              spelling skills
+            </p>
+          </div>
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm mb-6">
+            <TabsTrigger
+              value="start"
+              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              Setup
+            </TabsTrigger>
+            <TabsTrigger
+              value="game"
+              disabled={!gameStarted}
+              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              Game
+            </TabsTrigger>
+            <TabsTrigger
+              value="instructions"
+              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              Instructions
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="start" className="space-y-6">
+            {gameResult && renderResultCard()}
+            {renderGameSettings()}
+          </TabsContent>
+
+          <TabsContent value="game">
+            {gameStarted && gameConfig && (
+              <Card className="border-2 bg-white shadow-lg">
+                <CardContent className="p-6">
+                  <div className="h-[600px] rounded-lg overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50">
+                    <PhaserGame
+                      gameConfig={gameConfig}
+                      onGameComplete={handleGameComplete}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="instructions">
+            <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardHeader>
+                <CardTitle className="text-2xl text-gray-800">
+                  How to Play Word Scramble
+                </CardTitle>
+                <CardDescription className="text-gray-600">
+                  Instructions for the game
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h3 className="font-semibold mb-2 text-blue-800">
+                    Objective
+                  </h3>
+                  <p className="text-blue-700">
+                    Unscramble as many words as you can within the time limit to
+                    earn points.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h3 className="font-semibold mb-3 text-green-800">
+                    Gameplay
+                  </h3>
+                  <ol className="list-decimal list-inside space-y-2 text-green-700">
+                    <li>
+                      A scrambled word will appear on the screen along with its
+                      definition.
+                    </li>
+                    <li>
+                      Click on the letter tiles to place them in the answer
+                      area.
+                    </li>
+                    <li>Click on a letter in the answer area to remove it.</li>
+                    <li>
+                      Click "Submit" when you think your answer is correct.
+                    </li>
+                    <li>
+                      If correct, you&apos;ll earn 10 points and move to the
+                      next word.
+                    </li>
+                    <li>If incorrect, try again!</li>
+                    <li>
+                      You can click "Skip" to move to the next word without
+                      scoring.
+                    </li>
+                  </ol>
+                </div>
+
+                <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <h3 className="font-semibold mb-3 text-yellow-800">Tips</h3>
+                  <ul className="list-disc list-inside space-y-2 text-yellow-700">
+                    <li>Use the definition as a hint for the word.</li>
+                    <li>Look for common prefixes and suffixes.</li>
+                    <li>Try different combinations if you&apos;re stuck.</li>
+                    <li>Don&apos;t spend too much time on any single word.</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <h3 className="font-semibold mb-3 text-purple-800">
+                    Vocabulary Levels
+                  </h3>
+                  <p className="text-purple-700 mb-3">
+                    Words are categorized according to the CEFR levels:
+                  </p>
+                  <ul className="list-disc list-inside space-y-2 text-purple-700">
+                    <li>
+                      <strong>A1 (Beginner)</strong>: Simple, common words.
+                    </li>
+                    <li>
+                      <strong>A2 (Elementary)</strong>: Basic, everyday
+                      vocabulary.
+                    </li>
+                    <li>
+                      <strong>B1 (Intermediate)</strong>: Everyday vocabulary
+                      with some complexity.
+                    </li>
+                    <li>
+                      <strong>B2 (Upper Intermediate)</strong>: More abstract
+                      terms and formal vocabulary.
+                    </li>
+                    <li>
+                      <strong>C1 (Advanced)</strong>: Sophisticated vocabulary
+                      for complex topics.
+                    </li>
+                    <li>
+                      <strong>C2 (Proficiency)</strong>: Specialized, nuanced
+                      vocabulary for academic or professional use.
+                    </li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="start">Setup</TabsTrigger>
-          <TabsTrigger value="game" disabled={!gameStarted}>
-            Game
-          </TabsTrigger>
-          <TabsTrigger value="instructions">Instructions</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="start" className="space-y-4">
-          {gameResult && renderResultCard()}
-          {renderGameSettings()}
-        </TabsContent>
-
-        <TabsContent value="game">
-          {gameStarted && gameConfig && (
-            <div className="bg-card p-4 rounded-lg shadow-sm">
-              <div className="h-[600px] rounded-md overflow-hidden">
-                <PhaserGame
-                  gameConfig={gameConfig}
-                  onGameComplete={handleGameComplete}
-                />
-              </div>
-            </div>
-          )}
-        </TabsContent>
-
-        <TabsContent value="instructions">
-          <Card>
-            <CardHeader>
-              <CardTitle>How to Play Word Scramble</CardTitle>
-              <CardDescription>Instructions for the game</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-2">Objective</h3>
-                <p>
-                  Unscramble as many words as you can within the time limit to
-                  earn points.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-2">Gameplay</h3>
-                <ol className="list-decimal list-inside space-y-2">
-                  <li>
-                    A scrambled word will appear on the screen along with its
-                    definition.
-                  </li>
-                  <li>
-                    Click on the letter tiles to place them in the answer area.
-                  </li>
-                  <li>Click on a letter in the answer area to remove it.</li>
-                  <li>Click "Submit" when you think your answer is correct.</li>
-                  <li>
-                    If correct, you&apos;ll earn 10 points and move to the next
-                    word.
-                  </li>
-                  <li>If incorrect, try again!</li>
-                  <li>
-                    You can click "Skip" to move to the next word without
-                    scoring.
-                  </li>
-                </ol>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-2">Tips</h3>
-                <ul className="list-disc list-inside space-y-2">
-                  <li>Use the definition as a hint for the word.</li>
-                  <li>Look for common prefixes and suffixes.</li>
-                  <li>Try different combinations if you&apos;re stuck.</li>
-                  <li>Don&apos;t spend too much time on any single word.</li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-2">Vocabulary Levels</h3>
-                <p>Words are categorized according to the CEFR levels:</p>
-                <ul className="list-disc list-inside space-y-2">
-                  <li>
-                    <strong>A1 (Beginner)</strong>: Simple, common words.
-                  </li>
-                  <li>
-                    <strong>A2 (Elementary)</strong>: Basic, everyday
-                    vocabulary.
-                  </li>
-                  <li>
-                    <strong>B1 (Intermediate)</strong>: Everyday vocabulary with
-                    some complexity.
-                  </li>
-                  <li>
-                    <strong>B2 (Upper Intermediate)</strong>: More abstract
-                    terms and formal vocabulary.
-                  </li>
-                  <li>
-                    <strong>C1 (Advanced)</strong>: Sophisticated vocabulary for
-                    complex topics.
-                  </li>
-                  <li>
-                    <strong>C2 (Proficiency)</strong>: Specialized, nuanced
-                    vocabulary for academic or professional use.
-                  </li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }

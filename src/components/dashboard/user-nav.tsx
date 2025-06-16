@@ -1,6 +1,7 @@
 "use client";
 
 import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -67,10 +68,10 @@ export function UserNav({ user }: UserNavProps) {
             asChild
             className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
           >
-            <a href="/school-admin">
+            <Link href="/school-admin">
               <School className="w-4 h-4 text-gray-600" />
               <span className="text-gray-700">School Admin</span>
-            </a>
+            </Link>
           </DropdownMenuItem>
         )}
 
@@ -80,10 +81,10 @@ export function UserNav({ user }: UserNavProps) {
             asChild
             className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
           >
-            <a href="/admin">
+            <Link href="/admin">
               <Settings className="w-4 h-4 text-gray-600" />
               <span className="text-gray-700">Admin Dashboard</span>
-            </a>
+            </Link>
           </DropdownMenuItem>
         )}
 
@@ -91,40 +92,40 @@ export function UserNav({ user }: UserNavProps) {
           asChild
           className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
         >
-          <a href="/dashboard/profile">
+          <Link href="/dashboard/profile">
             <User className="w-4 h-4 text-gray-600" />
             <span className="text-gray-700">Profile</span>
-          </a>
+          </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem
           asChild
           className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
         >
-          <a href="/dashboard/learning-path">
+          <Link href="/dashboard/learning-path">
             <MapPin className="w-4 h-4 text-gray-600" />
             <span className="text-gray-700">Learning Path</span>
-          </a>
+          </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem
           asChild
           className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
         >
-          <a href="/dashboard/subscription">
+          <Link href="/dashboard/subscription">
             <CreditCard className="w-4 h-4 text-gray-600" />
             <span className="text-gray-700">Billing & Subscription</span>
-          </a>
+          </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem
           asChild
           className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
         >
-          <a href="/dashboard/settings">
+          <Link href="/dashboard/settings">
             <Settings className="w-4 h-4 text-gray-600" />
             <span className="text-gray-700">Settings</span>
-          </a>
+          </Link>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator className="my-2" />
@@ -147,10 +148,10 @@ export function UserNav({ user }: UserNavProps) {
           asChild
           className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
         >
-          <a href="/dashboard/feedback">
+          <Link href="/dashboard/feedback">
             <Star className="w-4 h-4 text-gray-600" />
             <span className="text-gray-700">My Feedback</span>
-          </a>
+          </Link>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator className="my-2" />

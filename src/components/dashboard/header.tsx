@@ -50,7 +50,7 @@ export default function DashboardHeader({
         <div className="flex items-center justify-between w-full">
           {/* Left side - Logo only */}
           <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-10 md:h-10 bg-white/20 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-10 md:h-10 flex items-center justify-center">
               <Image
                 src="/favicon.svg"
                 alt="Fluenta"
@@ -112,7 +112,7 @@ export default function DashboardHeader({
                     {/* Header */}
                     <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-4">
                       <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                        <div className="w-8 h-8 flex items-center justify-center">
                           <Image
                             src="/favicon.svg"
                             alt="Fluenta"
@@ -360,7 +360,7 @@ function DashboardNavMobile({ onItemClick }: { onItemClick: () => void }) {
           (item.href !== "/dashboard" && pathname?.startsWith(item.href));
 
         return (
-          <a
+          <Link
             key={item.href}
             href={item.href}
             className={`flex items-center space-x-3 p-3 rounded-lg transition-all duration-200 ${
@@ -375,7 +375,7 @@ function DashboardNavMobile({ onItemClick }: { onItemClick: () => void }) {
             {isActive && (
               <div className="ml-auto w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
             )}
-          </a>
+          </Link>
         );
       })}
     </nav>

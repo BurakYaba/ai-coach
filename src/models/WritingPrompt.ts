@@ -1,7 +1,8 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IWritingPrompt extends Document {
-  type: 'essay' | 'letter' | 'story' | 'argument';
+  userId: mongoose.Types.ObjectId;
+  type: "essay" | "letter" | "story" | "argument";
   level: string;
   topic: string;
   text: string;
@@ -35,15 +36,20 @@ const RubricItemSchema = new Schema({
 
 const WritingPromptSchema = new Schema(
   {
+    userId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     type: {
       type: String,
       required: true,
-      enum: ['essay', 'letter', 'story', 'argument'],
+      enum: ["essay", "letter", "story", "argument"],
     },
     level: {
       type: String,
       required: true,
-      enum: ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'],
+      enum: ["A1", "A2", "B1", "B2", "C1", "C2"],
     },
     topic: { type: String, required: true },
     text: { type: String, required: true },
@@ -60,8 +66,8 @@ const WritingPromptSchema = new Schema(
 );
 
 // Create indexes for efficient querying
-WritingPromptSchema.index({ level: 1, type: 1 });
+WritingPromptSchema.index({ userId: 1, level: 1, type: 1 });
 WritingPromptSchema.index({ topic: 1 });
 
 export default mongoose.models.WritingPrompt ||
-  mongoose.model<IWritingPrompt>('WritingPrompt', WritingPromptSchema);
+  mongoose.model<IWritingPrompt>("WritingPrompt", WritingPromptSchema);

@@ -16,13 +16,19 @@ const SUBSCRIPTION_PROTECTED_PATHS = [
 const AUTH_PROTECTED_PATHS = [
   ...SUBSCRIPTION_PROTECTED_PATHS,
   "/profile",
+  "/dashboard/profile",
+  "/dashboard/settings",
   "/school-admin",
   "/admin",
   "/onboarding",
 ];
 
 // List of paths that expired individual users can still access for subscription management
-const SUBSCRIPTION_MANAGEMENT_PATHS = ["/pricing", "/profile"];
+const SUBSCRIPTION_MANAGEMENT_PATHS = [
+  "/pricing",
+  "/profile",
+  "/dashboard/profile",
+];
 
 // List of paths that require school admin role
 const SCHOOL_ADMIN_PATHS = ["/school-admin"];
@@ -52,6 +58,8 @@ const ONBOARDING_EXEMPT_PATHS = [
   "/register",
   "/pricing",
   "/profile",
+  "/dashboard/profile",
+  "/dashboard/settings",
 ];
 
 export async function middleware(request: NextRequest) {

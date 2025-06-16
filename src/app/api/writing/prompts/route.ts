@@ -33,13 +33,13 @@ export async function GET(req: NextRequest) {
     const topic = url.searchParams.get("topic");
     const limit = parseInt(url.searchParams.get("limit") || "10");
 
-    // Build query
-    const query: any = {};
+    // Build query with userId filter
+    const query: any = { userId: session.user.id };
     if (level) query.level = level;
     if (type) query.type = type;
     if (topic) query.topic = { $regex: topic, $options: "i" };
 
-    // Fetch prompts
+    // Fetch prompts for the current user only
     const prompts = await WritingPrompt.find(query)
       .limit(limit)
       .sort({ createdAt: -1 });
@@ -88,8 +88,12 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Create new prompt
-    const prompt = await WritingPrompt.create(body);
+    // Create new prompt with userId
+    const promptData = {
+      ...body,
+      userId: session.user.id,
+    };
+    const prompt = await WritingPrompt.create(promptData);
 
     return NextResponse.json({ prompt }, { status: 201 });
   } catch (error) {
