@@ -238,3 +238,70 @@
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+
+/* Mobile Performance Optimizations */
+@media (max-width: 768px) {
+  /* Disable complex animations on mobile for better performance */
+  .animate-float,
+  .animate-pulse-glow,
+  .animate-gradient-xy,
+  .animate-bounce,
+  .animate-spin,
+  .animate-ping {
+    animation: none !important;
+  }
+
+  /* Simplify transforms on mobile */
+  .hover\:scale-105:hover,
+  .hover\:-translate-y-2:hover {
+    transform: none !important;
+  }
+
+  /* Reduce blur effects on mobile */
+  .backdrop-blur-sm {
+    backdrop-filter: blur(2px) !important;
+  }
+
+  .backdrop-blur-md {
+    backdrop-filter: blur(4px) !important;
+  }
+
+  .blur-xl {
+    filter: blur(8px) !important;
+  }
+
+  .blur-3xl {
+    filter: blur(16px) !important;
+  }
+}
+
+/* Honor user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-float,
+  .animate-pulse-glow,
+  .animate-gradient-xy,
+  .animate-bounce,
+  .animate-spin,
+  .animate-ping {
+    animation: none !important;
+  }
+}
+
+/* Optimize background image loading */
+.hero-bg {
+  background-attachment: scroll; /* Better performance than fixed on mobile */
+}
+
+@media (max-width: 768px) {
+  .hero-bg {
+    background-size: cover;
+    background-position: center;
+    background-attachment: scroll;
+  }
+}

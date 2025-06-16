@@ -1,6 +1,8 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
-import { Metadata } from "next";
+import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,15 +14,10 @@ import {
   organizationSchema,
   websiteSchema,
 } from "@/components/seo/StructuredData";
-
-// Turkish SEO metadata
-export const metadata: Metadata = {
-  title: "Fluenta | AI Destekli İngilizce Öğrenme ile İngilizce Ustası Olun",
-  description:
-    "Fluenta'nın AI destekli okuma, yazma, dinleme, konuşma, kelime ve gramer pratikleri ile İngilizce öğrenin. Kişiselleştirilmiş geri bildirim alın ve ilerlemenizi takip edin.",
-  keywords:
-    "dil öğrenme, İngilizce öğrenme uygulaması, AI dil öğretmeni, İngilizce pratik, kelime geliştirici, gramer dersleri, konuşma pratiği, Fluenta",
-};
+import {
+  useMobileDetection,
+  useReducedMotion,
+} from "@/hooks/use-mobile-detection";
 
 // Custom components based on Brainwave design
 const Tagline = ({ children }: { children: React.ReactNode }) => (
@@ -29,31 +26,81 @@ const Tagline = ({ children }: { children: React.ReactNode }) => (
   </div>
 );
 
-// Animated background element
-const BackgroundGradient = () => (
-  <div className="absolute -z-10 inset-0 pointer-events-none overflow-hidden">
-    <div className="absolute top-0 left-1/2 w-[80rem] h-[80rem] -translate-x-1/2 -translate-y-1/2 opacity-30">
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-primary via-transparent to-secondary blur-3xl animate-gradient-xy" />
+// Mobile-optimized animated background element
+const BackgroundGradient = () => {
+  const { isMobile, isLoaded } = useMobileDetection();
+  const prefersReducedMotion = useReducedMotion();
+
+  if (!isLoaded) return null;
+
+  return (
+    <div className="absolute -z-10 inset-0 pointer-events-none overflow-hidden">
+      <div className="absolute top-0 left-1/2 w-[80rem] h-[80rem] -translate-x-1/2 -translate-y-1/2 opacity-30">
+        <div
+          className={`absolute inset-0 rounded-full bg-gradient-to-r from-primary via-transparent to-secondary blur-3xl ${
+            !isMobile && !prefersReducedMotion ? "animate-gradient-xy" : ""
+          }`}
+        />
+      </div>
+      <div className="absolute bottom-0 right-0 w-[40rem] h-[40rem] opacity-20">
+        <div
+          className={`absolute inset-0 rounded-full bg-gradient-to-r from-accent via-secondary to-transparent blur-3xl ${
+            !isMobile && !prefersReducedMotion ? "animate-pulse-glow" : ""
+          }`}
+        />
+      </div>
+      {!isMobile && (
+        <>
+          <div
+            className="hidden lg:block absolute bottom-1/3 left-10 w-24 h-24 rounded-full bg-primary bg-opacity-30 blur-xl animate-float"
+            style={{ animationDelay: "0s" }}
+          />
+          <div
+            className="hidden lg:block absolute top-1/3 right-10 w-20 h-20 rounded-full bg-accent bg-opacity-30 blur-xl animate-float"
+            style={{ animationDelay: "1s" }}
+          />
+          <div
+            className="hidden lg:block absolute top-2/3 right-1/4 w-16 h-16 rounded-full bg-secondary bg-opacity-30 blur-xl animate-float"
+            style={{ animationDelay: "2s" }}
+          />
+        </>
+      )}
     </div>
-    <div className="absolute bottom-0 right-0 w-[40rem] h-[40rem] opacity-20">
-      <div className="absolute inset-0 rounded-full bg-gradient-to-r from-accent via-secondary to-transparent blur-3xl animate-pulse-glow" />
-    </div>
-    <div
-      className="hidden lg:block absolute bottom-1/3 left-10 w-24 h-24 rounded-full bg-primary bg-opacity-30 blur-xl animate-float"
-      style={{ animationDelay: "0s" }}
-    />
-    <div
-      className="hidden lg:block absolute top-1/3 right-10 w-20 h-20 rounded-full bg-accent bg-opacity-30 blur-xl animate-float"
-      style={{ animationDelay: "1s" }}
-    />
-    <div
-      className="hidden lg:block absolute top-2/3 right-1/4 w-16 h-16 rounded-full bg-secondary bg-opacity-30 blur-xl animate-float"
-      style={{ animationDelay: "2s" }}
-    />
-  </div>
-);
+  );
+};
 
 export default function TurkishLandingPage() {
+  const { isMobile, isLoaded } = useMobileDetection();
+  const prefersReducedMotion = useReducedMotion();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu when screen size changes to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        // lg breakpoint
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Mobile-optimized hero background style
+  const getHeroBackgroundStyle = () => {
+    if (!isLoaded) return {};
+
+    return {
+      backgroundImage: isMobile
+        ? "url('/hero_800.webp')" // Use smaller image for mobile
+        : "url('/hero_1920.webp')",
+      backgroundSize: "cover",
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+    };
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background overflow-hidden">
       {/* Add structured data for SEO */}
@@ -63,104 +110,216 @@ export default function TurkishLandingPage() {
       {/* Global background effect */}
       <BackgroundGradient />
 
-      {/* Navigation - Updated to match dashboard header */}
+      {/* Navigation - Mobile Responsive */}
       <header className="fixed top-0 z-50 w-full bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white shadow-lg backdrop-blur supports-[backdrop-filter]:bg-opacity-95">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center">
-              <Image
-                src="/favicon.svg"
-                alt="Fluenta"
-                width={20}
-                height={20}
-                className="w-5 h-5 sm:w-6 sm:h-6"
-              />
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center">
+                <Image
+                  src="/favicon.svg"
+                  alt="Fluenta"
+                  width={20}
+                  height={20}
+                  className="w-5 h-5 sm:w-6 sm:h-6"
+                />
+              </div>
+              <span className="font-bold text-lg sm:text-xl text-white">
+                Fluenta
+              </span>
             </div>
-            <span className="font-bold text-lg sm:text-xl text-white">
-              Fluenta
-            </span>
-          </div>
 
-          {/* Language Switcher */}
-          <div className="flex items-center gap-2">
-            <Link
-              href="/"
-              className="px-2 py-1 rounded text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200"
-            >
-              EN
-            </Link>
-            <span className="text-white/50">|</span>
-            <Link
-              href="/tr"
-              className="px-2 py-1 rounded text-sm font-medium text-white bg-white/20 transition-all duration-200"
-            >
-              TR
-            </Link>
-          </div>
-
-          <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-            <Link
-              href="/tr/moduller/konusma"
-              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
-            >
-              Modüller
-            </Link>
-            <Link
-              href="#features"
-              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
-            >
-              Özellikler
-            </Link>
-            <Link
-              href="/tr/blog"
-              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
-            >
-              Blog
-            </Link>
-            <Link
-              href="/tr/basari-hikayeleri"
-              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
-            >
-              Başarı Hikayeleri
-            </Link>
-            <Link
-              href="/tr/sss"
-              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
-            >
-              SSS
-            </Link>
-            <Link
-              href="#pricing"
-              className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
-            >
-              Fiyatlandırma
-            </Link>
-          </nav>
-          <div className="flex items-center gap-3 sm:gap-4">
-            <Link href="/login">
-              <Button
-                variant="ghost"
-                className="text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200 hover:scale-105 transform"
+            {/* Desktop Navigation */}
+            <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
+              <Link
+                href="/tr/moduller/konusma"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
               >
-                Giriş Yap
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-4 sm:px-6 transition-all duration-200 hover:scale-105 transform shadow-lg">
-                Başla
-              </Button>
-            </Link>
+                Modüller
+              </Link>
+              <Link
+                href="#features"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
+              >
+                Özellikler
+              </Link>
+              <Link
+                href="/tr/blog"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
+              >
+                Blog
+              </Link>
+              <Link
+                href="/tr/basari-hikayeleri"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
+              >
+                Başarı Hikayeleri
+              </Link>
+              <Link
+                href="/tr/sss"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
+              >
+                SSS
+              </Link>
+              <Link
+                href="#pricing"
+                className="text-sm font-medium text-white/90 hover:text-white transition-colors duration-200 hover:scale-105 transform"
+              >
+                Fiyatlandırma
+              </Link>
+            </nav>
+
+            {/* Right side - Language + Auth + Mobile Menu */}
+            <div className="flex items-center gap-2 sm:gap-4">
+              {/* Language Switcher */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                <Link
+                  href="/"
+                  className="px-2 py-1 rounded text-xs sm:text-sm font-medium text-white/70 hover:text-white hover:bg-white/10 transition-all duration-200"
+                >
+                  EN
+                </Link>
+                <span className="text-white/50 text-xs sm:text-sm">|</span>
+                <Link
+                  href="/tr"
+                  className="px-2 py-1 rounded text-xs sm:text-sm font-medium text-white bg-white/20 transition-all duration-200"
+                >
+                  TR
+                </Link>
+              </div>
+
+              {/* Desktop Auth Buttons */}
+              <div className="hidden sm:flex items-center gap-2 lg:gap-3">
+                <Link href="/login">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200 hover:scale-105 transform text-sm px-3 py-2"
+                  >
+                    Giriş Yap
+                  </Button>
+                </Link>
+                <Link href="/register">
+                  <Button
+                    size="sm"
+                    className="bg-white text-blue-600 hover:bg-gray-100 font-semibold px-3 sm:px-4 py-2 text-sm transition-all duration-200 hover:scale-105 transform shadow-lg"
+                  >
+                    Başla
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-2 rounded-md text-white hover:bg-white/10 transition-colors duration-200"
+                aria-label="Mobil menüyü aç/kapat"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  {isMobileMenuOpen ? (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  ) : (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  )}
+                </svg>
+              </button>
+            </div>
           </div>
+
+          {/* Mobile Menu */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden border-t border-white/20 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600">
+              <div className="px-2 pt-2 pb-3 space-y-1">
+                <Link
+                  href="/tr/moduller/konusma"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Modüller
+                </Link>
+                <Link
+                  href="#features"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Özellikler
+                </Link>
+                <Link
+                  href="/tr/blog"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Blog
+                </Link>
+                <Link
+                  href="/tr/basari-hikayeleri"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Başarı Hikayeleri
+                </Link>
+                <Link
+                  href="/tr/sss"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  SSS
+                </Link>
+                <Link
+                  href="#pricing"
+                  className="block px-3 py-2 text-base font-medium text-white/90 hover:text-white hover:bg-white/10 rounded-md transition-colors duration-200"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  Fiyatlandırma
+                </Link>
+
+                {/* Mobile Auth Buttons */}
+                <div className="pt-4 border-t border-white/20 space-y-2">
+                  <Link href="/login" className="block">
+                    <Button
+                      variant="ghost"
+                      className="w-full text-white/90 hover:text-white hover:bg-white/10 transition-all duration-200 justify-start"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Giriş Yap
+                    </Button>
+                  </Link>
+                  <Link href="/register" className="block">
+                    <Button
+                      className="w-full bg-white text-blue-600 hover:bg-gray-100 font-semibold transition-all duration-200 shadow-lg"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Başla
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
       {/* Hero Section */}
       <section
-        className="pt-[7rem] -mt-[4rem] relative bg-cover bg-center bg-no-repeat"
+        className="pt-[7rem] -mt-[4rem] relative bg-cover bg-center bg-no-repeat hero-bg"
         id="hero"
-        style={{
-          backgroundImage: "url('/hero_1920.webp')",
-        }}
+        style={getHeroBackgroundStyle()}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-blue-900/80 via-purple-900/70 to-indigo-900/80 backdrop-blur-sm"></div>
         <div className="container relative mx-auto px-5 pb-16 pt-20 md:pb-24 md:pt-24 lg:pb-32 lg:pt-36 relative z-10">
@@ -169,27 +328,38 @@ export default function TurkishLandingPage() {
               <span
                 className="text-white font-medium drop-shadow-lg"
                 style={{
-                  textShadow:
-                    "2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)",
+                  textShadow: isMobile
+                    ? "1px 1px 2px rgba(0,0,0,0.8)"
+                    : "2px 2px 4px rgba(0,0,0,0.8), 0 0 8px rgba(0,0,0,0.5)",
                 }}
               >
                 Kapsamlı İngilizce Öğrenme Platformu
               </span>
             </Tagline>
             <h1
-              className="text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:text-7xl lg:leading-[1.1] text-center mb-6 animate-float drop-shadow-xl"
+              className={`text-4xl font-bold leading-tight tracking-tighter md:text-6xl lg:text-7xl lg:leading-[1.1] text-center mb-6 drop-shadow-xl ${
+                !isMobile && !prefersReducedMotion ? "animate-float" : ""
+              }`}
               style={{ animationDuration: "6s" }}
             >
               <span
                 className="text-gray-100"
-                style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
+                style={{
+                  textShadow: isMobile
+                    ? "1px 1px 2px rgba(0,0,0,0.7)"
+                    : "2px 2px 4px rgba(0,0,0,0.7)",
+                }}
               >
                 İngilizce'yi
               </span>
               <span className="text-gradient"> Fluenta</span>
               <span
                 className="text-gray-100"
-                style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
+                style={{
+                  textShadow: isMobile
+                    ? "1px 1px 2px rgba(0,0,0,0.7)"
+                    : "2px 2px 4px rgba(0,0,0,0.7)",
+                }}
               >
                 {" "}
                 ile Öğrenin
@@ -197,17 +367,25 @@ export default function TurkishLandingPage() {
             </h1>
             <p
               className="max-w-[42rem] mx-auto leading-normal sm:text-xl sm:leading-8 text-center mb-8 text-gray-100 font-medium drop-shadow-lg"
-              style={{ textShadow: "1px 1px 3px rgba(0,0,0,0.8)" }}
+              style={{
+                textShadow: isMobile
+                  ? "1px 1px 2px rgba(0,0,0,0.8)"
+                  : "1px 1px 3px rgba(0,0,0,0.8)",
+              }}
             >
               İnteraktif okuma, yazma, dinleme, konuşma, kelime ve gramer
               modülleri ile İngilizce öğrenin. Tüm dil becerilerinizde
               kişiselleştirilmiş AI geri bildirim alın.
             </p>
-            <div className="flex gap-4 justify-center">
+            <div className="flex gap-4 justify-center flex-col sm:flex-row">
               <Link href="/register">
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-semibold px-8 py-3 text-base shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 transform animate-pulse-glow"
+                  className={`bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-semibold px-8 py-3 text-base shadow-xl hover:shadow-2xl transition-all duration-300 w-full sm:w-auto ${
+                    !isMobile && !prefersReducedMotion
+                      ? "hover:scale-105 transform animate-pulse-glow"
+                      : ""
+                  }`}
                   style={{ animationDuration: "3s" }}
                 >
                   Hemen Öğrenmeye Başla
@@ -217,7 +395,11 @@ export default function TurkishLandingPage() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 font-semibold px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 transform"
+                  className={`bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20 font-semibold px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto ${
+                    !isMobile && !prefersReducedMotion
+                      ? "hover:scale-105 transform"
+                      : ""
+                  }`}
                 >
                   Modülleri Keşfet
                 </Button>

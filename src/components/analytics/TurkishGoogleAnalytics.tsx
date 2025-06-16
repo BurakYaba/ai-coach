@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Script from "next/script";
 
 // Turkish market specific Google Analytics configuration
@@ -20,12 +20,66 @@ declare global {
 
 export default function TurkishGoogleAnalytics() {
   const pathname = usePathname();
+  const [shouldLoadAnalytics, setShouldLoadAnalytics] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Determine if we're on Turkish pages
   const isTurkishPage = pathname?.startsWith("/tr") || false;
 
   useEffect(() => {
-    if (typeof window !== "undefined" && window.gtag) {
+    // Detect mobile device
+    const checkMobile = () => {
+      return (
+        window.innerWidth <= 768 ||
+        /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+          navigator.userAgent
+        )
+      );
+    };
+
+    setIsMobile(checkMobile());
+
+    // For mobile: load analytics on user interaction to improve LCP
+    // For desktop: load immediately
+    if (checkMobile()) {
+      const handleFirstInteraction = () => {
+        setShouldLoadAnalytics(true);
+        // Remove listeners after first interaction
+        document.removeEventListener("touchstart", handleFirstInteraction);
+        document.removeEventListener("scroll", handleFirstInteraction);
+        document.removeEventListener("click", handleFirstInteraction);
+      };
+
+      // Load on first user interaction (touch, scroll, or click)
+      document.addEventListener("touchstart", handleFirstInteraction, {
+        passive: true,
+      });
+      document.addEventListener("scroll", handleFirstInteraction, {
+        passive: true,
+      });
+      document.addEventListener("click", handleFirstInteraction, {
+        passive: true,
+      });
+
+      // Fallback: Load after 3 seconds if no interaction
+      const fallbackTimer = setTimeout(() => {
+        setShouldLoadAnalytics(true);
+      }, 3000);
+
+      return () => {
+        clearTimeout(fallbackTimer);
+        document.removeEventListener("touchstart", handleFirstInteraction);
+        document.removeEventListener("scroll", handleFirstInteraction);
+        document.removeEventListener("click", handleFirstInteraction);
+      };
+    } else {
+      // Desktop: load immediately
+      setShouldLoadAnalytics(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.gtag && shouldLoadAnalytics) {
       // Track page views for both global and Turkish-specific analytics
       window.gtag("config", GLOBAL_GA_ID, {
         page_path: pathname,
@@ -53,7 +107,7 @@ export default function TurkishGoogleAnalytics() {
         });
       }
     }
-  }, [pathname, isTurkishPage]);
+  }, [pathname, isTurkishPage, shouldLoadAnalytics]);
 
   // Track Turkish-specific user interactions
   const trackTurkishEvent = (
@@ -77,14 +131,22 @@ export default function TurkishGoogleAnalytics() {
     }
   }, [isTurkishPage]);
 
+  // Don't render until analytics should load
+  if (!shouldLoadAnalytics) {
+    return null;
+  }
+
   return (
     <>
       {/* Global Google Analytics */}
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GLOBAL_GA_ID}`}
-        strategy="afterInteractive"
+        strategy={isMobile ? "lazyOnload" : "afterInteractive"}
       />
-      <Script id="google-analytics" strategy="afterInteractive">
+      <Script
+        id="google-analytics"
+        strategy={isMobile ? "lazyOnload" : "afterInteractive"}
+      >
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
@@ -115,7 +177,10 @@ export default function TurkishGoogleAnalytics() {
 
       {/* Turkish market specific tracking */}
       {isTurkishPage && (
-        <Script id="turkish-analytics" strategy="afterInteractive">
+        <Script
+          id="turkish-analytics"
+          strategy={isMobile ? "lazyOnload" : "afterInteractive"}
+        >
           {`
             // Track Turkish market entry
             gtag('event', 'turkish_market_entry', {
