@@ -64,40 +64,35 @@ const nextConfig = {
         destination: '/cerez-politikasi',
         permanent: true,
       },
-      // Additional Turkish redirects from crawler errors
+      // Additional Turkish redirects
       {
         source: '/tr/moduller',
         destination: '/moduller',
         permanent: true,
       },
       {
-        source: '/tr/kariyer',
-        destination: '/en/careers', // Turkish careers redirect to English careers
-        permanent: true,
-      },
-      {
         source: '/tr/demo',
-        destination: '/register', // Demo redirects to registration
+        destination: '/register',
         permanent: true,
       },
       {
         source: '/tr/geri-bildirim',
-        destination: '/iletisim', // Feedback redirects to contact
+        destination: '/iletisim',
         permanent: true,
       },
       {
         source: '/tr/canlı-destek',
-        destination: '/iletisim', // Live support redirects to contact
+        destination: '/iletisim',
         permanent: true,
       },
       {
         source: '/tr/basin',
-        destination: '/hakkimizda', // Press redirects to about page
+        destination: '/hakkimizda',
         permanent: true,
       },
       {
         source: '/tr/destek',
-        destination: '/sss', // Support redirects to FAQ
+        destination: '/sss',
         permanent: true,
       },
       {
@@ -112,12 +107,12 @@ const nextConfig = {
       },
       {
         source: '/tr/iade',
-        destination: '/sss', // Refund policy redirects to FAQ
+        destination: '/sss',
         permanent: true,
       },
       {
         source: '/tr/kurumsal',
-        destination: '/hakkimizda', // Corporate redirects to about
+        destination: '/hakkimizda',
         permanent: true,
       },
 
@@ -144,12 +139,12 @@ const nextConfig = {
       },
       {
         source: '/testimonials',
-        destination: '/en/testimonials',
+        destination: '/en/success-stories',
         permanent: true,
       },
       {
-        source: '/careers',
-        destination: '/en/careers',
+        source: '/success-stories',
+        destination: '/en/success-stories',
         permanent: true,
       },
       {
@@ -162,19 +157,8 @@ const nextConfig = {
         destination: '/en/cookie-policy',
         permanent: true,
       },
-      // Additional English redirects from crawler errors
-      {
-        source: '/kariyer',
-        destination: '/en/careers', // Turkish careers page at root redirects to English
-        permanent: true,
-      },
-      {
-        source: '/en/success-stories',
-        destination: '/en/testimonials', // Success stories redirect to testimonials
-        permanent: true,
-      },
 
-      // English blog posts: /blog/* -> /en/blog/* (but only for English posts)
+      // English blog posts redirects
       {
         source: '/blog/ai-english-tutor-vs-human-teacher',
         destination: '/en/blog/ai-english-tutor-vs-human-teacher',
@@ -210,38 +194,8 @@ const nextConfig = {
         destination: '/en/blog/free-english-level-test',
         permanent: true,
       },
-      {
-        source: '/blog/ai-english-conversation-practice',
-        destination: '/en/blog/ai-english-conversation-practice',
-        permanent: true,
-      },
-      {
-        source: '/blog/english-grammar-mistakes-avoid',
-        destination: '/en/blog/english-grammar-mistakes-avoid',
-        permanent: true,
-      },
-      {
-        source: '/blog/vocabulary-building-strategies-2025',
-        destination: '/en/blog/vocabulary-building-strategies-2025',
-        permanent: true,
-      },
-      {
-        source: '/blog/5-ai-tools-improve-english-2025',
-        destination: '/en/blog/5-ai-tools-improve-english-2025',
-        permanent: true,
-      },
-      {
-        source: '/blog/ai-powered-english-learning-2025',
-        destination: '/en/blog/ai-powered-english-learning-2025',
-        permanent: true,
-      },
-      {
-        source: '/blog/ai-ile-ingilizce-ogrenme',
-        destination: '/tr/blog/ai-ile-ingilizce-ogrenme',
-        permanent: true,
-      },
 
-      // English modules: /modules/* -> /en/modules/*
+      // Module redirects
       {
         source: '/modules',
         destination: '/en/modules',
@@ -252,145 +206,65 @@ const nextConfig = {
         destination: '/en/modules/speaking',
         permanent: true,
       },
-      {
-        source: '/modules/speaking-fluency',
-        destination: '/en/modules/speaking-fluency',
-        permanent: true,
-      },
-      {
-        source: '/modules/pronunciation-trainer',
-        destination: '/en/modules/pronunciation-trainer',
-        permanent: true,
-      },
-      {
-        source: '/modules/grammar-coach',
-        destination: '/en/modules/grammar-coach',
-        permanent: true,
-      },
-      {
-        source: '/modules/vocabulary-builder',
-        destination: '/en/modules/vocabulary-builder',
-        permanent: true,
-      },
-      {
-        source: '/modules/writing-assistant',
-        destination: '/en/modules/writing-assistant',
-        permanent: true,
-      },
-      {
-        source: '/modules/listening-comprehension',
-        destination: '/en/modules/listening-comprehension',
-        permanent: true,
-      },
-      // Additional module redirects from crawler errors
-      {
-        source: '/en/modules/reading',
-        destination: '/en/modules/reading-comprehension', // Reading redirects to reading-comprehension
-        permanent: true,
-      },
-      // Turkish blog posts redirects
-      {
-        source: '/tr/blog/gunluk-ingilizce-konusma-pratigi',
-        destination: '/blog/gunluk-ingilizce-konusma-pratigi',
-        permanent: true,
-      },
-      {
-        source: '/tr/blog/ingilizce-gramer-rehberi',
-        destination: '/blog/ingilizce-gramer-rehberi',
-        permanent: true,
-      },
-      // English blog post redirect
-      {
-        source: '/blog/english-conversation-practice-app',
-        destination: '/en/blog/english-conversation-practice-app',
-        permanent: true,
-      },
-      // Turkish pages redirects
-      {
-        source: '/blog/ai-english-grammar-checker',
-        destination: '/en/blog/ai-english-grammar-checker',
-        permanent: true,
-      },
-      {
-        source: '/tr',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/tr/hakkimizda',
-        destination: '/hakkimizda',
-        permanent: true,
-      },
-      {
-        source: '/tr/moduller',
-        destination: '/moduller',
-        permanent: true,
-      },
-      {
-        source: '/tr/destek',
-        destination: '/destek',
-        permanent: true,
-      },
-      {
-        source: '/tr/kariyer',
-        destination: '/en/careers',
-        permanent: true,
-      },
-      // English page redirects
       {
         source: '/modules/reading',
         destination: '/en/modules/reading',
         permanent: true,
       },
       {
-        source: '/success-stories',
-        destination: '/en/success-stories',
+        source: '/modules/grammar',
+        destination: '/en/modules/grammar',
         permanent: true,
       },
       {
-        source: '/contact',
-        destination: '/en/contact',
+        source: '/modules/vocabulary',
+        destination: '/en/modules/vocabulary',
         permanent: true,
       },
       {
-        source: '/about',
-        destination: '/en/about',
+        source: '/modules/writing',
+        destination: '/en/modules/writing',
         permanent: true,
       },
       {
-        source: '/terms',
-        destination: '/en/terms',
+        source: '/modules/listening',
+        destination: '/en/modules/listening',
+        permanent: true,
+      },
+      // Legacy module names to new names
+      {
+        source: '/en/modules/reading-comprehension',
+        destination: '/en/modules/reading',
         permanent: true,
       },
       {
-        source: '/cookie-policy',
-        destination: '/en/cookie-policy',
+        source: '/en/modules/writing-assistant',
+        destination: '/en/modules/writing',
         permanent: true,
       },
       {
-        source: '/modules',
-        destination: '/en/modules',
+        source: '/en/modules/vocabulary-builder',
+        destination: '/en/modules/vocabulary',
         permanent: true,
       },
       {
-        source: '/blog/free-english-level-test',
-        destination: '/en/blog/free-english-level-test',
+        source: '/en/modules/grammar-coach',
+        destination: '/en/modules/grammar',
         permanent: true,
       },
       {
-        source: '/modules/speaking',
+        source: '/en/modules/pronunciation-trainer',
         destination: '/en/modules/speaking',
         permanent: true,
       },
+      // Testimonials to Success Stories redirect
       {
-        source: '/blog/english-grammar-mistakes-avoid',
-        destination: '/en/blog/english-grammar-mistakes-avoid',
+        source: '/en/testimonials',
+        destination: '/en/success-stories',
         permanent: true,
       },
     ];
   },
-  // The functions configuration is not valid in next.config.js
-  // It should only be in vercel.json
 };
 
 module.exports = nextConfig; 
