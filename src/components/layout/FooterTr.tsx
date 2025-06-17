@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function FooterEn() {
+export default function FooterTr() {
   return (
     <footer className="border-t border-foreground border-opacity-5 py-12 relative">
       <div className="container mx-auto px-5 grid gap-8 md:grid-cols-2 lg:grid-cols-4 relative z-10">
@@ -8,45 +8,45 @@ export default function FooterEn() {
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Fluenta</h3>
           <p className="text-sm text-muted-foreground">
-            Your all-in-one AI-powered platform for mastering English through
-            reading, writing, listening, speaking, vocabulary, and grammar.
+            Okuma, yazma, dinleme, konuşma, kelime ve gramer becerilerinizi
+            geliştirmek için yapay zeka destekli İngilizce öğrenme platformu.
           </p>
         </div>
 
         {/* Company Links */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Company</h3>
+          <h3 className="text-lg font-semibold">Şirket</h3>
           <ul className="space-y-2">
             <li>
               <Link
-                href="/en/about"
+                href="/hakkimizda"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                About Us
+                Hakkımızda
               </Link>
             </li>
             <li>
               <Link
-                href="/en/contact"
+                href="/iletisim"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                Contact
+                İletişim
               </Link>
             </li>
             <li>
               <Link
-                href="/en/careers"
+                href="/kariyer"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                Careers
+                Kariyer
               </Link>
             </li>
             <li>
               <Link
-                href="/en/success-stories"
+                href="/basari-hikayeleri"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                Success Stories
+                Başarı Hikayeleri
               </Link>
             </li>
           </ul>
@@ -54,11 +54,11 @@ export default function FooterEn() {
 
         {/* Resources */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Resources</h3>
+          <h3 className="text-lg font-semibold">Kaynaklar</h3>
           <ul className="space-y-2">
             <li>
               <Link
-                href="/en/blog"
+                href="/blog"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 Blog
@@ -66,26 +66,26 @@ export default function FooterEn() {
             </li>
             <li>
               <Link
-                href="/en/faq"
+                href="/sss"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                FAQ
+                SSS
               </Link>
             </li>
             <li>
               <Link
-                href="/en/modules"
+                href="/moduller"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                Modules
+                Modüller
               </Link>
             </li>
             <li>
               <Link
-                href="/en#pricing"
+                href="/#fiyatlandirma"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                Pricing
+                Fiyatlandırma
               </Link>
             </li>
           </ul>
@@ -93,30 +93,30 @@ export default function FooterEn() {
 
         {/* Legal */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Legal</h3>
+          <h3 className="text-lg font-semibold">Yasal</h3>
           <ul className="space-y-2">
             <li>
               <Link
-                href="/en/privacy"
+                href="/gizlilik"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                Privacy Policy
+                Gizlilik Politikası
               </Link>
             </li>
             <li>
               <Link
-                href="/en/terms"
+                href="/kullanim-kosullari"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                Terms of Service
+                Kullanım Koşulları
               </Link>
             </li>
             <li>
               <Link
-                href="/en/cookie-policy"
+                href="/cerez-politikasi"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
-                Cookie Policy
+                Çerez Politikası
               </Link>
             </li>
           </ul>
@@ -126,7 +126,7 @@ export default function FooterEn() {
       {/* Bottom Section with Copyright and Social Links */}
       <div className="container mx-auto px-5 mt-8 pt-8 border-t border-foreground border-opacity-5 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
         <p className="text-sm text-muted-foreground">
-          © {new Date().getFullYear()} Fluenta. All rights reserved.
+          © {new Date().getFullYear()} Fluenta. Tüm hakları saklıdır.
         </p>
         <div className="flex gap-4">
           <Link

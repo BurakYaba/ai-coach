@@ -8,114 +8,6 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      // Turkish pages: /tr/* -> /* (root level)
-      {
-        source: '/tr',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/tr/blog',
-        destination: '/blog',
-        permanent: true,
-      },
-      {
-        source: '/tr/blog/:slug*',
-        destination: '/blog/:slug*',
-        permanent: true,
-      },
-      {
-        source: '/tr/hakkimizda',
-        destination: '/hakkimizda',
-        permanent: true,
-      },
-      {
-        source: '/tr/fiyatlandirma',
-        destination: '/fiyatlandirma',
-        permanent: true,
-      },
-      {
-        source: '/tr/iletisim',
-        destination: '/iletisim',
-        permanent: true,
-      },
-      {
-        source: '/tr/sss',
-        destination: '/sss',
-        permanent: true,
-      },
-      {
-        source: '/tr/basari-hikayeleri',
-        destination: '/basari-hikayeleri',
-        permanent: true,
-      },
-      {
-        source: '/tr/kullanim-kosullari',
-        destination: '/kullanim-kosullari',
-        permanent: true,
-      },
-      {
-        source: '/tr/gizlilik-politikasi',
-        destination: '/gizlilik-politikasi',
-        permanent: true,
-      },
-      {
-        source: '/tr/cerez-politikasi',
-        destination: '/cerez-politikasi',
-        permanent: true,
-      },
-      // Additional Turkish redirects
-      {
-        source: '/tr/moduller',
-        destination: '/moduller',
-        permanent: true,
-      },
-      {
-        source: '/tr/demo',
-        destination: '/register',
-        permanent: true,
-      },
-      {
-        source: '/tr/geri-bildirim',
-        destination: '/iletisim',
-        permanent: true,
-      },
-      {
-        source: '/tr/canlı-destek',
-        destination: '/iletisim',
-        permanent: true,
-      },
-      {
-        source: '/tr/basin',
-        destination: '/hakkimizda',
-        permanent: true,
-      },
-      {
-        source: '/tr/destek',
-        destination: '/sss',
-        permanent: true,
-      },
-      {
-        source: '/tr/rehberler',
-        destination: '/blog',
-        permanent: true,
-      },
-      {
-        source: '/tr/ozellikler',
-        destination: '/moduller',
-        permanent: true,
-      },
-      {
-        source: '/tr/iade',
-        destination: '/sss',
-        permanent: true,
-      },
-      {
-        source: '/tr/kurumsal',
-        destination: '/hakkimizda',
-        permanent: true,
-      },
-
       // English pages: /* -> /en/* (move to /en/)
       {
         source: '/about',
@@ -138,11 +30,6 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: '/testimonials',
-        destination: '/en/success-stories',
-        permanent: true,
-      },
-      {
         source: '/success-stories',
         destination: '/en/success-stories',
         permanent: true,
@@ -153,6 +40,11 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: '/privacy-policy',
+        destination: '/en/privacy-policy',
+        permanent: true,
+      },
+      {
         source: '/cookie-policy',
         destination: '/en/cookie-policy',
         permanent: true,
@@ -160,18 +52,8 @@ const nextConfig = {
 
       // English blog posts redirects
       {
-        source: '/blog/ai-english-tutor-vs-human-teacher',
-        destination: '/en/blog/ai-english-tutor-vs-human-teacher',
-        permanent: true,
-      },
-      {
-        source: '/blog/improve-english-pronunciation-ai',
-        destination: '/en/blog/improve-english-pronunciation-ai',
-        permanent: true,
-      },
-      {
-        source: '/blog/english-grammar-rules-common-mistakes',
-        destination: '/en/blog/english-grammar-rules-common-mistakes',
+        source: '/blog/ai-powered-english-learning-2025',
+        destination: '/en/blog/ai-powered-english-learning-2025',
         permanent: true,
       },
       {
@@ -180,13 +62,38 @@ const nextConfig = {
         permanent: true,
       },
       {
-        source: '/blog/ai-english-grammar-checker',
-        destination: '/en/blog/ai-english-grammar-checker',
+        source: '/blog/complete-english-grammar-guide',
+        destination: '/en/blog/complete-english-grammar-guide',
         permanent: true,
       },
       {
-        source: '/blog/english-conversation-practice-app',
-        destination: '/en/blog/english-conversation-practice-app',
+        source: '/blog/business-english-career-guide',
+        destination: '/en/blog/business-english-career-guide',
+        permanent: true,
+      },
+      {
+        source: '/blog/ielts-preparation-ai-guide',
+        destination: '/en/blog/ielts-preparation-ai-guide',
+        permanent: true,
+      },
+      {
+        source: '/blog/daily-english-speaking-practice-beginners',
+        destination: '/en/blog/daily-english-speaking-practice-beginners',
+        permanent: true,
+      },
+      {
+        source: '/blog/vocabulary-building-strategies-2025',
+        destination: '/en/blog/vocabulary-building-strategies-2025',
+        permanent: true,
+      },
+      {
+        source: '/blog/english-listening-skills-improvement',
+        destination: '/en/blog/english-listening-skills-improvement',
+        permanent: true,
+      },
+      {
+        source: '/blog/english-grammar-mistakes-avoid',
+        destination: '/en/blog/english-grammar-mistakes-avoid',
         permanent: true,
       },
       {
@@ -195,7 +102,7 @@ const nextConfig = {
         permanent: true,
       },
 
-      // Module redirects
+      // English module redirects
       {
         source: '/modules',
         destination: '/en/modules',
@@ -207,13 +114,18 @@ const nextConfig = {
         permanent: true,
       },
       {
+        source: '/modules/grammar',
+        destination: '/en/modules/grammar',
+        permanent: true,
+      },
+      {
         source: '/modules/reading',
         destination: '/en/modules/reading',
         permanent: true,
       },
       {
-        source: '/modules/grammar',
-        destination: '/en/modules/grammar',
+        source: '/modules/listening',
+        destination: '/en/modules/listening',
         permanent: true,
       },
       {
@@ -225,44 +137,7 @@ const nextConfig = {
         source: '/modules/writing',
         destination: '/en/modules/writing',
         permanent: true,
-      },
-      {
-        source: '/modules/listening',
-        destination: '/en/modules/listening',
-        permanent: true,
-      },
-      // Legacy module names to new names
-      {
-        source: '/en/modules/reading-comprehension',
-        destination: '/en/modules/reading',
-        permanent: true,
-      },
-      {
-        source: '/en/modules/writing-assistant',
-        destination: '/en/modules/writing',
-        permanent: true,
-      },
-      {
-        source: '/en/modules/vocabulary-builder',
-        destination: '/en/modules/vocabulary',
-        permanent: true,
-      },
-      {
-        source: '/en/modules/grammar-coach',
-        destination: '/en/modules/grammar',
-        permanent: true,
-      },
-      {
-        source: '/en/modules/pronunciation-trainer',
-        destination: '/en/modules/speaking',
-        permanent: true,
-      },
-      // Testimonials to Success Stories redirect
-      {
-        source: '/en/testimonials',
-        destination: '/en/success-stories',
-        permanent: true,
-      },
+      }
     ];
   },
 };

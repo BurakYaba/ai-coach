@@ -28,6 +28,19 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPost() {
+  const relatedPosts = [
+    {
+      title: "How to Improve Your English Pronunciation with AI",
+      href: "/blog/improve-english-pronunciation-ai",
+      category: "Speaking",
+    },
+    {
+      title: "English Conversation Practice Apps",
+      href: "/blog/english-conversation-practice-app",
+      category: "Apps",
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -440,54 +453,20 @@ export default function BlogPost() {
           <section>
             <h2 className="text-2xl font-bold mb-6">Related Articles</h2>
             <div className="grid md:grid-cols-3 gap-6">
-              <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">
-                    <Link
-                      href="/blog/english-conversation-practice-app"
-                      className="hover:text-primary"
-                    >
-                      Best English Conversation Practice Apps 2025
-                    </Link>
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Compare the top conversation practice apps including AI and
-                    human options...
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">
-                    <Link
-                      href="/blog/english-pronunciation-practice-online"
-                      className="hover:text-primary"
-                    >
-                      English Pronunciation Practice Online: Best Tools 2025
-                    </Link>
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Master pronunciation with AI-powered tools and proven
-                    techniques...
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">
-                    <Link
-                      href="/blog/5-ai-tools-improve-english-2025"
-                      className="hover:text-primary"
-                    >
-                      5 AI Tools to Improve Your English in 2025
-                    </Link>
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Discover the latest AI-powered tools revolutionizing English
-                    learning...
-                  </p>
-                </CardContent>
-              </Card>
+              {relatedPosts.map(post => (
+                <Card key={post.title}>
+                  <CardContent className="p-4">
+                    <h3 className="font-semibold mb-2">
+                      <Link href={post.href} className="hover:text-primary">
+                        {post.title}
+                      </Link>
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {post.category}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </section>
         </article>

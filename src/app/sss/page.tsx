@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/accordion";
 import { MainNav } from "@/components/navigation/main-nav";
 import PopularResources from "@/components/layout/PopularResources";
-import Footer from "@/components/layout/Footer";
+import FooterTr from "@/components/layout/FooterTr";
 
 export default function TurkishFAQPage() {
   const faqCategories = [
@@ -284,7 +284,7 @@ export default function TurkishFAQPage() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      <FooterTr />
     </div>
   );
 }

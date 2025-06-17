@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { MainNav } from "@/components/navigation/main-nav";
+import FooterTr from "@/components/layout/FooterTr";
 
 export const metadata: Metadata = {
   title: "İletişim | Fluenta AI",
@@ -384,15 +385,6 @@ export default function TurkishContactPage() {
                     Ücretsiz Hesap Oluştur
                   </Button>
                 </Link>
-                <Link href="/demo">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full sm:w-auto"
-                  >
-                    Demo İzle
-                  </Button>
-                </Link>
               </div>
             </CardContent>
           </GradientCard>
@@ -400,111 +392,7 @@ export default function TurkishContactPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16 mt-16">
-        <div className="container">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <span className="font-bold text-xl">Fluenta</span>
-              </div>
-              <p className="text-gray-400 mb-4">
-                AI destekli İngilizce öğrenme platformu
-              </p>
-              <div className="space-y-2">
-                <p className="text-gray-400 text-sm">
-                  📧 destek@fluenta-ai.com
-                </p>
-                <p className="text-gray-400 text-sm">📞 +90 212 123 4567</p>
-              </div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Hızlı İletişim</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/sss" className="hover:text-white">
-                    Sıkça Sorulan Sorular
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/iletisim" className="hover:text-white">
-                    Geri Bildirim
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/canlı-destek" className="hover:text-white">
-                    Canlı Destek
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Departmanlar</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a
-                    href="mailto:satis@fluenta-ai.com"
-                    className="hover:text-white"
-                  >
-                    Satış
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="mailto:teknik@fluenta-ai.com"
-                    className="hover:text-white"
-                  >
-                    Teknik Destek
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="mailto:ortaklik@fluenta-ai.com"
-                    className="hover:text-white"
-                  >
-                    Ortaklık
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="mailto:basin@fluenta-ai.com"
-                    className="hover:text-white"
-                  >
-                    Basın
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Sosyal Medya</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Twitter
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    LinkedIn
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    Instagram
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-white">
-                    YouTube
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Fluenta. Tüm hakları saklıdır.</p>
-          </div>
-        </div>
-      </footer>
+      <FooterTr />
     </div>
   );
 }

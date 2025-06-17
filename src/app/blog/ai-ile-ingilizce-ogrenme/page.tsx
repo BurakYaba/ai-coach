@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
+import FooterTr from "@/components/layout/FooterTr";
 
 export const metadata: Metadata = {
   title: "AI ile İngilizce Öğrenme | Fluenta Blog",
@@ -436,6 +437,9 @@ export default function AIEnglishLearningBlogPost() {
           </div>
         </section>
       </main>
+
+      {/* Footer */}
+      <FooterTr />
     </div>
   );
 }

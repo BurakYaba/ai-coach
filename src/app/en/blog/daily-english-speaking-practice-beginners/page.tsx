@@ -227,19 +227,9 @@ const speakingTips = [
 
 const relatedPosts = [
   {
-    title: "5 AI Tools to Improve Your English in 2025",
-    href: "/blog/5-ai-tools-improve-english-2025",
-    category: "AI Tools",
-  },
-  {
-    title: "How to Prepare for IELTS Using AI: Complete Guide",
-    href: "/blog/ielts-preparation-ai-guide",
-    category: "IELTS",
-  },
-  {
-    title: "10 Common English Grammar Mistakes and How to Avoid Them",
-    href: "/blog/english-grammar-mistakes-avoid",
-    category: "Grammar",
+    title: "How to Improve Your English Pronunciation with AI",
+    href: "/blog/improve-english-pronunciation-ai",
+    category: "Speaking",
   },
 ];
 

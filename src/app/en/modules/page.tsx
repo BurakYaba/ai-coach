@@ -86,9 +86,9 @@ export default function EnglishModulesPage() {
     },
     {
       id: "writing",
-      title: "Writing Assistant",
+      title: "Writing",
       description:
-        "Improve your English writing with AI feedback on structure, style, and grammar.",
+        "Improve your writing skills with AI-powered feedback and guidance.",
       icon: "✍️",
       features: [
         "Writing Analysis",
@@ -96,7 +96,7 @@ export default function EnglishModulesPage() {
         "Grammar Checking",
         "Essay Structure",
       ],
-      href: "/modules/writing-assistant",
+      href: "/en/modules/writing",
       popular: false,
     },
     {

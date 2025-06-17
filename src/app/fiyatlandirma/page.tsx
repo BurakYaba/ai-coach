@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
+import { MainNav } from "@/components/navigation/main-nav";
+import FooterTr from "@/components/layout/FooterTr";
 
 export const metadata: Metadata = {
   title: "Fiyatlandırma - AI Destekli İngilizce Öğrenme Planları | Fluenta",
@@ -454,76 +456,7 @@ export default function TurkishPricingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16 mt-16">
-        <div className="container">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <span className="font-bold text-xl">Fluenta</span>
-              </div>
-              <p className="text-gray-400 mb-4">
-                AI destekli İngilizce öğrenme platformu
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Planlar</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/tr/fiyatlandirma" className="hover:text-white">
-                    Ücretsiz Plan
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/fiyatlandirma" className="hover:text-white">
-                    Premium Plan
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/fiyatlandirma" className="hover:text-white">
-                    Pro Plan
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/kurumsal" className="hover:text-white">
-                    Kurumsal Çözümler
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Destek</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/sss" className="hover:text-white">
-                    Sıkça Sorulan Sorular
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Hukuki</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/terms" className="hover:text-white">
-                    Kullanım Şartları
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    href="/tr/cerez-politikasi"
-                    className="hover:text-white"
-                  >
-                    Çerez Politikası
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Fluenta. Tüm hakları saklıdır.</p>
-          </div>
-        </div>
-      </footer>
+      <FooterTr />
     </div>
   );
 }

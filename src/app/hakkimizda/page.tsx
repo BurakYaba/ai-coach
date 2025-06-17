@@ -1,10 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
+import FooterTr from "@/components/layout/FooterTr";
 
 export const metadata: Metadata = {
   title: "Hakkımızda - AI Destekli İngilizce Öğrenme Platformu | Fluenta",
@@ -385,93 +387,7 @@ export default function TurkishAboutPage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-16 mt-16">
-        <div className="container">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center space-x-2 mb-4">
-                <span className="font-bold text-xl">Fluenta</span>
-              </div>
-              <p className="text-gray-400 mb-4">
-                AI destekli İngilizce öğrenme platformu
-              </p>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Şirket</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/tr/hakkimizda" className="hover:text-white">
-                    Hakkımızda
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/kariyer" className="hover:text-white">
-                    Kariyer
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/basin" className="hover:text-white">
-                    Basın
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/iletisim" className="hover:text-white">
-                    İletişim
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Ürün</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/tr/fiyatlandirma" className="hover:text-white">
-                    Fiyatlandırma
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/ozellikler" className="hover:text-white">
-                    Özellikler
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/sss" className="hover:text-white">
-                    Sıkça Sorulan Sorular
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/destek" className="hover:text-white">
-                    Destek
-                  </Link>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-4">Kaynaklar</h3>
-              <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/tr/blog" className="hover:text-white">
-                    Blog
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/rehberler" className="hover:text-white">
-                    Öğrenme Rehberleri
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/basari-hikayeleri" className="hover:text-white">
-                    Başarı Hikayeleri
-                  </Link>
-                </li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Fluenta. Tüm hakları saklıdır.</p>
-          </div>
-        </div>
-      </footer>
+      <FooterTr />
     </div>
   );
 }

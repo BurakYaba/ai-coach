@@ -41,7 +41,7 @@ export function MainNav({ currentPath = "/", language = "tr" }: MainNavProps) {
           { href: "/en/modules", label: "Modules" },
           { href: "/en#features", label: "Features" },
           { href: "/en/blog", label: "Blog" },
-          { href: "/en/testimonials", label: "Testimonials" },
+          { href: "/en/success-stories", label: "Success Stories" },
           { href: "/en/faq", label: "FAQ" },
           { href: "/en#pricing", label: "Pricing" },
         ];

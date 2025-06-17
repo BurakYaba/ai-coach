@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 import PopularResources from "@/components/layout/PopularResources";
-import Footer from "@/components/layout/Footer";
+import FooterTr from "@/components/layout/FooterTr";
 
 export const metadata: Metadata = {
   title: "İngilizce Öğrenme Blogu | Fluenta AI",
@@ -368,7 +368,7 @@ export default function TurkishBlogPage() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      <FooterTr />
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
+import { MainNav } from "@/components/navigation/main-nav";
+import FooterEn from "@/components/layout/FooterEn";
 
 export const metadata: Metadata = {
   title: "10 Best English Conversation Apps for 2025 | Fluenta",
@@ -37,53 +39,16 @@ export const metadata: Metadata = {
 export default function BlogPost() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className="font-bold text-xl hover:text-primary transition-colors"
-            >
-              Fluenta
-            </Link>
-            <nav className="hidden md:flex items-center gap-6">
-              <Link
-                href="/"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                href="/blog"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Blog
-              </Link>
-              <Link
-                href="/modules/speaking"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Speaking Practice
-              </Link>
-            </nav>
-            <div className="flex items-center gap-2">
-              <Link href="/register">
-                <Button size="sm">Try Fluenta Free</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <MainNav currentPath="/en/blog" language="en" />
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-4xl pt-24">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/" className="hover:text-primary">
+          <Link href="/en" className="hover:text-primary">
             Home
           </Link>
           <span>›</span>
-          <Link href="/blog" className="hover:text-primary">
+          <Link href="/en/blog" className="hover:text-primary">
             Blog
           </Link>
           <span>›</span>
@@ -554,6 +519,8 @@ export default function BlogPost() {
           </section>
         </article>
       </main>
+
+      <FooterEn />
     </div>
   );
 }

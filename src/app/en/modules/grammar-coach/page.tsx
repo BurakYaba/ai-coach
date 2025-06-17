@@ -211,9 +211,9 @@ export default function GrammarCoachPage() {
                 Start Grammar Journey
               </Button>
             </Link>
-            <Link href="/en/blog/english-grammar-mistakes-avoid">
+            <Link href="/en/modules">
               <Button variant="outline" size="lg" className="text-lg px-8">
-                Common Mistakes Guide
+                Explore All Modules
               </Button>
             </Link>
           </div>

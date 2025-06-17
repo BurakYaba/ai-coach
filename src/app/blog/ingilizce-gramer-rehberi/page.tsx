@@ -2,9 +2,10 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
+import FooterTr from "@/components/layout/FooterTr";
 
 export const metadata: Metadata = {
   title: "Kapsamlı İngilizce Gramer Rehberi 2025 | Fluenta",
@@ -478,6 +479,9 @@ export default function IngilizceGramerRehberi() {
           </section>
         </article>
       </main>
+
+      {/* Footer */}
+      <FooterTr />
     </div>
   );
 }

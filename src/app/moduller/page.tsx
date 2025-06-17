@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 import PopularResources from "@/components/layout/PopularResources";
-import Footer from "@/components/layout/Footer";
+import FooterTr from "@/components/layout/FooterTr";
 import { Metadata } from "next";
 
 // Tagline component matching the landing page
@@ -664,7 +664,7 @@ export default function TurkishModulesPage() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      <FooterTr />
     </div>
   );
 }

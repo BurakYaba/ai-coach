@@ -3,9 +3,9 @@ import { Metadata } from "next";
 export const metadata: Metadata = {
   title: "English Reading Practice | AI-Powered Reading Comprehension",
   description:
-    "Improve your English reading skills with AI-powered comprehension exercises. Practice with personalized texts, instant feedback, and adaptive difficulty levels.",
+    "Improve your English reading skills with AI-powered comprehension exercises. Practice with personalized texts, instant feedback, and adaptive difficulty levels. Master reading comprehension with Fluenta.",
   keywords:
-    "English reading practice, reading comprehension, English texts, AI reading tutor, reading exercises, English learning",
+    "English reading practice, reading comprehension, English texts, AI reading tutor, reading exercises, English learning, comprehension skills",
   alternates: {
     canonical: "/en/modules/reading",
     languages: {
