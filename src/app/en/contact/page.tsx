@@ -326,7 +326,7 @@ export default function ContactPage() {
                   >
                     I agree to Fluenta's{" "}
                     <Link
-                      href="/privacy"
+                      href="/en/privacy"
                       className="text-primary hover:underline"
                     >
                       Privacy Policy

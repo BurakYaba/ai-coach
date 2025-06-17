@@ -7,7 +7,7 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 
 export const metadata: Metadata = {
-  title: "İngilizce Dinleme Modülü - AI Destekli Dinleme Eğitimi | Fluenta",
+  title: "İngilizce Dinleme Modülü | Fluenta",
   description:
     "Fluenta'nın AI destekli dinleme modülü ile İngilizce dinleme becerilerinizi geliştirin. Çeşitli aksanlar, konuşma hızları ve interaktif egzersizlerle dinleme pratiği yapın.",
   keywords:

@@ -9,8 +9,7 @@ import PopularResourcesEn from "@/components/layout/PopularResourcesEn";
 import FooterEn from "@/components/layout/FooterEn";
 
 export const metadata: Metadata = {
-  title:
-    "AI-Powered English Learning in 2025: The Future of Education | Fluenta",
+  title: "AI English Learning in 2025: Future of Education | Fluenta",
   description:
     "Discover how artificial intelligence is revolutionizing English language learning. Personalized learning plans, real-time feedback, and adaptive AI tutors are changing the game in 2025.",
   keywords:
@@ -23,7 +22,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "AI-Powered English Learning in 2025: The Future of Education",
+    title: "AI English Learning in 2025: Future of Education",
     description:
       "Discover how artificial intelligence is revolutionizing English language learning. Personalized learning plans, real-time feedback, and adaptive AI tutors are changing the game.",
     type: "article",
@@ -35,7 +34,7 @@ export const metadata: Metadata = {
         url: "/blog-images/ai-english-learning-2025-en.jpg",
         width: 1200,
         height: 630,
-        alt: "AI-Powered English Learning 2025",
+        alt: "AI English Learning 2025",
       },
     ],
   },
@@ -316,7 +315,7 @@ export default function AIPoweredEnglishLearning2025() {
                 Fluenta's advanced AI technology.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/en/register">
+                <Link href="/register">
                   <Button size="lg" className="text-lg px-8">
                     Start Free Trial
                   </Button>

@@ -9,16 +9,15 @@ import PopularResourcesEn from "@/components/layout/PopularResourcesEn";
 import FooterEn from "@/components/layout/FooterEn";
 
 export const metadata: Metadata = {
-  title:
-    "English Reading Module - AI-Powered Reading Comprehension Training | Fluenta",
+  title: "English Reading Comprehension Module | Fluenta",
   description:
     "Improve your English reading comprehension skills with Fluenta's AI-powered reading module. Personalized texts, interactive questions, and vocabulary learning to enhance your level.",
   keywords:
     "English reading, reading comprehension, English text reading, AI reading training, English comprehension, reading skill development, English vocabulary learning, reading practice",
   alternates: {
-    canonical: "/en/modules/reading",
+    canonical: "/en/modules/reading-comprehension",
     languages: {
-      en: "/en/modules/reading",
+      en: "/en/modules/reading-comprehension",
       tr: "/moduller/okuma",
     },
   },

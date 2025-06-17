@@ -6,22 +6,29 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
 
 export const metadata: Metadata = {
-  title: "Best English Conversation Practice Apps 2025: Top 10 Reviewed",
+  title: "10 Best English Conversation Apps for 2025 | Fluenta",
   description:
-    "Discover the best English conversation practice apps in 2025. Compare Fluenta, HelloTalk, Cambly, and more. Find the perfect app to improve your speaking skills fast.",
+    "Compare the top English conversation practice apps of 2025. Find the perfect app for your needs, from AI tutors to language exchange platforms. Expert reviews and recommendations.",
   keywords:
     "English conversation practice app, speaking practice app, English speaking app, conversation app for English learners, AI conversation practice, English chatbot app, speaking practice online",
+  alternates: {
+    canonical: "/en/blog/english-conversation-practice-app",
+    languages: {
+      en: "/en/blog/english-conversation-practice-app",
+      tr: "/blog/ingilizce-konusma-pratigi-uygulamalari",
+    },
+  },
   openGraph: {
-    title: "Best English Conversation Practice Apps 2025: Top 10 Reviewed",
+    title: "10 Best English Conversation Apps for 2025 | Fluenta",
     description:
-      "Discover the best English conversation practice apps in 2025. Compare features, pricing, and effectiveness to boost your speaking confidence.",
+      "Compare the top English conversation practice apps of 2025. Find the perfect app for your needs, from AI tutors to language exchange platforms.",
     type: "article",
     images: [
       {
         url: "/og-images/og-conversation-app.png",
         width: 1200,
         height: 630,
-        alt: "Best English Conversation Practice Apps 2025",
+        alt: "Best English Conversation Apps 2025",
       },
     ],
   },
@@ -500,7 +507,7 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/english-pronunciation-practice-online"
+                      href="/en/blog/english-pronunciation-practice-online"
                       className="hover:text-primary"
                     >
                       English Pronunciation Practice Online: Best Tools 2025
@@ -516,7 +523,7 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/ai-english-grammar-checker"
+                      href="/en/blog/ai-english-grammar-checker"
                       className="hover:text-primary"
                     >
                       AI English Grammar Checker: Top 8 Tools Compared
@@ -532,15 +539,14 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/free-english-level-test"
+                      href="/en/blog/ielts-preparation-ai-guide"
                       className="hover:text-primary"
                     >
-                      Free English Level Test: Assess Your Skills Today
+                      How to Prepare for IELTS Using AI: Complete Guide
                     </Link>
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Take our comprehensive assessment to discover your speaking
-                    level...
+                    Master IELTS with AI-powered preparation strategies...
                   </p>
                 </CardContent>
               </Card>

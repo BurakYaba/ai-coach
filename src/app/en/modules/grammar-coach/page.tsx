@@ -211,7 +211,7 @@ export default function GrammarCoachPage() {
                 Start Grammar Journey
               </Button>
             </Link>
-            <Link href="/blog/english-grammar-mistakes-avoid">
+            <Link href="/en/blog/english-grammar-mistakes-avoid">
               <Button variant="outline" size="lg" className="text-lg px-8">
                 Common Mistakes Guide
               </Button>
@@ -554,7 +554,7 @@ export default function GrammarCoachPage() {
                   Start Grammar Course
                 </Button>
               </Link>
-              <Link href="/blog/ai-english-grammar-checker">
+              <Link href="/en/blog/ai-english-grammar-checker">
                 <Button variant="outline" size="lg" className="text-lg px-8">
                   Grammar Tools Guide
                 </Button>

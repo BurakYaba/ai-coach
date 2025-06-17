@@ -7,8 +7,7 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 
 export const metadata: Metadata = {
-  title:
-    "2025'te AI ile İngilizce Öğrenme: Geleceğin Dil Eğitimi | Fluenta Blog",
+  title: "AI ile İngilizce Öğrenme | Fluenta Blog",
   description:
     "Yapay zeka teknolojisinin İngilizce öğrenmeyi nasıl devrimleştirdiğini keşfedin. AI destekli dil öğrenme araçları ve yöntemleri.",
   keywords:

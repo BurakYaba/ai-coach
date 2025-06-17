@@ -7,10 +7,9 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 
 export const metadata: Metadata = {
-  title:
-    "Günlük İngilizce Konuşma Pratiği: 30 Günde Akıcılığa Ulaşın | Fluenta Blog",
+  title: "30 Günde İngilizce Konuşma Pratiği Rehberi | Fluenta",
   description:
-    "30 günlük İngilizce konuşma pratiği planı ile akıcılığınızı geliştirin. Günlük rutinler, pratik ipuçları ve etkili yöntemler.",
+    "Günlük İngilizce konuşma pratiği ile akıcılığınızı geliştirin. Haftalık planlar, pratik ipuçları ve AI destekli konuşma egzersizleri ile İngilizce konuşma becerinizi artırın.",
   keywords:
     "İngilizce konuşma pratiği, günlük İngilizce, konuşma akıcılığı, İngilizce konuşma egzersizleri, konuşma becerisi geliştirme",
   alternates: {
@@ -21,9 +20,9 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Günlük İngilizce Konuşma Pratiği: 30 Günde Akıcılığa Ulaşın",
+    title: "30 Günde İngilizce Konuşma Pratiği Rehberi | Fluenta",
     description:
-      "30 günlük İngilizce konuşma pratiği planı ile akıcılığınızı geliştirin. Günlük rutinler, pratik ipuçları ve etkili yöntemler.",
+      "Günlük İngilizce konuşma pratiği ile akıcılığınızı geliştirin. Haftalık planlar ve pratik ipuçları ile İngilizce konuşma becerinizi artırın.",
     type: "article",
     locale: "tr_TR",
     publishedTime: "2024-12-25",
@@ -33,7 +32,7 @@ export const metadata: Metadata = {
         url: "/blog-images/daily-conversation-practice-tr.jpg",
         width: 1200,
         height: 630,
-        alt: "Günlük İngilizce Konuşma Pratiği",
+        alt: "30 Günlük İngilizce Konuşma Pratiği",
       },
     ],
   },

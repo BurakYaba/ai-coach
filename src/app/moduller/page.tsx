@@ -10,6 +10,7 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 import PopularResources from "@/components/layout/PopularResources";
 import Footer from "@/components/layout/Footer";
+import { Metadata } from "next";
 
 // Tagline component matching the landing page
 const Tagline = ({ children }: { children: React.ReactNode }) => (

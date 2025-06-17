@@ -7,8 +7,7 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 
 export const metadata: Metadata = {
-  title:
-    "İngilizce Kelime Hazinesi Modülü - AI Destekli Kelime Öğrenimi | Fluenta",
+  title: "İngilizce Kelime Hazinesi Modülü | Fluenta",
   description:
     "Fluenta'nın AI destekli kelime hazinesi modülü ile İngilizce kelime dağarcığınızı sistematik olarak genişletin. Aralıklı tekrar sistemi, bağlamsal öğrenme ve kişiselleştirilmiş kelime kartları.",
   keywords:

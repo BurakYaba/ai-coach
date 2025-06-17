@@ -64,7 +64,6 @@ export function LanguageSwitcher() {
       en: {
         "/": "/tr",
         "/about": "/tr/hakkimizda",
-        "/contact": "/tr/iletisim",
         "/pricing": "/tr/fiyatlandirma",
         "/faq": "/tr/sss",
         "/blog": "/tr/blog",
@@ -79,7 +78,6 @@ export function LanguageSwitcher() {
       tr: {
         "/tr": "/",
         "/tr/hakkimizda": "/about",
-        "/tr/iletisim": "/contact",
         "/tr/fiyatlandirma": "/pricing",
         "/tr/sss": "/faq",
         "/tr/blog": "/blog",
@@ -193,7 +191,6 @@ export function SimpleLanguageSwitcher() {
       const pathMappings: Record<string, string> = {
         "/tr": "/",
         "/tr/hakkimizda": "/about",
-        "/tr/iletisim": "/contact",
         "/tr/fiyatlandirma": "/pricing",
         "/tr/sss": "/faq",
         "/tr/blog": "/blog",
@@ -210,7 +207,6 @@ export function SimpleLanguageSwitcher() {
       const pathMappings: Record<string, string> = {
         "/": "/tr",
         "/about": "/tr/hakkimizda",
-        "/contact": "/tr/iletisim",
         "/pricing": "/tr/fiyatlandirma",
         "/faq": "/tr/sss",
         "/blog": "/tr/blog",

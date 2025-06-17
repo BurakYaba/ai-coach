@@ -9,6 +9,13 @@ export const metadata: Metadata = {
     "Learn how Fluenta protects your privacy and handles your personal data. Read our comprehensive privacy policy for transparency on data collection and usage.",
   keywords:
     "fluenta privacy policy, data protection, personal information, GDPR compliance, privacy rights, data security",
+  alternates: {
+    canonical: "/en/privacy",
+    languages: {
+      en: "/en/privacy",
+      tr: "/gizlilik-politikasi",
+    },
+  },
 };
 
 export default function PrivacyPolicyPage() {
@@ -32,19 +39,19 @@ export default function PrivacyPolicyPage() {
                 Home
               </Link>
               <Link
-                href="/modules"
+                href="/en/modules"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Modules
               </Link>
               <Link
-                href="/blog"
+                href="/en/blog"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Blog
               </Link>
               <Link
-                href="/about"
+                href="/en/about"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 About
@@ -516,7 +523,7 @@ export default function PrivacyPolicyPage() {
           <Link href="/cookie-policy">
             <Button variant="outline">Cookie Policy</Button>
           </Link>
-          <Link href="/contact">
+          <Link href="/en/contact">
             <Button variant="outline">Contact Us</Button>
           </Link>
         </div>

@@ -228,7 +228,7 @@ export default function WritingAssistantPage() {
                 Start Writing Better
               </Button>
             </Link>
-            <Link href="/blog/english-grammar-mistakes-avoid">
+            <Link href="/en/blog/english-grammar-mistakes-avoid">
               <Button variant="outline" size="lg" className="text-lg px-8">
                 Writing Tips Guide
               </Button>

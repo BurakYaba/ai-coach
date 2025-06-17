@@ -27,8 +27,16 @@ import {
 } from "@/components/pricing/expired-user-alert";
 
 export const metadata: Metadata = {
-  title: "Pricing - Fluenta",
-  description: "Choose your subscription plan",
+  title: "Pricing Plans for AI English Learning | Fluenta",
+  description:
+    "Compare Fluenta's AI-powered English learning subscription plans. Choose the best monthly or annual plan for your language goals. Free trial available.",
+  alternates: {
+    canonical: "/en/pricing",
+    languages: {
+      en: "/en/pricing",
+      tr: "/fiyatlandirma",
+    },
+  },
 };
 
 interface PricingPlan {

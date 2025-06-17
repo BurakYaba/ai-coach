@@ -9,7 +9,7 @@ import PopularResourcesEn from "@/components/layout/PopularResourcesEn";
 import FooterEn from "@/components/layout/FooterEn";
 
 export const metadata: Metadata = {
-  title: "English Learning Blog | AI-Powered Tips & Strategies | Fluenta",
+  title: "English Learning Blog: AI Tips & Strategies | Fluenta",
   description:
     "Discover expert tips, AI-powered strategies, and proven methods for learning English. From IELTS preparation to daily speaking practice, unlock your English potential with Fluenta.",
   keywords:
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "English Learning Blog | AI-Powered Tips & Strategies | Fluenta",
+    title: "English Learning Blog: AI Tips & Strategies | Fluenta",
     description:
       "Discover expert tips, AI-powered strategies, and proven methods for learning English. From IELTS preparation to daily speaking practice, unlock your English potential with Fluenta.",
     type: "website",
@@ -359,7 +359,7 @@ export default function EnglishBlogPage() {
               practice with AI tutors, and track your progress.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/en/register">
+              <Link href="/register">
                 <Button size="lg" className="text-lg px-8">
                   Start Learning Free
                 </Button>

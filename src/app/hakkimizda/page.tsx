@@ -435,8 +435,8 @@ export default function TurkishAboutPage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/tr/sss" className="hover:text-white">
-                    SSS
+                  <Link href="/sss" className="hover:text-white">
+                    Sıkça Sorulan Sorular
                   </Link>
                 </li>
                 <li>
@@ -460,10 +460,7 @@ export default function TurkishAboutPage() {
                   </Link>
                 </li>
                 <li>
-                  <Link
-                    href="/tr/basari-hikayeleri"
-                    className="hover:text-white"
-                  >
+                  <Link href="/basari-hikayeleri" className="hover:text-white">
                     Başarı Hikayeleri
                   </Link>
                 </li>

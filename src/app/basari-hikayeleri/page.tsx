@@ -25,9 +25,9 @@ import PopularResources from "@/components/layout/PopularResources";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title: "Öğrenci Başarı Hikayeleri ve Yorumlar - Fluenta AI İngilizce Öğrenme",
+  title: "Başarı Hikayeleri | Fluenta AI",
   description:
-    "İngilizce konuşma, telaffuz ve özgüvenlerini geliştiren Fluenta öğrencilerinin ilham verici başarı hikayelerini okuyun. AI destekli İngilizce öğrenme platformumuzdan gerçek sonuçları keşfedin.",
+    "Fluenta öğrencilerinin ilham verici başarı hikayelerini okuyun. AI destekli İngilizce öğrenme platformumuzdan gerçek sonuçları keşfedin.",
   keywords:
     "İngilizce öğrenme başarı hikayeleri, Fluenta yorumları, AI İngilizce öğretmeni sonuçları, telaffuz geliştirme hikayeleri, İngilizce konuşma özgüveni, dil öğrenme dönüşümü",
   alternates: {

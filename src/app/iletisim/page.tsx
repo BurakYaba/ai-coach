@@ -11,16 +11,16 @@ import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { MainNav } from "@/components/navigation/main-nav";
 
 export const metadata: Metadata = {
-  title: "İletişim - Fluenta ile İletişime Geçin | AI İngilizce Öğrenme",
+  title: "İletişim | Fluenta AI",
   description:
-    "Fluenta ekibi ile iletişime geçin. Sorularınızı sorun, destek alın veya önerilerinizi paylaşın. AI destekli İngilizce öğrenme platformu hakkında bilgi edinin.",
+    "Fluenta ekibi ile iletişime geçin. Sorularınızı sorun, destek alın veya önerilerinizi paylaşın.",
   keywords:
     "Fluenta iletişim, İngilizce öğrenme destek, AI İngilizce yardım, müşteri hizmetleri, teknik destek, Fluenta ekip, İngilizce öğrenme sorular",
   alternates: {
-    canonical: "/tr/iletisim",
+    canonical: "/iletisim",
     languages: {
       en: "/contact",
-      tr: "/tr/iletisim",
+      tr: "/iletisim",
     },
   },
   openGraph: {
@@ -384,7 +384,7 @@ export default function TurkishContactPage() {
                     Ücretsiz Hesap Oluştur
                   </Button>
                 </Link>
-                <Link href="/tr/demo">
+                <Link href="/demo">
                   <Button
                     variant="outline"
                     size="lg"
@@ -421,23 +421,18 @@ export default function TurkishContactPage() {
               <h3 className="font-semibold mb-4">Hızlı İletişim</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link href="/tr/sss" className="hover:text-white">
-                    SSS
+                  <Link href="/sss" className="hover:text-white">
+                    Sıkça Sorulan Sorular
                   </Link>
                 </li>
                 <li>
-                  <Link href="/tr/destek" className="hover:text-white">
-                    Destek Merkezi
+                  <Link href="/iletisim" className="hover:text-white">
+                    Geri Bildirim
                   </Link>
                 </li>
                 <li>
                   <Link href="/tr/canlı-destek" className="hover:text-white">
                     Canlı Destek
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/geri-bildirim" className="hover:text-white">
-                    Geri Bildirim
                   </Link>
                 </li>
               </ul>

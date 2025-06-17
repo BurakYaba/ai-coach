@@ -1367,14 +1367,6 @@ export default function TurkishLandingPage() {
                   İletişim
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/kariyer"
-                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Kariyer
-                </Link>
-              </li>
             </ul>
           </div>
 

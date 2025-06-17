@@ -186,7 +186,7 @@ export default function PronunciationTrainerPage() {
                 Start Free Training
               </Button>
             </Link>
-            <Link href="/blog/english-pronunciation-practice-online">
+            <Link href="/en/blog/english-pronunciation-practice-online">
               <Button variant="outline" size="lg" className="text-lg px-8">
                 Learn More
               </Button>

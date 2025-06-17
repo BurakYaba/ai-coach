@@ -12,10 +12,10 @@ export const metadata: Metadata = {
   keywords:
     "fluenta kullanım koşulları, kullanıcı sözleşmesi, şartlar ve koşullar, yasal şartlar, hizmet sözleşmesi",
   alternates: {
-    canonical: "/tr/kullanim-kosullari",
+    canonical: "/kullanim-kosullari",
     languages: {
-      en: "/terms",
-      tr: "/tr/kullanim-kosullari",
+      en: "/en/terms",
+      tr: "/kullanim-kosullari",
     },
   },
   openGraph: {
@@ -279,7 +279,7 @@ export default function KullanimKosullariPage() {
                 Gizliliğiniz bizim için önemlidir. Kişisel verilerinizin nasıl
                 toplandığını, kullanıldığını ve korunduğunu anlamak için
                 <Link
-                  href="/tr/gizlilik-politikasi"
+                  href="/gizlilik-politikasi"
                   className="text-primary hover:underline"
                 >
                   Gizlilik Politikamızı
@@ -474,7 +474,7 @@ export default function KullanimKosullariPage() {
                 iletişime geçmekten çekinmeyin.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/tr/iletisim">
+                <Link href="/iletisim">
                   <Button size="lg">Destek Ekibiyle İletişim</Button>
                 </Link>
                 <Link href="/tr">

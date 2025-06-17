@@ -7,7 +7,7 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 
 export const metadata: Metadata = {
-  title: "İngilizce Dinleme Becerisini Geliştirmenin 8 Yolu | Fluenta Blog",
+  title: "İngilizce Dinleme Becerisi | Fluenta Blog",
   description:
     "İngilizce dinleme becerinizi geliştirmenin en etkili yöntemlerini keşfedin. Farklı aksanları anlama, hızlı konuşmaları takip etme ve dinleme stratejileri ile İngilizce anlama kabiliyetinizi artırın.",
   keywords:

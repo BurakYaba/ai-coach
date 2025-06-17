@@ -1,5 +1,5 @@
-import { Metadata } from "next";
 import Link from "next/link";
+import type { Metadata } from "next";
 
 import { RegisterForm } from "@/components/auth/register-form";
 import { IndividualRegisterForm } from "@/components/auth/individual-register-form";
@@ -27,12 +27,18 @@ export async function generateMetadata({
       title: "Sign Up for Monthly Plan - Fluenta AI English Learning",
       description:
         "Join Fluenta with our flexible monthly plan. Access AI-powered English learning with personalized speaking, writing, grammar, and vocabulary practice. Cancel anytime.",
+      alternates: {
+        canonical: "/register?plan=monthly",
+      },
     };
   } else if (plan === "annual") {
     return {
       title: "Sign Up for Annual Plan - Fluenta AI English Learning",
       description:
         "Save with Fluenta's annual plan! Get full access to AI-powered English learning with personalized speaking, writing, grammar, and vocabulary practice at the best value.",
+      alternates: {
+        canonical: "/register?plan=annual",
+      },
     };
   }
 
@@ -40,6 +46,9 @@ export async function generateMetadata({
     title: "Create Free Fluenta Account - AI English Learning",
     description:
       "Join Fluenta's AI-powered English learning platform. Sign up for free to access personalized speaking, writing, grammar, and vocabulary practice with instant feedback and adaptive learning technology.",
+    alternates: {
+      canonical: "/register",
+    },
   };
 }
 

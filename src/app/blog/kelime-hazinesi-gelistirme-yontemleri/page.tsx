@@ -7,7 +7,7 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 
 export const metadata: Metadata = {
-  title: "Kelime Hazinesi Geliştirme: En Etkili 7 Yöntem | Fluenta Blog",
+  title: "Kelime Hazinesi Geliştirme | Fluenta Blog",
   description:
     "İngilizce kelime hazinesi geliştirmenin en etkili yöntemlerini keşfedin. Spaced repetition, bağlamsal öğrenme ve AI destekli tekniklerle kelime dağarcığınızı hızla genişletin.",
   keywords:

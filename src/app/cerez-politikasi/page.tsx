@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   keywords:
     "fluenta çerez politikası, çerezler, takip teknolojileri, web depolama, gizlilik kontrolleri",
   alternates: {
-    canonical: "/tr/cerez-politikasi",
+    canonical: "/cerez-politikasi",
     languages: {
-      en: "/cookie-policy",
-      tr: "/tr/cerez-politikasi",
+      en: "/en/cookie-policy",
+      tr: "/cerez-politikasi",
     },
   },
   openGraph: {
@@ -42,32 +42,32 @@ export default function CerezPolitikasiPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link
-              href="/tr"
+              href="/"
               className="font-bold text-xl hover:text-primary transition-colors"
             >
               Fluenta
             </Link>
             <nav className="hidden md:flex items-center gap-6">
               <Link
-                href="/tr"
+                href="/"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Ana Sayfa
               </Link>
               <Link
-                href="/tr/moduller"
+                href="/moduller"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Modüller
               </Link>
               <Link
-                href="/tr/blog"
+                href="/blog"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Blog
               </Link>
               <Link
-                href="/tr/hakkimizda"
+                href="/hakkimizda"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Hakkımızda
@@ -86,7 +86,7 @@ export default function CerezPolitikasiPage() {
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/tr" className="hover:text-primary">
+          <Link href="/" className="hover:text-primary">
             Ana Sayfa
           </Link>
           <span>›</span>

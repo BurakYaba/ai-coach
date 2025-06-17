@@ -218,7 +218,7 @@ export default function VocabularyBuilderPage() {
                 Start Building Vocabulary
               </Button>
             </Link>
-            <Link href="/blog/vocabulary-building-strategies-2025">
+            <Link href="/en/blog/vocabulary-building-strategies-2025">
               <Button variant="outline" size="lg" className="text-lg px-8">
                 Learning Strategies
               </Button>

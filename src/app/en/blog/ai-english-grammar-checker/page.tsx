@@ -10,22 +10,29 @@ import {
 } from "@/components/seo/StructuredData";
 
 export const metadata: Metadata = {
-  title: "AI English Grammar Checker: Top 8 Tools Compared [2025 Review]",
+  title: "Best AI Grammar Checkers for 2025: Expert Review | Fluenta",
   description:
-    "Discover the best AI English grammar checkers in 2025. Compare Grammarly, Fluenta, QuillBot, and more. Find the perfect grammar checking tool for error-free writing.",
+    "Expert comparison of AI grammar checking tools. Find the perfect tool for your needs, from basic proofreading to advanced writing assistance. Detailed feature analysis and pricing guide.",
   keywords:
-    "AI English grammar checker, grammar checker tool, online grammar checker, AI writing assistant, grammar correction software, English grammar check, automated grammar checker, best grammar checker 2025",
+    "AI grammar checker, English grammar tools, grammar checking software, Grammarly alternative, best grammar checker, AI writing assistant, grammar correction tool",
+  alternates: {
+    canonical: "/en/blog/ai-english-grammar-checker",
+    languages: {
+      en: "/en/blog/ai-english-grammar-checker",
+      tr: "/blog/ingilizce-gramer-kontrol-araclari",
+    },
+  },
   openGraph: {
-    title: "AI English Grammar Checker: Top 8 Tools Compared [2025 Review]",
+    title: "Best AI Grammar Checkers for 2025: Expert Review | Fluenta",
     description:
-      "Discover the best AI English grammar checkers in 2025. Compare features, accuracy, and pricing to find the perfect tool for error-free writing.",
+      "Expert comparison of AI grammar checking tools. Find the perfect tool for your needs, from basic proofreading to advanced writing assistance.",
     type: "article",
     images: [
       {
         url: "/og-images/og-grammar-checker.png",
         width: 1200,
         height: 630,
-        alt: "AI English Grammar Checker Comparison 2025",
+        alt: "Best AI Grammar Checkers 2025",
       },
     ],
   },
@@ -33,8 +40,8 @@ export const metadata: Metadata = {
 
 export default function BlogPost() {
   const articleSchema = generateArticleSchema(
-    "AI English Grammar Checker: Top 8 Tools Compared [2025 Review]",
-    "Discover the best AI English grammar checkers in 2025. Compare Grammarly, Fluenta, QuillBot, and more. Find the perfect grammar checking tool for error-free writing.",
+    "Best AI Grammar Checkers for 2025: Expert Review",
+    "Expert comparison of AI grammar checking tools. Find the perfect tool for your needs, from basic proofreading to advanced writing assistance.",
     "2024-12-22",
     "2024-12-22",
     "ai-english-grammar-checker",
@@ -538,7 +545,7 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/english-pronunciation-practice-online"
+                      href="/en/blog/english-pronunciation-practice-online"
                       className="hover:text-primary"
                     >
                       English Pronunciation Practice Online: Best Tools 2025
@@ -554,15 +561,15 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/english-conversation-practice-app"
+                      href="/en/blog/english-conversation-practice-app"
                       className="hover:text-primary"
                     >
                       Best English Conversation Practice Apps 2025
                     </Link>
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Improve your speaking skills with these top conversation
-                    practice applications...
+                    Transform your speaking skills with these top conversation
+                    practice apps...
                   </p>
                 </CardContent>
               </Card>
@@ -570,15 +577,14 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/free-english-level-test"
+                      href="/en/blog/ielts-preparation-ai-guide"
                       className="hover:text-primary"
                     >
-                      Free English Level Test: Assess Your Skills Today
+                      How to Prepare for IELTS Using AI: Complete Guide
                     </Link>
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Take our comprehensive assessment to discover your English
-                    proficiency level...
+                    Master IELTS with AI-powered preparation strategies...
                   </p>
                 </CardContent>
               </Card>

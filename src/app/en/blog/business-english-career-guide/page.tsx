@@ -9,8 +9,7 @@ import PopularResourcesEn from "@/components/layout/PopularResourcesEn";
 import FooterEn from "@/components/layout/FooterEn";
 
 export const metadata: Metadata = {
-  title:
-    "Business English Career Guide: Advance Your Professional Skills | Fluenta",
+  title: "Business English Career Guide | Fluenta",
   description:
     "Learn essential business English skills to boost your career. From job interviews to presentations, master professional communication in English and advance your career prospects.",
   keywords:
@@ -439,7 +438,7 @@ export default function BusinessEnglishCareerGuide() {
                 scenarios with AI-powered feedback.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/en/register">
+                <Link href="/register">
                   <Button size="lg" className="text-lg px-8">
                     Start Business English
                   </Button>

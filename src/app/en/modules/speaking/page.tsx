@@ -6,11 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
 
 export const metadata: Metadata = {
-  title: "English Speaking Practice Module - AI-Powered Conversation Training",
+  title: "English Speaking Practice Module | Fluenta",
   description:
     "Improve your English speaking skills with Fluenta's AI conversation practice module. Real-time feedback on pronunciation, fluency, and grammar. Build confidence through daily practice.",
   keywords:
     "English speaking practice, AI conversation practice, pronunciation training, English speaking module, speaking fluency improvement, conversation practice online, English speaking skills",
+  alternates: {
+    canonical: "/en/modules/speaking",
+    languages: {
+      en: "/en/modules/speaking",
+      tr: "/moduller/konusma",
+    },
+  },
   openGraph: {
     title:
       "English Speaking Practice Module - AI-Powered Conversation Training",
@@ -43,19 +50,19 @@ export default function SpeakingModule() {
             </Link>
             <nav className="hidden md:flex items-center gap-6">
               <Link
-                href="/"
+                href="/en"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Home
               </Link>
               <Link
-                href="/modules"
+                href="/en/modules"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 All Modules
               </Link>
               <Link
-                href="/blog"
+                href="/en/blog"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Blog
@@ -712,7 +719,7 @@ export default function SpeakingModule() {
                   Start Free 7-Day Trial
                 </Button>
               </Link>
-              <Link href="/blog/english-conversation-practice-app">
+              <Link href="/en/blog/english-conversation-practice-app">
                 <Button variant="outline" size="lg" className="text-lg px-8">
                   Read Success Stories
                 </Button>

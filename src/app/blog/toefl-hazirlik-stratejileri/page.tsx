@@ -549,10 +549,10 @@ export default function ToeflHazirlikStratejileri() {
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-2">
                   <Link
-                    href="/tr/blog/ingilizce-telaffuz-gelistirme"
-                    className="hover:text-primary"
+                    href="/blog/ingilizce-telaffuz-gelistirme"
+                    className="text-blue-600 hover:text-blue-800 transition-colors"
                   >
-                    İngilizce Telaffuz Geliştirme: AI ile Mükemmel Telaffuz
+                    İngilizce Telaffuz Geliştirme →
                   </Link>
                 </h3>
                 <p className="text-sm text-muted-foreground">

@@ -6,8 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
 
 export const metadata: Metadata = {
-  title:
-    "Daily English Speaking Practice for Beginners: Your 30-Day Plan | Fluenta",
+  title: "Daily English Speaking Practice for Beginners | Fluenta",
   description:
     "Transform your English speaking skills with this comprehensive 30-day practice plan. Perfect for beginners who want to build confidence and fluency with daily speaking exercises and proven techniques.",
   keywords:
@@ -18,6 +17,13 @@ export const metadata: Metadata = {
     description:
       "Transform your English speaking skills with this comprehensive 30-day practice plan. Perfect for beginners who want to build confidence and fluency with daily speaking exercises and proven techniques.",
     type: "article",
+  },
+  alternates: {
+    canonical: "/en/blog/daily-english-speaking-practice-beginners",
+    languages: {
+      en: "/en/blog/daily-english-speaking-practice-beginners",
+      tr: "/blog/gunluk-ingilizce-konusma-pratigi",
+    },
   },
 };
 

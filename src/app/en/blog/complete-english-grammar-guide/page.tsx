@@ -9,7 +9,7 @@ import PopularResourcesEn from "@/components/layout/PopularResourcesEn";
 import FooterEn from "@/components/layout/FooterEn";
 
 export const metadata: Metadata = {
-  title: "Complete English Grammar Guide: From Basics to Advanced | Fluenta",
+  title: "Complete English Grammar Guide | Fluenta",
   description:
     "Master all aspects of English grammar with this comprehensive guide. From basic sentence structures to advanced grammar rules, includes practical examples and exercises for all levels.",
   keywords:
@@ -442,7 +442,7 @@ export default function CompleteEnglishGrammarGuide() {
                 personalized grammar exercises and real-time feedback system.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/en/register">
+                <Link href="/register">
                   <Button size="lg" className="text-lg px-8">
                     Start Grammar Practice
                   </Button>

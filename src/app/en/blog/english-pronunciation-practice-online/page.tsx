@@ -16,6 +16,13 @@ export const metadata: Metadata = {
     "Master English pronunciation with the best online tools and techniques. Discover AI-powered pronunciation coaches, free practice resources, and proven methods to improve your accent in 2025.",
   keywords:
     "English pronunciation practice online, online pronunciation tools, English accent training, pronunciation practice app, AI pronunciation coach, improve English pronunciation, pronunciation exercises online, English speaking practice",
+  alternates: {
+    canonical: "/en/blog/english-pronunciation-practice-online",
+    languages: {
+      en: "/en/blog/english-pronunciation-practice-online",
+      tr: "/blog/ingilizce-telaffuz-pratigi",
+    },
+  },
   openGraph: {
     title:
       "English Pronunciation Practice Online: 10 Best Tools & Techniques 2025",
@@ -683,7 +690,7 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/ai-english-grammar-checker"
+                      href="/en/blog/ai-english-grammar-checker"
                       className="hover:text-primary"
                     >
                       AI English Grammar Checker: Top 8 Tools Compared
@@ -699,7 +706,7 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/english-conversation-practice-app"
+                      href="/en/blog/english-conversation-practice-app"
                       className="hover:text-primary"
                     >
                       Best English Conversation Practice Apps 2025
@@ -715,15 +722,14 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/free-english-level-test"
+                      href="/en/blog/ielts-preparation-ai-guide"
                       className="hover:text-primary"
                     >
-                      Free English Level Test: Assess Your Skills Today
+                      How to Prepare for IELTS Using AI: Complete Guide
                     </Link>
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    Take our comprehensive English assessment to discover your
-                    current level...
+                    Master IELTS with AI-powered preparation strategies...
                   </p>
                 </CardContent>
               </Card>

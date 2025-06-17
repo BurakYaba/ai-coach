@@ -15,6 +15,13 @@ export const metadata: Metadata = {
   title: "Reset Fluenta Password - Recover Account Access",
   description:
     "Forgot your Fluenta password? Reset it securely and regain access to your personalized AI English learning platform. Get back to improving your speaking, writing, and grammar skills with instant recovery.",
+  alternates: {
+    canonical: "/forgot-password",
+    languages: {
+      en: "/forgot-password",
+      tr: "/forgot-password",
+    },
+  },
 };
 
 export default function ForgotPasswordPage() {

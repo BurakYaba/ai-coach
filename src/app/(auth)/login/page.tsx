@@ -25,6 +25,9 @@ export async function generateMetadata({
       title: "Login to Continue - Fluenta AI English Learning",
       description:
         "Sign in to your Fluenta account to continue to your requested page. Access personalized AI lessons, track your progress, and improve your English skills with advanced learning technology.",
+      alternates: {
+        canonical: "/login",
+      },
     };
   }
 
@@ -32,6 +35,9 @@ export async function generateMetadata({
     title: "Login to Fluenta - AI English Learning Platform",
     description:
       "Sign in to your Fluenta account to continue your English learning journey. Access personalized AI lessons, track your progress, and improve your speaking, writing, and grammar skills with advanced feedback technology.",
+    alternates: {
+      canonical: "/login",
+    },
   };
 }
 

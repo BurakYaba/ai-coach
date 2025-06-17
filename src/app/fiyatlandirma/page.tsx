@@ -12,10 +12,10 @@ export const metadata: Metadata = {
   keywords:
     "Fluenta fiyat, İngilizce öğrenme ücreti, AI İngilizce öğretmeni fiyat, İngilizce kursu fiyatları, online İngilizce ders ücreti, İngilizce öğrenme abonelik",
   alternates: {
-    canonical: "/tr/fiyatlandirma",
+    canonical: "/fiyatlandirma",
     languages: {
-      en: "/pricing",
-      tr: "/tr/fiyatlandirma",
+      en: "/en/pricing",
+      tr: "/fiyatlandirma",
     },
   },
   openGraph: {
@@ -171,25 +171,25 @@ export default function TurkishPricingPage() {
             </Link>
             <nav className="hidden md:flex items-center gap-6">
               <Link
-                href="/tr"
+                href="/"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Ana Sayfa
               </Link>
               <Link
-                href="/tr/blog"
+                href="/blog"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Blog
               </Link>
               <Link
-                href="/tr/hakkimizda"
+                href="/hakkimizda"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Hakkımızda
               </Link>
               <Link
-                href="/tr/fiyatlandirma"
+                href="/fiyatlandirma"
                 className="text-sm font-medium text-primary"
               >
                 Fiyatlandırma
@@ -423,15 +423,6 @@ export default function TurkishPricingPage() {
                     Risksiz Deneyin
                   </Button>
                 </Link>
-                <Link href="/tr/iletisim">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full sm:w-auto"
-                  >
-                    Sorularınızı Sorun
-                  </Button>
-                </Link>
               </div>
             </CardContent>
           </GradientCard>
@@ -454,15 +445,6 @@ export default function TurkishPricingPage() {
                 <Link href="/register">
                   <Button size="lg" className="w-full sm:w-auto">
                     7 Gün Ücretsiz Dene
-                  </Button>
-                </Link>
-                <Link href="/tr/demo">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full sm:w-auto"
-                  >
-                    Demo İzle
                   </Button>
                 </Link>
               </div>
@@ -512,23 +494,8 @@ export default function TurkishPricingPage() {
               <h3 className="font-semibold mb-4">Destek</h3>
               <ul className="space-y-2 text-gray-400">
                 <li>
-                  <Link href="/tr/sss" className="hover:text-white">
-                    SSS
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/iletisim" className="hover:text-white">
-                    İletişim
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/destek" className="hover:text-white">
-                    Teknik Destek
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/tr/iade" className="hover:text-white">
-                    İade Politikası
+                  <Link href="/sss" className="hover:text-white">
+                    Sıkça Sorulan Sorular
                   </Link>
                 </li>
               </ul>
@@ -536,11 +503,6 @@ export default function TurkishPricingPage() {
             <div>
               <h3 className="font-semibold mb-4">Hukuki</h3>
               <ul className="space-y-2 text-gray-400">
-                <li>
-                  <Link href="/privacy" className="hover:text-white">
-                    Gizlilik Politikası
-                  </Link>
-                </li>
                 <li>
                   <Link href="/terms" className="hover:text-white">
                     Kullanım Şartları

@@ -9,8 +9,7 @@ import PopularResources from "@/components/layout/PopularResources";
 import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
-  title:
-    "İngilizce Öğrenme Blog | AI Destekli İpuçları ve Stratejiler | Fluenta",
+  title: "İngilizce Öğrenme Blogu | Fluenta AI",
   description:
     "İngilizce öğrenme konusunda uzman ipuçları, AI destekli stratejiler ve kanıtlanmış yöntemleri keşfedin. IELTS hazırlığından günlük konuşma pratiğine kadar İngilizce potansiyelinizi Fluenta ile açığa çıkarın.",
   keywords:

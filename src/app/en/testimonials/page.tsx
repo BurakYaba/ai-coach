@@ -23,7 +23,7 @@ import PopularResourcesEn from "@/components/layout/PopularResourcesEn";
 import FooterEn from "@/components/layout/FooterEn";
 
 export const metadata: Metadata = {
-  title: "Student Success Stories & Testimonials - Fluenta AI English Learning",
+  title: "Student Success Stories | Fluenta AI",
   description:
     "Read inspiring success stories from Fluenta students who improved their English speaking, pronunciation, and confidence. Discover real results from our AI-powered English learning platform.",
   keywords:
@@ -36,8 +36,7 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title:
-      "Student Success Stories & Testimonials - Fluenta AI English Learning",
+    title: "Student Success Stories | Fluenta AI",
     description:
       "Discover how students worldwide have transformed their English skills with Fluenta's AI-powered learning platform. Real stories, real results.",
     type: "website",
@@ -592,9 +591,12 @@ export default function Testimonials() {
               story starts today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/en/register">
-                <Button size="lg" className="text-lg px-8 py-3">
-                  Start Your Journey Free
+              <Link href="/register">
+                <Button
+                  size="lg"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  Start Your Journey Today
                 </Button>
               </Link>
               <Link href="/en/modules">

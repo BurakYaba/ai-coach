@@ -11,6 +11,13 @@ export const metadata: Metadata = {
     "Master IELTS with AI-powered preparation strategies. Learn how artificial intelligence can help you achieve your target band score faster and more efficiently with personalized study plans and practice.",
   keywords:
     "IELTS preparation AI, IELTS study guide 2025, artificial intelligence IELTS, IELTS band score improvement, AI IELTS practice, IELTS exam preparation, IELTS speaking practice AI, IELTS writing AI feedback",
+  alternates: {
+    canonical: "/en/blog/ielts-preparation-ai-guide",
+    languages: {
+      en: "/en/blog/ielts-preparation-ai-guide",
+      tr: "/blog/ielts-hazirlik-rehberi",
+    },
+  },
   openGraph: {
     title: "How to Prepare for IELTS Using AI: Complete Guide 2025 | Fluenta",
     description:
@@ -146,19 +153,19 @@ const studyPlan = [
 
 const relatedPosts = [
   {
-    title: "5 AI Tools to Improve Your English in 2025",
-    href: "/blog/5-ai-tools-improve-english-2025",
-    category: "AI Tools",
-  },
-  {
-    title: "Daily English Speaking Practice for Beginners",
-    href: "/blog/daily-english-speaking-practice-beginners",
+    title: "English Pronunciation Practice Online",
+    href: "/en/blog/english-pronunciation-practice-online",
     category: "Speaking",
   },
   {
-    title: "Advanced Vocabulary Building Strategies for 2025",
-    href: "/blog/vocabulary-building-strategies-2025",
-    category: "Vocabulary",
+    title: "Best English Conversation Practice Apps",
+    href: "/en/blog/english-conversation-practice-app",
+    category: "Speaking",
+  },
+  {
+    title: "AI English Grammar Checker Guide",
+    href: "/en/blog/ai-english-grammar-checker",
+    category: "Writing",
   },
 ];
 

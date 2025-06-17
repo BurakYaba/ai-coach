@@ -25,6 +25,9 @@ export const metadata: Metadata = {
       },
     ],
   },
+  alternates: {
+    canonical: "/en/careers",
+  },
 };
 
 export default function CareersPage() {
@@ -253,19 +256,19 @@ export default function CareersPage() {
                 Home
               </Link>
               <Link
-                href="/modules"
+                href="/en/modules"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Modules
               </Link>
               <Link
-                href="/blog"
+                href="/en/blog"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Blog
               </Link>
               <Link
-                href="/about"
+                href="/en/about"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 About
@@ -309,7 +312,7 @@ export default function CareersPage() {
             <Button size="lg" className="text-lg px-8">
               View Open Positions
             </Button>
-            <Link href="/about">
+            <Link href="/en/about">
               <Button variant="outline" size="lg" className="text-lg px-8">
                 Learn About Our Mission
               </Button>
@@ -588,7 +591,7 @@ export default function CareersPage() {
               <Button size="lg" className="text-lg px-8">
                 View All Positions
               </Button>
-              <Link href="/contact">
+              <Link href="/en/contact">
                 <Button variant="outline" size="lg" className="text-lg px-8">
                   Send Us Your Resume
                 </Button>

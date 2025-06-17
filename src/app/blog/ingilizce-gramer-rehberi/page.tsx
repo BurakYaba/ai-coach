@@ -7,9 +7,9 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 
 export const metadata: Metadata = {
-  title: "İngilizce Gramer Rehberi: Temellerden İleri Seviyeye | Fluenta Blog",
+  title: "Kapsamlı İngilizce Gramer Rehberi 2025 | Fluenta",
   description:
-    "İngilizce gramerini sistematik şekilde öğrenin. Temel kurallardan karmaşık yapılara kadar kapsamlı rehber ve AI destekli pratik egzersizleri.",
+    "İngilizce gramerini kolay ve sistematik şekilde öğrenin. Temel kurallardan ileri seviyeye, AI destekli pratik egzersizleri ile dilbilgisi becerilerinizi geliştirin.",
   keywords:
     "İngilizce gramer, grammar, İngilizce dilbilgisi, gramer kuralları, İngilizce öğrenme, AI gramer kontrolü",
   alternates: {
@@ -20,9 +20,9 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "İngilizce Gramer Rehberi: Temellerden İleri Seviyeye",
+    title: "Kapsamlı İngilizce Gramer Rehberi 2025 | Fluenta",
     description:
-      "İngilizce gramerini sistematik şekilde öğrenin. Temel kurallardan karmaşık yapılara kadar kapsamlı rehber ve AI destekli pratik egzersizleri.",
+      "İngilizce gramerini kolay ve sistematik şekilde öğrenin. Temel kurallardan ileri seviyeye, AI destekli pratik egzersizleri ile dilbilgisi becerilerinizi geliştirin.",
     type: "article",
     locale: "tr_TR",
     publishedTime: "2024-12-29",
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
         url: "/blog-images/grammar-guide-tr.jpg",
         width: 1200,
         height: 630,
-        alt: "İngilizce Gramer Rehberi",
+        alt: "Kapsamlı İngilizce Gramer Rehberi",
       },
     ],
   },
@@ -185,7 +185,7 @@ export default function IngilizceGramerRehberi() {
 
             <Card className="my-8">
               <CardContent className="p-6">
-                <h3 className="text-xl font-semibold mb-4">�� Fluenta İpucu</h3>
+                <h3 className="text-xl font-semibold mb-4">Fluenta İpucu</h3>
                 <p>
                   Fluenta'nın AI gramer koçu, yazdığınız metinlerdeki zaman
                   hatalarını tespit eder ve size doğru kullanımı öğretir. Gerçek
@@ -446,7 +446,7 @@ export default function IngilizceGramerRehberi() {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/tr/blog/ai-ile-ingilizce-ogrenme"
+                      href="/blog/ai-ile-ingilizce-ogrenme"
                       className="hover:text-primary"
                     >
                       2025'te AI ile İngilizce Öğrenme
@@ -462,10 +462,10 @@ export default function IngilizceGramerRehberi() {
                 <CardContent className="p-6">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/tr/blog/ingilizce-telaffuz-gelistirme"
-                      className="hover:text-primary"
+                      href="/blog/ingilizce-telaffuz-gelistirme"
+                      className="text-blue-600 hover:text-blue-800 transition-colors"
                     >
-                      İngilizce Telaffuz Geliştirme
+                      İngilizce Telaffuz Geliştirme →
                     </Link>
                   </h3>
                   <p className="text-sm text-muted-foreground">

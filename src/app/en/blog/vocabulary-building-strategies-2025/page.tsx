@@ -240,7 +240,7 @@ export default function VocabularyBuildingStrategies2025() {
                 repetition scheduling, and contextual practice opportunities.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/en/register">
+                <Link href="/register">
                   <Button size="lg" className="text-lg px-8">
                     Start Vocabulary Training
                   </Button>

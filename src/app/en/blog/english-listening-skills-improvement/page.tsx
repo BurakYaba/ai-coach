@@ -388,7 +388,7 @@ export default function EnglishListeningSkillsImprovement() {
                 accents, get instant feedback, and track your progress.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/en/register">
+                <Link href="/register">
                   <Button size="lg" className="text-lg px-8">
                     Start Listening Practice
                   </Button>

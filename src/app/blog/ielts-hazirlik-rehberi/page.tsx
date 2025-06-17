@@ -7,8 +7,7 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 
 export const metadata: Metadata = {
-  title:
-    "IELTS Hazırlık Rehberi: AI ile Yüksek Puan Alma Stratejileri | Fluenta Blog",
+  title: "IELTS Hazırlık Rehberi | Fluenta Blog",
   description:
     "IELTS sınavına hazırlanmak için kapsamlı rehber. AI destekli pratik yöntemleri, puan artırma teknikleri ve başarı stratejileri.",
   keywords:
@@ -473,7 +472,7 @@ export default function IeltsHazirlikRehberi() {
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-2">
                   <Link
-                    href="/tr/blog/ingilizce-gramer-rehberi"
+                    href="/blog/ingilizce-gramer-rehberi"
                     className="hover:text-primary"
                   >
                     İngilizce Gramer Rehberi: Temellerden İleri Seviyeye
@@ -489,7 +488,7 @@ export default function IeltsHazirlikRehberi() {
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-2">
                   <Link
-                    href="/tr/blog/ai-ile-ingilizce-ogrenme"
+                    href="/blog/ai-ile-ingilizce-ogrenme"
                     className="hover:text-primary"
                   >
                     2025'te AI ile İngilizce Öğrenme

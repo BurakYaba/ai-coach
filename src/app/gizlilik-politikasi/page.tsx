@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   keywords:
     "fluenta gizlilik politikası, veri koruma, kişisel bilgiler, KVKK uyumluluğu, gizlilik hakları, veri güvenliği",
   alternates: {
-    canonical: "/tr/gizlilik-politikasi",
+    canonical: "/gizlilik-politikasi",
     languages: {
-      en: "/privacy",
-      tr: "/tr/gizlilik-politikasi",
+      en: "/en/privacy",
+      tr: "/gizlilik-politikasi",
     },
   },
   openGraph: {
@@ -464,7 +464,7 @@ export default function GizlilikPolitikasiPage() {
                 bizimle iletişime geçmekten çekinmeyin.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/tr/iletisim">
+                <Link href="/iletisim">
                   <Button size="lg">İletişime Geçin</Button>
                 </Link>
                 <Link href="/tr">

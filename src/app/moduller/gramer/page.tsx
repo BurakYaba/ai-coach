@@ -7,7 +7,7 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 
 export const metadata: Metadata = {
-  title: "İngilizce Gramer Modülü - AI Destekli Gramer Eğitimi | Fluenta",
+  title: "İngilizce Gramer Modülü | Fluenta",
   description:
     "Fluenta'nın AI destekli gramer modülü ile İngilizce gramer kurallarını sistematik olarak öğrenin. İnteraktif alıştırmalar, kişiselleştirilmiş pratikler ve detaylı açıklamalarla gramer ustası olun.",
   keywords:

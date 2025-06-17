@@ -500,7 +500,7 @@ export default function TermsOfServicePage() {
 
         {/* Footer Navigation */}
         <div className="flex justify-center gap-4 mt-12 pt-8 border-t">
-          <Link href="/privacy">
+          <Link href="/en/privacy">
             <Button variant="outline">Privacy Policy</Button>
           </Link>
           <Link href="/cookie-policy">
