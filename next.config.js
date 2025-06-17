@@ -64,6 +64,57 @@ const nextConfig = {
         destination: '/cerez-politikasi',
         permanent: true,
       },
+      // Additional Turkish redirects from crawler errors
+      {
+        source: '/tr/moduller',
+        destination: '/moduller',
+        permanent: true,
+      },
+      {
+        source: '/tr/kariyer',
+        destination: '/en/careers', // Turkish careers redirect to English careers
+        permanent: true,
+      },
+      {
+        source: '/tr/demo',
+        destination: '/register', // Demo redirects to registration
+        permanent: true,
+      },
+      {
+        source: '/tr/geri-bildirim',
+        destination: '/iletisim', // Feedback redirects to contact
+        permanent: true,
+      },
+      {
+        source: '/tr/canli-destek',
+        destination: '/iletisim', // Live support redirects to contact
+        permanent: true,
+      },
+      {
+        source: '/tr/destek',
+        destination: '/sss', // Support redirects to FAQ
+        permanent: true,
+      },
+      {
+        source: '/tr/rehberler',
+        destination: '/blog', // Guides redirect to blog
+        permanent: true,
+      },
+      {
+        source: '/tr/ozellikler',
+        destination: '/moduller', // Features redirect to modules
+        permanent: true,
+      },
+      {
+        source: '/tr/iade',
+        destination: '/sss', // Refund policy redirects to FAQ
+        permanent: true,
+      },
+      {
+        source: '/tr/kurumsal',
+        destination: '/hakkimizda', // Corporate redirects to about
+        permanent: true,
+      },
 
       // English pages: /* -> /en/* (move to /en/)
       {
@@ -109,6 +160,22 @@ const nextConfig = {
       {
         source: '/cookie-policy',
         destination: '/en/cookie-policy',
+        permanent: true,
+      },
+      // Additional English redirects from crawler errors
+      {
+        source: '/kariyer',
+        destination: '/en/careers', // Turkish careers page at root redirects to English
+        permanent: true,
+      },
+      {
+        source: '/en/success-stories',
+        destination: '/en/testimonials', // Success stories redirect to testimonials
+        permanent: true,
+      },
+      {
+        source: '/en/register',
+        destination: '/register', // English register redirects to root register
         permanent: true,
       },
 
@@ -208,6 +275,12 @@ const nextConfig = {
       {
         source: '/modules/listening-comprehension',
         destination: '/en/modules/listening-comprehension',
+        permanent: true,
+      },
+      // Additional module redirects from crawler errors
+      {
+        source: '/en/modules/reading',
+        destination: '/en/modules/reading-comprehension', // Reading redirects to reading-comprehension
         permanent: true,
       },
     ];

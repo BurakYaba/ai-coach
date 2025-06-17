@@ -143,6 +143,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
+    {
+      url: `${baseUrl}/blog/kelime-hazinesi-gelistirme-yontemleri`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/blog/toefl-hazirlik-stratejileri`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/blog/ingilizce-dinleme-becerisi-gelistirme`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
 
     // English Blog posts (now at /en/blog/)
     {
@@ -211,10 +229,70 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.7,
     },
+    {
+      url: `${baseUrl}/en/blog/ai-powered-english-learning-2025`,
+      lastModified: new Date("2024-11-25"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/en/blog/business-english-career-guide`,
+      lastModified: new Date("2024-11-25"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/en/blog/complete-english-grammar-guide`,
+      lastModified: new Date("2024-11-25"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/en/blog/english-listening-skills-improvement`,
+      lastModified: new Date("2024-11-25"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
 
     // Turkish Learning modules (now at root level)
     {
       url: `${baseUrl}/moduller`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/moduller/konusma`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/moduller/gramer`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/moduller/kelime-hazinesi`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/moduller/dinleme`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/moduller/okuma`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/moduller/yazma`,
       lastModified: new Date("2024-12-29"),
       changeFrequency: "weekly",
       priority: 0.8,
@@ -264,7 +342,37 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     {
+      url: `${baseUrl}/en/modules/reading-comprehension`,
+      lastModified: new Date("2024-12-01"),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/en/modules/speaking`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/en/modules/grammar`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/en/modules/vocabulary`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/en/modules/listening`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/en/modules/writing`,
       lastModified: new Date("2024-12-29"),
       changeFrequency: "weekly",
       priority: 0.8,
