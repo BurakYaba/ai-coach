@@ -477,7 +477,7 @@ export default function KullanimKosullariPage() {
                 <Link href="/iletisim">
                   <Button size="lg">Destek Ekibiyle İletişim</Button>
                 </Link>
-                <Link href="/tr">
+                <Link href="/">
                   <Button variant="outline" size="lg">
                     Ana Sayfaya Dön
                   </Button>

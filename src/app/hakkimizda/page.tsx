@@ -371,14 +371,11 @@ export default function TurkishAboutPage() {
                     Ücretsiz Hesap Oluştur
                   </Button>
                 </Link>
-                <Link href="/tr/iletisim">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full sm:w-auto"
-                  >
-                    Bizimle İletişime Geçin
-                  </Button>
+                <Link
+                  href="/iletisim"
+                  className="text-sm font-medium hover:text-primary transition-colors"
+                >
+                  İletişim
                 </Link>
               </div>
             </CardContent>

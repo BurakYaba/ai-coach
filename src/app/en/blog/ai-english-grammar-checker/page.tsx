@@ -58,14 +58,9 @@ export default function BlogPost() {
 
   const relatedPosts = [
     {
-      title: "How to Improve Your English Pronunciation with AI",
-      href: "/blog/improve-english-pronunciation-ai",
-      category: "Speaking",
-    },
-    {
-      title: "AI vs Human English Teachers: A Complete Comparison",
-      href: "/blog/ai-english-tutor-vs-human-teacher",
-      category: "Learning",
+      title: "English Grammar Rules and Common Mistakes",
+      href: "/en/blog/english-grammar-rules-common-mistakes",
+      category: "Grammar",
     },
   ];
 
@@ -97,7 +92,7 @@ export default function BlogPost() {
                 Blog
               </Link>
               <Link
-                href="/modules/writing-assistant"
+                href="/modules/writing"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Writing Practice

@@ -30,11 +30,6 @@ export const metadata: Metadata = {
 export default function BlogPost() {
   const relatedPosts = [
     {
-      title: "How to Improve Your English Pronunciation with AI",
-      href: "/blog/improve-english-pronunciation-ai",
-      category: "Speaking",
-    },
-    {
       title: "English Conversation Practice Apps",
       href: "/blog/english-conversation-practice-app",
       category: "Apps",

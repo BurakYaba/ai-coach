@@ -8,6 +8,12 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Turkish redirects
+      {
+        source: '/gizlilik',
+        destination: '/gizlilik-politikasi',
+        permanent: true,
+      },
       // English pages: /* -> /en/* (move to /en/)
       {
         source: '/about',

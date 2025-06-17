@@ -35,14 +35,6 @@ export default function FooterTr() {
             </li>
             <li>
               <Link
-                href="/kariyer"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                Kariyer
-              </Link>
-            </li>
-            <li>
-              <Link
                 href="/basari-hikayeleri"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
@@ -97,7 +89,7 @@ export default function FooterTr() {
           <ul className="space-y-2">
             <li>
               <Link
-                href="/gizlilik"
+                href="/gizlilik-politikasi"
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 Gizlilik Politikası

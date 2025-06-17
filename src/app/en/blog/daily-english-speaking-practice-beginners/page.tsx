@@ -227,8 +227,8 @@ const speakingTips = [
 
 const relatedPosts = [
   {
-    title: "How to Improve Your English Pronunciation with AI",
-    href: "/blog/improve-english-pronunciation-ai",
+    title: "Daily English Speaking Tips for Beginners",
+    href: "/en/blog/daily-english-speaking-tips",
     category: "Speaking",
   },
 ];

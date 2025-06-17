@@ -181,10 +181,10 @@ export default function IsIngilizceRehberi() {
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-2">
                   <Link
-                    href="/tr/blog/ai-ile-ingilizce-ogrenme"
-                    className="hover:text-primary"
+                    href="/blog/ai-ile-ingilizce-ogrenme"
+                    className="text-primary hover:underline"
                   >
-                    2025'te AI ile İngilizce Öğrenme
+                    AI ile İngilizce Öğrenme
                   </Link>
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -197,8 +197,8 @@ export default function IsIngilizceRehberi() {
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-2">
                   <Link
-                    href="/tr/blog/gunluk-ingilizce-konusma-pratigi"
-                    className="hover:text-primary"
+                    href="/blog/gunluk-ingilizce-konusma-pratigi"
+                    className="text-primary hover:underline"
                   >
                     Günlük İngilizce Konuşma Pratiği
                   </Link>

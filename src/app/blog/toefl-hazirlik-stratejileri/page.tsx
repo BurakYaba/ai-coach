@@ -533,10 +533,10 @@ export default function ToeflHazirlikStratejileri() {
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-2">
                   <Link
-                    href="/tr/blog/ielts-hazirlik-rehberi"
-                    className="hover:text-primary"
+                    href="/blog/ielts-hazirlik-rehberi"
+                    className="text-primary hover:underline"
                   >
-                    IELTS Hazırlık Rehberi: AI ile Yüksek Puan Alma Stratejileri
+                    IELTS Hazırlık Rehberi
                   </Link>
                 </h3>
                 <p className="text-sm text-muted-foreground">

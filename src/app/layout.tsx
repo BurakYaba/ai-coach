@@ -32,10 +32,9 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL("https://www.fluenta-ai.com"),
   alternates: {
-    canonical: "/",
     languages: {
-      en: "/",
-      tr: "/tr",
+      en: "/en",
+      tr: "/",
     },
   },
   openGraph: {
@@ -159,6 +158,7 @@ export default function RootLayout({
         />
         <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
         <link rel="manifest" href="/manifest.json" />
+        <link rel="canonical" href="https://www.fluenta-ai.com/" />
       </head>
       <body
         className={cn(

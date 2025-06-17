@@ -42,15 +42,15 @@ export function LanguageSwitcher() {
   // Determine current language from pathname
   const getCurrentLanguage = (): string => {
     if (!pathname) return "en";
-    if (pathname.startsWith("/tr")) {
-      return "tr";
+    if (pathname.startsWith("/en")) {
+      return "en";
     }
-    return "en";
+    return "tr";
   };
 
   // Get the corresponding path for the other language
   const getLocalizedPath = (targetLang: string): string => {
-    if (!pathname) return targetLang === "tr" ? "/tr" : "/";
+    if (!pathname) return targetLang === "tr" ? "/" : "/en";
 
     const currentLang = getCurrentLanguage();
 
@@ -62,31 +62,23 @@ export function LanguageSwitcher() {
     const pathMappings: Record<string, Record<string, string>> = {
       // English to Turkish mappings
       en: {
-        "/": "/tr",
-        "/about": "/tr/hakkimizda",
-        "/pricing": "/tr/fiyatlandirma",
-        "/faq": "/tr/sss",
-        "/blog": "/tr/blog",
-        "/blog/ai-english-tutor-vs-human-teacher":
-          "/tr/blog/ai-ile-ingilizce-ogrenme",
-        "/blog/improve-english-pronunciation-ai":
-          "/tr/blog/ingilizce-telaffuz-gelistirme",
-        "/blog/english-grammar-rules-common-mistakes":
-          "/tr/blog/ingilizce-gramer-rehberi",
+        "/en": "/",
+        "/en/about": "/hakkimizda",
+        "/en/pricing": "/fiyatlandirma",
+        "/en/faq": "/sss",
+        "/en/blog": "/blog",
+        "/en/blog/english-grammar-rules-common-mistakes":
+          "/blog/ingilizce-gramer-rehberi",
       },
       // Turkish to English mappings
       tr: {
-        "/tr": "/",
-        "/tr/hakkimizda": "/about",
-        "/tr/fiyatlandirma": "/pricing",
-        "/tr/sss": "/faq",
-        "/tr/blog": "/blog",
-        "/tr/blog/ai-ile-ingilizce-ogrenme":
-          "/blog/ai-english-tutor-vs-human-teacher",
-        "/tr/blog/ingilizce-telaffuz-gelistirme":
-          "/blog/improve-english-pronunciation-ai",
-        "/tr/blog/ingilizce-gramer-rehberi":
-          "/blog/english-grammar-rules-common-mistakes",
+        "/": "/en",
+        "/hakkimizda": "/en/about",
+        "/fiyatlandirma": "/en/pricing",
+        "/sss": "/en/faq",
+        "/blog": "/en/blog",
+        "/blog/ingilizce-gramer-rehberi":
+          "/en/blog/english-grammar-rules-common-mistakes",
       },
     };
 
@@ -99,10 +91,10 @@ export function LanguageSwitcher() {
     // Fallback logic
     if (targetLang === "tr") {
       // If switching to Turkish and no mapping found, go to Turkish home
-      return "/tr";
+      return "/";
     } else {
       // If switching to English and no mapping found, go to English home
-      return "/";
+      return "/en";
     }
   };
 
@@ -175,62 +167,63 @@ export function SimpleLanguageSwitcher() {
 
   const getCurrentLanguage = (): string => {
     if (!pathname) return "en";
-    if (pathname.startsWith("/tr")) {
-      return "tr";
+    if (pathname.startsWith("/en")) {
+      return "en";
     }
-    return "en";
+    return "tr";
   };
 
   const getOtherLanguagePath = (): { path: string; label: string } => {
-    if (!pathname) return { path: "/", label: "EN" };
+    if (!pathname) return { path: "/en", label: "EN" };
 
     const currentLang = getCurrentLanguage();
 
     if (currentLang === "tr") {
       // Switch to English
       const pathMappings: Record<string, string> = {
-        "/tr": "/",
-        "/tr/hakkimizda": "/about",
-        "/tr/fiyatlandirma": "/pricing",
-        "/tr/sss": "/faq",
-        "/tr/blog": "/blog",
-        "/tr/blog/ai-ile-ingilizce-ogrenme":
-          "/blog/ai-english-tutor-vs-human-teacher",
+        "/": "/en",
+        "/hakkimizda": "/en/about",
+        "/fiyatlandirma": "/en/pricing",
+        "/sss": "/en/faq",
+        "/blog": "/en/blog",
+        "/blog/ai-ile-ingilizce-ogrenme":
+          "/en/blog/ai-english-tutor-vs-human-teacher",
       };
 
       return {
-        path: pathMappings[pathname] || "/",
+        path: pathMappings[pathname] || "/en",
         label: "EN",
       };
     } else {
       // Switch to Turkish
       const pathMappings: Record<string, string> = {
-        "/": "/tr",
-        "/about": "/tr/hakkimizda",
-        "/pricing": "/tr/fiyatlandirma",
-        "/faq": "/tr/sss",
-        "/blog": "/tr/blog",
-        "/blog/ai-english-tutor-vs-human-teacher":
-          "/tr/blog/ai-ile-ingilizce-ogrenme",
+        "/en": "/",
+        "/en/about": "/hakkimizda",
+        "/en/pricing": "/fiyatlandirma",
+        "/en/faq": "/sss",
+        "/en/blog": "/blog",
+        "/en/blog/ai-english-tutor-vs-human-teacher":
+          "/blog/ai-ile-ingilizce-ogrenme",
       };
 
       return {
-        path: pathMappings[pathname] || "/tr",
+        path: pathMappings[pathname] || "/",
         label: "TR",
       };
     }
   };
 
-  const otherLang = getOtherLanguagePath();
+  const { path, label } = getOtherLanguagePath();
 
   return (
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => router.push(otherLang.path)}
-      className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+      className="gap-2"
+      onClick={() => router.push(path)}
     >
-      {otherLang.label}
+      <Globe className="h-4 w-4" />
+      {label}
     </Button>
   );
 }

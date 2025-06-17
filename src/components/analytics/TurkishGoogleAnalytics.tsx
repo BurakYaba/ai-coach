@@ -24,7 +24,7 @@ export default function TurkishGoogleAnalytics() {
   const [isMobile, setIsMobile] = useState(false);
 
   // Determine if we're on Turkish pages
-  const isTurkishPage = pathname?.startsWith("/tr") || false;
+  const isTurkishPage = !pathname?.startsWith("/en") || false;
 
   useEffect(() => {
     // Detect mobile device

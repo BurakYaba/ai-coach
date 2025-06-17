@@ -502,7 +502,7 @@ export default function CerezPolitikasiPage() {
                 <Link href="/dashboard/settings">
                   <Button size="lg">Çerez Ayarları</Button>
                 </Link>
-                <Link href="/tr/gizlilik-politikasi">
+                <Link href="/gizlilik-politikasi">
                   <Button variant="outline" size="lg">
                     Gizlilik Politikası
                   </Button>

@@ -166,7 +166,7 @@ export default function TurkishPricingPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <Link
-              href="/tr"
+              href="/"
               className="font-bold text-xl hover:text-primary transition-colors"
             >
               Fluenta
@@ -215,7 +215,7 @@ export default function TurkishPricingPage() {
       <main className="container mx-auto px-4 py-8">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/tr" className="hover:text-primary">
+          <Link href="/" className="hover:text-primary">
             Ana Sayfa
           </Link>
           <span>›</span>
