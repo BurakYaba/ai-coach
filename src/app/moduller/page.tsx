@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
+import PopularResources from "@/components/layout/PopularResources";
+import Footer from "@/components/layout/Footer";
 
 // Tagline component matching the landing page
 const Tagline = ({ children }: { children: React.ReactNode }) => (
@@ -655,7 +657,13 @@ export default function TurkishModulesPage() {
             </div>
           </GradientCard>
         </section>
+
+        {/* Popular Resources */}
+        <PopularResources />
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

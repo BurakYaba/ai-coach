@@ -3,23 +3,48 @@ import { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GradientCard } from "@/components/ui/gradient-card";
+import { MainNav } from "@/components/navigation/main-nav";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import {
+  Quote,
+  TrendingUp,
+  Award,
+  Users,
+  Clock,
+  Globe,
+  BookOpen,
+  MessageSquare,
+  Target,
+  ChevronRight,
+  Star,
+} from "lucide-react";
+import PopularResourcesEn from "@/components/layout/PopularResourcesEn";
+import FooterEn from "@/components/layout/FooterEn";
 
 export const metadata: Metadata = {
   title: "Student Success Stories & Testimonials - Fluenta AI English Learning",
   description:
     "Read inspiring success stories from Fluenta students who improved their English speaking, pronunciation, and confidence. Discover real results from our AI-powered English learning platform.",
   keywords:
-    "English learning success stories, Fluenta testimonials, AI English tutor results, pronunciation improvement stories, English speaking confidence, language learning transformation",
+    "English learning success stories, Fluenta testimonials, AI English tutor results, pronunciation improvement stories, English speaking confidence, language learning transformation, student reviews",
+  alternates: {
+    canonical: "/en/testimonials",
+    languages: {
+      en: "/en/testimonials",
+      tr: "/basari-hikayeleri",
+    },
+  },
   openGraph: {
     title:
       "Student Success Stories & Testimonials - Fluenta AI English Learning",
     description:
       "Discover how students worldwide have transformed their English skills with Fluenta's AI-powered learning platform. Real stories, real results.",
     type: "website",
+    locale: "en_US",
     images: [
       {
-        url: "/og-images/og-testimonials.png",
+        url: "/og-images/og-testimonials-en.png",
         width: 1200,
         height: 630,
         alt: "Fluenta Student Success Stories",
@@ -31,253 +56,356 @@ export const metadata: Metadata = {
 export default function Testimonials() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className="font-bold text-xl hover:text-primary transition-colors"
-            >
-              Fluenta
-            </Link>
-            <nav className="hidden md:flex items-center gap-6">
-              <Link
-                href="/"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                href="/blog"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Blog
-              </Link>
-              <Link
-                href="/modules"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Learning Modules
-              </Link>
-            </nav>
-            <div className="flex items-center gap-2">
-              <Link href="/register">
-                <Button size="sm">Start Your Success Story</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Navigation */}
+      <MainNav currentPath="/en/testimonials" language="en" />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 pt-24">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/" className="hover:text-primary">
+        <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-8">
+          <Link href="/en" className="hover:text-primary transition-colors">
             Home
           </Link>
-          <span>›</span>
-          <span>Success Stories</span>
+          <ChevronRight className="w-4 h-4" />
+          <span className="text-foreground font-medium">Success Stories</span>
         </nav>
 
-        {/* Header */}
-        <section className="text-center mb-16">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Badge variant="outline">🌟 Success Stories</Badge>
-            <Badge variant="outline">Real Results</Badge>
-            <Badge variant="outline">Student Testimonials</Badge>
+        {/* Hero Section */}
+        <section className="text-center mb-20">
+          <div className="flex items-center justify-center gap-2 mb-6">
+            <Badge
+              variant="secondary"
+              className="bg-gradient-to-r from-blue-100 to-purple-100 text-blue-800 border-0"
+            >
+              <Star className="w-4 h-4 mr-1" />
+              Success Stories
+            </Badge>
+            <Badge
+              variant="secondary"
+              className="bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border-0"
+            >
+              <TrendingUp className="w-4 h-4 mr-1" />
+              Real Results
+            </Badge>
+            <Badge
+              variant="secondary"
+              className="bg-gradient-to-r from-orange-100 to-red-100 text-orange-800 border-0"
+            >
+              <Users className="w-4 h-4 mr-1" />
+              50K+ Students
+            </Badge>
           </div>
-          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
             Transform Your English Like These Students Did
           </h1>
-          <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+          <p className="text-xl md:text-2xl text-muted-foreground mb-10 max-w-4xl mx-auto leading-relaxed">
             Discover how students worldwide have improved their English
             speaking, pronunciation, and confidence with Fluenta's AI-powered
             learning platform.
           </p>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
+              <div className="text-2xl font-bold text-blue-600 mb-1">50K+</div>
+              <div className="text-sm text-blue-700">Happy Students</div>
+            </div>
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
+              <div className="text-2xl font-bold text-green-600 mb-1">87%</div>
+              <div className="text-sm text-green-700">Confidence Boost</div>
+            </div>
+            <div className="bg-gradient-to-br from-purple-50 to-violet-50 p-4 rounded-xl border border-purple-100">
+              <div className="text-2xl font-bold text-purple-600 mb-1">92%</div>
+              <div className="text-sm text-purple-700">
+                Better Pronunciation
+              </div>
+            </div>
+            <div className="bg-gradient-to-br from-orange-50 to-red-50 p-4 rounded-xl border border-orange-100">
+              <div className="text-2xl font-bold text-orange-600 mb-1">
+                3 Months
+              </div>
+              <div className="text-sm text-orange-700">Average Progress</div>
+            </div>
+          </div>
         </section>
 
-        {/* Stats Overview */}
+        {/* Category Filters */}
         <section className="mb-16">
-          <GradientCard>
-            <CardHeader>
-              <CardTitle className="text-center text-2xl">
-                Success by the Numbers
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-4 gap-8 text-center">
-                <div>
-                  <div className="text-3xl font-bold text-primary mb-2">
-                    50,000+
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Students Worldwide
-                  </div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary mb-2">
-                    87%
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Improved Speaking Confidence
-                  </div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary mb-2">
-                    92%
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Better Pronunciation Scores
-                  </div>
-                </div>
-                <div>
-                  <div className="text-3xl font-bold text-primary mb-2">
-                    3 Months
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    Average Time to Next Level
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </GradientCard>
+          <div className="flex flex-wrap justify-center gap-3 mb-8">
+            <Button variant="default" size="sm" className="rounded-full">
+              <Target className="w-4 h-4 mr-2" />
+              All Stories
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full hover:bg-blue-50"
+            >
+              <MessageSquare className="w-4 h-4 mr-2" />
+              Speaking
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full hover:bg-green-50"
+            >
+              <BookOpen className="w-4 h-4 mr-2" />
+              IELTS/TOEFL
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full hover:bg-purple-50"
+            >
+              <Globe className="w-4 h-4 mr-2" />
+              Business English
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full hover:bg-orange-50"
+            >
+              <Award className="w-4 h-4 mr-2" />
+              Pronunciation
+            </Button>
+          </div>
         </section>
 
         {/* Featured Success Stories */}
-        <section className="mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            Featured Success Stories
-          </h2>
+        <section className="mb-20">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              Featured Success Stories
+            </h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Real students, real transformation stories
+            </p>
+          </div>
 
-          <div className="space-y-12">
-            {/* Maria's Story */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <GradientCard>
-                  <CardContent className="p-8">
-                    <div className="flex items-center gap-1 mb-4">
+          <div className="space-y-20">
+            {/* Maria's Story - Enhanced */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-2 lg:order-1">
+                <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-blue-50/30 hover:shadow-3xl transition-all duration-300">
+                  <CardContent className="p-8 lg:p-10">
+                    <div className="flex items-center gap-1 mb-6">
                       {[...Array(5)].map((_, i) => (
-                        <span key={i} className="text-yellow-500 text-xl">
-                          ⭐
-                        </span>
+                        <Star
+                          key={i}
+                          className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                        />
                       ))}
+                      <span className="ml-2 text-sm text-muted-foreground">
+                        5.0/5.0
+                      </span>
                     </div>
-                    <p className="text-lg italic mb-6">
+                    <Quote className="w-8 h-8 text-blue-400 mb-4" />
+                    <p className="text-lg md:text-xl italic mb-8 leading-relaxed text-gray-700">
                       "I went from being terrified of job interviews to
                       confidently landing my dream position at Google. Fluenta's
-                      AI interview practice was a game-changer!"
+                      AI interview practice was a complete game-changer for my
+                      career!"
                     </p>
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                        <span className="font-bold text-xl">MR</span>
+                      <div className="w-16 h-16 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
+                        <span className="font-bold text-xl text-white">MR</span>
                       </div>
                       <div>
-                        <div className="font-bold text-lg">Maria Rodriguez</div>
-                        <div className="text-muted-foreground/80">
+                        <div className="font-bold text-lg text-gray-900">
+                          Maria Rodriguez
+                        </div>
+                        <div className="text-blue-600 font-medium">
                           Software Engineer at Google
                         </div>
-                        <div className="text-sm text-muted-foreground/60">
+                        <div className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Globe className="w-3 h-3" />
                           Madrid, Spain
                         </div>
                       </div>
                     </div>
                   </CardContent>
-                </GradientCard>
-              </div>
-              <div>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Maria's Journey: B1 to C1 in 4 Months</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <strong>Challenge:</strong> Software engineer with
-                        strong technical skills but struggled with English
-                        communication in professional settings.
-                      </div>
-                      <div>
-                        <strong>Solution:</strong> Used Fluenta's job interview
-                        scenarios and business English modules daily for 20
-                        minutes.
-                      </div>
-                      <div>
-                        <strong>Results:</strong>
-                        <ul className="list-disc list-inside mt-2 space-y-1">
-                          <li>Improved from B1 to C1 level in 4 months</li>
-                          <li>95% pronunciation accuracy score</li>
-                          <li>Successfully interviewed at 5 tech companies</li>
-                          <li>Received job offers from Google and Microsoft</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
                 </Card>
               </div>
+              <div className="order-1 lg:order-2">
+                <div className="space-y-6">
+                  <Card className="border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-blue-800">
+                        <TrendingUp className="w-5 h-5" />
+                        Maria's Journey: B1 to C1 in 4 Months
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-4">
+                        <div className="p-4 bg-white/50 rounded-lg">
+                          <strong className="text-red-600">Challenge:</strong>
+                          <p className="text-sm mt-1">
+                            Software engineer with strong technical skills but
+                            struggled with English communication in professional
+                            settings and interviews.
+                          </p>
+                        </div>
+                        <div className="p-4 bg-white/50 rounded-lg">
+                          <strong className="text-blue-600">Solution:</strong>
+                          <p className="text-sm mt-1">
+                            Used Fluenta's AI interview practice, pronunciation
+                            coaching, and business English modules daily for 4
+                            months.
+                          </p>
+                        </div>
+                        <div className="p-4 bg-white/50 rounded-lg">
+                          <strong className="text-green-600">Result:</strong>
+                          <p className="text-sm mt-1">
+                            Passed Google's technical interviews and landed her
+                            dream job with 40% salary increase.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span>Speaking Confidence</span>
+                          <span className="font-semibold">95%</span>
+                        </div>
+                        <Progress value={95} className="h-2" />
+
+                        <div className="flex justify-between text-sm">
+                          <span>Pronunciation Accuracy</span>
+                          <span className="font-semibold">88%</span>
+                        </div>
+                        <Progress value={88} className="h-2" />
+
+                        <div className="flex justify-between text-sm">
+                          <span>Business English</span>
+                          <span className="font-semibold">92%</span>
+                        </div>
+                        <Progress value={92} className="h-2" />
+                      </div>
+
+                      <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-lg border border-green-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Award className="w-4 h-4 text-green-600" />
+                          <span className="font-semibold text-green-800">
+                            Key Achievement
+                          </span>
+                        </div>
+                        <p className="text-sm text-green-700">
+                          Went from avoiding English conversations to leading
+                          international team meetings at Google
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
             </div>
+
+            <Separator className="my-16" />
 
             {/* Ahmed's Story */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div className="order-2 md:order-1">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>
-                      Ahmed's Success: From Silent Student to Class Leader
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <strong>Challenge:</strong> Graduate student afraid to
-                        participate in class discussions due to pronunciation
-                        concerns.
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <div className="space-y-6">
+                  <Card className="border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-green-800">
+                        <BookOpen className="w-5 h-5" />
+                        Ahmed's IELTS Success: 6.0 to 8.5 in 3 Months
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-4">
+                        <div className="p-4 bg-white/50 rounded-lg">
+                          <strong className="text-red-600">Challenge:</strong>
+                          <p className="text-sm mt-1">
+                            Needed IELTS 7.5+ for UK university admission but
+                            struggled with speaking and writing sections.
+                          </p>
+                        </div>
+                        <div className="p-4 bg-white/50 rounded-lg">
+                          <strong className="text-blue-600">Solution:</strong>
+                          <p className="text-sm mt-1">
+                            Intensive training with Fluenta's IELTS-specific AI
+                            modules, focusing on speaking fluency and essay
+                            writing.
+                          </p>
+                        </div>
+                        <div className="p-4 bg-white/50 rounded-lg">
+                          <strong className="text-green-600">Result:</strong>
+                          <p className="text-sm mt-1">
+                            Achieved 8.5 overall IELTS score and got accepted to
+                            Oxford University with full scholarship.
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <strong>Solution:</strong> Focused on pronunciation
-                        coaching and academic conversation scenarios.
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="text-center p-3 bg-white/70 rounded-lg">
+                          <div className="text-2xl font-bold text-green-600">
+                            8.5
+                          </div>
+                          <div className="text-xs text-green-700">
+                            Overall IELTS
+                          </div>
+                        </div>
+                        <div className="text-center p-3 bg-white/70 rounded-lg">
+                          <div className="text-2xl font-bold text-blue-600">
+                            9.0
+                          </div>
+                          <div className="text-xs text-blue-700">Speaking</div>
+                        </div>
+                        <div className="text-center p-3 bg-white/70 rounded-lg">
+                          <div className="text-2xl font-bold text-purple-600">
+                            8.0
+                          </div>
+                          <div className="text-xs text-purple-700">Writing</div>
+                        </div>
+                        <div className="text-center p-3 bg-white/70 rounded-lg">
+                          <div className="text-2xl font-bold text-orange-600">
+                            8.5
+                          </div>
+                          <div className="text-xs text-orange-700">
+                            Listening
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <strong>Results:</strong>
-                        <ul className="list-disc list-inside mt-2 space-y-1">
-                          <li>
-                            Increased pronunciation accuracy from 72% to 94%
-                          </li>
-                          <li>Now leads study groups and presentations</li>
-                          <li>Received teaching assistant position</li>
-                          <li>Gained confidence to pursue PhD program</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
-              <div className="order-1 md:order-2">
-                <Card>
-                  <CardContent className="p-8">
-                    <div className="flex items-center gap-1 mb-4">
+              <div>
+                <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-green-50/30 hover:shadow-3xl transition-all duration-300">
+                  <CardContent className="p-8 lg:p-10">
+                    <div className="flex items-center gap-1 mb-6">
                       {[...Array(5)].map((_, i) => (
-                        <span key={i} className="text-yellow-500 text-xl">
-                          ⭐
-                        </span>
+                        <Star
+                          key={i}
+                          className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                        />
                       ))}
+                      <span className="ml-2 text-sm text-muted-foreground">
+                        5.0/5.0
+                      </span>
                     </div>
-                    <p className="text-lg italic mb-6">
-                      "Fluenta helped me overcome my pronunciation anxiety. I
-                      went from avoiding class discussions to leading them. The
-                      AI feedback was so encouraging and precise!"
+                    <Quote className="w-8 h-8 text-green-400 mb-4" />
+                    <p className="text-lg md:text-xl italic mb-8 leading-relaxed text-gray-700">
+                      "Fluenta's AI understood exactly where I was struggling
+                      with IELTS. The personalized feedback helped me go from
+                      6.0 to 8.5 in just 3 months. Now I'm studying at Oxford!"
                     </p>
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-                        <span className="font-bold text-xl">AK</span>
+                      <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-full flex items-center justify-center shadow-lg">
+                        <span className="font-bold text-xl text-white">AH</span>
                       </div>
                       <div>
-                        <div className="font-bold text-lg">Ahmed Khalil</div>
-                        <div className="text-muted-foreground">
-                          PhD Candidate, University of Toronto
+                        <div className="font-bold text-lg text-gray-900">
+                          Ahmed Hassan
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          Originally from Cairo, Egypt
+                        <div className="text-green-600 font-medium">
+                          Oxford University Student
+                        </div>
+                        <div className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Globe className="w-3 h-3" />
+                          Cairo, Egypt
                         </div>
                       </div>
                     </div>
@@ -286,434 +414,208 @@ export default function Testimonials() {
               </div>
             </div>
 
-            {/* Li's Story */}
-            <div className="grid md:grid-cols-2 gap-8 items-center">
-              <div>
-                <Card>
-                  <CardContent className="p-8">
-                    <div className="flex items-center gap-1 mb-4">
+            <Separator className="my-16" />
+
+            {/* Sarah's Story */}
+            <div className="grid lg:grid-cols-2 gap-12 items-center">
+              <div className="order-2 lg:order-1">
+                <Card className="border-0 shadow-2xl bg-gradient-to-br from-white to-purple-50/30 hover:shadow-3xl transition-all duration-300">
+                  <CardContent className="p-8 lg:p-10">
+                    <div className="flex items-center gap-1 mb-6">
                       {[...Array(5)].map((_, i) => (
-                        <span key={i} className="text-yellow-500 text-xl">
-                          ⭐
-                        </span>
+                        <Star
+                          key={i}
+                          className="w-5 h-5 fill-yellow-400 text-yellow-400"
+                        />
                       ))}
+                      <span className="ml-2 text-sm text-muted-foreground">
+                        5.0/5.0
+                      </span>
                     </div>
-                    <p className="text-lg italic mb-6">
-                      "As a busy working mom, Fluenta's flexibility was perfect.
-                      I could practice during my commute and evening breaks. My
-                      English improved so much that I got promoted!"
+                    <Quote className="w-8 h-8 text-purple-400 mb-4" />
+                    <p className="text-lg md:text-xl italic mb-8 leading-relaxed text-gray-700">
+                      "As a busy professional, I needed flexible learning.
+                      Fluenta's AI adapted to my schedule and helped me master
+                      business English. Now I lead international presentations
+                      with confidence!"
                     </p>
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center">
-                        <span className="font-bold text-xl">LC</span>
+                      <div className="w-16 h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                        <span className="font-bold text-xl text-white">SC</span>
                       </div>
                       <div>
-                        <div className="font-bold text-lg">Li Chen</div>
-                        <div className="text-muted-foreground">
+                        <div className="font-bold text-lg text-gray-900">
+                          Sarah Chen
+                        </div>
+                        <div className="text-purple-600 font-medium">
                           Marketing Director
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          Shanghai, China
+                        <div className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Globe className="w-3 h-3" />
+                          Singapore
                         </div>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
               </div>
-              <div>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>
-                      Li's Transformation: Career Advancement Through English
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div>
-                        <strong>Challenge:</strong> Marketing manager needing
-                        better English for international campaigns and team
-                        leadership.
+              <div className="order-1 lg:order-2">
+                <div className="space-y-6">
+                  <Card className="border border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2 text-purple-800">
+                        <Globe className="w-5 h-5" />
+                        Sarah's Business English Mastery in 2 Months
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-4">
+                        <div className="p-4 bg-white/50 rounded-lg">
+                          <strong className="text-red-600">Challenge:</strong>
+                          <p className="text-sm mt-1">
+                            Promoted to international role but lacked confidence
+                            in English presentations and client meetings.
+                          </p>
+                        </div>
+                        <div className="p-4 bg-white/50 rounded-lg">
+                          <strong className="text-blue-600">Solution:</strong>
+                          <p className="text-sm mt-1">
+                            Focused on business English modules, presentation
+                            skills, and professional communication with AI
+                            feedback.
+                          </p>
+                        </div>
+                        <div className="p-4 bg-white/50 rounded-lg">
+                          <strong className="text-green-600">Result:</strong>
+                          <p className="text-sm mt-1">
+                            Successfully leads global marketing campaigns and
+                            received promotion to Regional Director.
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <strong>Solution:</strong> Used business English modules
-                        and presentation practice during daily commute.
+
+                      <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-200">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Clock className="w-4 h-4 text-purple-600" />
+                          <span className="font-semibold text-purple-800">
+                            Learning Schedule
+                          </span>
+                        </div>
+                        <div className="space-y-2 text-sm text-purple-700">
+                          <div className="flex justify-between">
+                            <span>Daily Practice</span>
+                            <span>30 minutes</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Weekly Focus</span>
+                            <span>Presentations</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Total Duration</span>
+                            <span>2 months</span>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <strong>Results:</strong>
-                        <ul className="list-disc list-inside mt-2 space-y-1">
-                          <li>Promoted to Marketing Director</li>
-                          <li>Now manages international teams</li>
-                          <li>Leads client presentations in English</li>
-                          <li>Increased salary by 40%</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Testimonials Grid */}
-        <section className="mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            What Our Students Say
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-yellow-500">
-                      ⭐
-                    </span>
-                  ))}
+        {/* Statistics Section */}
+        <section className="mb-20">
+          <div className="bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-600 rounded-3xl p-12 text-white">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Success by the Numbers
+              </h2>
+              <p className="text-white/90 text-lg max-w-2xl mx-auto">
+                Real data from our global community of learners
+              </p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold mb-2">
+                  50,000+
                 </div>
-                <p className="mb-4 italic">
-                  "The pronunciation feedback is incredibly detailed. I can
-                  finally hear the difference between 'ship' and 'sheep'!"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="font-semibold">YT</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold">Yuki Tanaka</div>
-                    <div className="text-sm text-muted-foreground">
-                      Student, Tokyo
-                    </div>
-                  </div>
+                <div className="text-white/90 font-medium">
+                  Students Worldwide
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-yellow-500">
-                      ⭐
-                    </span>
-                  ))}
+                <div className="text-sm text-white/70 mt-1">
+                  From 120+ countries
                 </div>
-                <p className="mb-4 italic">
-                  "Fluenta made learning English fun and engaging. The AI
-                  conversations feel so natural!"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="font-semibold">PM</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold">Pierre Martin</div>
-                    <div className="text-sm text-muted-foreground">
-                      Engineer, Paris
-                    </div>
-                  </div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold mb-2">87%</div>
+                <div className="text-white/90 font-medium">
+                  Improved Confidence
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-yellow-500">
-                      ⭐
-                    </span>
-                  ))}
+                <div className="text-sm text-white/70 mt-1">
+                  In speaking English
                 </div>
-                <p className="mb-4 italic">
-                  "I love how the AI adapts to my level. It's like having a
-                  personal tutor available 24/7."
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="font-semibold">AS</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold">Ana Silva</div>
-                    <div className="text-sm text-muted-foreground">
-                      Doctor, São Paulo
-                    </div>
-                  </div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold mb-2">92%</div>
+                <div className="text-white/90 font-medium">
+                  Better Pronunciation
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-yellow-500">
-                      ⭐
-                    </span>
-                  ))}
+                <div className="text-sm text-white/70 mt-1">
+                  Measured by AI analysis
                 </div>
-                <p className="mb-4 italic">
-                  "The grammar explanations are so clear. I finally understand
-                  why we use different tenses!"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="font-semibold">MK</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold">Mikhail Kowalski</div>
-                    <div className="text-sm text-muted-foreground">
-                      Teacher, Warsaw
-                    </div>
-                  </div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold mb-2">
+                  3 Months
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-yellow-500">
-                      ⭐
-                    </span>
-                  ))}
+                <div className="text-white/90 font-medium">
+                  Average Progress
                 </div>
-                <p className="mb-4 italic">
-                  "Perfect for busy professionals. I improved my business
-                  English during lunch breaks."
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="font-semibold">RN</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold">Raj Nair</div>
-                    <div className="text-sm text-muted-foreground">
-                      Consultant, Mumbai
-                    </div>
-                  </div>
+                <div className="text-sm text-white/70 mt-1">
+                  To next proficiency level
                 </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <span key={i} className="text-yellow-500">
-                      ⭐
-                    </span>
-                  ))}
-                </div>
-                <p className="mb-4 italic">
-                  "My kids are amazed at how much my English has improved.
-                  Fluenta made it possible!"
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/20 rounded-full flex items-center justify-center">
-                    <span className="font-semibold">SK</span>
-                  </div>
-                  <div>
-                    <div className="font-semibold">Seo-jin Kim</div>
-                    <div className="text-sm text-muted-foreground">
-                      Nurse, Seoul
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* Results by Skill */}
-        <section className="mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            Results by Skill Area
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <GradientCard>
-              <CardHeader>
-                <CardTitle className="text-center">
-                  Speaking & Pronunciation
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span>Pronunciation Accuracy</span>
-                    <span className="font-bold">+23% average</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Speaking Confidence</span>
-                    <span className="font-bold">+87% students</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Fluency Score</span>
-                    <span className="font-bold">+31% improvement</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Natural Rhythm</span>
-                    <span className="font-bold">+45% better</span>
-                  </div>
-                </div>
-              </CardContent>
-            </GradientCard>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-center">Grammar & Writing</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span>Grammar Accuracy</span>
-                    <span className="font-bold">+29% average</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Writing Clarity</span>
-                    <span className="font-bold">+42% improvement</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Vocabulary Usage</span>
-                    <span className="font-bold">+38% growth</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span>Error Reduction</span>
-                    <span className="font-bold">-65% fewer mistakes</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Career Impact */}
-        <section className="mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            Career & Academic Impact
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <Card className="text-center">
-              <CardHeader>
-                <CardTitle>Job Success</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold text-primary mb-4">73%</div>
-                <p className="text-sm">
-                  Students reported getting better job opportunities after
-                  improving their English with Fluenta
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardHeader>
-                <CardTitle>Academic Achievement</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold text-primary mb-4">81%</div>
-                <p className="text-sm">
-                  Students improved their academic performance in English-taught
-                  courses
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="text-center">
-              <CardHeader>
-                <CardTitle>Confidence Boost</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-4xl font-bold text-primary mb-4">94%</div>
-                <p className="text-sm">
-                  Students feel more confident speaking English in professional
-                  and social settings
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Video Testimonials */}
-        <section className="mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
-            Hear From Our Students
-          </h2>
-
-          <div className="grid md:grid-cols-2 gap-8">
-            <Card>
-              <CardContent className="p-6">
-                <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-4xl mb-2">🎥</div>
-                    <div className="font-semibold">
-                      Maria's Interview Success
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      3:24 min
-                    </div>
-                  </div>
-                </div>
-                <h3 className="font-bold mb-2">From Nervous to Confident</h3>
-                <p className="text-sm text-muted-foreground">
-                  Watch Maria share how Fluenta helped her overcome interview
-                  anxiety and land her dream job at a top tech company.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="aspect-video bg-muted rounded-lg mb-4 flex items-center justify-center">
-                  <div className="text-center">
-                    <div className="text-4xl mb-2">🎥</div>
-                    <div className="font-semibold">
-                      Ahmed's Academic Journey
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      2:47 min
-                    </div>
-                  </div>
-                </div>
-                <h3 className="font-bold mb-2">From Silent to Leader</h3>
-                <p className="text-sm text-muted-foreground">
-                  Ahmed explains how improved pronunciation gave him the
-                  confidence to actively participate in academic discussions.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Call to Action */}
-        <section className="text-center">
-          <div className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-lg p-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+        {/* CTA Section */}
+        <section className="text-center py-20 bg-gradient-to-r from-blue-50 to-purple-50 rounded-3xl border border-blue-100 mb-20">
+          <div className="max-w-3xl mx-auto px-6">
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Ready to Write Your Success Story?
             </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join thousands of students who've transformed their English skills
-              and achieved their goals with Fluenta's AI-powered learning
-              platform.
+            <p className="text-xl text-muted-foreground mb-10 leading-relaxed">
+              Join thousands of students who have transformed their English
+              skills with Fluenta's AI-powered learning platform. Your success
+              story starts today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/register">
-                <Button size="lg" className="text-lg px-8">
-                  Start Your Free Trial Today
+              <Link href="/en/register">
+                <Button size="lg" className="text-lg px-8 py-3">
+                  Start Your Journey Free
                 </Button>
               </Link>
-              <Link href="/blog/free-english-level-test">
-                <Button variant="outline" size="lg" className="text-lg px-8">
-                  Take Free Level Test
+              <Link href="/en/modules">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-lg px-8 py-3"
+                >
+                  Explore Learning Modules
                 </Button>
               </Link>
             </div>
           </div>
         </section>
+
+        {/* Popular Resources */}
+        <PopularResourcesEn />
       </main>
+
+      {/* Footer */}
+      <FooterEn />
     </div>
   );
 }

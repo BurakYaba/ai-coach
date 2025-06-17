@@ -2,23 +2,36 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
+import { MainNav } from "@/components/navigation/main-nav";
+import PopularResourcesEn from "@/components/layout/PopularResourcesEn";
+import FooterEn from "@/components/layout/FooterEn";
 
 export const metadata: Metadata = {
-  title: "Advanced Vocabulary Building Strategies for 2025",
+  title: "Advanced Vocabulary Building Strategies for 2025 | Fluenta",
   description:
-    "Discover proven methods to expand your English vocabulary effectively. From spaced repetition to contextual learning, master these advanced techniques and supercharge your language skills.",
+    "Discover proven methods to expand your English vocabulary effectively. From spaced repetition to contextual learning, master these advanced techniques with AI-powered tools for faster vocabulary acquisition.",
   keywords:
-    "vocabulary building, English vocabulary, vocabulary strategies, spaced repetition, vocabulary learning, English words, vocabulary improvement, language learning techniques, vocabulary methods",
+    "vocabulary building, English vocabulary, spaced repetition, contextual learning, vocabulary strategies, memory techniques, English words, language learning, vocabulary expansion, word acquisition",
+  alternates: {
+    canonical: "/en/blog/vocabulary-building-strategies-2025",
+    languages: {
+      en: "/en/blog/vocabulary-building-strategies-2025",
+      tr: "/blog/kelime-haznesi-gelistirme-stratejileri",
+    },
+  },
   openGraph: {
     title: "Advanced Vocabulary Building Strategies for 2025",
     description:
-      "Master advanced vocabulary building techniques with proven methods like spaced repetition and contextual learning for effective English improvement.",
+      "Discover proven methods to expand your English vocabulary effectively. From spaced repetition to contextual learning, master these advanced techniques with AI-powered tools.",
     type: "article",
+    locale: "en_US",
+    publishedTime: "2024-12-24",
+    authors: ["Fluenta AI"],
     images: [
       {
-        url: "/og-images/og-vocabulary-strategies.png",
+        url: "/blog-images/vocabulary-building-strategies-en.jpg",
         width: 1200,
         height: 630,
         alt: "Advanced Vocabulary Building Strategies",
@@ -27,455 +40,303 @@ export const metadata: Metadata = {
   },
 };
 
-export default function VocabularyStrategiesBlogPost() {
-  const vocabularyStrategies = [
-    {
-      strategy: "Spaced Repetition System (SRS)",
-      description:
-        "Review words at scientifically-optimized intervals to maximize retention",
-      benefits: [
-        "95% better retention rate",
-        "Efficient time usage",
-        "Long-term memory formation",
-      ],
-      tools: ["Anki", "Fluenta AI", "Memrise", "Quizlet"],
-      icon: "🧠",
-    },
-    {
-      strategy: "Contextual Learning",
-      description:
-        "Learn words in meaningful contexts rather than isolated definitions",
-      benefits: [
-        "Better understanding",
-        "Natural usage patterns",
-        "Improved recall",
-      ],
-      tools: ["Reading apps", "News articles", "Podcasts", "TV shows"],
-      icon: "📖",
-    },
-    {
-      strategy: "Word Families & Etymology",
-      description:
-        "Study related words and their origins to understand patterns",
-      benefits: [
-        "Faster learning",
-        "Pattern recognition",
-        "Deeper understanding",
-      ],
-      tools: ["Etymology dictionaries", "Word family lists", "Root word apps"],
-      icon: "🌳",
-    },
-    {
-      strategy: "Active Production Practice",
-      description: "Use new vocabulary in speaking and writing exercises",
-      benefits: [
-        "Practical application",
-        "Confidence building",
-        "Muscle memory",
-      ],
-      tools: ["Writing prompts", "Speaking practice", "Conversation apps"],
-      icon: "💬",
-    },
-    {
-      strategy: "Multimodal Learning",
-      description:
-        "Engage multiple senses through visual, auditory, and kinesthetic methods",
-      benefits: [
-        "Enhanced memory",
-        "Multiple retrieval paths",
-        "Personalized learning",
-      ],
-      tools: ["Flashcards", "Audio resources", "Visual mnemonics", "Mind maps"],
-      icon: "🎨",
-    },
-    {
-      strategy: "Progressive Disclosure",
-      description:
-        "Gradually reveal word complexity from basic to advanced meanings",
-      benefits: [
-        "Structured learning",
-        "Prevents overwhelm",
-        "Building confidence",
-      ],
-      tools: [
-        "Adaptive learning apps",
-        "Graded readers",
-        "Leveled vocabulary lists",
-      ],
-      icon: "📈",
-    },
-  ];
+// Tagline component
+const Tagline = ({ children }: { children: React.ReactNode }) => (
+  <div className="relative z-1 max-w-[62rem] mx-auto text-center mb-[1rem] md:mb-4 lg:mb-[1.5rem]">
+    <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 border border-green-200/50 dark:border-green-700/50">
+      <span className="text-sm font-medium text-green-700 dark:text-green-300">
+        {children}
+      </span>
+    </div>
+  </div>
+);
 
-  const vocabularyGoals = [
-    {
-      level: "Beginner",
-      words: "1,000-2,000",
-      target: "10-15 new words/day",
-      focus: "High-frequency words",
-    },
-    {
-      level: "Intermediate",
-      words: "3,000-5,000",
-      target: "8-12 new words/day",
-      focus: "Academic & professional vocabulary",
-    },
-    {
-      level: "Advanced",
-      words: "6,000-10,000",
-      target: "5-8 new words/day",
-      focus: "Specialized & nuanced vocabulary",
-    },
-    {
-      level: "Expert",
-      words: "10,000+",
-      target: "3-5 new words/day",
-      focus: "Field-specific & rare vocabulary",
-    },
-  ];
-
+export default function VocabularyBuildingStrategies2025() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-background">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link
-              href="/"
-              className="font-bold text-xl hover:text-primary transition-colors"
-            >
-              Fluenta
-            </Link>
-            <nav className="hidden md:flex items-center gap-6">
-              <Link
-                href="/"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                href="/blog"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Blog
-              </Link>
-              <Link
-                href="/modules/vocabulary-builder"
-                className="text-sm font-medium hover:text-primary transition-colors"
-              >
-                Vocabulary Builder
-              </Link>
-            </nav>
-            <div className="flex items-center gap-2">
-              <Link href="/register">
-                <Button size="sm">Build Vocabulary Now</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </header>
+      <MainNav currentPath="/en/blog" language="en" />
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-5 py-16 md:py-24 pt-24 space-y-16">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-          <Link href="/" className="hover:text-primary">
+        <nav className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Link href="/en" className="hover:text-primary">
             Home
           </Link>
           <span>›</span>
-          <Link href="/blog" className="hover:text-primary">
+          <Link href="/en/blog" className="hover:text-primary">
             Blog
           </Link>
           <span>›</span>
-          <span>Vocabulary Building Strategies</span>
+          <span>Vocabulary Strategies</span>
         </nav>
 
-        <article>
-          <header className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Badge variant="outline">Vocabulary</Badge>
-              <Badge variant="outline">Learning Strategies</Badge>
-              <Badge variant="outline">Advanced Methods</Badge>
+        {/* Article Header */}
+        <article className="max-w-4xl mx-auto">
+          <header className="text-center space-y-4 mb-16">
+            <Tagline>Advanced Memory Techniques</Tagline>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <Badge variant="secondary">Vocabulary</Badge>
+              <Badge variant="outline">Memory Techniques</Badge>
+              <Badge variant="outline">14 min read</Badge>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
               Advanced Vocabulary Building Strategies for 2025
             </h1>
-            <p className="text-xl text-muted-foreground mb-6">
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
               Discover proven methods to expand your English vocabulary
               effectively. From spaced repetition to contextual learning, master
-              these advanced techniques that top language learners use to
-              supercharge their progress.
+              these advanced techniques with AI-powered tools for faster
+              vocabulary acquisition and long-term retention.
             </p>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>November 25, 2024</span>
+            <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground pt-4">
+              <span>December 24, 2024</span>
               <span>•</span>
-              <span>11 min read</span>
+              <span>14 min read</span>
               <span>•</span>
-              <span>Advanced Learning</span>
+              <span>Vocabulary</span>
             </div>
           </header>
 
           {/* Introduction */}
-          <section className="mb-8">
-            <p className="text-lg leading-relaxed mb-4">
-              Building a strong vocabulary is one of the most impactful ways to
-              improve your English proficiency. Research shows that vocabulary
-              size directly correlates with reading comprehension, writing
-              quality, and overall communication effectiveness. Yet many
-              learners struggle with ineffective methods that lead to forgetting
-              and frustration.
-            </p>
-            <p className="text-lg leading-relaxed mb-6">
-              In 2025, successful language learners are moving beyond simple
-              memorization to embrace scientifically-backed strategies that
-              maximize retention and practical application. This comprehensive
-              guide reveals the advanced techniques that will transform your
-              vocabulary learning journey.
-            </p>
-          </section>
-
-          {/* Advanced Vocabulary Strategies */}
-          <section className="mb-8">
-            <h2 className="text-3xl font-bold mb-6">
-              6 Advanced Vocabulary Building Strategies
-            </h2>
-
-            <div className="space-y-8">
-              {vocabularyStrategies.map((strategy, index) => (
-                <Card key={index} className="border-l-4 border-l-primary">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-3 text-xl">
-                      <span className="text-2xl">{strategy.icon}</span>
-                      {index + 1}. {strategy.strategy}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-muted-foreground">
-                      {strategy.description}
-                    </p>
-
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg">
-                        <h4 className="font-semibold text-green-700 dark:text-green-300 mb-3">
-                          ✅ Key Benefits:
-                        </h4>
-                        <ul className="space-y-1 text-sm">
-                          {strategy.benefits.map((benefit, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <span className="text-green-500">•</span>
-                              {benefit}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-
-                      <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
-                        <h4 className="font-semibold text-blue-700 dark:text-blue-300 mb-3">
-                          🛠️ Recommended Tools:
-                        </h4>
-                        <ul className="space-y-1 text-sm">
-                          {strategy.tools.map((tool, i) => (
-                            <li key={i} className="flex items-center gap-2">
-                              <span className="text-blue-500">•</span>
-                              {tool}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-
-          {/* Vocabulary Learning Goals */}
-          <section className="mb-8">
-            <h2 className="text-3xl font-bold mb-6">
-              Setting Realistic Vocabulary Goals by Level
-            </h2>
-
-            <div className="grid gap-6">
-              {vocabularyGoals.map((goal, index) => (
-                <GradientCard key={index}>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>{goal.level} Level</span>
-                      <Badge variant="outline">{goal.words} words</Badge>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <strong>Daily Target:</strong>
-                        <p className="text-muted-foreground">{goal.target}</p>
-                      </div>
-                      <div>
-                        <strong>Focus Area:</strong>
-                        <p className="text-muted-foreground">{goal.focus}</p>
-                      </div>
-                      <div>
-                        <strong>Time to Goal:</strong>
-                        <p className="text-muted-foreground">
-                          {goal.level === "Beginner"
-                            ? "3-6 months"
-                            : goal.level === "Intermediate"
-                              ? "6-12 months"
-                              : goal.level === "Advanced"
-                                ? "12-18 months"
-                                : "18+ months"}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </GradientCard>
-              ))}
-            </div>
-          </section>
-
-          {/* Daily Vocabulary Practice Routine */}
-          <section className="mb-8">
-            <h2 className="text-3xl font-bold mb-6">
-              The Ultimate Daily Vocabulary Practice Routine
-            </h2>
-
+          <section className="prose prose-lg max-w-none mb-16">
             <GradientCard>
-              <CardHeader>
-                <CardTitle>20-Minute Daily Vocabulary Workout</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex items-start gap-4">
-                    <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold">
-                      5
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">Review Previous Words</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Use spaced repetition to review words from previous days
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold">
-                      8
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">Learn New Words</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Encounter 5-10 new words in context through reading or
-                        listening
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold">
-                      4
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">Active Practice</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Use new words in sentences, conversations, or writing
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-4">
-                    <div className="bg-primary text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-semibold">
-                      3
-                    </div>
-                    <div>
-                      <h4 className="font-semibold">Reflection & Planning</h4>
-                      <p className="text-sm text-muted-foreground">
-                        Track progress and plan tomorrow's vocabulary focus
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
+              <div className="p-8">
+                <h2 className="text-2xl font-bold mb-4">
+                  🧠 Why Vocabulary is the Foundation of English Fluency
+                </h2>
+                <p className="text-muted-foreground leading-relaxed">
+                  A rich vocabulary is the cornerstone of effective
+                  communication. Research shows that learners with larger
+                  vocabularies understand more, express themselves better, and
+                  achieve higher scores on language proficiency tests. However,
+                  traditional memorization methods are inefficient and quickly
+                  forgotten. This guide reveals scientifically-backed strategies
+                  that ensure lasting vocabulary acquisition.
+                </p>
+              </div>
             </GradientCard>
           </section>
 
-          {/* CTA Section */}
-          <section className="bg-gradient-to-r from-primary/10 via-secondary/10 to-accent/10 rounded-lg p-8 text-center mb-8">
-            <h2 className="text-3xl font-bold mb-4">
-              Supercharge Your Vocabulary with AI-Powered Learning
-            </h2>
-            <p className="text-lg text-muted-foreground mb-6 max-w-2xl mx-auto">
-              Put these advanced strategies into practice with Fluenta's
-              AI-powered vocabulary builder. Get personalized learning paths,
-              spaced repetition, and contextual practice all in one platform.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/register">
-                <Button size="lg" className="text-lg px-8">
-                  Start Building Vocabulary
-                </Button>
-              </Link>
-              <Link href="/modules/vocabulary-builder">
-                <Button variant="outline" size="lg" className="text-lg px-8">
-                  Explore Vocabulary Module
-                </Button>
-              </Link>
+          <h2>1. The Science of Spaced Repetition</h2>
+          <p>
+            Spaced repetition is the most effective method for long-term
+            vocabulary retention. This technique leverages the psychological
+            spacing effect to combat forgetting:
+          </p>
+          <ul>
+            <li>
+              <strong>Initial Learning:</strong> Study new words with full
+              attention
+            </li>
+            <li>
+              <strong>First Review:</strong> 1 day later
+            </li>
+            <li>
+              <strong>Second Review:</strong> 3 days later
+            </li>
+            <li>
+              <strong>Third Review:</strong> 1 week later
+            </li>
+            <li>
+              <strong>Fourth Review:</strong> 2 weeks later
+            </li>
+            <li>
+              <strong>Fifth Review:</strong> 1 month later
+            </li>
+          </ul>
+          <p>
+            Studies show this method increases retention rates by up to 500%
+            compared to traditional repetition methods.
+          </p>
+
+          <h2>2. Contextual Learning: Words in Action</h2>
+          <p>
+            Learning words in isolation is ineffective. Instead, encounter new
+            vocabulary in meaningful contexts:
+          </p>
+          <h3>Reading Strategies</h3>
+          <ul>
+            <li>
+              <strong>Choose appropriate level:</strong> 95% known words, 5% new
+              vocabulary
+            </li>
+            <li>
+              <strong>Guess from context:</strong> Try to understand meaning
+              before checking dictionary
+            </li>
+            <li>
+              <strong>Multiple exposures:</strong> Encounter the same word in
+              different texts
+            </li>
+            <li>
+              <strong>Note collocations:</strong> Learn word combinations (e.g.,
+              "make a decision")
+            </li>
+          </ul>
+
+          <Card className="my-8">
+            <CardContent className="p-6">
+              <h3 className="text-xl font-semibold mb-4">💡 Context is King</h3>
+              <p>
+                Fluenta's AI analyzes your reading and listening habits to
+                present new vocabulary in contexts that match your interests and
+                goals. This personalized approach increases retention by making
+                learning more relevant and engaging.
+              </p>
+            </CardContent>
+          </Card>
+
+          <h2>3. The Power of Word Families</h2>
+          <p>
+            Understanding word structure dramatically accelerates vocabulary
+            acquisition:
+          </p>
+          <ul>
+            <li>
+              <strong>Root:</strong> "dict" (to say) → predict, dictate,
+              dictionary
+            </li>
+            <li>
+              <strong>Prefix:</strong> "un-" (not) → unhappy, unusual, uncertain
+            </li>
+            <li>
+              <strong>Suffix:</strong> "-tion" (noun) → education, creation,
+              information
+            </li>
+          </ul>
+
+          <h2>4. Memory Palace Techniques</h2>
+          <p>
+            Ancient memory techniques remain highly effective for vocabulary
+            learning:
+          </p>
+          <ol>
+            <li>
+              <strong>Choose a familiar location:</strong> Your home, school, or
+              workplace
+            </li>
+            <li>
+              <strong>Create a mental route:</strong> Walk through specific
+              rooms in order
+            </li>
+            <li>
+              <strong>Place vocabulary items:</strong> Associate new words with
+              specific locations
+            </li>
+            <li>
+              <strong>Add vivid details:</strong> Use colors, sounds, and
+              emotions
+            </li>
+          </ol>
+
+          <GradientCard className="my-8">
+            <div className="p-8 text-center">
+              <h3 className="text-2xl font-bold mb-4">
+                Accelerate Your Vocabulary Growth
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Combine these proven strategies with Fluenta's AI-powered
+                vocabulary system. Get personalized word recommendations, spaced
+                repetition scheduling, and contextual practice opportunities.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link href="/en/register">
+                  <Button size="lg" className="text-lg px-8">
+                    Start Vocabulary Training
+                  </Button>
+                </Link>
+                <Link href="/en/modules/vocabulary">
+                  <Button variant="outline" size="lg" className="text-lg px-8">
+                    Explore Vocabulary Module
+                  </Button>
+                </Link>
+              </div>
             </div>
-          </section>
+          </GradientCard>
+
+          <h2>5. Active Recall and Production</h2>
+          <p>
+            Passive recognition isn't enough—you must actively produce
+            vocabulary:
+          </p>
+          <ul>
+            <li>
+              <strong>Speaking practice:</strong> Use new words in conversations
+            </li>
+            <li>
+              <strong>Writing exercises:</strong> Create sentences with target
+              vocabulary
+            </li>
+            <li>
+              <strong>Self-testing:</strong> Quiz yourself regularly
+            </li>
+            <li>
+              <strong>Teaching others:</strong> Explain new words to friends
+            </li>
+          </ul>
+
+          <h2>Conclusion</h2>
+          <p>
+            Building a rich English vocabulary requires strategic approaches and
+            consistent practice. By implementing these evidence-based
+            techniques—spaced repetition, contextual learning, word families,
+            memory palaces, and active recall—you'll see dramatic improvements
+            in your vocabulary acquisition rate.
+          </p>
+          <p>
+            Remember, the key to success is consistency and active engagement.
+            Start with strategies that match your learning style, then gradually
+            incorporate others as you build momentum. With dedication and the
+            right approach, you can master the vocabulary needed for confident
+            English communication.
+          </p>
 
           {/* Related Articles */}
-          <section>
-            <h2 className="text-2xl font-bold mb-6">Related Articles</h2>
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">
+          <section className="mt-16 pt-8 border-t">
+            <h3 className="text-2xl font-bold mb-6">Related Articles</h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <h4 className="font-semibold mb-2">
                     <Link
-                      href="/blog/english-grammar-mistakes-avoid"
+                      href="/en/blog/english-listening-skills-improvement"
                       className="hover:text-primary"
                     >
-                      10 Common English Grammar Mistakes
+                      8 Ways to Improve Your English Listening Skills
                     </Link>
-                  </h3>
+                  </h4>
                   <p className="text-sm text-muted-foreground">
-                    Master English grammar by learning to avoid the most common
-                    mistakes...
+                    Enhance listening comprehension to encounter vocabulary in
+                    natural contexts.
                   </p>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">
+              <Card className="hover:shadow-lg transition-shadow">
+                <CardContent className="p-6">
+                  <h4 className="font-semibold mb-2">
                     <Link
-                      href="/blog/ai-english-conversation-practice"
+                      href="/en/blog/ai-powered-english-learning-2025"
                       className="hover:text-primary"
                     >
-                      AI English Conversation Practice
+                      AI-Powered English Learning in 2025
                     </Link>
-                  </h3>
+                  </h4>
                   <p className="text-sm text-muted-foreground">
-                    Improve your speaking skills with AI conversation
-                    partners...
-                  </p>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-2">
-                    <Link
-                      href="/blog/english-pronunciation-practice-online"
-                      className="hover:text-primary"
-                    >
-                      English Pronunciation Practice Online
-                    </Link>
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Master English pronunciation with online tools and
-                    techniques...
+                    Discover how AI technology can accelerate your vocabulary
+                    learning process.
                   </p>
                 </CardContent>
               </Card>
             </div>
           </section>
         </article>
+
+        {/* Popular Resources */}
+        <PopularResourcesEn />
       </main>
+
+      {/* Footer */}
+      <FooterEn />
     </div>
   );
 }

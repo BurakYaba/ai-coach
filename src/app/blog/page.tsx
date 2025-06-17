@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
+import PopularResources from "@/components/layout/PopularResources";
+import Footer from "@/components/layout/Footer";
 
 export const metadata: Metadata = {
   title:
@@ -362,79 +364,12 @@ export default function TurkishBlogPage() {
           </GradientCard>
         </section>
 
-        {/* Related Links */}
-        <section className="space-y-12">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold">İlgili Kaynaklar</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              İngilizce öğrenme yolculuğunuzda size yardımcı olacak diğer
-              kaynaklar
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <Card className="text-center hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <CardContent className="pt-6">
-                <div className="text-4xl mb-4">🎯</div>
-                <h3 className="text-xl font-semibold mb-2">Seviye Testi</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  İngilizce seviyenizi belirleyin
-                </p>
-                <Link href="/seviye-testi">
-                  <Button variant="outline" size="sm">
-                    Test Et
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-            <Card className="text-center hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <CardContent className="pt-6">
-                <div className="text-4xl mb-4">📖</div>
-                <h3 className="text-xl font-semibold mb-2">
-                  Öğrenme Modülleri
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  AI destekli öğrenme modülleri
-                </p>
-                <Link href="/moduller">
-                  <Button variant="outline" size="sm">
-                    Keşfet
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-            <Card className="text-center hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <CardContent className="pt-6">
-                <div className="text-4xl mb-4">⭐</div>
-                <h3 className="text-xl font-semibold mb-2">
-                  Başarı Hikayeleri
-                </h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Kullanıcı deneyimlerini okuyun
-                </p>
-                <Link href="/basari-hikayeleri">
-                  <Button variant="outline" size="sm">
-                    Oku
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-            <Card className="text-center hover:shadow-lg hover:scale-105 transition-all duration-300">
-              <CardContent className="pt-6">
-                <div className="text-4xl mb-4">❓</div>
-                <h3 className="text-xl font-semibold mb-2">SSS</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Sık sorulan sorular
-                </p>
-                <Link href="/sss">
-                  <Button variant="outline" size="sm">
-                    Görüntüle
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
+        {/* Popular Resources */}
+        <PopularResources />
       </main>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }

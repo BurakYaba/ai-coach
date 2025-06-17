@@ -9,111 +9,116 @@ import PopularResourcesEn from "@/components/layout/PopularResourcesEn";
 import FooterEn from "@/components/layout/FooterEn";
 
 export const metadata: Metadata = {
-  title:
-    "English Reading Module - AI-Powered Reading Comprehension Training | Fluenta",
+  title: "English Writing Module - AI-Powered Writing Training | Fluenta",
   description:
-    "Improve your English reading comprehension skills with Fluenta's AI-powered reading module. Personalized texts, interactive questions, and vocabulary learning to enhance your level.",
+    "Improve your English writing skills with Fluenta's AI-powered writing module. Get grammar analysis, style suggestions, and personalized feedback to write perfect texts.",
   keywords:
-    "English reading, reading comprehension, English text reading, AI reading training, English comprehension, reading skill development, English vocabulary learning, reading practice",
+    "English writing, writing skills, AI writing training, English composition, grammar analysis, writing practice, English essay, writing feedback",
   alternates: {
-    canonical: "/en/modules/reading",
+    canonical: "/en/modules/writing",
     languages: {
-      en: "/en/modules/reading",
-      tr: "/moduller/okuma",
+      en: "/en/modules/writing",
+      tr: "/moduller/yazma",
     },
   },
   openGraph: {
-    title:
-      "English Reading Module - AI-Powered Reading Comprehension Training | Fluenta",
+    title: "English Writing Module - AI-Powered Writing Training | Fluenta",
     description:
-      "Personalized English reading training with AI technology. Level-appropriate texts, comprehension questions, and vocabulary learning to improve your reading skills.",
+      "Personalized English writing training with AI technology. Grammar, style, and content analysis to take your writing skills to professional level.",
     type: "website",
     locale: "en_US",
     images: [
       {
-        url: "/og-images/og-reading-module-en.png",
+        url: "/og-images/og-writing-module-en.png",
         width: 1200,
         height: 630,
-        alt: "Fluenta English Reading Module",
+        alt: "Fluenta English Writing Module",
       },
     ],
   },
 };
 
-// Tagline component
 const Tagline = ({ children }: { children: React.ReactNode }) => (
   <div className="relative z-1 max-w-[62rem] mx-auto text-center mb-[1rem] md:mb-4 lg:mb-[1.5rem]">
-    <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 border border-blue-200/50 dark:border-blue-700/50">
-      <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+    <div className="inline-block px-4 py-2 rounded-full bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 border border-green-200/50 dark:border-green-700/50">
+      <span className="text-sm font-medium text-green-700 dark:text-green-300">
         {children}
       </span>
     </div>
   </div>
 );
 
-export default function ReadingModulePage() {
+export default function WritingModulePage() {
   const features = [
     {
+      icon: "🤖",
+      title: "AI Writing Assistant",
+      description: "Get real-time grammar, style, and content suggestions",
+    },
+    {
+      icon: "📝",
+      title: "Diverse Writing Types",
+      description: "Essays, emails, reports, stories, and more",
+    },
+    {
       icon: "🎯",
-      title: "Personalized Content",
-      description: "AI creates custom texts based on your level and interests",
+      title: "Goal-Oriented Practice",
+      description: "Special preparation for IELTS, TOEFL, and academic writing",
     },
     {
       icon: "📊",
-      title: "Progress Tracking",
+      title: "Detailed Analysis",
       description:
-        "Track your reading speed, comprehension rate, and vocabulary development",
+        "Grammar, vocabulary choice, and sentence structure analysis",
     },
     {
-      icon: "💡",
-      title: "Smart Vocabulary Learning",
-      description: "Learn new words from texts in context",
-    },
-    {
-      icon: "🎮",
-      title: "Interactive Questions",
-      description: "Test your comprehension with interactive questions",
-    },
-    {
-      icon: "📚",
-      title: "Diverse Text Types",
-      description: "News, stories, articles, and more text types",
+      icon: "🔄",
+      title: "Version Comparison",
+      description: "Track your writing improvement step by step",
     },
     {
       icon: "⚡",
-      title: "Instant Feedback",
-      description: "Get detailed explanations for your answers immediately",
+      title: "Instant Correction",
+      description: "Detect and correct errors as you write",
     },
   ];
 
-  const levels = [
+  const writingTypes = [
     {
-      level: "A1-A2",
-      title: "Beginner",
-      description: "Simple sentences and daily topics",
-      topics: ["Family", "Hobbies", "Daily routines", "Shopping"],
+      type: "Academic Writing",
+      description: "Essays, research papers, and academic reports",
+      topics: [
+        "Argumentative Essay",
+        "Research Paper",
+        "Literature Review",
+        "Case Study",
+      ],
+      level: "B2-C2",
     },
     {
-      level: "B1-B2",
-      title: "Intermediate",
-      description: "More complex texts and topics",
-      topics: ["News", "Travel", "Technology", "Culture"],
+      type: "Business English",
+      description: "Professional emails, reports, and presentation writing",
+      topics: [
+        "Business Email",
+        "Report Writing",
+        "Proposal",
+        "Meeting Minutes",
+      ],
+      level: "B1-C1",
     },
     {
-      level: "C1-C2",
-      title: "Advanced",
-      description: "Academic and professional texts",
-      topics: ["Science", "Literature", "Business", "Philosophy"],
+      type: "Creative Writing",
+      description: "Blog posts, personal letters, and creative content",
+      topics: ["Blog Post", "Personal Letter", "Story Writing", "Social Media"],
+      level: "A2-B2",
     },
   ];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <MainNav currentPath="/en/modules/reading" language="en" />
+      <MainNav currentPath="/en/modules/writing" language="en" />
 
       <main className="container mx-auto px-5 py-16 md:py-24 pt-24 space-y-16">
-        {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-muted-foreground">
           <Link href="/en" className="hover:text-primary">
             Home
@@ -123,25 +128,24 @@ export default function ReadingModulePage() {
             Modules
           </Link>
           <span>›</span>
-          <span>Reading Module</span>
+          <span>Writing Module</span>
         </nav>
 
-        {/* Hero Section */}
         <section className="text-center space-y-4 max-w-4xl mx-auto">
-          <Tagline>AI-Powered Reading Training</Tagline>
+          <Tagline>AI-Powered Writing Training</Tagline>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-            English Reading Module
+            English Writing Module
           </h1>
           <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-            Experience personalized reading with artificial intelligence
-            technology. Improve your reading comprehension skills with
-            level-appropriate texts and expand your vocabulary.
+            Take your English writing skills to professional level with AI
+            writing assistant. Get instant feedback on grammar, style, and
+            content.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
             <Link href="/register">
               <Button
                 size="lg"
-                className="bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3"
+                className="bg-green-600 hover:bg-green-700 text-lg px-8 py-3"
               >
                 Start Now
               </Button>
@@ -154,15 +158,13 @@ export default function ReadingModulePage() {
           </div>
         </section>
 
-        {/* Features Section */}
         <section id="features" className="space-y-12">
           <div className="text-center space-y-4">
             <h2 className="text-3xl md:text-4xl font-bold">
-              Reading Module Features
+              Writing Module Features
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Systematically improve your reading skills with AI-powered
-              features
+              Systematically improve your writing skills with AI-powered tools
             </p>
           </div>
 
@@ -181,94 +183,36 @@ export default function ReadingModulePage() {
           </div>
         </section>
 
-        {/* How It Works */}
         <section className="space-y-12">
           <div className="text-center space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold">How It Works?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold">Writing Types</h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Effective reading learning process in 4 steps
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-blue-600">1</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Level Assessment</h3>
-              <p className="text-muted-foreground text-sm">
-                AI analyzes your reading level and selects appropriate texts for
-                you
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-green-600">2</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Text Reading</h3>
-              <p className="text-muted-foreground text-sm">
-                Read personalized texts with integrated vocabulary support
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-purple-600">3</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Comprehension Test</h3>
-              <p className="text-muted-foreground text-sm">
-                Answer interactive questions to test your understanding
-              </p>
-            </div>
-
-            <div className="text-center">
-              <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span className="text-2xl font-bold text-orange-600">4</span>
-              </div>
-              <h3 className="text-lg font-semibold mb-2">
-                Feedback & Progress
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                Get detailed feedback and track your improvement over time
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Levels Section */}
-        <section className="space-y-12">
-          <div className="text-center space-y-4">
-            <h2 className="text-3xl md:text-4xl font-bold">Reading Levels</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Content tailored to every proficiency level
+              Writing practice tailored to your needs
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {levels.map((level, index) => (
-              <Card
-                key={index}
-                className="text-center hover:shadow-lg transition-shadow"
-              >
+            {writingTypes.map((type, index) => (
+              <GradientCard key={index}>
                 <CardHeader>
-                  <Badge variant="outline" className="w-fit mx-auto mb-2">
-                    {level.level}
-                  </Badge>
-                  <CardTitle className="text-2xl">{level.title}</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary">{type.level}</Badge>
+                    <span className="text-2xl">✍️</span>
+                  </div>
+                  <CardTitle>{type.type}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground mb-4">
-                    {level.description}
+                    {type.description}
                   </p>
                   <div className="space-y-2">
-                    <h4 className="font-semibold text-sm">Sample Topics:</h4>
-                    <div className="flex flex-wrap gap-2 justify-center">
-                      {level.topics.map((topic, topicIndex) => (
+                    <h4 className="font-semibold text-sm">Practice Topics:</h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {type.topics.map((topic, topicIndex) => (
                         <Badge
                           key={topicIndex}
-                          variant="secondary"
-                          className="text-xs"
+                          variant="outline"
+                          className="text-xs justify-center"
                         >
                           {topic}
                         </Badge>
@@ -276,8 +220,60 @@ export default function ReadingModulePage() {
                     </div>
                   </div>
                 </CardContent>
-              </Card>
+              </GradientCard>
             ))}
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section className="space-y-12">
+          <div className="text-center space-y-4">
+            <h2 className="text-3xl md:text-4xl font-bold">How It Works?</h2>
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Effective writing learning process in 4 steps
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-green-600">1</span>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Choose Topic</h3>
+              <p className="text-muted-foreground text-sm">
+                Select from various writing prompts or create your own topic
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-blue-600">2</span>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Write & Get Help</h3>
+              <p className="text-muted-foreground text-sm">
+                Write with real-time AI assistance and suggestions
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-purple-600">3</span>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Get Analysis</h3>
+              <p className="text-muted-foreground text-sm">
+                Receive detailed feedback on grammar, style, and content
+              </p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-2xl font-bold text-orange-600">4</span>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Improve & Repeat</h3>
+              <p className="text-muted-foreground text-sm">
+                Apply suggestions and track your writing improvement
+              </p>
+            </div>
           </div>
         </section>
 
@@ -285,10 +281,10 @@ export default function ReadingModulePage() {
         <section className="space-y-12">
           <div className="text-center space-y-4">
             <h2 className="text-3xl md:text-4xl font-bold">
-              Why Choose Our Reading Module?
+              Why Choose Our Writing Module?
             </h2>
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Advanced features that make reading learning effective and
+              Advanced features that make writing learning effective and
               enjoyable
             </p>
           </div>
@@ -296,26 +292,27 @@ export default function ReadingModulePage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-blue-600 font-bold">✓</span>
+                <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-green-600 font-bold">✓</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">Adaptive Learning</h3>
+                  <h3 className="font-semibold mb-1">Real-time Feedback</h3>
                   <p className="text-muted-foreground text-sm">
-                    Content difficulty automatically adjusts based on your
-                    performance
+                    Get instant suggestions as you write, improving your skills
+                    in real-time
                   </p>
                 </div>
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-green-600 font-bold">✓</span>
+                <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+                  <span className="text-blue-600 font-bold">✓</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">Contextual Vocabulary</h3>
+                  <h3 className="font-semibold mb-1">Personalized Learning</h3>
                   <p className="text-muted-foreground text-sm">
-                    Learn new words naturally within reading contexts
+                    AI adapts to your writing style and provides targeted
+                    improvements
                   </p>
                 </div>
               </div>
@@ -325,11 +322,10 @@ export default function ReadingModulePage() {
                   <span className="text-purple-600 font-bold">✓</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">
-                    Comprehensive Analytics
-                  </h3>
+                  <h3 className="font-semibold mb-1">Progress Tracking</h3>
                   <p className="text-muted-foreground text-sm">
-                    Detailed insights into your reading speed and comprehension
+                    Monitor your writing improvement with detailed analytics and
+                    reports
                   </p>
                 </div>
               </div>
@@ -339,25 +335,25 @@ export default function ReadingModulePage() {
                   <span className="text-orange-600 font-bold">✓</span>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">Diverse Content</h3>
+                  <h3 className="font-semibold mb-1">Multiple Formats</h3>
                   <p className="text-muted-foreground text-sm">
-                    From news articles to literature, practice with varied text
-                    types
+                    Practice with essays, emails, reports, and creative writing
+                    formats
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl p-8">
+            <div className="bg-gradient-to-br from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-2xl p-8">
               <div className="text-center space-y-4">
-                <div className="text-6xl">📚</div>
-                <h3 className="text-2xl font-bold">Start Reading Today</h3>
+                <div className="text-6xl">✍️</div>
+                <h3 className="text-2xl font-bold">Start Writing Today</h3>
                 <p className="text-muted-foreground">
-                  Join thousands of learners improving their English reading
+                  Join thousands of learners improving their English writing
                   skills
                 </p>
                 <Link href="/register">
-                  <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  <Button size="lg" className="bg-green-600 hover:bg-green-700">
                     Begin Your Journey
                   </Button>
                 </Link>
@@ -371,11 +367,12 @@ export default function ReadingModulePage() {
           <GradientCard>
             <div className="p-8 md:p-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Ready to Improve Your Reading Skills?
+                Ready to Improve Your Writing Skills?
               </h2>
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-                Start with our AI-powered reading module and experience
-                personalized learning that adapts to your pace and interests.
+                Start with our AI-powered writing module and experience
+                personalized learning that adapts to your writing style and
+                goals.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/register">
