@@ -188,35 +188,37 @@ export default function GrammarPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-3 sm:p-6">
         <GrammarTourManager />
 
         {/* Header */}
         <div
-          className="flex justify-between items-start mb-8"
+          className="flex flex-col gap-4 mb-6 sm:mb-8 sm:flex-row sm:justify-between sm:items-start"
           data-tour="grammar-header"
         >
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
               Grammar Practice
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
               Track your grammar issues and learn from personalized lessons
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <GrammarTourTrigger />
+          <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 xs:gap-3 flex-shrink-0">
+            <div className="order-2 xs:order-1">
+              <GrammarTourTrigger />
+            </div>
             <Button
               onClick={generateLesson}
               disabled={isGenerating}
-              className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              className="w-full xs:w-auto bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 order-1 xs:order-2"
               data-tour="generate-lesson-btn"
             >
               <GraduationCap className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">
+              <span className="hidden xs:inline">
                 {isGenerating ? "Generating..." : "Generate Lesson"}
               </span>
-              <span className="sm:hidden">
+              <span className="xs:hidden">
                 {isGenerating ? "Generating..." : "Generate"}
               </span>
             </Button>
@@ -228,71 +230,71 @@ export default function GrammarPage() {
           defaultValue="dashboard"
           value={activeTab}
           onValueChange={setActiveTab}
-          className="mb-6"
+          className="mb-4 sm:mb-6"
           data-tour="grammar-tabs"
         >
-          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4 bg-white shadow-sm">
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 lg:w-auto lg:grid-cols-4 bg-white shadow-sm h-auto p-1">
             <TabsTrigger
               value="dashboard"
-              className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 px-2 sm:px-4 py-2 text-xs sm:text-sm"
             >
-              <TrendingUp className="w-4 h-4" />
-              <span className="hidden sm:inline">Dashboard</span>
-              <span className="sm:hidden">Stats</span>
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="hidden xs:inline">Dashboard</span>
+              <span className="xs:hidden">Stats</span>
             </TabsTrigger>
             <TabsTrigger
               value="issues"
               data-tour="grammar-issues-tab"
-              className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 px-2 sm:px-4 py-2 text-xs sm:text-sm"
             >
-              <Target className="w-4 h-4" />
-              <span className="hidden sm:inline">Issues</span>
-              <span className="sm:hidden">Issues</span>
+              <Target className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="hidden xs:inline">Issues</span>
+              <span className="xs:hidden">Issues</span>
             </TabsTrigger>
             <TabsTrigger
               value="lessons"
               data-tour="grammar-lessons-tab"
-              className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 px-2 sm:px-4 py-2 text-xs sm:text-sm"
             >
-              <BookOpen className="w-4 h-4" />
-              <span className="hidden sm:inline">Lessons</span>
-              <span className="sm:hidden">Lessons</span>
+              <BookOpen className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="hidden xs:inline">Lessons</span>
+              <span className="xs:hidden">Lessons</span>
             </TabsTrigger>
             <TabsTrigger
               value="practice"
-              className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 px-2 sm:px-4 py-2 text-xs sm:text-sm"
             >
-              <Zap className="w-4 h-4" />
-              <span className="hidden sm:inline">Practice</span>
-              <span className="sm:hidden">Practice</span>
+              <Zap className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="hidden xs:inline">Practice</span>
+              <span className="xs:hidden">Practice</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Tab Contents */}
-          <TabsContent value="dashboard" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <TabsContent value="dashboard" className="mt-4 sm:mt-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
               {/* Issues Resolved Card */}
               <Card
                 className="border-2 bg-green-50 border-green-300 shadow-lg hover:shadow-xl transition-all duration-300"
                 data-tour="grammar-achievements"
               >
-                <CardHeader>
+                <CardHeader className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-lg text-gray-800">
+                      <CardTitle className="text-base sm:text-lg text-gray-800">
                         Issues Resolved
                       </CardTitle>
-                      <CardDescription className="text-gray-600">
+                      <CardDescription className="text-sm text-gray-600">
                         Grammar errors fixed
                       </CardDescription>
                     </div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                      <Target className="h-6 w-6 text-green-600" />
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-green-100">
+                      <Target className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-gray-800">
+                <CardContent className="p-4 sm:p-6 pt-0">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-800">
                     {userStats.issuesResolved}
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
@@ -303,23 +305,23 @@ export default function GrammarPage() {
 
               {/* Lessons Completed Card */}
               <Card className="border-2 bg-blue-50 border-blue-300 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardHeader>
+                <CardHeader className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-lg text-gray-800">
+                      <CardTitle className="text-base sm:text-lg text-gray-800">
                         Lessons Completed
                       </CardTitle>
-                      <CardDescription className="text-gray-600">
+                      <CardDescription className="text-sm text-gray-600">
                         Grammar lessons finished
                       </CardDescription>
                     </div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                      <BookOpen className="h-6 w-6 text-blue-600" />
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-blue-100">
+                      <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-gray-800">
+                <CardContent className="p-4 sm:p-6 pt-0">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-800">
                     {userStats.lessonsCompleted}
                   </div>
                   <p className="text-sm text-gray-600 mt-1">Great progress!</p>
@@ -327,24 +329,24 @@ export default function GrammarPage() {
               </Card>
 
               {/* Challenge Streak Card */}
-              <Card className="border-2 bg-purple-50 border-purple-300 shadow-lg hover:shadow-xl transition-all duration-300">
-                <CardHeader>
+              <Card className="border-2 bg-purple-50 border-purple-300 shadow-lg hover:shadow-xl transition-all duration-300 sm:col-span-2 lg:col-span-1">
+                <CardHeader className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-lg text-gray-800">
+                      <CardTitle className="text-base sm:text-lg text-gray-800">
                         Challenge Streak
                       </CardTitle>
-                      <CardDescription className="text-gray-600">
+                      <CardDescription className="text-sm text-gray-600">
                         Daily challenges completed
                       </CardDescription>
                     </div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
-                      <Zap className="h-6 w-6 text-purple-600" />
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-purple-100">
+                      <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-gray-800">
+                <CardContent className="p-4 sm:p-6 pt-0">
+                  <div className="text-2xl sm:text-3xl font-bold text-gray-800">
                     {userStats.challengeStreak}
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
@@ -358,20 +360,20 @@ export default function GrammarPage() {
 
             {/* Achievements Section */}
             <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
-              <CardHeader>
+              <CardHeader className="p-4 sm:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle className="text-xl text-gray-800 flex items-center gap-2">
-                      <Award className="h-6 w-6 text-yellow-600" />
+                    <CardTitle className="text-lg sm:text-xl text-gray-800 flex items-center gap-2">
+                      <Award className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600" />
                       Grammar Achievements
                     </CardTitle>
-                    <CardDescription className="text-gray-600">
+                    <CardDescription className="text-sm text-gray-600">
                       Your grammar learning milestones
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-4 sm:p-6 pt-0">
                 <div className="flex flex-wrap gap-2">
                   {badges.length > 0 ? (
                     badges.slice(0, 6).map((badge, index) => (
@@ -409,13 +411,13 @@ export default function GrammarPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="issues" className="mt-6">
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+          <TabsContent value="issues" className="mt-4 sm:mt-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg">
+              <div className="mb-4 sm:mb-6">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
                   Your Grammar Issues
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-sm sm:text-base text-gray-600">
                   Grammar errors identified from your writing and speaking
                   sessions
                 </p>
@@ -424,13 +426,13 @@ export default function GrammarPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="lessons" className="mt-6">
-            <div className="bg-white rounded-2xl p-6 shadow-lg">
-              <div className="mb-6">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+          <TabsContent value="lessons" className="mt-4 sm:mt-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg">
+              <div className="mb-4 sm:mb-6">
+                <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
                   Your Grammar Lessons
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-sm sm:text-base text-gray-600">
                   Personalized lessons based on your common grammar mistakes
                 </p>
               </div>
@@ -438,28 +440,28 @@ export default function GrammarPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="practice" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TabsContent value="practice" className="mt-4 sm:mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
               <Card
                 className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300"
                 data-tour="daily-challenge"
               >
-                <CardHeader>
+                <CardHeader className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-xl text-gray-800">
+                      <CardTitle className="text-lg sm:text-xl text-gray-800">
                         Daily Grammar Challenge
                       </CardTitle>
-                      <CardDescription className="text-gray-600">
+                      <CardDescription className="text-sm text-gray-600">
                         Test your grammar knowledge with a daily challenge
                       </CardDescription>
                     </div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
-                      <Zap className="h-6 w-6 text-orange-600" />
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-orange-100">
+                      <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-orange-600" />
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 sm:p-6 pt-0">
                   <DailyGrammarChallenge />
                 </CardContent>
               </Card>
@@ -468,22 +470,22 @@ export default function GrammarPage() {
                 className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300"
                 data-tour="grammar-flashcards"
               >
-                <CardHeader>
+                <CardHeader className="p-4 sm:p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle className="text-xl text-gray-800">
+                      <CardTitle className="text-lg sm:text-xl text-gray-800">
                         Grammar Flashcards
                       </CardTitle>
-                      <CardDescription className="text-gray-600">
+                      <CardDescription className="text-sm text-gray-600">
                         Review grammar rules with spaced repetition
                       </CardDescription>
                     </div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                      <BookOpen className="h-6 w-6 text-green-600" />
+                    <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-green-100">
+                      <BookOpen className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="p-4 sm:p-6 pt-0">
                   <GrammarFlashcards />
                 </CardContent>
               </Card>

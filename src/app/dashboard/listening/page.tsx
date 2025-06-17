@@ -27,11 +27,14 @@ export const metadata: Metadata = {
 function LibraryBrowserSkeleton() {
   return (
     <div className="space-y-4">
-      <div className="flex justify-between">
-        <Skeleton className="h-10 w-[250px]" />
-        <Skeleton className="h-10 w-[180px]" />
+      <div className="flex flex-col sm:flex-row gap-4 sm:justify-between">
+        <Skeleton className="h-10 w-full sm:w-[250px]" />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Skeleton className="h-10 w-full sm:w-[140px]" />
+          <Skeleton className="h-10 w-full sm:w-[140px]" />
+        </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {[...Array(6)].map((_, i) => (
           <Card key={i} className="overflow-hidden">
             <div className="h-40 bg-muted" />
@@ -104,26 +107,28 @@ export default async function ListeningDashboardPage({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-3 sm:p-6">
         {/* Header */}
         <div
-          className="flex justify-between items-start mb-8"
+          className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6 sm:mb-8"
           data-tour="listening-header"
         >
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
               Listening Practice
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
               Improve your listening skills with curated and personalized audio
               content
             </p>
           </div>
-          <ListeningTourTrigger />
+          <div className="flex-shrink-0 self-start sm:self-auto">
+            <ListeningTourTrigger />
+          </div>
         </div>
 
         {errorMessage && (
-          <Alert variant="destructive" className="mb-6">
+          <Alert variant="destructive" className="mb-4 sm:mb-6">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{errorMessage}</AlertDescription>
@@ -131,71 +136,81 @@ export default async function ListeningDashboardPage({
         )}
 
         {successMessage && (
-          <Alert className="mb-6 bg-green-50 text-green-800 border border-green-200">
+          <Alert className="mb-4 sm:mb-6 bg-green-50 text-green-800 border border-green-200">
             <AlertTitle>Success</AlertTitle>
             <AlertDescription>{successMessage}</AlertDescription>
           </Alert>
         )}
 
         {/* Navigation Tabs */}
-        <Tabs defaultValue={defaultTab} className="mb-6">
+        <Tabs defaultValue={defaultTab} className="mb-4 sm:mb-6">
           <TabsList
             data-tour="listening-tabs"
-            className="grid w-full grid-cols-4 lg:w-auto lg:grid-cols-4 bg-white shadow-sm"
+            className="grid w-full grid-cols-2 sm:grid-cols-4 lg:w-auto lg:grid-cols-4 bg-white shadow-sm h-auto p-1"
           >
             <TabsTrigger
               value="library"
-              className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              className="flex items-center gap-1 sm:gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 px-2 sm:px-4 py-2 text-xs sm:text-sm"
             >
-              <Volume2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Listening Library</span>
-              <span className="sm:hidden">Library</span>
+              <Volume2 className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+              <span className="hidden xs:inline sm:hidden lg:inline">
+                Listening Library
+              </span>
+              <span className="xs:hidden sm:inline lg:hidden">Library</span>
+              <span className="xs:inline sm:hidden lg:hidden">Lib</span>
             </TabsTrigger>
             <TabsTrigger
               value="inprogress"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 px-2 sm:px-4 py-2 text-xs sm:text-sm"
             >
-              <span className="hidden sm:inline">In Progress</span>
-              <span className="sm:hidden">Progress</span>
+              <span className="hidden xs:inline sm:hidden lg:inline">
+                In Progress
+              </span>
+              <span className="xs:hidden sm:inline lg:hidden">Progress</span>
+              <span className="xs:inline sm:hidden lg:hidden">Prog</span>
             </TabsTrigger>
             <TabsTrigger
               value="completed"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 px-2 sm:px-4 py-2 text-xs sm:text-sm"
             >
-              Completed
+              <span className="hidden xs:inline">Completed</span>
+              <span className="xs:inline sm:hidden">Done</span>
             </TabsTrigger>
             <TabsTrigger
               value="progress"
               data-tour="progress-tab"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 px-2 sm:px-4 py-2 text-xs sm:text-sm"
             >
-              <span className="hidden sm:inline">My Progress</span>
-              <span className="sm:hidden">Stats</span>
+              <span className="hidden xs:inline sm:hidden lg:inline">
+                My Progress
+              </span>
+              <span className="xs:hidden sm:inline lg:hidden">Stats</span>
+              <span className="xs:inline sm:hidden lg:hidden">Stats</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Tab Contents */}
-          <TabsContent value="library" className="mt-6">
+          <TabsContent value="library" className="mt-4 sm:mt-6">
             <Suspense fallback={<LibraryBrowserSkeleton />}>
               <LibraryBrowser />
             </Suspense>
           </TabsContent>
 
-          <TabsContent value="inprogress" className="mt-6">
+          <TabsContent value="inprogress" className="mt-4 sm:mt-6">
             <Suspense fallback={<SessionSkeleton count={6} />}>
               <SessionList filter="inprogress" />
             </Suspense>
           </TabsContent>
 
-          <TabsContent value="completed" className="mt-6">
+          <TabsContent value="completed" className="mt-4 sm:mt-6">
             <Suspense fallback={<SessionSkeleton count={6} />}>
               <SessionList filter="completed" />
             </Suspense>
           </TabsContent>
 
-          <TabsContent value="progress" className="mt-6">
-            <div className="bg-white rounded-2xl p-8 shadow-lg">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6">
+          <TabsContent value="progress" className="mt-4 sm:mt-6">
+            <div className="bg-white rounded-2xl p-4 sm:p-8 shadow-lg">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">
                 Your Progress Overview
               </h3>
               <Suspense

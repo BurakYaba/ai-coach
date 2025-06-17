@@ -261,61 +261,66 @@ export default function SpeakingDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-3 sm:p-6">
         <SpeakingTourManager />
 
         {/* Header */}
         <div
-          className="flex justify-between items-start mb-8"
+          className="flex flex-col gap-4 mb-6 sm:mb-8 sm:flex-row sm:justify-between sm:items-start"
           data-tour="speaking-header"
         >
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
+          <div className="flex-1">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
               Speaking Practice
             </h1>
-            <p className="text-gray-600">
+            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
               Practice speaking with AI conversation partners and get real-time
               feedback on pronunciation and fluency
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <SpeakingTourTrigger />
-            <Link href="/dashboard/speaking/practice">
+          <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 xs:gap-3 flex-shrink-0">
+            <div className="order-2 xs:order-1">
+              <SpeakingTourTrigger />
+            </div>
+            <Link
+              href="/dashboard/speaking/practice"
+              className="order-1 xs:order-2"
+            >
               <Button
-                className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                className="w-full xs:w-auto bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                 data-tour="practice-speaking-btn"
               >
                 <Mic className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Practice Speaking</span>
-                <span className="sm:hidden">Practice</span>
+                <span className="hidden xs:inline">Practice Speaking</span>
+                <span className="xs:hidden">Practice</span>
               </Button>
             </Link>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card
             className="border-2 bg-blue-50 border-blue-300 shadow-lg hover:shadow-xl transition-all duration-300"
             data-tour="speaking-overview"
           >
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl text-gray-800">
+                  <CardTitle className="text-lg sm:text-xl text-gray-800">
                     Overview
                   </CardTitle>
-                  <CardDescription className="text-gray-600">
+                  <CardDescription className="text-sm text-gray-600">
                     Your speaking practice statistics
                   </CardDescription>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                  <BarChart3 className="h-6 w-6 text-blue-600" />
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-blue-100">
+                  <BarChart3 className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="p-4 sm:p-6 pt-0">
+              <div className="space-y-3 sm:space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-medium text-gray-800">
                     Total Sessions:
@@ -386,22 +391,22 @@ export default function SpeakingDashboard() {
             className="border-2 bg-green-50 border-green-300 shadow-lg hover:shadow-xl transition-all duration-300"
             data-tour="recent-session"
           >
-            <CardHeader>
+            <CardHeader className="p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-xl text-gray-800">
+                  <CardTitle className="text-lg sm:text-xl text-gray-800">
                     Most Recent Session
                   </CardTitle>
-                  <CardDescription className="text-gray-600">
+                  <CardDescription className="text-sm text-gray-600">
                     Details about your last practice session
                   </CardDescription>
                 </div>
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                  <MessageSquare className="h-6 w-6 text-green-600" />
+                <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-green-100">
+                  <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4 sm:p-6 pt-0">
               {loading ? (
                 <div className="space-y-4">
                   <Skeleton className="h-4 w-full" />
@@ -409,7 +414,7 @@ export default function SpeakingDashboard() {
                   <Skeleton className="h-4 w-1/2" />
                 </div>
               ) : sessions.length > 0 ? (
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <div className="flex items-center">
                     <Calendar className="mr-2 h-4 w-4 text-gray-500" />
                     <span className="text-sm font-medium text-gray-800">
@@ -468,21 +473,21 @@ export default function SpeakingDashboard() {
         </div>
 
         {/* Session History */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg">
+        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg">
           <div
-            className="flex justify-between items-center mb-6"
+            className="flex justify-between items-center mb-4 sm:mb-6"
             data-tour="session-history-header"
           >
-            <h2 className="text-2xl font-bold text-gray-800">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">
               Session History
             </h2>
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {Array.from({ length: 8 }).map((_, index) => (
                 <Card key={index} className="border-2 bg-gray-50 shadow-lg">
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-3 p-3 sm:p-6 sm:pb-3">
                     <div className="flex justify-between items-start">
                       <div>
                         <Skeleton className="h-5 w-40 mb-1" />
@@ -491,13 +496,13 @@ export default function SpeakingDashboard() {
                       <Skeleton className="h-5 w-20" />
                     </div>
                   </CardHeader>
-                  <CardContent className="flex-grow pb-3">
+                  <CardContent className="flex-grow pb-3 p-3 sm:p-6 sm:pb-3">
                     <div className="space-y-3">
                       <Skeleton className="h-4 w-full" />
                       <Skeleton className="h-4 w-3/4" />
                     </div>
                   </CardContent>
-                  <CardFooter className="pt-0">
+                  <CardFooter className="pt-0 p-3 sm:p-6 sm:pt-0">
                     <Skeleton className="h-9 w-full" />
                   </CardFooter>
                 </Card>
@@ -505,7 +510,7 @@ export default function SpeakingDashboard() {
             </div>
           ) : sessions.length > 0 ? (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {sessions.map((session, index) => (
                   <Card
                     key={session._id}
@@ -513,10 +518,10 @@ export default function SpeakingDashboard() {
                     onClick={() => handleSessionClick(session._id)}
                     data-tour={index === 0 ? "session-card" : undefined}
                   >
-                    <CardHeader className="pb-3">
+                    <CardHeader className="pb-3 p-3 sm:p-6 sm:pb-3">
                       <div className="flex justify-between items-start">
                         <div>
-                          <CardTitle className="text-base mb-1 text-gray-800">
+                          <CardTitle className="text-sm sm:text-base mb-1 text-gray-800">
                             {getSessionType(session)}
                           </CardTitle>
                           <CardDescription className="text-xs text-gray-600">
@@ -526,7 +531,7 @@ export default function SpeakingDashboard() {
                         {getStatusBadge(session.status, session)}
                       </div>
                     </CardHeader>
-                    <CardContent className="flex-grow pb-3 pt-0">
+                    <CardContent className="flex-grow pb-3 pt-0 p-3 sm:p-6 sm:pb-3 sm:pt-0">
                       <div className="space-y-3">
                         <div className="text-sm">
                           <div className="flex items-center justify-between text-xs mb-1">
@@ -567,10 +572,10 @@ export default function SpeakingDashboard() {
                         )}
                       </div>
                     </CardContent>
-                    <CardFooter className="pt-0 flex flex-col gap-2">
+                    <CardFooter className="pt-0 flex flex-col gap-2 p-3 sm:p-6 sm:pt-0">
                       <Button
                         variant="secondary"
-                        className="w-full hover:bg-gray-200 transition-colors"
+                        className="w-full hover:bg-gray-200 transition-colors text-xs sm:text-sm"
                         onClick={e => {
                           e.stopPropagation();
                           handleSessionClick(session._id);
@@ -586,7 +591,7 @@ export default function SpeakingDashboard() {
 
               {pagination.pages > 1 && (
                 <div
-                  className="mt-8 flex justify-center"
+                  className="mt-6 sm:mt-8 flex justify-center"
                   data-tour="speaking-pagination"
                 >
                   <Pagination>
@@ -631,24 +636,27 @@ export default function SpeakingDashboard() {
             </>
           ) : (
             <div
-              className="flex h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50"
+              className="flex h-[300px] sm:h-[400px] flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-300 bg-white/50"
               data-tour="no-sessions-card"
             >
-              <div className="text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-                  <Mic className="h-8 w-8 text-blue-600" />
+              <div className="text-center px-4">
+                <div className="mx-auto mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-blue-100">
+                  <Mic className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
                   No Speaking Sessions Yet
                 </h3>
-                <p className="text-gray-600 mb-6 max-w-sm">
+                <p className="text-sm sm:text-base text-gray-600 mb-6 max-w-sm">
                   Start practicing to see your history! Your speaking sessions
                   will appear here once you begin.
                 </p>
                 <Link href="/dashboard/speaking/practice">
-                  <Button className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200">
+                  <Button className="w-full xs:w-auto bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200">
                     <Mic className="w-4 h-4 mr-2" />
-                    Start Speaking Practice
+                    <span className="hidden xs:inline">
+                      Start Speaking Practice
+                    </span>
+                    <span className="xs:hidden">Start Practice</span>
                   </Button>
                 </Link>
               </div>

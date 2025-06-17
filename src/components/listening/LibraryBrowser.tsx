@@ -187,11 +187,8 @@ export function LibraryBrowser() {
   return (
     <div className="space-y-6">
       {/* Search and Filters */}
-      <div
-        className="flex flex-col sm:flex-row gap-4"
-        data-tour="search-filters"
-      >
-        <div className="relative flex-1">
+      <div className="flex flex-col gap-4" data-tour="search-filters">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Search by title or topic..."
@@ -203,7 +200,7 @@ export function LibraryBrowser() {
             className="pl-10 bg-white"
           />
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Select
             value={levelFilter}
             onValueChange={value => {
@@ -211,7 +208,7 @@ export function LibraryBrowser() {
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-[140px] bg-white">
+            <SelectTrigger className="w-full sm:w-[140px] bg-white">
               <SelectValue placeholder="All Levels" />
             </SelectTrigger>
             <SelectContent>
@@ -232,7 +229,7 @@ export function LibraryBrowser() {
               setCurrentPage(1);
             }}
           >
-            <SelectTrigger className="w-[140px] bg-white">
+            <SelectTrigger className="w-full sm:w-[140px] bg-white">
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
@@ -256,7 +253,7 @@ export function LibraryBrowser() {
         </div>
       ) : (
         <div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
           data-tour="content-library"
         >
           {items.map((item, index) => (
@@ -265,24 +262,24 @@ export function LibraryBrowser() {
               className={`border-2 hover:shadow-lg transition-all duration-300 group ${getLevelCardColor(item.level)}`}
               data-tour={index === 0 ? "content-card" : undefined}
             >
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-3 p-3 sm:p-6 sm:pb-3">
                 <div className="flex justify-between items-start mb-2">
                   <Badge variant="outline" className="text-xs font-semibold">
                     {item.level}
                   </Badge>
                 </div>
-                <CardTitle className="text-lg font-semibold text-gray-800 leading-tight">
+                <CardTitle className="text-base sm:text-lg font-semibold text-gray-800 leading-tight">
                   {item.title}
                 </CardTitle>
                 <p className="text-sm text-gray-600 mt-1">{item.topic}</p>
                 <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
                   <span>{formatDuration(item.duration)}</span>
                   <span>•</span>
-                  <span>{item.contentType}</span>
+                  <span className="truncate">{item.contentType}</span>
                 </div>
               </CardHeader>
 
-              <CardContent className="pt-0">
+              <CardContent className="pt-0 p-3 sm:p-6 sm:pt-0">
                 <div className="space-y-3">
                   {item.tags && item.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
@@ -301,7 +298,7 @@ export function LibraryBrowser() {
                   <Button
                     onClick={() => startSession(item)}
                     disabled={startingSession === item._id}
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white group-hover:bg-blue-600 transition-colors"
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white group-hover:bg-blue-600 transition-colors text-sm sm:text-base py-2 sm:py-3"
                   >
                     {startingSession === item._id ? (
                       <>

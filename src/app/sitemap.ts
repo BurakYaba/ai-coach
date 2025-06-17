@@ -4,7 +4,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = "https://www.fluenta-ai.com"; // Use correct www subdomain
 
   return [
-    // Main pages
+    // Turkish Main pages (now at root level)
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -12,22 +12,22 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/pricing`,
-      lastModified: new Date("2024-12-01"),
+      url: `${baseUrl}/fiyatlandirma`,
+      lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/about`,
-      lastModified: new Date("2024-12-01"),
+      url: `${baseUrl}/hakkimizda`,
+      lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.6,
+      priority: 0.7,
     },
     {
-      url: `${baseUrl}/contact`,
-      lastModified: new Date("2024-12-01"),
+      url: `${baseUrl}/iletisim`,
+      lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.5,
+      priority: 0.6,
     },
     {
       url: `${baseUrl}/blog`,
@@ -35,20 +35,64 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "daily",
       priority: 0.8,
     },
-    // New SEO-optimized pages
     {
-      url: `${baseUrl}/faq`,
+      url: `${baseUrl}/sss`,
       lastModified: new Date("2024-12-29"),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/testimonials`,
+      url: `${baseUrl}/basari-hikayeleri`,
       lastModified: new Date("2024-12-29"),
       changeFrequency: "monthly",
       priority: 0.7,
     },
-    // Auth pages
+
+    // English Main pages (now at /en/)
+    {
+      url: `${baseUrl}/en`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/en/pricing`,
+      lastModified: new Date("2024-12-01"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/en/about`,
+      lastModified: new Date("2024-12-01"),
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
+      url: `${baseUrl}/en/contact`,
+      lastModified: new Date("2024-12-01"),
+      changeFrequency: "monthly",
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/en/blog`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/en/faq`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/en/testimonials`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+
+    // Auth pages (these might be at root level for both languages)
     {
       url: `${baseUrl}/register`,
       lastModified: new Date("2024-12-01"),
@@ -62,236 +106,211 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.4,
     },
 
-    // Turkish Marketing Pages
+    // Turkish Blog Posts (now at root level)
     {
-      url: `${baseUrl}/tr`,
+      url: `${baseUrl}/blog/ai-ile-ingilizce-ogrenme`,
       lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/tr/blog`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
+      changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/tr/hakkimizda`,
+      url: `${baseUrl}/blog/ingilizce-telaffuz-gelistirme`,
       lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/tr/fiyatlandirma`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/tr/iletisim`,
+      url: `${baseUrl}/blog/ingilizce-gramer-rehberi`,
       lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.6,
+      priority: 0.8,
     },
     {
-      url: `${baseUrl}/tr/sss`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/tr/basari-hikayeleri`,
+      url: `${baseUrl}/blog/is-ingilizcesi-rehberi`,
       lastModified: new Date(),
       changeFrequency: "monthly",
-      priority: 0.7,
+      priority: 0.8,
     },
     {
-      url: `${baseUrl}/tr/ingilizce-ogrenme-rehberi`,
+      url: `${baseUrl}/blog/ielts-hazirlik-rehberi`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/blog/gunluk-ingilizce-konusma-pratigi`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
     },
 
-    // Turkish Blog Posts
+    // English Blog posts (now at /en/blog/)
     {
-      url: `${baseUrl}/tr/blog/ai-ile-ingilizce-ogrenme`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/tr/blog/ingilizce-telaffuz-gelistirme`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/tr/blog/ingilizce-gramer-rehberi`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/tr/blog/is-ingilizcesi-rehberi`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/tr/blog/ielts-hazirlik-rehberi`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-
-    // Blog posts - existing
-    {
-      url: `${baseUrl}/blog/ai-english-tutor-vs-human-teacher`,
+      url: `${baseUrl}/en/blog/ai-english-tutor-vs-human-teacher`,
       lastModified: new Date("2024-12-15"),
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/blog/improve-english-pronunciation-ai`,
+      url: `${baseUrl}/en/blog/improve-english-pronunciation-ai`,
       lastModified: new Date("2024-12-18"),
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/blog/english-grammar-rules-common-mistakes`,
+      url: `${baseUrl}/en/blog/english-grammar-rules-common-mistakes`,
       lastModified: new Date("2024-12-19"),
       changeFrequency: "monthly",
       priority: 0.7,
     },
-
-    // New long-tail keyword blog posts
     {
-      url: `${baseUrl}/blog/english-pronunciation-practice-online`,
+      url: `${baseUrl}/en/blog/english-pronunciation-practice-online`,
       lastModified: new Date("2024-12-20"),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/blog/ai-english-grammar-checker`,
+      url: `${baseUrl}/en/blog/ai-english-grammar-checker`,
       lastModified: new Date("2024-12-22"),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/blog/english-conversation-practice-app`,
+      url: `${baseUrl}/en/blog/english-conversation-practice-app`,
       lastModified: new Date("2024-12-25"),
       changeFrequency: "monthly",
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/blog/free-english-level-test`,
+      url: `${baseUrl}/en/blog/free-english-level-test`,
       lastModified: new Date("2024-12-28"),
       changeFrequency: "monthly",
       priority: 0.8,
     },
-
-    // Regular blog posts
     {
-      url: `${baseUrl}/blog/ai-english-conversation-practice`,
+      url: `${baseUrl}/en/blog/ai-english-conversation-practice`,
       lastModified: new Date("2024-12-01"),
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/blog/english-grammar-mistakes-avoid`,
+      url: `${baseUrl}/en/blog/english-grammar-mistakes-avoid`,
       lastModified: new Date("2024-11-28"),
       changeFrequency: "monthly",
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/blog/vocabulary-building-strategies-2025`,
+      url: `${baseUrl}/en/blog/vocabulary-building-strategies-2025`,
+      lastModified: new Date("2024-11-25"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/en/blog/5-ai-tools-improve-english-2025`,
       lastModified: new Date("2024-11-25"),
       changeFrequency: "monthly",
       priority: 0.7,
     },
 
-    // Learning modules
+    // Turkish Learning modules (now at root level)
     {
-      url: `${baseUrl}/modules`,
+      url: `${baseUrl}/moduller`,
+      lastModified: new Date("2024-12-29"),
+      changeFrequency: "weekly",
+      priority: 0.8,
+    },
+
+    // English Learning modules (now at /en/modules/)
+    {
+      url: `${baseUrl}/en/modules`,
       lastModified: new Date("2024-12-29"),
       changeFrequency: "weekly",
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/modules/speaking-fluency`,
+      url: `${baseUrl}/en/modules/speaking-fluency`,
       lastModified: new Date("2024-12-01"),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/modules/pronunciation-trainer`,
+      url: `${baseUrl}/en/modules/pronunciation-trainer`,
       lastModified: new Date("2024-12-01"),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/modules/grammar-coach`,
+      url: `${baseUrl}/en/modules/grammar-coach`,
       lastModified: new Date("2024-12-01"),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/modules/vocabulary-builder`,
+      url: `${baseUrl}/en/modules/vocabulary-builder`,
       lastModified: new Date("2024-12-01"),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/modules/writing-assistant`,
+      url: `${baseUrl}/en/modules/writing-assistant`,
       lastModified: new Date("2024-12-01"),
       changeFrequency: "weekly",
       priority: 0.7,
     },
     {
-      url: `${baseUrl}/modules/listening-comprehension`,
+      url: `${baseUrl}/en/modules/listening-comprehension`,
       lastModified: new Date("2024-12-01"),
       changeFrequency: "weekly",
       priority: 0.7,
     },
-    // New speaking module landing page
     {
-      url: `${baseUrl}/modules/speaking`,
+      url: `${baseUrl}/en/modules/speaking`,
       lastModified: new Date("2024-12-29"),
       changeFrequency: "weekly",
       priority: 0.8,
     },
+
+    // Turkish Legal/Policy pages (now at root level)
     {
-      url: `${baseUrl}/about`,
+      url: `${baseUrl}/kullanim-kosullari`,
       lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
+      changeFrequency: "yearly",
+      priority: 0.3,
     },
     {
-      url: `${baseUrl}/contact`,
+      url: `${baseUrl}/gizlilik-politikasi`,
       lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.6,
+      changeFrequency: "yearly",
+      priority: 0.3,
     },
     {
-      url: `${baseUrl}/careers`,
+      url: `${baseUrl}/cerez-politikasi`,
+      lastModified: new Date(),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+
+    // English Legal/Policy pages (now at /en/)
+    {
+      url: `${baseUrl}/en/careers`,
       lastModified: new Date(),
       changeFrequency: "weekly",
       priority: 0.6,
     },
     {
-      url: `${baseUrl}/privacy`,
+      url: `${baseUrl}/en/privacy`,
       lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
-      url: `${baseUrl}/terms`,
+      url: `${baseUrl}/en/terms`,
       lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.3,
     },
     {
-      url: `${baseUrl}/cookie-policy`,
+      url: `${baseUrl}/en/cookie-policy`,
       lastModified: new Date(),
       changeFrequency: "yearly",
       priority: 0.3,
