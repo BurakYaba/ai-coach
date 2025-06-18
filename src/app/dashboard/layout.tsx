@@ -5,6 +5,7 @@ import { DashboardNav } from "@/components/dashboard/nav";
 import { UserNav } from "@/components/dashboard/user-nav";
 import NotificationManager from "@/components/notifications/NotificationManager";
 import { SubscriptionRefreshHandler } from "@/components/payments/subscription-refresh-handler";
+import SessionMonitor from "@/components/session/SessionMonitor";
 import { authOptions } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
@@ -67,6 +68,8 @@ export default async function DashboardLayout({
         <NotificationManager />
         {/* Subscription Refresh Handler - handles JWT refresh after payments */}
         <SubscriptionRefreshHandler />
+        {/* Session Monitor - automatically monitors for terminated sessions */}
+        <SessionMonitor />
         {children}
       </main>
     </div>

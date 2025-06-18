@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 import {
   Card,
@@ -8,13 +8,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { Progress } from '@/components/ui/progress';
-import { toast } from '@/components/ui/use-toast';
+} from "@/components/ui/card";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { Progress } from "@/components/ui/progress";
+import { toast } from "@/components/ui/use-toast";
 
 interface StatsProps {
-  variant?: 'default' | 'overview';
+  variant?: "default" | "overview";
 }
 
 interface AdminStats {
@@ -31,25 +31,20 @@ interface AdminStats {
       count: number;
     }>;
   };
-  sessions: {
+  schools: {
     total: number;
-    createdToday: number;
-    createdThisWeek: number;
-    createdThisMonth: number;
-    completedTotal: number;
-    completedToday: number;
-    completionRate: number;
-    byLevel: Array<{ _id: string; count: number }>;
-    byContentType: Array<{ _id: string; count: number }>;
+    active: number;
+    branches: number;
+    studentsTotal: number;
   };
-  library: {
+  feedback: {
     total: number;
-    public: number;
-    byLevel: Array<{ _id: string; count: number }>;
+    unresolved: number;
+    averageRating: number;
   };
 }
 
-export function DashboardStats({ variant = 'default' }: StatsProps) {
+export function DashboardStats({ variant = "default" }: StatsProps) {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,19 +53,19 @@ export function DashboardStats({ variant = 'default' }: StatsProps) {
     const fetchStats = async () => {
       setLoading(true);
       try {
-        const response = await fetch('/api/admin/stats');
+        const response = await fetch("/api/admin/stats");
         if (!response.ok) {
-          throw new Error('Failed to fetch stats');
+          throw new Error("Failed to fetch stats");
         }
         const data = await response.json();
         setStats(data);
       } catch (err) {
-        console.error('Error fetching admin stats:', err);
-        setError('Failed to load admin statistics');
+        console.error("Error fetching admin stats:", err);
+        setError("Failed to load admin statistics");
         toast({
-          title: 'Error',
-          description: 'Failed to load admin statistics',
-          variant: 'destructive',
+          title: "Error",
+          description: "Failed to load admin statistics",
+          variant: "destructive",
         });
       } finally {
         setLoading(false);
@@ -91,255 +86,86 @@ export function DashboardStats({ variant = 'default' }: StatsProps) {
   if (error || !stats) {
     return (
       <div className="text-center p-4 text-red-500">
-        {error || 'Failed to load statistics'}
+        {error || "Failed to load statistics"}
       </div>
     );
   }
 
-  // For overview variant, just show the primary metrics
-  if (variant === 'overview') {
-    return (
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Users</CardDescription>
-            <CardTitle className="text-3xl">{stats.users.total}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xs text-muted-foreground">
-              {stats.users.newToday} new today
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Listening Sessions</CardDescription>
-            <CardTitle className="text-3xl">{stats.sessions.total}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xs text-muted-foreground">
-              {stats.sessions.completionRate}% completion rate
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Library Items</CardDescription>
-            <CardTitle className="text-3xl">{stats.library.total}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xs text-muted-foreground">
-              {stats.library.public} public items
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Active Today</CardDescription>
-            <CardTitle className="text-3xl">
-              {stats.users.activeToday}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-xs text-muted-foreground">
-              {Math.round((stats.users.activeToday / stats.users.total) * 100)}%
-              of users
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Detailed stats for the full dashboard
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Total Users</CardDescription>
-            <CardTitle className="text-3xl">{stats.users.total}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-1">
-              <div className="text-xs text-muted-foreground flex justify-between">
-                <span>New today:</span>
-                <span className="font-medium">{stats.users.newToday}</span>
-              </div>
-              <div className="text-xs text-muted-foreground flex justify-between">
-                <span>New this week:</span>
-                <span className="font-medium">{stats.users.newThisWeek}</span>
-              </div>
-              <div className="text-xs text-muted-foreground flex justify-between">
-                <span>New this month:</span>
-                <span className="font-medium">{stats.users.newThisMonth}</span>
-              </div>
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {/* User Statistics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>User Statistics</CardTitle>
+          <CardDescription>Platform user activity and growth</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium">Total Users</p>
+              <p className="text-2xl font-bold">{stats.users.total}</p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Listening Sessions</CardDescription>
-            <CardTitle className="text-3xl">{stats.sessions.total}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="text-xs">Completion Rate</div>
-              <Progress value={stats.sessions.completionRate} className="h-2" />
-              <div className="text-xs text-muted-foreground">
-                {stats.sessions.completedTotal} completed (
-                {stats.sessions.completionRate}%)
-              </div>
+            <div>
+              <p className="text-sm font-medium">New Users (Today)</p>
+              <p className="text-xl">{stats.users.newToday}</p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Library Items</CardDescription>
-            <CardTitle className="text-3xl">{stats.library.total}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="text-xs">Public vs Private</div>
-              <Progress
-                value={(stats.library.public / stats.library.total) * 100}
-                className="h-2"
-              />
-              <div className="text-xs text-muted-foreground flex justify-between">
-                <span>Public:</span>
-                <span className="font-medium">{stats.library.public}</span>
-              </div>
-              <div className="text-xs text-muted-foreground flex justify-between">
-                <span>Private:</span>
-                <span className="font-medium">
-                  {stats.library.total - stats.library.public}
-                </span>
-              </div>
+            <div>
+              <p className="text-sm font-medium">Active Users (This Week)</p>
+              <p className="text-xl">{stats.users.activeThisWeek}</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>User Activity</CardDescription>
-            <CardTitle className="text-3xl">
-              {stats.users.activeThisMonth}
-            </CardTitle>
-            <CardDescription>active this month</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-col gap-1">
-              <div className="text-xs text-muted-foreground flex justify-between">
-                <span>Active today:</span>
-                <span className="font-medium">{stats.users.activeToday}</span>
-              </div>
-              <div className="text-xs text-muted-foreground flex justify-between">
-                <span>Active this week:</span>
-                <span className="font-medium">
-                  {stats.users.activeThisWeek}
-                </span>
-              </div>
-              <div className="text-xs text-muted-foreground flex justify-between">
-                <span>Activity rate:</span>
-                <span className="font-medium">
-                  {Math.round(
-                    (stats.users.activeThisMonth / stats.users.total) * 100
-                  )}
-                  %
-                </span>
-              </div>
+      {/* School Statistics */}
+      <Card>
+        <CardHeader>
+          <CardTitle>School Statistics</CardTitle>
+          <CardDescription>School and branch overview</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium">Total Schools</p>
+              <p className="text-2xl font-bold">{stats.schools.total}</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Session Types</CardTitle>
-            <CardDescription>
-              Distribution of listening session content types
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {stats.sessions.byContentType.map(item => (
-                <div key={item._id} className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium capitalize">
-                      {item._id}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {Math.round((item.count / stats.sessions.total) * 100)}%
-                    </div>
-                  </div>
-                  <Progress
-                    value={(item.count / stats.sessions.total) * 100}
-                    className="h-2"
-                  />
-                </div>
-              ))}
+            <div>
+              <p className="text-sm font-medium">Active Schools</p>
+              <p className="text-xl">{stats.schools.active}</p>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>CEFR Level Distribution</CardTitle>
-            <CardDescription>
-              Distribution of content by language level
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map(level => {
-                const sessionsWithLevel =
-                  stats.sessions.byLevel.find(item => item._id === level)
-                    ?.count || 0;
-                const libraryWithLevel =
-                  stats.library.byLevel.find(item => item._id === level)
-                    ?.count || 0;
-
-                return (
-                  <div key={level} className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm font-medium">Level {level}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {sessionsWithLevel} sessions / {libraryWithLevel}{' '}
-                        library items
-                      </div>
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <div className="w-16 text-xs text-right">Sessions</div>
-                      <Progress
-                        value={
-                          stats.sessions.total > 0
-                            ? (sessionsWithLevel / stats.sessions.total) * 100
-                            : 0
-                        }
-                        className="h-2 flex-1"
-                      />
-                    </div>
-                    <div className="flex gap-2 items-center">
-                      <div className="w-16 text-xs text-right">Library</div>
-                      <Progress
-                        value={
-                          stats.library.total > 0
-                            ? (libraryWithLevel / stats.library.total) * 100
-                            : 0
-                        }
-                        className="h-2 flex-1 bg-secondary"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+            <div>
+              <p className="text-sm font-medium">Total Branches</p>
+              <p className="text-xl">{stats.schools.branches}</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Feedback Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Feedback Overview</CardTitle>
+          <CardDescription>User feedback and ratings</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm font-medium">Total Feedback</p>
+              <p className="text-2xl font-bold">{stats.feedback.total}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Unresolved Feedback</p>
+              <p className="text-xl">{stats.feedback.unresolved}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Average Rating</p>
+              <p className="text-xl">
+                {stats.feedback.averageRating.toFixed(1)} / 5.0
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

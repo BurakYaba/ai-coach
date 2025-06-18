@@ -45,6 +45,8 @@ const PUBLIC_PATHS = [
   "/api/auth",
   "/api/payments/webhook",
   "/api/og",
+  "/api/session/cleanup",
+  "/debug/session", // Debug route for testing session management
 ];
 
 // List of paths that should skip onboarding check
@@ -121,6 +123,9 @@ export async function middleware(request: NextRequest) {
       url.searchParams.set("callbackUrl", encodeURI(request.url));
       return NextResponse.redirect(url);
     }
+
+    // Note: Session validation moved to client-side and API routes
+    // since middleware runs in Edge Runtime and cannot access database
 
     // Check for onboarding completion for authenticated users
     const isOnboardingExempt = ONBOARDING_EXEMPT_PATHS.some(path =>

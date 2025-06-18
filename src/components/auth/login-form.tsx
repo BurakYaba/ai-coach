@@ -47,6 +47,9 @@ export function LoginForm() {
   const [emailVerificationError, setEmailVerificationError] = useState<
     string | null
   >(null);
+  const [concurrentLoginError, setConcurrentLoginError] = useState<
+    string | null
+  >(null);
   const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -64,9 +67,16 @@ export function LoginForm() {
     // For App Router, we need to use the URLSearchParams API
     const params = new URLSearchParams(window.location.search);
     const errorParam = params.get("error");
+    const messageParam = params.get("message");
+
     if (errorParam === "SubscriptionExpired") {
       setSubscriptionError(
         "Your subscription has expired. Please contact your branch administrator to renew your subscription."
+      );
+    } else if (errorParam === "session_terminated") {
+      setConcurrentLoginError(
+        messageParam ||
+          "Your session has been terminated. This may be due to a login from another device."
       );
     }
   }, []);
@@ -143,6 +153,7 @@ export function LoginForm() {
     setIsLoading(true);
     setSubscriptionError(null);
     setEmailVerificationError(null);
+    setConcurrentLoginError(null);
 
     try {
       // Handle remember me functionality
@@ -176,6 +187,10 @@ export function LoginForm() {
         // Check if this is a subscription error
         else if (result?.error?.includes("subscription")) {
           setSubscriptionError(result.error);
+        }
+        // Check if this is a concurrent login error
+        else if (result?.error?.includes("already logged in")) {
+          setConcurrentLoginError(result.error);
         } else {
           // Make sure to show toast for invalid credentials
           toast({
@@ -290,6 +305,102 @@ export function LoginForm() {
                 ? "Sending..."
                 : "Resend Verification Email"}
             </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Concurrent Login Error Alert */}
+      {concurrentLoginError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle className="text-red-600 font-semibold text-center justify-self-center">
+            Account Already in Use
+          </AlertTitle>
+          <AlertDescription className="mt-2 text-center justify-self-center">
+            <div className="text-center">{concurrentLoginError}</div>
+            <div className="flex justify-center mt-4">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setConcurrentLoginError(null)}
+                  className="w-32 bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300"
+                >
+                  Dismiss
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    try {
+                      setIsLoading(true);
+
+                      // Force login by attempting login with forceLogin flag
+                      const result = await signIn("credentials", {
+                        email: form.getValues("email"),
+                        password: form.getValues("password"),
+                        redirect: false,
+                        forceLogin: "true", // Special flag to force terminate other sessions
+                      });
+
+                      if (result?.ok) {
+                        // Clear the concurrent login error
+                        setConcurrentLoginError(null);
+
+                        // Show success message
+                        toast({
+                          title: "Login Successful",
+                          description:
+                            "Previous session terminated. You are now logged in.",
+                        });
+
+                        // Redirect based on user role (same logic as normal login)
+                        try {
+                          const userResponse = await fetch("/api/user/profile");
+                          if (userResponse.ok) {
+                            const userData = await userResponse.json();
+                            const userRole = userData.user?.role;
+                            const hasBranch = !!userData.user?.branch;
+
+                            if (userRole === "school_admin" && hasBranch) {
+                              router.push("/school-admin");
+                            } else if (userRole === "admin") {
+                              router.push("/admin");
+                            } else {
+                              router.push("/dashboard");
+                            }
+                          } else {
+                            router.push("/dashboard");
+                          }
+                        } catch (profileError) {
+                          router.push("/dashboard");
+                        }
+                      } else {
+                        toast({
+                          title: "Force Login Failed",
+                          description:
+                            result?.error ||
+                            "Unable to force login. Please try again.",
+                          variant: "destructive",
+                        });
+                      }
+                    } catch (error) {
+                      console.error("Force login error:", error);
+                      toast({
+                        title: "Error",
+                        description: "Something went wrong during force login.",
+                        variant: "destructive",
+                      });
+                    } finally {
+                      setIsLoading(false);
+                    }
+                  }}
+                  disabled={isLoading}
+                  className="w-32 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm"
+                >
+                  {isLoading ? "Forcing Login..." : "Force Login"}
+                </Button>
+              </div>
+            </div>
           </AlertDescription>
         </Alert>
       )}

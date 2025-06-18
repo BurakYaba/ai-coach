@@ -36,42 +36,6 @@ if (!global.mongoose) {
   global.mongoose = cached;
 }
 
-// Set the maximum number of listeners to avoid memory leak warnings
-mongoose.connection.setMaxListeners(20);
-
-// Register event listeners only once
-if (!cached.isEventsRegistered) {
-  // Handle connection events
-  mongoose.connection.on("connected", () => {
-    console.log("MongoDB connection established");
-  });
-
-  mongoose.connection.on("error", err => {
-    console.error("MongoDB connection error:", err);
-  });
-
-  mongoose.connection.on("disconnected", () => {
-    console.log("MongoDB connection disconnected");
-  });
-
-  // Handle process termination
-  const gracefulShutdown = () => {
-    mongoose.connection.close(false).then(() => {
-      console.log("MongoDB connection closed through app termination");
-      process.exit(0);
-    });
-  };
-
-  // Only add these event listeners once
-  if (process.env.NODE_ENV !== "test") {
-    process.on("SIGINT", gracefulShutdown);
-    process.on("SIGTERM", gracefulShutdown);
-  }
-
-  // Mark event listeners as registered
-  cached.isEventsRegistered = true;
-}
-
 export async function dbConnect() {
   if (cached.conn) {
     // Return immediately if we already have a connection
@@ -92,6 +56,43 @@ export async function dbConnect() {
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then(mongoose => {
       console.log("MongoDB connected successfully");
+
+      // Set the maximum number of listeners to avoid memory leak warnings
+      mongoose.connection.setMaxListeners(20);
+
+      // Register event listeners only once
+      if (!cached.isEventsRegistered) {
+        // Handle connection events
+        mongoose.connection.on("connected", () => {
+          console.log("MongoDB connection established");
+        });
+
+        mongoose.connection.on("error", err => {
+          console.error("MongoDB connection error:", err);
+        });
+
+        mongoose.connection.on("disconnected", () => {
+          console.log("MongoDB connection disconnected");
+        });
+
+        // Handle process termination
+        const gracefulShutdown = () => {
+          mongoose.connection.close(false).then(() => {
+            console.log("MongoDB connection closed through app termination");
+            process.exit(0);
+          });
+        };
+
+        // Only add these event listeners once
+        if (process.env.NODE_ENV !== "test") {
+          process.on("SIGINT", gracefulShutdown);
+          process.on("SIGTERM", gracefulShutdown);
+        }
+
+        // Mark event listeners as registered
+        cached.isEventsRegistered = true;
+      }
+
       return mongoose;
     });
   }

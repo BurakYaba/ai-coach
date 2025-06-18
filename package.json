@@ -54,7 +54,6 @@
     "clsx": "^2.1.1",
     "crypto": "^1.0.1",
     "date-fns": "^4.1.0",
-    "dotenv": "^16.4.7",
     "framer-motion": "^12.5.0",
     "lucide-react": "^0.479.0",
     "microsoft-cognitiveservices-speech-sdk": "^1.43.1",
@@ -84,6 +83,7 @@
   "devDependencies": {
     "@types/bcryptjs": "^2.4.3",
     "@types/jest": "^29.5.4",
+    "@types/lodash": "^4.17.17",
     "@types/node": "^20.5.9",
     "@types/nodemailer": "^6.4.17",
     "@types/react": "^18.2.21",
@@ -92,6 +92,7 @@
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
     "autoprefixer": "^10.4.15",
+    "dotenv": "^16.5.0",
     "eslint": "^8.48.0",
     "eslint-config-next": "^13.4.19",
     "eslint-config-prettier": "^9.0.0",
@@ -108,6 +109,7 @@
     "postcss": "^8.4.29",
     "prettier": "^3.0.3",
     "tailwindcss": "^3.3.3",
+    "ts-node": "^10.9.2",
     "typescript": "^5.2.2"
   },
   "husky": {

@@ -5,6 +5,13 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import User from "@/models/User";
 import School from "@/models/School";
 import Branch from "@/models/Branch";
+import {
+  createUserSession,
+  validateSession,
+  checkConcurrentLogin,
+  parseDeviceInfo,
+  forceLogoutUser,
+} from "@/lib/session-manager";
 
 import dbConnect from "./db";
 
@@ -16,8 +23,9 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
         rememberMe: { label: "Remember Me", type: "text" },
+        forceLogin: { label: "Force Login", type: "text" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password required");
         }
@@ -45,33 +53,95 @@ export const authOptions: NextAuthOptions = {
           );
         }
 
-        // Check subscription status for regular users (not admins)
-        if (user.role === "user") {
-          // Check if user has an active subscription
-          const isSubscriptionActive = await hasActiveSubscription(user._id);
-
-          if (!isSubscriptionActive) {
-            const subscriptionType = user.subscription?.type || "free";
-
-            // Different handling for individual vs school users
-            if (!user.school) {
-              // Individual user - allow login, middleware will handle redirect to pricing
-              // Don't throw error, let them log in and middleware will redirect appropriately
-            } else {
-              // School user - block login and show error message
-              throw new Error(
-                `Your ${subscriptionType} subscription has expired. Please contact your branch administrator.`
-              );
-            }
-          }
+        // Check subscription status
+        if (!user.hasActiveSubscription()) {
+          throw new Error(
+            "Your subscription has expired. Please contact your administrator or renew your subscription to continue."
+          );
         }
+
+        // Check for concurrent login (skip if force login is requested)
+        const forceLogin = credentials.forceLogin === "true";
+
+        if (!forceLogin) {
+          const concurrentCheck = await checkConcurrentLogin(
+            user._id.toString()
+          );
+
+          if (concurrentCheck.hasActiveSession) {
+            const activeSession = concurrentCheck.activeSession;
+            const deviceInfo = activeSession.deviceInfo;
+
+            // Create a user-friendly device description
+            let deviceDescription = "another device";
+
+            if (deviceInfo.browser && deviceInfo.browser !== "Unknown") {
+              if (deviceInfo.os && deviceInfo.os !== "Unknown") {
+                deviceDescription = `another device (${deviceInfo.browser} on ${deviceInfo.os})`;
+              } else {
+                deviceDescription = `another device (${deviceInfo.browser})`;
+              }
+            } else if (
+              deviceInfo.deviceType &&
+              deviceInfo.deviceType !== "unknown"
+            ) {
+              deviceDescription = `another ${deviceInfo.deviceType}`;
+            }
+
+            throw new Error(
+              `Your account is already logged in from ${deviceDescription}. Please log out from the other device first, or use "Force Login" to continue. If this wasn't you, please contact support immediately.`
+            );
+          }
+        } else {
+          // Force login requested - terminate all existing sessions
+          await forceLogoutUser(user._id.toString());
+        }
+
+        // Get school and branch info for session
+        let school = null;
+        let branch = null;
+
+        if (user.school) {
+          school = await School.findById(user.school);
+        }
+
+        if (user.branch) {
+          branch = await Branch.findById(user.branch);
+        }
+
+        // Calculate session expiration
+        const rememberMe = credentials.rememberMe === "true";
+        const sessionDuration = rememberMe ? 30 : 7; // days
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + sessionDuration);
+
+        // Parse device info from request (req should contain the raw request)
+        const deviceInfo = {
+          userAgent: "Unknown",
+          ip: "127.0.0.1",
+          deviceType: "unknown" as const,
+          browser: "Unknown",
+          os: "Unknown",
+        };
+
+        // Note: In NextAuth, getting request info in authorize is limited
+        // We'll create the session in the JWT callback where we have better access
 
         return {
           id: user._id.toString(),
           email: user.email,
           name: user.name,
           role: user.role,
-          rememberMe: credentials.rememberMe === "true",
+          rememberMe,
+          subscription: {
+            status: user.subscription.status,
+            type: user.subscription.type,
+            expiresAt: user.subscription.endDate?.toISOString() || "",
+          },
+          school: school?._id?.toString() || null,
+          branch: branch?._id?.toString() || null,
+          onboardingCompleted: user.onboarding?.completed || false,
+          sessionExpiry: expiresAt.toISOString(),
         };
       },
     }),
@@ -90,6 +160,39 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = user.role;
         token.rememberMe = user.rememberMe;
+        token.sessionExpiry = user.sessionExpiry;
+
+        // Create session token for concurrent login tracking
+        const sessionDuration = user.rememberMe ? 30 : 7; // days
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + sessionDuration);
+
+        // Enhanced device info - will be improved with client-side detection
+        const deviceInfo = {
+          userAgent: "NextAuth Session",
+          ip: "127.0.0.1",
+          deviceType: "unknown" as const,
+          browser: "Unknown",
+          os: "Unknown",
+          // Add timestamp to make sessions unique even with same browser
+          sessionId: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        };
+
+        try {
+          const sessionToken = await createUserSession(
+            user.id,
+            deviceInfo,
+            expiresAt
+          );
+          token.sessionToken = sessionToken;
+
+          // Store additional session metadata
+          token.sessionCreated = Date.now();
+          token.deviceFingerprint = `${deviceInfo.browser}-${deviceInfo.os}-${deviceInfo.sessionId}`;
+        } catch (error) {
+          console.error("Failed to create user session:", error);
+          // Don't fail login if session creation fails, but log it
+        }
 
         // Set token expiration based on remember me preference
         if (user.rememberMe) {
@@ -99,6 +202,14 @@ export const authOptions: NextAuthOptions = {
           // Default 7 days if "Remember Me" is not checked
           token.exp = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
         }
+
+        // Set subscription info in token
+        token.subscriptionStatus = user.subscription?.status;
+        token.subscriptionType = user.subscription?.type;
+        token.subscriptionExpiry = user.subscription?.expiresAt;
+        token.school = user.school;
+        token.branch = user.branch;
+        token.onboardingCompleted = user.onboardingCompleted;
       }
 
       // Set force refresh flag when triggered by session update
@@ -106,57 +217,53 @@ export const authOptions: NextAuthOptions = {
         token.forceRefresh = true;
       }
 
-      // Add subscription and school information to token if not already present or needs refreshing
-      // This helps with middleware subscription checks
-      try {
-        // We periodically refresh the subscription info to ensure it's current
-        const shouldRefreshSubscription =
-          !token.subscriptionLastChecked ||
-          new Date(token.subscriptionLastChecked as string).getTime() +
-            60 * 60 * 1000 <
-            Date.now(); // Refresh every hour
-
-        // Force refresh if this is right after a payment (indicated by refresh_token in URL)
-        const shouldForceRefresh = token.forceRefresh === true;
-
-        if ((shouldRefreshSubscription || shouldForceRefresh) && token.id) {
-          await dbConnect();
-          const User = (await import("@/models/User")).default;
-          const userRecord = await User.findById(token.id);
-
-          if (userRecord) {
-            token.subscriptionStatus = userRecord.subscription?.status;
-            token.subscriptionType = userRecord.subscription?.type;
-            token.subscriptionExpiry = userRecord.subscription?.endDate
-              ? userRecord.subscription.endDate.toISOString()
-              : undefined;
-            token.subscriptionLastChecked = new Date().toISOString();
-            // Add school information to distinguish individual vs school users
-            token.school = userRecord.school
-              ? userRecord.school.toString()
-              : null;
-
-            // Add onboarding completion status
-            token.onboardingCompleted =
-              userRecord.onboarding?.completed || false;
-
-            // Clear the force refresh flag after refreshing
-            if (shouldForceRefresh) {
-              token.forceRefresh = false;
-            }
+      // Validate session token if it exists
+      if (token.sessionToken && typeof token.sessionToken === "string") {
+        try {
+          const sessionValidation = await validateSession(token.sessionToken);
+          if (!sessionValidation.isValid) {
+            // Session is invalid, force re-authentication
+            token.sessionValid = false;
           }
+        } catch (error) {
+          console.error("Session validation error:", error);
+          // Don't fail on session validation errors, but log them
         }
-      } catch (error) {
-        console.error("Error refreshing subscription in token:", error);
+      }
+
+      // Check subscription expiry more frequently
+      const lastSubscriptionCheck = token.subscriptionLastChecked as string;
+      const now = new Date();
+
+      if (
+        !lastSubscriptionCheck ||
+        now.getTime() - new Date(lastSubscriptionCheck).getTime() >
+          60 * 60 * 1000 // 1 hour
+      ) {
+        try {
+          await dbConnect();
+          const user = await User.findById(token.id);
+          if (user) {
+            token.subscriptionStatus = user.subscription.status;
+            token.subscriptionType = user.subscription.type;
+            token.subscriptionExpiry = user.subscription.endDate?.toISOString();
+            token.subscriptionLastChecked = now.toISOString();
+            token.onboardingCompleted = user.onboarding?.completed || false;
+          }
+        } catch (error) {
+          console.error("Error refreshing subscription status:", error);
+        }
       }
 
       return token;
     },
+
     async session({ session, token }: { session: any; token: JWT }) {
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
         session.user.rememberMe = token.rememberMe as boolean;
+        session.user.sessionToken = token.sessionToken as string;
 
         // Add subscription info to the session
         session.user.subscription = {
@@ -171,10 +278,6 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-  jwt: {
-    maxAge: 30 * 24 * 60 * 60, // Maximum 30 days (for remember me users)
-  },
-  secret: process.env.NEXTAUTH_SECRET,
 };
 
 declare module "next-auth" {
@@ -185,6 +288,7 @@ declare module "next-auth" {
       name: string;
       role: string;
       rememberMe?: boolean;
+      sessionToken?: string;
       subscription?: {
         status: string;
         type: string;
@@ -199,6 +303,15 @@ declare module "next-auth" {
     name: string;
     role: string;
     rememberMe?: boolean;
+    subscription?: {
+      status: string;
+      type: string;
+      expiresAt: string;
+    };
+    school?: string | null;
+    branch?: string | null;
+    onboardingCompleted?: boolean;
+    sessionExpiry?: string;
   }
 }
 
@@ -207,13 +320,18 @@ declare module "next-auth/jwt" {
     id?: string;
     role?: string;
     rememberMe?: boolean;
+    sessionToken?: string;
     subscriptionStatus?: string;
     subscriptionType?: string;
     subscriptionExpiry?: string;
     subscriptionLastChecked?: string;
     school?: string | null;
+    branch?: string | null;
     forceRefresh?: boolean;
     onboardingCompleted?: boolean;
+    sessionValid?: boolean;
+    sessionCreated?: number;
+    deviceFingerprint?: string;
   }
 }
 

@@ -4,8 +4,10 @@ import { getServerSession } from "next-auth";
 
 import { authOptions, isAdmin } from "@/lib/auth";
 import dbConnect from "@/lib/db";
-import ListeningSession from "@/models/ListeningSession";
 import User from "@/models/User";
+import School from "@/models/School";
+import Branch from "@/models/Branch";
+import Feedback from "@/models/Feedback";
 
 export const dynamic = "force-dynamic";
 
@@ -29,91 +31,23 @@ export async function GET(_request: NextRequest) {
     const thisWeek = startOfWeek(new Date());
     const thisMonth = startOfMonth(new Date());
 
-    // Get total users count
-    const totalUsers = await User.countDocuments();
-
-    // Get users registered today
-    const newUsersToday = await User.countDocuments({
-      createdAt: { $gte: today },
-    });
-
-    // Get users registered this week
-    const newUsersThisWeek = await User.countDocuments({
-      createdAt: { $gte: thisWeek },
-    });
-
-    // Get users registered this month
-    const newUsersThisMonth = await User.countDocuments({
-      createdAt: { $gte: thisMonth },
-    });
-
-    // Get total listening sessions
-    const totalListeningSessions = await ListeningSession.countDocuments();
-
-    // Get total library items
-    const totalLibraryItems = await ListeningSession.countDocuments({
-      isLibrary: true,
-    });
-
-    // Get public library items
-    const publicLibraryItems = await ListeningSession.countDocuments({
-      isLibrary: true,
-      isPublic: true,
-    });
-
-    // Sessions stats
-    const sessionsCreatedToday = await ListeningSession.countDocuments({
-      createdAt: { $gte: today },
-    });
-
-    const sessionsCreatedThisWeek = await ListeningSession.countDocuments({
-      createdAt: { $gte: thisWeek },
-    });
-
-    const sessionsCreatedThisMonth = await ListeningSession.countDocuments({
-      createdAt: { $gte: thisMonth },
-    });
-
-    // Get sessions completed (where completionTime exists)
-    const sessionsCompleted = await ListeningSession.countDocuments({
-      "userProgress.completionTime": { $ne: null },
-    });
-
-    // Get sessions completed today
-    const sessionsCompletedToday = await ListeningSession.countDocuments({
-      "userProgress.completionTime": { $gte: today },
-    });
-
-    // Get active users by counting distinct users who created sessions today/this week/this month
-    const activeUsersToday = await ListeningSession.distinct("userId", {
-      createdAt: { $gte: today },
-    });
-
-    const activeUsersThisWeek = await ListeningSession.distinct("userId", {
-      createdAt: { $gte: thisWeek },
-    });
-
-    const activeUsersThisMonth = await ListeningSession.distinct("userId", {
-      createdAt: { $gte: thisMonth },
-    });
-
-    // Get count of listening sessions by level
-    const sessionsByLevel = await ListeningSession.aggregate([
-      { $group: { _id: "$level", count: { $sum: 1 } } },
-      { $sort: { _id: 1 } },
-    ]);
-
-    // Get count of library items by level
-    const libraryItemsByLevel = await ListeningSession.aggregate([
-      { $match: { isLibrary: true } },
-      { $group: { _id: "$level", count: { $sum: 1 } } },
-      { $sort: { _id: 1 } },
-    ]);
-
-    // Get count of listening sessions by content type
-    const sessionsByContentType = await ListeningSession.aggregate([
-      { $group: { _id: "$contentType", count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
+    // Get user statistics
+    const [
+      totalUsers,
+      newUsersToday,
+      newUsersThisWeek,
+      newUsersThisMonth,
+      activeUsersToday,
+      activeUsersThisWeek,
+      activeUsersThisMonth,
+    ] = await Promise.all([
+      User.countDocuments(),
+      User.countDocuments({ createdAt: { $gte: today } }),
+      User.countDocuments({ createdAt: { $gte: thisWeek } }),
+      User.countDocuments({ createdAt: { $gte: thisMonth } }),
+      User.countDocuments({ lastActive: { $gte: today } }),
+      User.countDocuments({ lastActive: { $gte: thisWeek } }),
+      User.countDocuments({ lastActive: { $gte: thisMonth } }),
     ]);
 
     // Get monthly user growth for the past 6 months
@@ -142,11 +76,42 @@ export async function GET(_request: NextRequest) {
       },
     ]);
 
-    // Calculate completion rate
-    const completionRate =
-      totalListeningSessions > 0
-        ? Math.round((sessionsCompleted / totalListeningSessions) * 100)
-        : 0;
+    // Get school statistics
+    const [totalSchools, activeSchools, totalBranches, totalStudents] =
+      await Promise.all([
+        School.countDocuments(),
+        School.countDocuments({ "subscription.status": "active" }),
+        Branch.countDocuments(),
+        User.countDocuments({ school: { $exists: true } }),
+      ]);
+
+    // Get feedback statistics
+    const feedbackStats = await Feedback.aggregate([
+      {
+        $group: {
+          _id: null,
+          total: { $sum: 1 },
+          unresolved: {
+            $sum: {
+              $cond: [{ $in: ["$status", ["new", "in_progress"]] }, 1, 0],
+            },
+          },
+          totalRating: { $sum: "$rating" },
+          ratingCount: {
+            $sum: {
+              $cond: [{ $gt: ["$rating", 0] }, 1, 0],
+            },
+          },
+        },
+      },
+    ]);
+
+    const feedbackData = feedbackStats[0] || {
+      total: 0,
+      unresolved: 0,
+      totalRating: 0,
+      ratingCount: 0,
+    };
 
     return NextResponse.json({
       users: {
@@ -154,26 +119,26 @@ export async function GET(_request: NextRequest) {
         newToday: newUsersToday,
         newThisWeek: newUsersThisWeek,
         newThisMonth: newUsersThisMonth,
-        activeToday: activeUsersToday.length,
-        activeThisWeek: activeUsersThisWeek.length,
-        activeThisMonth: activeUsersThisMonth.length,
+        activeToday: activeUsersToday,
+        activeThisWeek: activeUsersThisWeek,
+        activeThisMonth: activeUsersThisMonth,
         growth: userGrowth,
       },
-      sessions: {
-        total: totalListeningSessions,
-        createdToday: sessionsCreatedToday,
-        createdThisWeek: sessionsCreatedThisWeek,
-        createdThisMonth: sessionsCreatedThisMonth,
-        completedTotal: sessionsCompleted,
-        completedToday: sessionsCompletedToday,
-        completionRate: completionRate,
-        byLevel: sessionsByLevel,
-        byContentType: sessionsByContentType,
+      schools: {
+        total: totalSchools,
+        active: activeSchools,
+        branches: totalBranches,
+        studentsTotal: totalStudents,
       },
-      library: {
-        total: totalLibraryItems,
-        public: publicLibraryItems,
-        byLevel: libraryItemsByLevel,
+      feedback: {
+        total: feedbackData.total,
+        unresolved: feedbackData.unresolved,
+        averageRating:
+          feedbackData.ratingCount > 0
+            ? Math.round(
+                (feedbackData.totalRating / feedbackData.ratingCount) * 10
+              ) / 10
+            : 0,
       },
     });
   } catch (error) {

@@ -57,7 +57,7 @@ export default async function AdminDashboard() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
         <p className="text-muted-foreground">
-          Manage content, users, and monitor platform activity
+          Manage users, schools, and monitor platform activity
         </p>
       </div>
 
@@ -68,14 +68,7 @@ export default async function AdminDashboard() {
         Quick Actions
       </h2>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <AdminActionCard
-          title="Manage Listening Library"
-          description="Add, edit, or remove items from the listening content library"
-          href="/admin/library"
-          buttonText="Manage Library"
-        />
-
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <AdminActionCard
           title="Manage Users"
           description="View, edit user accounts and permissions"
@@ -84,10 +77,17 @@ export default async function AdminDashboard() {
         />
 
         <AdminActionCard
-          title="Track Sessions"
-          description="View and analyze user listening sessions"
-          href="/admin/sessions"
-          buttonText="View Sessions"
+          title="User Analytics"
+          description="Track detailed user activity and module usage"
+          href="/admin/analytics"
+          buttonText="View Analytics"
+        />
+
+        <AdminActionCard
+          title="Manage Schools"
+          description="View and manage schools and their branches"
+          href="/admin/schools"
+          buttonText="Manage Schools"
         />
 
         <AdminActionCard
