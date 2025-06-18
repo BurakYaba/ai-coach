@@ -61,10 +61,19 @@ export function useGamificationProfile() {
     queryKey: ["gamification", "profile"],
     queryFn: async () => {
       const response = await axios.get("/api/gamification/profile");
-      return response.data.profile as IGamificationProfile;
+      const profile = response.data.profile;
+
+      // Ensure we always return a valid profile object
+      if (!profile) {
+        throw new Error("Profile data is undefined");
+      }
+
+      return profile as IGamificationProfile;
     },
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
@@ -74,10 +83,22 @@ export function useUserAchievements() {
     queryKey: ["gamification", "achievements"],
     queryFn: async () => {
       const response = await axios.get("/api/gamification/achievements");
-      return response.data.achievements as Achievement[];
+      const achievements = response.data.achievements;
+
+      // Ensure we always return an array
+      if (!Array.isArray(achievements)) {
+        console.warn(
+          "Achievements data is not an array, returning empty array"
+        );
+        return [];
+      }
+
+      return achievements as Achievement[];
     },
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 
@@ -87,10 +108,20 @@ export function useUserBadges() {
     queryKey: ["gamification", "badges"],
     queryFn: async () => {
       const response = await axios.get("/api/gamification/badges");
-      return response.data.badges as Badge[];
+      const badges = response.data.badges;
+
+      // Ensure we always return an array
+      if (!Array.isArray(badges)) {
+        console.warn("Badges data is not an array, returning empty array");
+        return [];
+      }
+
+      return badges as Badge[];
     },
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 3,
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 }
 

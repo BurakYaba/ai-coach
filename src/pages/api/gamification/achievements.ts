@@ -24,11 +24,11 @@ export default async function handler(
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    // Get user's achievements
+    // Get user's achievements (creates profile if it doesn't exist)
     const achievements = await GamificationService.getUserAchievements(userId);
 
-    // Return the achievements
-    return res.status(200).json({ achievements });
+    // Return the achievements (empty array if no achievements yet)
+    return res.status(200).json({ achievements: achievements || [] });
   } catch (error) {
     console.error("Error fetching achievements:", error);
     return res.status(500).json({ error: "Failed to fetch achievements" });

@@ -10,18 +10,23 @@ import {
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
+import { useOnboardingTranslations } from "@/lib/onboarding-translations";
 
 interface PreferencesStepProps {
   onNext: (data?: any) => void;
   onSkip?: () => void;
   onBack?: () => void;
   data?: any;
+  language: "en" | "tr";
 }
 
 export default function PreferencesStep({
   onNext,
   onBack,
+  language,
 }: PreferencesStepProps) {
+  const t = useOnboardingTranslations(language);
+
   const [preferences, setPreferences] = useState({
     learningGoals: [] as string[],
     timeAvailability: "",
@@ -30,91 +35,28 @@ export default function PreferencesStep({
     learningStyle: "",
   });
 
-  const learningGoals = [
-    {
-      id: "conversation",
-      label: "Improve Conversation Skills",
-      icon: <Users className="h-5 w-5" />,
-    },
-    {
-      id: "business",
-      label: "Business English",
-      icon: <BookOpen className="h-5 w-5" />,
-    },
-    {
-      id: "academic",
-      label: "Academic English",
-      icon: <Target className="h-5 w-5" />,
-    },
-    {
-      id: "travel",
-      label: "Travel & Tourism",
-      icon: <Clock className="h-5 w-5" />,
-    },
-    {
-      id: "exam",
-      label: "Exam Preparation",
-      icon: <Target className="h-5 w-5" />,
-    },
-    {
-      id: "general",
-      label: "General Improvement",
-      icon: <BookOpen className="h-5 w-5" />,
-    },
-  ];
+  const learningGoals = t.preferences.goals.options.map(option => ({
+    id: option.id,
+    label: option.label,
+    icon: getIconForGoal(option.id),
+  }));
 
-  const timeOptions = [
-    {
-      id: "15min",
-      label: "15 minutes/day",
-      description: "Quick daily sessions",
-    },
-    { id: "30min", label: "30 minutes/day", description: "Balanced learning" },
-    { id: "1hour", label: "1 hour/day", description: "Intensive learning" },
-    { id: "flexible", label: "Flexible", description: "Varies by day" },
-  ];
+  const timeOptions = t.preferences.time.options;
+  const difficultyOptions = t.preferences.difficulty.options;
+  const focusAreas = t.preferences.focusAreas.options;
+  const learningStyles = t.preferences.learningStyle.options;
 
-  const difficultyOptions = [
-    { id: "easy", label: "Take it Easy", description: "Gradual progression" },
-    {
-      id: "moderate",
-      label: "Moderate Challenge",
-      description: "Balanced difficulty",
-    },
-    { id: "challenging", label: "Challenge Me", description: "Push my limits" },
-  ];
-
-  const focusAreas = [
-    { id: "reading", label: "Reading Comprehension" },
-    { id: "writing", label: "Writing Skills" },
-    { id: "listening", label: "Listening Skills" },
-    { id: "speaking", label: "Speaking Practice" },
-    { id: "vocabulary", label: "Vocabulary Building" },
-    { id: "grammar", label: "Grammar Mastery" },
-  ];
-
-  const learningStyles = [
-    {
-      id: "visual",
-      label: "Visual Learner",
-      description: "Learn through images and diagrams",
-    },
-    {
-      id: "auditory",
-      label: "Auditory Learner",
-      description: "Learn through listening",
-    },
-    {
-      id: "kinesthetic",
-      label: "Hands-on Learner",
-      description: "Learn through practice",
-    },
-    {
-      id: "mixed",
-      label: "Mixed Approach",
-      description: "Combination of all styles",
-    },
-  ];
+  function getIconForGoal(goalId: string) {
+    const iconMap: Record<string, JSX.Element> = {
+      conversation: <Users className="h-5 w-5" />,
+      business: <BookOpen className="h-5 w-5" />,
+      academic: <Target className="h-5 w-5" />,
+      travel: <Clock className="h-5 w-5" />,
+      exam: <Target className="h-5 w-5" />,
+      general: <BookOpen className="h-5 w-5" />,
+    };
+    return iconMap[goalId] || <BookOpen className="h-5 w-5" />;
+  }
 
   const handleGoalToggle = (goalId: string) => {
     setPreferences(prev => ({
@@ -157,11 +99,10 @@ export default function PreferencesStep({
       >
         <Target className="h-16 w-16 text-blue-600 mx-auto mb-4" />
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-          Learning Preferences
+          {t.preferences.title}
         </h2>
         <p className="text-lg text-gray-600 dark:text-gray-300">
-          Tell us about your learning goals and preferences to create your
-          personalized experience.
+          {t.preferences.subtitle}
         </p>
       </motion.div>
 
@@ -174,7 +115,7 @@ export default function PreferencesStep({
           className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
         >
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            What are your learning goals? (Select all that apply)
+            {t.preferences.goals.title}
           </h3>
           <div className="grid md:grid-cols-2 gap-3">
             {learningGoals.map(goal => (
@@ -206,7 +147,7 @@ export default function PreferencesStep({
           className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
         >
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            How much time can you dedicate to learning?
+            {t.preferences.time.title}
           </h3>
           <div className="grid md:grid-cols-2 gap-3">
             {timeOptions.map(option => (
@@ -239,7 +180,7 @@ export default function PreferencesStep({
           className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
         >
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            What's your preferred learning pace?
+            {t.preferences.difficulty.title}
           </h3>
           <div className="grid md:grid-cols-3 gap-3">
             {difficultyOptions.map(option => (
@@ -272,7 +213,7 @@ export default function PreferencesStep({
           className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
         >
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            Which skills would you like to focus on? (Select all that apply)
+            {t.preferences.focusAreas.title}
           </h3>
           <div className="grid md:grid-cols-3 gap-3">
             {focusAreas.map(area => (
@@ -299,7 +240,7 @@ export default function PreferencesStep({
           className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
         >
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-            What's your preferred learning style?
+            {t.preferences.learningStyle.title}
           </h3>
           <div className="grid md:grid-cols-2 gap-3">
             {learningStyles.map(style => (
@@ -334,7 +275,7 @@ export default function PreferencesStep({
             className="flex items-center space-x-2 px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Back</span>
+            <span>{t.preferences.buttons.back}</span>
           </button>
         )}
         <div className="flex space-x-4 ml-auto">
@@ -342,14 +283,14 @@ export default function PreferencesStep({
             onClick={() => onNext()}
             className="px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
-            Skip
+            {t.preferences.buttons.skip}
           </button>
           <button
             onClick={handleContinue}
             disabled={!isValid}
             className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            <span>Continue</span>
+            <span>{t.preferences.buttons.continue}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

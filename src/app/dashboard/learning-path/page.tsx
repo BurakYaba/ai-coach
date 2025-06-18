@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import { usePathname, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -22,7 +23,8 @@ import {
   MapPin,
   Loader2,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+
+import { learningPathTranslations } from "@/lib/onboarding-translations";
 
 interface LearningPathData {
   primaryFocus: string[];
@@ -108,12 +110,22 @@ const moduleColors = {
 
 export default function LearningPathPage() {
   const { data: session, status } = useSession();
+  const pathname = usePathname();
   const [onboardingData, setOnboardingData] = useState<UserOnboarding | null>(
     null
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
+
+  // Detect language from pathname
+  const language: "en" | "tr" = pathname?.startsWith("/tr") ? "tr" : "en";
+  const t = learningPathTranslations[language];
+
+  // Function to get translated module name
+  const getModuleName = (moduleId: string) => {
+    return t.modules[moduleId as keyof typeof t.modules] || moduleId;
+  };
 
   useEffect(() => {
     if (status === "loading") return;
@@ -234,7 +246,7 @@ export default function LearningPathPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading your learning path...</p>
+          <p className="text-muted-foreground">{t.loading}</p>
         </div>
       </div>
     );
@@ -245,12 +257,10 @@ export default function LearningPathPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <MapPin className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h1 className="text-xl font-semibold mb-2">
-            Learning Path Not Available
-          </h1>
+          <h1 className="text-xl font-semibold mb-2">{t.error}</h1>
           <p className="text-muted-foreground mb-4">{error}</p>
           <Button onClick={() => router.push("/onboarding")}>
-            Complete Onboarding
+            {t.completeOnboarding}
           </Button>
         </div>
       </div>
@@ -278,17 +288,17 @@ export default function LearningPathPage() {
     <div className="container mx-auto p-6 max-w-6xl">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Your Learning Path</h1>
-        <p className="text-muted-foreground">
-          Personalized roadmap based on your assessment and preferences
-        </p>
+        <h1 className="text-3xl font-bold mb-2">{t.title}</h1>
+        <p className="text-muted-foreground">{t.subtitle}</p>
       </div>
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Level</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t.cards.currentLevel}
+            </CardTitle>
             <Trophy className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -303,7 +313,9 @@ export default function LearningPathPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Daily Time</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t.cards.dailyTime}
+            </CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -319,7 +331,7 @@ export default function LearningPathPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Estimated Duration
+              {t.cards.estimatedDuration}
             </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -333,7 +345,9 @@ export default function LearningPathPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Focus Areas</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              {t.cards.focusAreas}
+            </CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -384,7 +398,7 @@ export default function LearningPathPage() {
                         </div>
                         <div>
                           <CardTitle className="text-sm">
-                            {capitalize(module)}
+                            {getModuleName(module)}
                           </CardTitle>
                           <div className="flex items-center gap-1 mt-1">
                             <span className="text-xs text-muted-foreground">

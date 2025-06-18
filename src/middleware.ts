@@ -62,6 +62,11 @@ const ONBOARDING_EXEMPT_PATHS = [
   "/profile",
   "/dashboard/profile",
   "/dashboard/settings",
+  "/admin",
+  "/school-admin",
+  "/api/admin",
+  "/api/school-admin",
+  "/api/gamification",
 ];
 
 export async function middleware(request: NextRequest) {
@@ -133,13 +138,49 @@ export async function middleware(request: NextRequest) {
     );
 
     if (!isOnboardingExempt && isAuthenticated) {
+      // Check for refresh_token parameter - if present, allow access for JWT refresh
+      const url = new URL(request.url);
+      const hasRefreshToken = url.searchParams.get("refresh_token") === "true";
+      const hasOnboardingCompleted =
+        url.searchParams.get("onboarding_completed") === "true";
+
+      // Allow access if refresh_token is present (for post-onboarding redirect)
+      if (hasRefreshToken || hasOnboardingCompleted) {
+        return NextResponse.next();
+      }
+
+      // Special handling for dashboard-related API calls during onboarding completion
+      // Check if this is a dashboard-related API call and if there was a recent onboarding completion
+      if (
+        pathname.startsWith("/api/") &&
+        pathname !== "/api/onboarding/progress"
+      ) {
+        // Check referrer to see if this request is coming from a dashboard page with refresh tokens
+        const referer = request.headers.get("referer");
+        if (
+          referer &&
+          (referer.includes("refresh_token=true") ||
+            referer.includes("onboarding_completed=true"))
+        ) {
+          return NextResponse.next();
+        }
+      }
+
       // Check if user has completed onboarding
       const onboardingCompleted = token.onboardingCompleted as boolean;
       const userRole = (token.role as string) || "user";
 
       // Only redirect regular users to onboarding (not admins or school admins)
-      if (!onboardingCompleted && userRole === "user") {
+      if (
+        !onboardingCompleted &&
+        userRole === "user" &&
+        pathname !== "/onboarding"
+      ) {
         return NextResponse.redirect(new URL("/onboarding", request.url));
+      }
+
+      if (onboardingCompleted && pathname === "/onboarding") {
+        return NextResponse.redirect(new URL("/dashboard", request.url));
       }
     }
 

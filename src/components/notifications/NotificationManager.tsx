@@ -10,6 +10,9 @@ export default function NotificationManager() {
   const [userData, setUserData] = useState<any>(null);
   const [reminderScheduled, setReminderScheduled] = useState(false);
   const [permissionRequested, setPermissionRequested] = useState(false);
+  const [onboardingCompleted, setOnboardingCompleted] = useState<
+    boolean | null
+  >(null);
   const {
     isSupported,
     permissionState,
@@ -17,9 +20,9 @@ export default function NotificationManager() {
     scheduleDailyReminder,
   } = useNotifications();
 
-  // Fetch user data for notification preferences
+  // Check onboarding completion status
   useEffect(() => {
-    const fetchUserData = async () => {
+    const checkOnboardingStatus = async () => {
       if (!session?.user?.id) return;
 
       // First check: if user is on onboarding pages, skip entirely
@@ -28,17 +31,43 @@ export default function NotificationManager() {
         (window.location.pathname === "/onboarding" ||
           window.location.pathname.startsWith("/onboarding/"))
       ) {
-        console.log("Skipping notifications setup - user on onboarding page");
+        setOnboardingCompleted(false);
         return;
       }
 
-      // Second check: if user hasn't completed onboarding according to session, skip
-      if (session.user.onboardingCompleted === false) {
-        console.log(
-          "Skipping notifications setup - onboarding not completed in session"
-        );
-        return;
+      try {
+        // Check onboarding status from API
+        const onboardingResponse = await fetch("/api/onboarding/progress");
+        if (onboardingResponse.ok) {
+          const data = await onboardingResponse.json();
+          const completed = data.onboarding?.completed || false;
+          setOnboardingCompleted(completed);
+
+          if (!completed) {
+            console.log(
+              "Skipping notifications setup - onboarding not completed"
+            );
+            return;
+          }
+        } else {
+          console.warn("Could not fetch onboarding status, assuming completed");
+          setOnboardingCompleted(true);
+        }
+      } catch (error) {
+        console.error("Error checking onboarding status:", error);
+        setOnboardingCompleted(true); // Assume completed on error
       }
+    };
+
+    if (session?.user) {
+      checkOnboardingStatus();
+    }
+  }, [session]);
+
+  // Fetch user data for notification preferences
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!session?.user?.id || onboardingCompleted !== true) return;
 
       try {
         // Only proceed with profile/settings fetch if user has definitely completed onboarding
@@ -99,14 +128,19 @@ export default function NotificationManager() {
       }
     };
 
-    if (session?.user) {
+    if (session?.user && onboardingCompleted === true) {
       fetchUserData();
     }
-  }, [session]);
+  }, [session, onboardingCompleted]);
 
   // Request notification permission if needed
   useEffect(() => {
-    if (isSupported && !permissionRequested && permissionState === "default") {
+    if (
+      isSupported &&
+      !permissionRequested &&
+      permissionState === "default" &&
+      onboardingCompleted === true
+    ) {
       // Only ask for permission after user has used the site for a while
       const askForPermissionTimeout = setTimeout(
         () => {
@@ -118,7 +152,13 @@ export default function NotificationManager() {
 
       return () => clearTimeout(askForPermissionTimeout);
     }
-  }, [isSupported, permissionState, permissionRequested, requestPermission]);
+  }, [
+    isSupported,
+    permissionState,
+    permissionRequested,
+    requestPermission,
+    onboardingCompleted,
+  ]);
 
   // Schedule daily reminders based on user preferences
   useEffect(() => {
@@ -129,7 +169,8 @@ export default function NotificationManager() {
       userData &&
       userData.progressReminders &&
       userData.preferredLearningTime &&
-      userData.preferredLearningTime.length > 0
+      userData.preferredLearningTime.length > 0 &&
+      onboardingCompleted === true
     ) {
       scheduleDailyReminder(userData.preferredLearningTime, userData.dailyGoal);
       setReminderScheduled(true);
@@ -140,6 +181,7 @@ export default function NotificationManager() {
     reminderScheduled,
     scheduleDailyReminder,
     userData,
+    onboardingCompleted,
   ]);
 
   // Reschedule reminders if user preferences change
@@ -151,7 +193,8 @@ export default function NotificationManager() {
       userData &&
       userData.progressReminders &&
       userData.preferredLearningTime &&
-      userData.preferredLearningTime.length > 0
+      userData.preferredLearningTime.length > 0 &&
+      onboardingCompleted === true
     ) {
       scheduleDailyReminder(userData.preferredLearningTime, userData.dailyGoal);
     }
@@ -163,6 +206,7 @@ export default function NotificationManager() {
     permissionState,
     reminderScheduled,
     scheduleDailyReminder,
+    onboardingCompleted,
   ]);
 
   // This component doesn't render anything, just manages notifications

@@ -258,8 +258,9 @@ export default function SessionManager() {
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-sm text-blue-800">
                   <strong>Security Notice:</strong> This is your current active
-                  session. Only one session is allowed per account to prevent
-                  unauthorized access.
+                  session. Only one session is allowed per account for maximum
+                  security. If you log in from another device, this session will
+                  be automatically terminated.
                 </p>
               </div>
             </div>

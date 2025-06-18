@@ -27,8 +27,18 @@ export default async function handler(
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    // Get user's gamification profile
+    // Get user's gamification profile (creates one if it doesn't exist)
     const profile = await GamificationService.getUserProfile(userId);
+
+    if (!profile) {
+      console.error(
+        "Failed to create or retrieve gamification profile for user:",
+        userId
+      );
+      return res
+        .status(500)
+        .json({ error: "Failed to create gamification profile" });
+    }
 
     // Recalculate level based on current XP to ensure it's up-to-date
     const { level, experienceToNextLevel } = calculateLevelFromXP(

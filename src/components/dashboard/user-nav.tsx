@@ -2,6 +2,7 @@
 
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
@@ -24,6 +25,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { FeedbackForm } from "@/components/feedback/FeedbackForm";
+import { userNavTranslations } from "@/lib/onboarding-translations";
 
 interface UserNavProps {
   user: {
@@ -35,7 +37,13 @@ interface UserNavProps {
 
 export function UserNav({ user, children }: UserNavProps) {
   const { data: session } = useSession();
-  const userRole = session?.user?.role;
+  const pathname = usePathname();
+
+  // Detect language from pathname
+  const language: "en" | "tr" = pathname?.startsWith("/tr") ? "tr" : "en";
+  const t = userNavTranslations[language];
+
+  const userRole = session?.user?.role || "student";
 
   const initials = user.name
     ? user.name
@@ -44,6 +52,27 @@ export function UserNav({ user, children }: UserNavProps) {
         .join("")
         .toUpperCase()
     : "?";
+
+  // Proper logout function that cleans up database sessions
+  const handleLogout = async () => {
+    try {
+      // First, call our custom logout API to terminate the database session
+      if (session?.user?.sessionToken) {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+        });
+      }
+    } catch (error) {
+      console.error("Error calling logout API:", error);
+      // Continue with logout even if session cleanup fails
+    }
+
+    // Then sign out with NextAuth
+    await signOut({
+      redirect: true,
+      callbackUrl: "/login",
+    });
+  };
 
   const defaultTrigger = (
     <div className="w-10 h-10 bg-gradient-to-r from-green-400 to-blue-500 rounded-full flex items-center justify-center font-bold text-white hover:shadow-lg transition-all duration-200">
@@ -100,7 +129,7 @@ export function UserNav({ user, children }: UserNavProps) {
         >
           <Link href="/dashboard/profile">
             <User className="w-4 h-4 text-gray-600" />
-            <span className="text-gray-700">Profile</span>
+            <span className="text-gray-700">{t.profile}</span>
           </Link>
         </DropdownMenuItem>
 
@@ -110,7 +139,7 @@ export function UserNav({ user, children }: UserNavProps) {
         >
           <Link href="/dashboard/learning-path">
             <MapPin className="w-4 h-4 text-gray-600" />
-            <span className="text-gray-700">Learning Path</span>
+            <span className="text-gray-700">{t.learningPath}</span>
           </Link>
         </DropdownMenuItem>
 
@@ -120,7 +149,7 @@ export function UserNav({ user, children }: UserNavProps) {
         >
           <Link href="/dashboard/subscription">
             <CreditCard className="w-4 h-4 text-gray-600" />
-            <span className="text-gray-700">Billing & Subscription</span>
+            <span className="text-gray-700">{t.billing}</span>
           </Link>
         </DropdownMenuItem>
 
@@ -130,7 +159,7 @@ export function UserNav({ user, children }: UserNavProps) {
         >
           <Link href="/dashboard/settings">
             <Settings className="w-4 h-4 text-gray-600" />
-            <span className="text-gray-700">Settings</span>
+            <span className="text-gray-700">{t.settings}</span>
           </Link>
         </DropdownMenuItem>
 
@@ -144,7 +173,7 @@ export function UserNav({ user, children }: UserNavProps) {
               onSelect={e => e.preventDefault()}
             >
               <MessageSquare className="w-4 h-4 text-gray-600" />
-              <span className="text-gray-700">Give Feedback</span>
+              <span className="text-gray-700">{t.feedback}</span>
             </DropdownMenuItem>
           }
         />
@@ -155,19 +184,19 @@ export function UserNav({ user, children }: UserNavProps) {
           className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
         >
           <Link href="/dashboard/feedback">
-            <Star className="w-4 h-4 text-gray-600" />
-            <span className="text-gray-700">My Feedback</span>
+            <History className="w-4 h-4 text-gray-600" />
+            <span className="text-gray-700">{t.feedbackHistory}</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuSeparator className="my-2" />
 
         <DropdownMenuItem
-          className="flex items-center space-x-3 p-3 rounded-lg hover:bg-red-50 cursor-pointer text-red-600"
-          onSelect={() => signOut({ callbackUrl: "/login" })}
+          className="flex items-center space-x-3 p-3 rounded-lg hover:bg-red-50 text-red-600 cursor-pointer"
+          onClick={handleLogout}
         >
           <LogOut className="w-4 h-4" />
-          <span>Sign out</span>
+          <span>{t.logout}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

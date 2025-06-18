@@ -300,6 +300,24 @@ export async function forceLogoutUser(userId: string): Promise<number> {
   return result.modifiedCount;
 }
 
+// Clean up ALL sessions (for development/testing)
+export async function forceCleanupAllSessions(): Promise<number> {
+  await dbConnect();
+
+  const result = await UserSession.updateMany(
+    { isActive: true },
+    {
+      $set: {
+        isActive: false,
+        terminatedAt: new Date(),
+        terminationReason: "forced",
+      },
+    }
+  );
+
+  return result.modifiedCount;
+}
+
 // Get user's session history
 export async function getUserSessionHistory(
   userId: string,

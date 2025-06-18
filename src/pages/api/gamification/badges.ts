@@ -24,11 +24,11 @@ export default async function handler(
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    // Get user's badges
+    // Get user's badges (creates profile if it doesn't exist)
     const badges = await GamificationService.getUserBadges(userId);
 
-    // Return the badges
-    return res.status(200).json({ badges });
+    // Return the badges (empty array if no badges yet)
+    return res.status(200).json({ badges: badges || [] });
   } catch (error) {
     console.error("Error fetching badges:", error);
     return res.status(500).json({ error: "Failed to fetch badges" });

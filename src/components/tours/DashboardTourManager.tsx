@@ -20,31 +20,41 @@ export default function DashboardTourManager() {
 
   const checkTourStatus = async () => {
     try {
-      // Small delay to ensure page is fully loaded
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Longer delay to ensure gamification data has time to load
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Check if essential dashboard elements are loaded
       const waitForDashboardElements = () => {
         const essentialElements = [
           '[data-tour="dashboard-welcome"]',
           '[data-tour="dashboard-nav"]',
-          '[data-tour="level-xp-card"]',
         ];
 
-        return essentialElements.every(
+        // Level XP card is optional since it depends on gamification data
+        const optionalElements = ['[data-tour="level-xp-card"]'];
+
+        const essentialLoaded = essentialElements.every(
           selector => document.querySelector(selector) !== null
         );
+
+        const optionalLoaded = optionalElements.some(
+          selector => document.querySelector(selector) !== null
+        );
+
+        return essentialLoaded; // Don't require optional elements
       };
 
-      // Wait up to 5 seconds for essential elements
+      // Wait up to 10 seconds for essential elements (increased from 5 seconds)
       let attempts = 0;
-      while (!waitForDashboardElements() && attempts < 50) {
+      while (!waitForDashboardElements() && attempts < 100) {
         await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
       }
 
       if (!waitForDashboardElements()) {
-        console.warn("Dashboard elements not fully loaded, skipping tour");
+        console.warn(
+          "Essential dashboard elements not fully loaded, skipping tour"
+        );
         setLoading(false);
         return;
       }
@@ -68,7 +78,10 @@ export default function DashboardTourManager() {
           !hasCompletedDashboardTour &&
           !hasSkippedDashboardTour
         ) {
-          setShowTour(true);
+          // Additional delay to ensure everything is settled
+          setTimeout(() => {
+            setShowTour(true);
+          }, 1000);
         }
       } else {
         console.warn("Failed to fetch onboarding progress, skipping tour");

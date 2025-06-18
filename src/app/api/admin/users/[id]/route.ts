@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions, isAdmin } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import { forceLogoutUser } from "@/lib/session-manager";
 
 export const dynamic = "force-dynamic";
 
@@ -146,6 +147,15 @@ export async function DELETE(
 
     // Delete all related data - this could include sessions, progress, etc.
     // Here you would add code to delete from other collections as needed
+
+    // Clean up all user sessions first
+    try {
+      const sessionCount = await forceLogoutUser(id);
+      console.log(`Cleaned up ${sessionCount} sessions for user ${id}`);
+    } catch (sessionError) {
+      console.error("Error cleaning up user sessions:", sessionError);
+      // Don't fail the deletion if session cleanup fails
+    }
 
     // For example:
     // await ListeningSession.deleteMany({ userId: id });

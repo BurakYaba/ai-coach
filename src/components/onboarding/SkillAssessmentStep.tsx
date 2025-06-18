@@ -9,12 +9,14 @@ import {
   ArrowRight,
   ArrowLeft,
 } from "lucide-react";
+import { useOnboardingTranslations } from "@/lib/onboarding-translations";
 
 interface SkillAssessmentStepProps {
   onNext: (data?: any) => void;
   onSkip?: () => void;
   onBack?: () => void;
   data?: any;
+  language: "en" | "tr";
 }
 
 interface Question {
@@ -50,7 +52,9 @@ interface AssessmentResult {
 export default function SkillAssessmentStep({
   onNext,
   onBack,
+  language,
 }: SkillAssessmentStepProps) {
+  const t = useOnboardingTranslations(language);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [grammarVocabQuestions, setGrammarVocabQuestions] = useState<
@@ -229,57 +233,68 @@ export default function SkillAssessmentStep({
         >
           <BookOpen className="h-16 w-16 text-blue-600 mx-auto mb-4" />
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            Skill Assessment
+            {t.assessment.title}
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
-            Let's evaluate your current English level to create the perfect
-            learning path for you.
+            {t.assessment.subtitle}
           </p>
         </motion.div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg mb-8">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-            What to expect:
+            {t.assessment.expectation.title}
           </h3>
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="text-center">
               <Clock className="h-8 w-8 text-blue-600 mx-auto mb-2" />
               <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                10-15 Minutes
+                {t.assessment.expectation.duration.title}
               </h4>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Quick and efficient
+                {t.assessment.expectation.duration.subtitle}
               </p>
             </div>
             <div className="text-center">
               <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
               <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                20 Questions
+                {t.assessment.expectation.questions.title}
               </h4>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Grammar, Vocabulary & Reading
+                {t.assessment.expectation.questions.subtitle}
               </p>
             </div>
             <div className="text-center">
               <BookOpen className="h-8 w-8 text-purple-600 mx-auto mb-2" />
               <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                Personalized Results
+                {t.assessment.expectation.results.title}
               </h4>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Tailored to your level
+                {t.assessment.expectation.results.subtitle}
               </p>
             </div>
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
             <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">
-              Assessment Structure:
+              {t.assessment.structure.title}
             </h4>
             <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
-              <li>• First 15 questions: Grammar and Vocabulary</li>
-              <li>• Reading passage with 5 comprehension questions</li>
-              <li>• Immediate personalized results and recommendations</li>
+              <li>• {t.assessment.structure.grammar}</li>
+              <li>• {t.assessment.structure.reading}</li>
+              <li>• {t.assessment.structure.immediate}</li>
             </ul>
+          </div>
+        </div>
+
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4 mb-6">
+          <div className="flex items-start space-x-3">
+            <div className="text-yellow-600 dark:text-yellow-400 text-sm font-medium">
+              ⚠️
+            </div>
+            <div className="text-sm text-yellow-800 dark:text-yellow-200">
+              <p className="font-medium mb-1">{t.assessment.important.title}</p>
+              <p>{t.assessment.important.note}</p>
+            </div>
           </div>
         </div>
 
@@ -290,7 +305,7 @@ export default function SkillAssessmentStep({
               className="flex items-center justify-center space-x-2 px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back</span>
+              <span>{t.assessment.buttons.back}</span>
             </button>
           )}
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:ml-auto">
@@ -298,13 +313,13 @@ export default function SkillAssessmentStep({
               onClick={() => onNext()}
               className="px-4 sm:px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-center"
             >
-              Skip Assessment
+              {t.assessment.buttons.skip}
             </button>
             <button
               onClick={handleStartAssessment}
               className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-center"
             >
-              Start Assessment
+              {t.assessment.buttons.start}
             </button>
           </div>
         </div>
@@ -323,10 +338,14 @@ export default function SkillAssessmentStep({
         >
           <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            Assessment Complete!
+            {language === "tr"
+              ? "Değerlendirme Tamamlandı!"
+              : "Assessment Complete!"}
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-300">
-            Here are your personalized results
+            {language === "tr"
+              ? "İşte kişiselleştirilmiş sonuçlarınız"
+              : "Here are your personalized results"}
           </p>
         </motion.div>
 
@@ -336,22 +355,25 @@ export default function SkillAssessmentStep({
               {result.recommendedLevel}
             </div>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Your English Level
+              {language === "tr" ? "İngilizce Seviyeniz" : "Your English Level"}
             </h3>
             <p className="text-gray-600 dark:text-gray-300">
-              Score: {result.overallScore}% ({result.correctAnswers}/
-              {result.totalQuestions} correct)
+              {language === "tr" ? "Puan" : "Score"}: {result.overallScore}% (
+              {result.correctAnswers}/{result.totalQuestions}{" "}
+              {language === "tr" ? "doğru" : "correct"})
             </p>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Completed in {Math.floor(timeSpent / 60)}:
-              {(timeSpent % 60).toString().padStart(2, "0")} minutes
+              {language === "tr" ? "Tamamlanma süresi" : "Completed in"}{" "}
+              {Math.floor(timeSpent / 60)}:
+              {(timeSpent % 60).toString().padStart(2, "0")}{" "}
+              {language === "tr" ? "dakika" : "minutes"}
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 mb-8">
             <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Reading
+                {language === "tr" ? "Okuma" : "Reading"}
               </h4>
               <div className="text-2xl font-bold text-blue-600">
                 {result.skillScores.reading}%
@@ -359,7 +381,7 @@ export default function SkillAssessmentStep({
             </div>
             <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Grammar
+                {language === "tr" ? "Gramer" : "Grammar"}
               </h4>
               <div className="text-2xl font-bold text-green-600">
                 {result.skillScores.grammar}%
@@ -367,7 +389,7 @@ export default function SkillAssessmentStep({
             </div>
             <div className="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
               <h4 className="font-semibold text-gray-900 dark:text-white mb-2">
-                Vocabulary
+                {language === "tr" ? "Kelime Bilgisi" : "Vocabulary"}
               </h4>
               <div className="text-2xl font-bold text-purple-600">
                 {result.skillScores.vocabulary}%
@@ -378,7 +400,7 @@ export default function SkillAssessmentStep({
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                Your Strengths
+                {language === "tr" ? "Güçlü Yönleriniz" : "Your Strengths"}
               </h4>
               {result.strengths.length > 0 ? (
                 <ul className="space-y-2">
@@ -388,19 +410,27 @@ export default function SkillAssessmentStep({
                       className="flex items-center space-x-2 text-green-600"
                     >
                       <CheckCircle className="h-4 w-4" />
-                      <span className="capitalize">{strength}</span>
+                      <span className="capitalize">
+                        {language === "tr"
+                          ? getTranslatedSkill(strength)
+                          : strength}
+                      </span>
                     </li>
                   ))}
                 </ul>
               ) : (
                 <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Continue practicing to identify your strengths!
+                  {language === "tr"
+                    ? "Güçlü yönlerinizi belirlemek için pratik yapmaya devam edin!"
+                    : "Continue practicing to identify your strengths!"}
                 </p>
               )}
             </div>
             <div>
               <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
-                Areas to Improve
+                {language === "tr"
+                  ? "Geliştirilecek Alanlar"
+                  : "Areas to Improve"}
               </h4>
               {result.weakAreas.length > 0 ? (
                 <ul className="space-y-2">
@@ -410,13 +440,17 @@ export default function SkillAssessmentStep({
                       className="flex items-center space-x-2 text-orange-600"
                     >
                       <ArrowRight className="h-4 w-4" />
-                      <span className="capitalize">{area}</span>
+                      <span className="capitalize">
+                        {language === "tr" ? getTranslatedSkill(area) : area}
+                      </span>
                     </li>
                   ))}
                 </ul>
               ) : (
                 <p className="text-gray-500 dark:text-gray-400 text-sm">
-                  Great job! No specific weak areas identified.
+                  {language === "tr"
+                    ? "Harika! Belirgin zayıf alan tespit edilmedi."
+                    : "Great job! No specific weak areas identified."}
                 </p>
               )}
             </div>
@@ -429,13 +463,17 @@ export default function SkillAssessmentStep({
             className="flex items-center space-x-2 px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Retake Assessment</span>
+            <span>
+              {language === "tr"
+                ? "Değerlendirmeyi Tekrarla"
+                : "Retake Assessment"}
+            </span>
           </button>
           <button
             onClick={handleContinue}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
-            Continue
+            {language === "tr" ? "Devam Et" : "Continue"}
           </button>
         </div>
       </div>
@@ -618,3 +656,16 @@ export default function SkillAssessmentStep({
     </div>
   );
 }
+
+// Helper function to translate skill names
+const getTranslatedSkill = (skill: string) => {
+  const translations: Record<string, string> = {
+    reading: "okuma",
+    writing: "yazma",
+    listening: "dinleme",
+    speaking: "konuşma",
+    vocabulary: "kelime bilgisi",
+    grammar: "gramer",
+  };
+  return translations[skill] || skill;
+};

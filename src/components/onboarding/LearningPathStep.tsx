@@ -16,12 +16,17 @@ import {
   Clock,
   Target,
 } from "lucide-react";
+import {
+  useOnboardingTranslations,
+  learningPathTranslations,
+} from "@/lib/onboarding-translations";
 
 interface LearningPathStepProps {
   onNext: (data?: any) => void;
   onSkip?: () => void;
   onBack?: () => void;
   data?: any;
+  language: "en" | "tr";
 }
 
 interface LearningPath {
@@ -53,7 +58,10 @@ export default function LearningPathStep({
   onNext,
   onBack,
   data,
+  language,
 }: LearningPathStepProps) {
+  const t = useOnboardingTranslations(language);
+  const pathT = learningPathTranslations[language];
   const [learningPath, setLearningPath] = useState<LearningPath | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedModules, setSelectedModules] = useState<string[]>([]);
@@ -124,9 +132,11 @@ export default function LearningPathStep({
           modules: [
             {
               id: "reading",
-              name: "Reading Comprehension",
+              name: pathT.modules.reading,
               description:
-                "Improve your reading skills with engaging articles and exercises",
+                language === "tr"
+                  ? "Okuma anlama becerilerinizi geliştirin"
+                  : "Improve your reading comprehension skills",
               icon: moduleIcons["reading"],
               priority: pathData.learningPath.primaryFocus.includes("reading")
                 ? ("high" as const)
@@ -136,9 +146,11 @@ export default function LearningPathStep({
             },
             {
               id: "writing",
-              name: "Writing Skills",
+              name: pathT.modules.writing,
               description:
-                "Develop your writing abilities through guided practice",
+                language === "tr"
+                  ? "Yazma becerilerinizi geliştirin"
+                  : "Enhance your writing abilities",
               icon: moduleIcons["writing"],
               priority: pathData.learningPath.primaryFocus.includes("writing")
                 ? ("high" as const)
@@ -148,8 +160,11 @@ export default function LearningPathStep({
             },
             {
               id: "speaking",
-              name: "Speaking Practice",
-              description: "Build confidence through conversation practice",
+              name: pathT.modules.speaking,
+              description:
+                language === "tr"
+                  ? "Konuşma ve telaffuz becerilerinizi geliştirin"
+                  : "Develop your speaking and pronunciation",
               icon: moduleIcons["speaking"],
               priority: pathData.learningPath.primaryFocus.includes("speaking")
                 ? ("high" as const)
@@ -159,8 +174,11 @@ export default function LearningPathStep({
             },
             {
               id: "listening",
-              name: "Listening Skills",
-              description: "Enhance comprehension with audio content",
+              name: pathT.modules.listening,
+              description:
+                language === "tr"
+                  ? "Dinleme anlama becerilerinizi geliştirin"
+                  : "Improve your listening comprehension",
               icon: moduleIcons["listening"],
               priority: pathData.learningPath.primaryFocus.includes("listening")
                 ? ("high" as const)
@@ -170,8 +188,11 @@ export default function LearningPathStep({
             },
             {
               id: "vocabulary",
-              name: "Vocabulary Building",
-              description: "Expand your vocabulary with interactive exercises",
+              name: pathT.modules.vocabulary,
+              description:
+                language === "tr"
+                  ? "Kelime dağarcığınızı genişletin"
+                  : "Expand your vocabulary",
               icon: moduleIcons["vocabulary"],
               priority: pathData.learningPath.primaryFocus.includes(
                 "vocabulary"
@@ -183,8 +204,11 @@ export default function LearningPathStep({
             },
             {
               id: "grammar",
-              name: "Grammar Mastery",
-              description: "Master grammar rules and usage",
+              name: pathT.modules.grammar,
+              description:
+                language === "tr"
+                  ? "Gramer kurallarında ustalaşın"
+                  : "Master grammar rules",
               icon: moduleIcons["grammar"],
               priority: pathData.learningPath.primaryFocus.includes("grammar")
                 ? ("high" as const)
@@ -194,8 +218,11 @@ export default function LearningPathStep({
             },
             {
               id: "games",
-              name: "Learning Games",
-              description: "Fun and engaging language games",
+              name: pathT.modules.games,
+              description:
+                language === "tr"
+                  ? "Eğlenceli oyunlarla öğrenin"
+                  : "Learn through fun games",
               icon: moduleIcons["games"],
               priority: "low" as const,
               estimatedTime: "10-15 min",
@@ -404,11 +431,10 @@ export default function LearningPathStep({
       >
         <Target className="h-16 w-16 text-blue-600 mx-auto mb-4" />
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-          Your Personalized Learning Path
+          {t.learningPath.title}
         </h2>
         <p className="text-lg text-gray-600 dark:text-gray-300">
-          Based on your assessment and preferences, we've created a customized
-          learning journey for you.
+          {t.learningPath.subtitle}
         </p>
       </motion.div>
 
@@ -419,7 +445,7 @@ export default function LearningPathStep({
         transition={{ duration: 0.6, delay: 0.1 }}
         className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl p-6 mb-8"
       >
-        <h3 className="text-xl font-bold mb-4">Your Learning Goals</h3>
+        <h3 className="text-xl font-bold mb-4">{t.learningPath.goals.title}</h3>
         <div className="grid md:grid-cols-3 gap-4">
           {learningPath.goals.map((goal, index) => (
             <div key={index} className="bg-white/10 rounded-lg p-4">
@@ -442,11 +468,10 @@ export default function LearningPathStep({
         className="mb-8"
       >
         <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-          Recommended Learning Modules
+          {t.learningPath.modules.title}
         </h3>
         <p className="text-gray-600 dark:text-gray-300 mb-6">
-          Select the modules you'd like to include in your learning journey.
-          High priority modules are pre-selected based on your assessment.
+          {t.learningPath.modules.subtitle}
         </p>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -496,7 +521,17 @@ export default function LearningPathStep({
                               : "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400"
                         }`}
                       >
-                        {module.priority} priority
+                        {module.priority === "high"
+                          ? language === "tr"
+                            ? "Yüksek"
+                            : "High"
+                          : module.priority === "medium"
+                            ? language === "tr"
+                              ? "Orta"
+                              : "Medium"
+                            : language === "tr"
+                              ? "Düşük"
+                              : "Low"}
                       </span>
                       <span className="text-gray-500 dark:text-gray-400">
                         {module.difficulty}
@@ -527,11 +562,12 @@ export default function LearningPathStep({
         className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg mb-8"
       >
         <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-          Your Weekly Learning Schedule
+          {t.learningPath.schedule.title}
         </h3>
         <p className="text-gray-600 dark:text-gray-300 mb-6">
-          Here's a sample of how your week might look with your selected
-          modules:
+          {language === "tr"
+            ? "Seçtiğiniz modüllerle haftanızın nasıl görünebileceğinin bir örneği:"
+            : "Here's a sample of how your week might look with your selected modules:"}
         </p>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -572,7 +608,7 @@ export default function LearningPathStep({
             className="flex items-center justify-center space-x-2 px-4 sm:px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Back</span>
+            <span>{t.learningPath.buttons.back}</span>
           </button>
         )}
         <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:ml-auto">
@@ -580,14 +616,14 @@ export default function LearningPathStep({
             onClick={() => onNext()}
             className="px-4 sm:px-6 py-3 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-center"
           >
-            Skip Customization
+            {t.learningPath.buttons.skip}
           </button>
           <button
             onClick={handleContinue}
             disabled={selectedModules.length === 0}
             className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 sm:px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
-            <span>Start Learning Journey</span>
+            <span>{t.learningPath.buttons.continue}</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

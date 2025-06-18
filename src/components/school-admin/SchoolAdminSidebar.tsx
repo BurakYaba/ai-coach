@@ -13,7 +13,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 interface SidebarItemProps {
   icon: LucideIcon;
@@ -45,6 +45,28 @@ const SidebarItem = ({
 export function SchoolAdminSidebar() {
   const pathnameValue = usePathname();
   const pathname = pathnameValue !== null ? pathnameValue : "";
+  const { data: session } = useSession();
+
+  // Proper logout function that cleans up database sessions
+  const handleLogout = async () => {
+    try {
+      // First, call our custom logout API to terminate the database session
+      if (session?.user?.sessionToken) {
+        await fetch("/api/auth/logout", {
+          method: "POST",
+        });
+      }
+    } catch (error) {
+      console.error("Error calling logout API:", error);
+      // Continue with logout even if session cleanup fails
+    }
+
+    // Then sign out with NextAuth
+    await signOut({
+      redirect: true,
+      callbackUrl: "/login",
+    });
+  };
 
   return (
     <div className="pb-12 w-64 border-r bg-card">
@@ -87,7 +109,7 @@ export function SchoolAdminSidebar() {
         <Button
           variant="ghost"
           className="w-full justify-start text-muted-foreground"
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={handleLogout}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Log out

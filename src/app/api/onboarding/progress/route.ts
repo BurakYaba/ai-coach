@@ -84,6 +84,7 @@ export async function PATCH(request: NextRequest) {
       tours,
       moduleVisits,
       skipStep,
+      language,
     } = body;
 
     await dbConnect();
@@ -98,6 +99,7 @@ export async function PATCH(request: NextRequest) {
       user.onboarding = {
         completed: false,
         currentStep: 0,
+        language: language || "en",
         skillAssessment: {
           completed: false,
           ceferLevel: "B1",
@@ -185,8 +187,12 @@ export async function PATCH(request: NextRequest) {
     }
 
     // Update fields if provided
-    if (typeof currentStep === "number") {
+    if (typeof currentStep !== "undefined") {
       user.onboarding.currentStep = currentStep;
+    }
+
+    if (language) {
+      user.onboarding.language = language;
     }
 
     if (skillAssessment) {
@@ -260,22 +266,71 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (typeof completed === "boolean") {
-      console.log(
-        `Setting onboarding completed to ${completed} for user ${session.user.id}`
-      );
       user.onboarding.completed = completed;
       if (completed && !user.onboarding.completedAt) {
         user.onboarding.completedAt = completedAt
           ? new Date(completedAt)
           : new Date();
-        console.log(`Set completion date: ${user.onboarding.completedAt}`);
       }
     }
 
-    await user.save();
-    console.log(
-      `User onboarding saved - completed: ${user.onboarding.completed}`
+    // Handle step-specific data
+    const stepDataKeys = Object.keys(body).filter(key =>
+      [
+        "language",
+        "welcome",
+        "assessment",
+        "preferences",
+        "learning-path",
+        "completion",
+      ].includes(key)
     );
+
+    stepDataKeys.forEach(stepKey => {
+      const stepData = body[stepKey];
+      if (stepData && typeof stepData === "object" && user.onboarding) {
+        // Handle language selection step
+        if (stepKey === "language" && stepData.language) {
+          user.onboarding.language = stepData.language;
+        }
+        // Handle other step data as needed
+        else if (stepKey === "preferences" && stepData) {
+          user.onboarding.preferences = {
+            ...user.onboarding.preferences,
+            ...stepData,
+          };
+        }
+        // Handle skill assessment step
+        else if (stepKey === "assessment" && stepData.skillAssessment) {
+          const assessment = stepData.skillAssessment;
+          user.onboarding.skillAssessment = {
+            completed: assessment.completed || true,
+            ceferLevel:
+              assessment.recommendedLevel || assessment.ceferLevel || "B1",
+            weakAreas: assessment.weakAreas || [],
+            strengths: assessment.strengths || [],
+            assessmentDate: new Date(),
+            scores: {
+              reading: assessment.skillScores?.reading || 0,
+              writing: assessment.skillScores?.writing || 0,
+              listening: assessment.skillScores?.listening || 0,
+              speaking: assessment.skillScores?.speaking || 0,
+              vocabulary: assessment.skillScores?.vocabulary || 0,
+              grammar: assessment.skillScores?.grammar || 0,
+            },
+          };
+        }
+        // Handle learning path step
+        else if (stepKey === "learning-path" && stepData) {
+          user.onboarding.recommendedPath = {
+            ...user.onboarding.recommendedPath,
+            ...stepData,
+          };
+        }
+      }
+    });
+
+    await user.save();
 
     return NextResponse.json({
       success: true,

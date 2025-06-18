@@ -1,37 +1,76 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BookOpen, Target, Award, Clock } from "lucide-react";
+import {
+  BookOpen,
+  Brain,
+  BarChart,
+  Users,
+  ArrowRight,
+  CheckCircle,
+  Clock,
+} from "lucide-react";
+import { useOnboardingTranslations } from "@/lib/onboarding-translations";
 
 interface WelcomeStepProps {
-  onNext: (data?: any) => void;
-  onSkip?: () => void;
-  onBack?: () => void;
-  data?: any;
+  onNext: () => void;
+  language: "en" | "tr";
 }
 
-export default function WelcomeStep({ onNext }: WelcomeStepProps) {
+export default function WelcomeStep({ onNext, language }: WelcomeStepProps) {
+  const t = useOnboardingTranslations(language);
+
+  // Define features locally since they're not in translations anymore
   const features = [
     {
-      icon: <BookOpen className="h-8 w-8 text-blue-600" />,
-      title: "Personalized Learning",
-      description: "Tailored content based on your skill level and goals",
+      title:
+        language === "tr"
+          ? "AI Destekli Değerlendirme"
+          : "AI-Powered Assessment",
+      description:
+        language === "tr"
+          ? "Akıllı beceri değerlendirmesi"
+          : "Intelligent skill evaluation",
+      icon: Brain,
     },
     {
-      icon: <Target className="h-8 w-8 text-green-600" />,
-      title: "Goal-Oriented",
-      description: "Set and track your English learning objectives",
+      title:
+        language === "tr"
+          ? "Kişiselleştirilmiş Öğrenme"
+          : "Personalized Learning",
+      description:
+        language === "tr"
+          ? "Seviyenize göre özelleştirilmiş"
+          : "Customized to your level",
+      icon: BookOpen,
     },
     {
-      icon: <Award className="h-8 w-8 text-purple-600" />,
-      title: "Achievement System",
-      description: "Earn badges and rewards as you progress",
+      title: language === "tr" ? "Etkileşimli Pratik" : "Interactive Practice",
+      description:
+        language === "tr" ? "Etkileşimli alıştırmalar" : "Engaging exercises",
+      icon: Users,
     },
     {
-      icon: <Clock className="h-8 w-8 text-orange-600" />,
-      title: "Flexible Schedule",
-      description: "Learn at your own pace, anytime and anywhere",
+      title: language === "tr" ? "İlerleme Takibi" : "Progress Tracking",
+      description:
+        language === "tr" ? "Gelişiminizi izleyin" : "Monitor your improvement",
+      icon: BarChart,
     },
+  ];
+
+  const expectationItems = [
+    language === "tr"
+      ? "Hızlı beceri değerlendirmesi (5-10 dakika)"
+      : "Quick skill assessment (5-10 minutes)",
+    language === "tr"
+      ? "Öğrenme tercihleri ve hedef belirleme"
+      : "Learning preferences and goals setup",
+    language === "tr"
+      ? "Kişiselleştirilmiş öğrenme yolu oluşturma"
+      : "Personalized learning path creation",
+    language === "tr"
+      ? "Temel özelliklerin tanıtımı"
+      : "Introduction to key features",
   ];
 
   return (
@@ -42,66 +81,79 @@ export default function WelcomeStep({ onNext }: WelcomeStepProps) {
         transition={{ duration: 0.6 }}
         className="text-center mb-12"
       >
+        <div className="mb-6">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full mb-4">
+            <Brain className="h-10 w-10 text-white" />
+          </div>
+        </div>
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-          Welcome to AI Coach
+          {t.welcome.title}
         </h1>
-        <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          Your personal English learning journey starts here. Let's create a
-          customized learning experience that fits your needs and goals.
+        <h2 className="text-xl md:text-2xl text-blue-600 dark:text-blue-400 font-semibold mb-6">
+          {t.welcome.subtitle}
+        </h2>
+        <p className="text-lg text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
+          {t.welcome.description}
         </p>
       </motion.div>
 
-      <div className="grid md:grid-cols-2 gap-6 mb-12">
+      {/* Features Grid */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+        className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12"
+      >
         {features.map((feature, index) => (
           <motion.div
-            key={index}
-            initial={{ opacity: 0, x: index % 2 === 0 ? -20 : 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: index * 0.1 }}
+            key={feature.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 * (index + 1) }}
             className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
           >
-            <div className="flex items-start space-x-4">
-              <div className="flex-shrink-0">{feature.icon}</div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                  {feature.title}
-                </h3>
-                <p className="text-gray-600 dark:text-gray-300">
-                  {feature.description}
-                </p>
-              </div>
+            <div className="flex items-center justify-center w-12 h-12 bg-blue-100 dark:bg-blue-900/20 rounded-lg mb-4">
+              <feature.icon className="h-6 w-6 text-blue-600" />
             </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              {feature.title}
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
+              {feature.description}
+            </p>
           </motion.div>
         ))}
-      </div>
+      </motion.div>
 
+      {/* What to Expect */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
-        className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 rounded-xl mb-8"
+        className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl p-8 mb-12"
       >
-        <h2 className="text-2xl font-bold mb-4">What to Expect</h2>
-        <ul className="space-y-3 mb-6">
-          <li className="flex items-center space-x-3">
-            <div className="w-2 h-2 bg-white rounded-full"></div>
-            <span>Quick skill assessment (5-10 minutes)</span>
-          </li>
-          <li className="flex items-center space-x-3">
-            <div className="w-2 h-2 bg-white rounded-full"></div>
-            <span>Learning preferences and goals setup</span>
-          </li>
-          <li className="flex items-center space-x-3">
-            <div className="w-2 h-2 bg-white rounded-full"></div>
-            <span>Personalized learning path creation</span>
-          </li>
-          <li className="flex items-center space-x-3">
-            <div className="w-2 h-2 bg-white rounded-full"></div>
-            <span>Introduction to key features</span>
-          </li>
-        </ul>
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
+          {language === "tr" ? "Neler Bekleyebilirsiniz" : "What to Expect"}
+        </h3>
+        <div className="grid md:grid-cols-2 gap-6">
+          {expectationItems.map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 * index }}
+              className="flex items-start space-x-3"
+            >
+              <div className="flex-shrink-0 w-6 h-6 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mt-0.5">
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+              </div>
+              <p className="text-gray-700 dark:text-gray-300">{item}</p>
+            </motion.div>
+          ))}
+        </div>
       </motion.div>
 
+      {/* CTA Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -109,13 +161,19 @@ export default function WelcomeStep({ onNext }: WelcomeStepProps) {
         className="text-center"
       >
         <button
-          onClick={() => onNext()}
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-lg text-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+          onClick={onNext}
+          className="inline-flex items-center justify-center space-x-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-4 px-8 rounded-lg transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-lg"
         >
-          Let's Get Started
+          <span>{t.welcome.startButton}</span>
+          <ArrowRight className="h-5 w-5" />
         </button>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-          This will take about 5-10 minutes
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-4 flex items-center justify-center space-x-2">
+          <Clock className="h-4 w-4" />
+          <span>
+            {language === "tr"
+              ? "Bu işlem yaklaşık 5-10 dakika sürecek"
+              : "This will take about 5-10 minutes"}
+          </span>
         </p>
       </motion.div>
     </div>

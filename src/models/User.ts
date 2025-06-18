@@ -63,6 +63,7 @@ export interface IUser extends Document {
   onboarding?: {
     completed: boolean;
     currentStep: number;
+    language?: "en" | "tr"; // Add language preference
     skillAssessment: {
       completed: boolean;
       ceferLevel: string; // A1, A2, B1, B2, C1, C2
@@ -340,6 +341,11 @@ const userSchema = new Schema<IUser>(
           type: Number,
           default: 0,
         },
+        language: {
+          type: String,
+          enum: ["en", "tr"],
+          default: "en",
+        },
         skillAssessment: {
           completed: {
             type: Boolean,
@@ -416,7 +422,7 @@ const userSchema = new Schema<IUser>(
           },
           timeAvailable: {
             type: String,
-            enum: ["15min", "30min", "60min", "flexible"],
+            enum: ["15min", "30min", "60min", "1hour", "flexible"],
             default: "flexible",
           },
           preferredTime: {

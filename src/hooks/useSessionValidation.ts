@@ -17,7 +17,7 @@ export function useSessionValidation(
   const { data: session, status } = useSession();
   const router = useRouter();
   const { toast } = useToast();
-  const intervalRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<NodeJS.Timeout | undefined>(undefined);
   const lastValidationRef = useRef<number>(0);
 
   // State for tracking validation status
@@ -234,6 +234,73 @@ export function useSessionValidation(
       window.removeEventListener("storage", handleStorageChange);
     };
   }, [disabled, toast]);
+
+  // Add browser close detection
+  useEffect(() => {
+    if (disabled || !session?.user?.sessionToken) return;
+
+    const handleBeforeUnload = async (event: BeforeUnloadEvent) => {
+      // Attempt to clean up session on browser close
+      try {
+        // Use sendBeacon for reliable cleanup even when page is closing
+        const cleanupData = JSON.stringify({
+          sessionToken: session.user.sessionToken,
+          reason: "browser_close",
+        });
+
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon("/api/auth/logout", cleanupData);
+        } else {
+          // Fallback for browsers that don't support sendBeacon
+          fetch("/api/auth/logout", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: cleanupData,
+            keepalive: true, // Keep request alive even if page is closing
+          }).catch(() => {
+            // Ignore errors during page unload
+          });
+        }
+      } catch (error) {
+        // Ignore errors during page unload
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        // Page is being hidden (tab switch, minimize, etc.)
+        // Set a timeout to clean up session if page stays hidden too long
+        setTimeout(() => {
+          if (document.visibilityState === "hidden") {
+            // Page has been hidden for 30 seconds, likely closed
+            try {
+              if (navigator.sendBeacon && session?.user?.sessionToken) {
+                const cleanupData = JSON.stringify({
+                  sessionToken: session.user.sessionToken,
+                  reason: "browser_close",
+                });
+                navigator.sendBeacon("/api/auth/logout", cleanupData);
+              }
+            } catch (error) {
+              // Ignore errors
+            }
+          }
+        }, 30000); // 30 seconds
+      }
+    };
+
+    // Add event listeners
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Cleanup event listeners
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [disabled, session?.user?.sessionToken]);
 
   // Manual validation function
   const manualValidate = async (): Promise<boolean> => {

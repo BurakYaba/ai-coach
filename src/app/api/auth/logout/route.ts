@@ -5,19 +5,37 @@ import { terminateSession } from "@/lib/session-manager";
 
 export async function POST(request: NextRequest) {
   try {
+    // Try to get session from NextAuth
     const session = await getServerSession(authOptions);
 
-    if (!session?.user?.sessionToken) {
+    // For browser close scenarios, we might not have a full session
+    // so also check the request body for sessionToken
+    let sessionToken = session?.user?.sessionToken;
+    let reason = "logout";
+
+    try {
+      const body = await request.json();
+      if (body.sessionToken) {
+        sessionToken = body.sessionToken;
+      }
+      if (body.reason) {
+        reason = body.reason;
+      }
+    } catch (error) {
+      // Body parsing failed, continue with session-based approach
+    }
+
+    if (!sessionToken) {
       return NextResponse.json(
-        { error: "No active session found" },
+        { error: "No session token found" },
         { status: 400 }
       );
     }
 
     // Terminate the session
     const terminated = await terminateSession(
-      session.user.sessionToken,
-      "logout"
+      sessionToken,
+      reason as "logout" | "concurrent_login" | "expired" | "forced"
     );
 
     if (terminated) {

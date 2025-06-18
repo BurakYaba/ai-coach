@@ -117,6 +117,7 @@ userSessionSchema.index({ userId: 1, createdAt: -1 });
 userSessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // Auto-delete expired sessions
 
 // Pre-save middleware to ensure only one active session per user
+// Now that we have proper logout and browser close cleanup, this is safe to use
 userSessionSchema.pre("save", async function (next) {
   if (this.isNew && this.isActive) {
     // Terminate all other active sessions for this user
@@ -141,7 +142,7 @@ userSessionSchema.pre("save", async function (next) {
 // Method to check if session is still valid
 userSessionSchema.methods.isValidSession = function (): boolean {
   const now = new Date();
-  const lastActivityThreshold = new Date(now.getTime() - 24 * 60 * 60 * 1000); // 24 hours ago
+  const lastActivityThreshold = new Date(now.getTime() - 2 * 60 * 60 * 1000); // 2 hours ago (much shorter)
 
   return (
     this.isActive &&
@@ -195,7 +196,7 @@ userSessionSchema.statics.cleanupExpiredSessions =
           { expiresAt: { $lt: new Date() } },
           {
             lastActivity: {
-              $lt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+              $lt: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours (updated from 24 hours)
             },
             isActive: true,
           },

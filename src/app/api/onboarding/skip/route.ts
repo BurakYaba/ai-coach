@@ -11,6 +11,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const body = await request.json();
+    const { language } = body;
+
     await dbConnect();
     const user = await User.findById(session.user.id);
 
@@ -23,6 +26,7 @@ export async function POST(request: NextRequest) {
       completed: true,
       completedAt: new Date(),
       currentStep: 5, // Final step
+      language: language || "en",
       skillAssessment: {
         completed: false,
         ceferLevel: "B1", // Default intermediate level

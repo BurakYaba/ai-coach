@@ -11,6 +11,7 @@ import {
   checkConcurrentLogin,
   parseDeviceInfo,
   forceLogoutUser,
+  terminateSession,
 } from "@/lib/session-manager";
 
 import dbConnect from "./db";
@@ -53,8 +54,8 @@ export const authOptions: NextAuthOptions = {
           );
         }
 
-        // Check subscription status
-        if (!user.hasActiveSubscription()) {
+        // Check subscription status (only for regular users, not admins)
+        if (user.role === "user" && !user.hasActiveSubscription()) {
           throw new Error(
             "Your subscription has expired. Please contact your administrator or renew your subscription to continue."
           );
@@ -63,6 +64,7 @@ export const authOptions: NextAuthOptions = {
         // Check for concurrent login (skip if force login is requested)
         const forceLogin = credentials.forceLogin === "true";
 
+        // Single session per user - but with smart cleanup to prevent UX issues
         if (!forceLogin) {
           const concurrentCheck = await checkConcurrentLogin(
             user._id.toString()
@@ -70,29 +72,43 @@ export const authOptions: NextAuthOptions = {
 
           if (concurrentCheck.hasActiveSession) {
             const activeSession = concurrentCheck.activeSession;
-            const deviceInfo = activeSession.deviceInfo;
 
-            // Create a user-friendly device description
-            let deviceDescription = "another device";
+            // Check if the session is stale (no activity for 2+ hours)
+            // This handles cases where browser was closed without proper cleanup
+            const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+            const isStaleSession = activeSession.lastActivity < twoHoursAgo;
 
-            if (deviceInfo.browser && deviceInfo.browser !== "Unknown") {
-              if (deviceInfo.os && deviceInfo.os !== "Unknown") {
-                deviceDescription = `another device (${deviceInfo.browser} on ${deviceInfo.os})`;
-              } else {
-                deviceDescription = `another device (${deviceInfo.browser})`;
+            if (isStaleSession) {
+              // Automatically clean up stale session and allow login
+              await terminateSession(activeSession.sessionToken, "expired");
+            } else {
+              // Session is recent, show concurrent login error with better message
+              const deviceInfo = activeSession.deviceInfo;
+
+              // Create a user-friendly device description
+              let deviceDescription = "another device";
+
+              if (deviceInfo.browser && deviceInfo.browser !== "Unknown") {
+                if (deviceInfo.os && deviceInfo.os !== "Unknown") {
+                  deviceDescription = `${deviceInfo.browser} on ${deviceInfo.os}`;
+                } else {
+                  deviceDescription = `${deviceInfo.browser}`;
+                }
+              } else if (
+                deviceInfo.deviceType &&
+                deviceInfo.deviceType !== "unknown"
+              ) {
+                deviceDescription = `another ${deviceInfo.deviceType}`;
               }
-            } else if (
-              deviceInfo.deviceType &&
-              deviceInfo.deviceType !== "unknown"
-            ) {
-              deviceDescription = `another ${deviceInfo.deviceType}`;
-            }
 
-            throw new Error(
-              `Your account is already logged in from ${deviceDescription}. Please log out from the other device first, or use "Force Login" to continue. If this wasn't you, please contact support immediately.`
-            );
+              throw new Error(
+                `Your account is already logged in from ${deviceDescription}. If this is you, use "Force Login" to continue. If not, please contact support immediately.`
+              );
+            }
           }
-        } else {
+        }
+
+        if (forceLogin) {
           // Force login requested - terminate all existing sessions
           await forceLogoutUser(user._id.toString());
         }
@@ -111,7 +127,7 @@ export const authOptions: NextAuthOptions = {
 
         // Calculate session expiration
         const rememberMe = credentials.rememberMe === "true";
-        const sessionDuration = rememberMe ? 30 : 7; // days
+        const sessionDuration = rememberMe ? 3 : 1; // Much shorter: 3 days max, 1 day default
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + sessionDuration);
 
@@ -148,92 +164,64 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 7 * 24 * 60 * 60, // Default 7 days (will be overridden in jwt callback based on rememberMe)
+    maxAge: 8 * 60 * 60, // 8 hours default (will be overridden in jwt callback based on rememberMe)
   },
   pages: {
     signIn: "/login",
     error: "/login",
   },
   callbacks: {
-    async jwt({ token, user, trigger, session }) {
+    async jwt({
+      token,
+      user,
+      trigger,
+    }: {
+      token: JWT;
+      user?: any;
+      trigger?: string;
+    }) {
+      // Add user info to token on sign in
       if (user) {
         token.id = user.id;
         token.role = user.role;
         token.rememberMe = user.rememberMe;
-        token.sessionExpiry = user.sessionExpiry;
-
-        // Create session token for concurrent login tracking
-        const sessionDuration = user.rememberMe ? 30 : 7; // days
-        const expiresAt = new Date();
-        expiresAt.setDate(expiresAt.getDate() + sessionDuration);
-
-        // Enhanced device info - will be improved with client-side detection
-        const deviceInfo = {
-          userAgent: "NextAuth Session",
-          ip: "127.0.0.1",
-          deviceType: "unknown" as const,
-          browser: "Unknown",
-          os: "Unknown",
-          // Add timestamp to make sessions unique even with same browser
-          sessionId: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        };
-
-        try {
-          const sessionToken = await createUserSession(
-            user.id,
-            deviceInfo,
-            expiresAt
-          );
-          token.sessionToken = sessionToken;
-
-          // Store additional session metadata
-          token.sessionCreated = Date.now();
-          token.deviceFingerprint = `${deviceInfo.browser}-${deviceInfo.os}-${deviceInfo.sessionId}`;
-        } catch (error) {
-          console.error("Failed to create user session:", error);
-          // Don't fail login if session creation fails, but log it
-        }
-
-        // Set token expiration based on remember me preference
-        if (user.rememberMe) {
-          // Extend session to 30 days if "Remember Me" is checked
-          token.exp = Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60;
-        } else {
-          // Default 7 days if "Remember Me" is not checked
-          token.exp = Math.floor(Date.now() / 1000) + 7 * 24 * 60 * 60;
-        }
-
-        // Set subscription info in token
-        token.subscriptionStatus = user.subscription?.status;
-        token.subscriptionType = user.subscription?.type;
-        token.subscriptionExpiry = user.subscription?.expiresAt;
+        token.sessionToken = user.sessionToken;
         token.school = user.school;
         token.branch = user.branch;
         token.onboardingCompleted = user.onboardingCompleted;
+        token.sessionValid = true;
+        token.sessionCreated = Date.now();
+        token.deviceFingerprint = user.deviceFingerprint;
+
+        // Add subscription info
+        token.subscriptionStatus = user.subscription?.status || "inactive";
+        token.subscriptionType = user.subscription?.type || "individual";
+        token.subscriptionExpiry = user.subscription?.expiresAt;
+        token.subscriptionLastChecked = new Date().toISOString();
       }
 
-      // Set force refresh flag when triggered by session update
-      if (trigger === "update" && session?.forceRefresh) {
-        token.forceRefresh = true;
-      }
-
-      // Validate session token if it exists
-      if (token.sessionToken && typeof token.sessionToken === "string") {
+      // Handle forced refresh or update trigger - immediately refresh user data
+      if (trigger === "update") {
         try {
-          const sessionValidation = await validateSession(token.sessionToken);
-          if (!sessionValidation.isValid) {
-            // Session is invalid, force re-authentication
-            token.sessionValid = false;
+          await dbConnect();
+          const user = await User.findById(token.id);
+          if (user) {
+            // Update all user-related fields
+            token.onboardingCompleted = user.onboarding?.completed || false;
+            token.subscriptionStatus = user.subscription.status;
+            token.subscriptionType = user.subscription.type;
+            token.subscriptionExpiry = user.subscription.endDate?.toISOString();
+            token.subscriptionLastChecked = new Date().toISOString();
           }
         } catch (error) {
-          console.error("Session validation error:", error);
-          // Don't fail on session validation errors, but log them
+          console.error("Error refreshing user data in JWT callback:", error);
         }
+        return token;
       }
 
-      // Check subscription expiry more frequently
-      const lastSubscriptionCheck = token.subscriptionLastChecked as string;
+      // Only refresh subscription status every hour to avoid too many DB calls (for regular token refreshes)
       const now = new Date();
+      const lastSubscriptionCheck = token.subscriptionLastChecked as string;
 
       if (
         !lastSubscriptionCheck ||

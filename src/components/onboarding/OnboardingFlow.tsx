@@ -3,11 +3,22 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { Progress } from "@/components/ui/progress";
+import LanguageSelectionStep from "./LanguageSelectionStep";
 import WelcomeStep from "./WelcomeStep";
 import SkillAssessmentStep from "./SkillAssessmentStep";
 import PreferencesStep from "./PreferencesStep";
 import LearningPathStep from "./LearningPathStep";
 import CompletionStep from "./CompletionStep";
+import { useOnboardingTranslations } from "@/lib/onboarding-translations";
+
+interface OnboardingData {
+  language: "en" | "tr";
+  skillAssessment?: any;
+  learningPreferences?: any;
+  learningPath?: any;
+  onboarding?: any;
+}
 
 interface OnboardingFlowProps {
   onComplete?: () => void;
@@ -15,18 +26,23 @@ interface OnboardingFlowProps {
 
 export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [onboardingData, setOnboardingData] = useState<any>({});
+  const [data, setData] = useState<OnboardingData>({ language: "en" });
   const [loading, setLoading] = useState(true);
   const [completing, setCompleting] = useState(false);
   const router = useRouter();
   const { data: session, update: updateSession } = useSession();
 
   const steps = [
-    { id: 0, name: "Welcome", component: WelcomeStep },
-    { id: 1, name: "Assessment", component: SkillAssessmentStep },
-    { id: 2, name: "Preferences", component: PreferencesStep },
-    { id: 3, name: "Learning Path", component: LearningPathStep },
-    { id: 4, name: "Complete", component: CompletionStep },
+    {
+      id: "language",
+      name: "Language Selection",
+      component: LanguageSelectionStep,
+    },
+    { id: "welcome", name: "Welcome", component: WelcomeStep },
+    { id: "assessment", name: "Assessment", component: SkillAssessmentStep },
+    { id: "preferences", name: "Preferences", component: PreferencesStep },
+    { id: "learning-path", name: "Learning Path", component: LearningPathStep },
+    { id: "completion", name: "Completion", component: CompletionStep },
   ];
 
   useEffect(() => {
@@ -38,8 +54,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       const response = await fetch("/api/onboarding/progress");
       if (response.ok) {
         const data = await response.json();
-        console.log("Fetched onboarding progress:", data);
-        setOnboardingData(data.onboarding);
+        setData(data.onboarding);
         setCurrentStep(data.onboarding.currentStep || 0);
       } else {
         console.error("Failed to fetch onboarding progress:", response.status);
@@ -51,54 +66,90 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     }
   };
 
-  const updateProgress = async (stepData: any, nextStep: number) => {
+  const handleNext = async (stepData?: any) => {
+    setLoading(true);
+
     try {
-      // Clean the data to remove any circular references, React components, or DOM elements
-      const cleanStepData = cleanDataForAPI(stepData);
+      // Update data with new step data
+      const updatedData = { ...data, ...stepData };
+      setData(updatedData);
 
-      // Prepare the update payload
-      const updatePayload: any = {
-        currentStep: nextStep,
-      };
+      // Clean the step data to remove any circular references, React components, or DOM elements
+      const cleanStepData = stepData ? cleanDataForAPI(stepData) : undefined;
 
-      // Handle specific step data
-      if (stepData?.skillAssessment) {
-        updatePayload.skillAssessment = cleanStepData.skillAssessment;
-      }
-
-      if (stepData?.learningPreferences) {
-        updatePayload.preferences = cleanStepData.learningPreferences;
-      }
-
-      if (stepData?.selectedLearningPath) {
-        updatePayload.recommendedPath = {
-          primaryFocus:
-            cleanStepData.selectedLearningPath.selectedModules || [],
-          suggestedOrder:
-            cleanStepData.selectedLearningPath.selectedModules || [],
-          estimatedWeeks: 12,
-        };
-      }
-
-      const response = await fetch("/api/onboarding/progress", {
+      // Save progress to backend
+      await fetch("/api/onboarding/progress", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatePayload),
+        body: JSON.stringify({
+          currentStep: currentStep + 1,
+          language: updatedData.language,
+          ...(cleanStepData && { [steps[currentStep].id]: cleanStepData }),
+        }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-
-        // Fetch fresh data to ensure consistency
-        await fetchOnboardingProgress();
-
-        // Set the current step
-        setCurrentStep(nextStep);
-      }
+      // Move to next step
+      setCurrentStep(prev => prev + 1);
     } catch (error) {
-      console.error("Error updating onboarding progress:", error);
+      console.error("Error saving onboarding progress:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
+  };
+
+  const handleSkip = async () => {
+    setLoading(true);
+
+    try {
+      // Skip entire onboarding process
+      await fetch("/api/onboarding/skip", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          language: data.language,
+        }),
+      });
+
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Error skipping onboarding:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleComplete = async () => {
+    setLoading(true);
+
+    try {
+      // Mark onboarding as completed
+      await fetch("/api/onboarding/progress", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          completed: true,
+          completedAt: new Date().toISOString(),
+          language: data.language,
+        }),
+      });
+
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Error completing onboarding:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -114,67 +165,42 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       // Set completing state to prevent re-rendering
       setCompleting(true);
       // Onboarding complete - don't change the current step, just complete
-      console.log("Completing onboarding from step", currentStep);
       completeOnboarding(stepData);
     } else {
-      updateProgress(stepData || {}, nextStep);
+      handleNext(stepData);
     }
   };
 
   const completeOnboarding = async (finalData?: any) => {
     try {
-      // Clean the data to remove any circular references, React components, or DOM elements
-      const cleanFinalData = cleanDataForAPI(finalData);
-
-      const requestBody = {
-        completed: true,
-        completedAt: new Date().toISOString(),
-        currentStep: 4, // Set to completion step
-        ...cleanFinalData,
-      };
-
-      console.log("Completing onboarding with data:", requestBody);
-
-      const response = await fetch("/api/onboarding/progress", {
-        method: "PATCH",
+      // Use the dedicated completion endpoint
+      const response = await fetch("/api/onboarding/complete", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody),
+        body: JSON.stringify({
+          completedAt: new Date().toISOString(),
+          finalData: finalData || {},
+        }),
       });
 
       if (response.ok) {
         const responseData = await response.json();
-        console.log("Onboarding completion response:", responseData);
 
-        // Force refresh the session token by triggering JWT refresh
-        try {
-          await updateSession({
-            forceRefresh: true, // This forces the JWT callback to refresh from database
-          });
-          console.log("Session update triggered with force refresh");
-
-          // Wait a moment for the session to update
-          await new Promise(resolve => setTimeout(resolve, 500));
-        } catch (sessionError) {
-          console.error("Session update failed:", sessionError);
+        // Force JWT token refresh if requested
+        if (responseData.forceRefresh) {
+          try {
+            await updateSession();
+          } catch (error) {
+            console.error("Error refreshing JWT token:", error);
+          }
         }
 
-        // Call the onComplete callback if provided
-        if (onComplete) {
-          console.log("Calling onComplete callback");
-          onComplete();
-        }
-
-        // Check if we should redirect to dashboard
-        if (finalData?.redirectToDashboard) {
-          console.log("Redirecting to dashboard");
-          window.location.replace("/dashboard");
-        } else {
-          // Default redirect behavior
-          console.log("Navigating to dashboard");
-          router.push("/dashboard");
-        }
+        // Use the same hard redirect approach as the English version
+        window.location.href =
+          "/dashboard?refresh_token=true&onboarding_completed=true";
+        return; // Exit early since we're doing a hard redirect
       } else {
         const errorData = await response.text();
         console.error("Failed to complete onboarding:", {
@@ -191,78 +217,86 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
   };
 
   // Function to clean data and remove circular references, React components, etc.
-  const cleanDataForAPI = (data: any): any => {
+  const cleanDataForAPI = (data: any, visited = new WeakSet()): any => {
     if (data === null || data === undefined) {
       return data;
     }
 
+    // Handle primitive types
+    if (typeof data !== "object") {
+      return data;
+    }
+
+    // Check for circular references
+    if (visited.has(data)) {
+      return null; // Skip circular references
+    }
+
     if (Array.isArray(data)) {
-      return data.map(item => cleanDataForAPI(item));
+      visited.add(data);
+      const result = data.map(item => cleanDataForAPI(item, visited));
+      visited.delete(data);
+      return result;
     }
 
-    if (typeof data === "object") {
-      // Check if it's a React element or has circular references
-      if (
-        data.$$typeof ||
-        data._reactInternalFiber ||
-        data.__reactFiber ||
-        data.stateNode
-      ) {
-        return null; // Remove React elements
-      }
+    // Check if it's a React element or has circular references
+    if (
+      data.$$typeof ||
+      data._reactInternalFiber ||
+      data.__reactFiber ||
+      data.stateNode
+    ) {
+      return null; // Remove React elements
+    }
 
-      const cleaned: any = {};
-      for (const key in data) {
-        if (Object.prototype.hasOwnProperty.call(data, key)) {
-          const value = data[key];
+    visited.add(data);
+    const cleaned: any = {};
 
-          // Skip functions and React-specific properties
-          if (typeof value === "function") {
-            continue;
-          }
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        const value = data[key];
 
-          // Skip properties that might cause circular references
-          if (
-            key.startsWith("_react") ||
-            key.startsWith("__react") ||
-            key === "stateNode"
-          ) {
-            continue;
-          }
-
-          // Skip React elements
-          if (
-            value &&
-            typeof value === "object" &&
-            (value.$$typeof || value._reactInternalFiber || value.__reactFiber)
-          ) {
-            continue;
-          }
-
-          cleaned[key] = cleanDataForAPI(value);
+        // Skip functions and React-specific properties
+        if (typeof value === "function") {
+          continue;
         }
+
+        // Skip properties that might cause circular references
+        if (
+          key.startsWith("_react") ||
+          key.startsWith("__react") ||
+          key === "stateNode"
+        ) {
+          continue;
+        }
+
+        // Skip React elements
+        if (
+          value &&
+          typeof value === "object" &&
+          (value.$$typeof || value._reactInternalFiber || value.__reactFiber)
+        ) {
+          continue;
+        }
+
+        cleaned[key] = cleanDataForAPI(value, visited);
       }
-      return cleaned;
     }
 
-    return data;
+    visited.delete(data);
+    return cleaned;
   };
 
-  const handleSkipStep = () => {
-    handleStepComplete();
-  };
-
-  const handleGoBack = () => {
-    if (currentStep > 0) {
-      const prevStep = currentStep - 1;
-      updateProgress({}, prevStep);
-    }
-  };
+  const CurrentStepComponent = steps[currentStep]?.component;
+  const progressPercentage = ((currentStep + 1) / steps.length) * 100;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -284,42 +318,55 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
     );
   }
 
-  const CurrentStepComponent = steps[currentStep]?.component;
-
-  if (!CurrentStepComponent) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-8">
         {/* Progress Bar */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              Getting Started
-            </h1>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Step {currentStep + 1} of {steps.length}
-            </span>
+        {currentStep > 0 && (
+          <div className="mb-8">
+            <div className="max-w-2xl mx-auto">
+              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+                <span>
+                  Step {currentStep} of {steps.length - 1}
+                </span>
+                <span>{Math.round(progressPercentage)}% Complete</span>
+              </div>
+              <Progress value={progressPercentage} className="h-2" />
+            </div>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-            <div
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 h-2 rounded-full transition-all duration-300 ease-in-out"
-              style={{
-                width: `${((currentStep + 1) / steps.length) * 100}%`,
-              }}
-            ></div>
-          </div>
+        )}
+
+        {/* Current Step Content */}
+        <div className="max-w-6xl mx-auto">
+          {CurrentStepComponent && (
+            <CurrentStepComponent
+              onNext={
+                currentStep === steps.length - 1
+                  ? handleStepComplete
+                  : handleNext
+              }
+              onBack={currentStep > 1 ? handleBack : undefined}
+              onSkip={currentStep > 1 ? handleSkip : undefined}
+              data={data}
+              language={data.language}
+              {...(currentStep === steps.length - 1 && {
+                onComplete: handleComplete,
+              })}
+            />
+          )}
         </div>
 
-        {/* Step Content */}
-        <CurrentStepComponent
-          onNext={handleStepComplete}
-          onSkip={handleSkipStep}
-          onBack={currentStep > 0 ? handleGoBack : undefined}
-          data={onboardingData}
-        />
+        {/* Skip Button (only show after language selection) */}
+        {currentStep > 0 && currentStep < steps.length - 1 && (
+          <div className="fixed bottom-4 right-4">
+            <button
+              onClick={handleSkip}
+              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+            >
+              Skip Setup
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

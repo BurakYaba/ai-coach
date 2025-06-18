@@ -13,27 +13,30 @@ import {
   Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useOnboardingTranslations } from "@/lib/onboarding-translations";
 
 interface CompletionStepProps {
   onNext: (data?: any) => void;
   onSkip?: () => void;
   onBack?: () => void;
   data?: any;
+  language: "en" | "tr";
 }
 
-export default function CompletionStep({ onNext, data }: CompletionStepProps) {
+export default function CompletionStep({
+  onNext,
+  data,
+  language,
+}: CompletionStepProps) {
+  const t = useOnboardingTranslations(language);
   const router = useRouter();
   const [isCompleting, setIsCompleting] = useState(false);
 
   const handleStartLearning = async () => {
-    if (isCompleting) return; // Prevent double-clicks
-
-    console.log("Start Learning Now clicked");
     setIsCompleting(true);
 
     try {
       // Let the onboarding flow handle the completion and redirect
-      console.log("Calling onNext to complete onboarding");
       onNext({
         onboardingCompleted: true,
         finalStep: true,
@@ -159,41 +162,44 @@ export default function CompletionStep({ onNext, data }: CompletionStepProps) {
   const achievements = [
     {
       icon: <CheckCircle className="h-8 w-8 text-green-600" />,
-      title: "Assessment Completed",
-      description: `Your English level: ${skillAssessment.level}`,
+      title: t.completion.achievements.assessment,
+      description: `${language === "tr" ? "İngilizce seviyeniz" : "Your English level"}: ${skillAssessment.level}`,
     },
     {
       icon: <Target className="h-8 w-8 text-blue-600" />,
-      title: "Goals Set",
+      title: t.completion.achievements.goals,
       description: data?.learningPreferences?.learningGoals?.length
-        ? `${data.learningPreferences.learningGoals.length} learning goals defined`
-        : "Learning preferences configured",
+        ? `${data.learningPreferences.learningGoals.length} ${language === "tr" ? "öğrenme hedefi tanımlandı" : "learning goals defined"}`
+        : language === "tr"
+          ? "Öğrenme tercihleri yapılandırıldı"
+          : "Learning preferences configured",
     },
     {
       icon: <BookOpen className="h-8 w-8 text-purple-600" />,
-      title: "Learning Path Created",
+      title: t.completion.achievements.path,
       description: data?.selectedLearningPath?.selectedModules?.length
-        ? `${data.selectedLearningPath.selectedModules.length} modules selected`
-        : "Personalized learning path ready",
+        ? `${data.selectedLearningPath.selectedModules.length} ${language === "tr" ? "modül seçildi" : "modules selected"}`
+        : language === "tr"
+          ? "Kişiselleştirilmiş öğrenme yolu hazır"
+          : "Personalized learning path ready",
     },
   ];
 
   const nextSteps = [
     {
       icon: <Calendar className="h-6 w-6 text-blue-600" />,
-      title: "Start Your Daily Practice",
-      description:
-        "Begin with your first lesson and establish a learning routine",
+      title: t.completion.nextSteps.items[0].title,
+      description: t.completion.nextSteps.items[0].description,
     },
     {
       icon: <Target className="h-6 w-6 text-green-600" />,
-      title: "Track Your Progress",
-      description: "Monitor your improvement and earn achievements",
+      title: t.completion.nextSteps.items[1].title,
+      description: t.completion.nextSteps.items[1].description,
     },
     {
       icon: <Sparkles className="h-6 w-6 text-purple-600" />,
-      title: "Unlock New Features",
-      description: "Discover advanced tools as you progress",
+      title: t.completion.nextSteps.items[2].title,
+      description: t.completion.nextSteps.items[2].description,
     },
   ];
 
@@ -215,11 +221,10 @@ export default function CompletionStep({ onNext, data }: CompletionStepProps) {
         </motion.div>
 
         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-          Congratulations! 🎉
+          {t.completion.title}
         </h1>
         <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-          You've successfully completed the onboarding process. Your
-          personalized learning journey is ready to begin!
+          {t.completion.subtitle}
         </p>
       </motion.div>
 
@@ -231,7 +236,7 @@ export default function CompletionStep({ onNext, data }: CompletionStepProps) {
         className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg mb-8"
       >
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-          What You've Accomplished
+          {language === "tr" ? "Başardıklarınız" : "What You've Accomplished"}
         </h2>
         <div className="grid md:grid-cols-3 gap-6">
           {achievements.map((achievement, index) => (
@@ -302,7 +307,7 @@ export default function CompletionStep({ onNext, data }: CompletionStepProps) {
         className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg mb-8"
       >
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">
-          What's Next?
+          {t.completion.nextSteps.title}
         </h2>
         <div className="grid md:grid-cols-3 gap-6">
           {nextSteps.map((step, index) => (
@@ -368,17 +373,21 @@ export default function CompletionStep({ onNext, data }: CompletionStepProps) {
           {isCompleting ? (
             <>
               <Loader2 className="h-5 w-5 animate-spin" />
-              <span>Completing...</span>
+              <span>
+                {language === "tr" ? "Tamamlanıyor..." : "Completing..."}
+              </span>
             </>
           ) : (
             <>
-              <span>Start Learning Now</span>
+              <span>{t.completion.buttons.dashboard}</span>
               <ArrowRight className="h-5 w-5" />
             </>
           )}
         </button>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
-          Ready to begin your English learning adventure?
+          {language === "tr"
+            ? "İngilizce öğrenme maceranıza başlamaya hazır mısınız?"
+            : "Ready to begin your English learning adventure?"}
         </p>
       </motion.div>
     </div>

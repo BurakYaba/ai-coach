@@ -91,7 +91,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
+    let body;
+    try {
+      body = await request.json();
+    } catch (jsonError) {
+      console.error("JSON parsing error:", jsonError);
+      return NextResponse.json(
+        { error: "Invalid JSON in request body" },
+        { status: 400 }
+      );
+    }
+
     const {
       learningGoals,
       timeAvailable,
@@ -504,6 +514,7 @@ function generateLearningPath(preferences: any, skillAssessment: any) {
     "15min": 1.4,
     "30min": 1.0,
     "60min": 0.7,
+    "1hour": 0.7,
     flexible: 0.9,
   };
 
@@ -562,6 +573,7 @@ function calculateTimeRecommendations(
     "15min": { daily: 15, weekly: 105 },
     "30min": { daily: 30, weekly: 210 },
     "60min": { daily: 60, weekly: 420 },
+    "1hour": { daily: 60, weekly: 420 },
     flexible: { daily: 45, weekly: 315 },
   };
 
