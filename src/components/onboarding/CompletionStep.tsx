@@ -33,10 +33,14 @@ export default function CompletionStep({
   const [isCompleting, setIsCompleting] = useState(false);
 
   const handleStartLearning = async () => {
+    if (isCompleting) return; // Prevent double-clicks
+
+    console.log("Start Learning Now clicked");
     setIsCompleting(true);
 
     try {
       // Let the onboarding flow handle the completion and redirect
+      console.log("Calling onNext to complete onboarding");
       onNext({
         onboardingCompleted: true,
         finalStep: true,

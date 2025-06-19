@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log("Onboarding completion request:", body);
 
     await dbConnect();
     const user = await User.findById(session.user.id);
@@ -70,10 +71,15 @@ export async function POST(request: NextRequest) {
 
     // Create gamification profile for the user
     try {
+      console.log("Creating gamification profile for user:", session.user.id);
       await GamificationService.getUserProfile(session.user.id);
+      console.log("Gamification profile created successfully");
     } catch (error) {
+      console.error("Error creating gamification profile:", error);
       // Don't fail the onboarding completion if gamification profile creation fails
     }
+
+    console.log(`Onboarding completed for user ${session.user.id}`);
 
     // Signal that the JWT token should be refreshed
     // This will be handled by the frontend after the redirect

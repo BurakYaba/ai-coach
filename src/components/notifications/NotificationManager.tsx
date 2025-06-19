@@ -31,6 +31,7 @@ export default function NotificationManager() {
         (window.location.pathname === "/onboarding" ||
           window.location.pathname.startsWith("/onboarding/"))
       ) {
+        console.log("Skipping notifications setup - user on onboarding page");
         setOnboardingCompleted(false);
         return;
       }

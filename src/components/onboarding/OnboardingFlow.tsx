@@ -54,6 +54,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       const response = await fetch("/api/onboarding/progress");
       if (response.ok) {
         const data = await response.json();
+        console.log("Fetched onboarding progress:", data);
         setData(data.onboarding);
         setCurrentStep(data.onboarding.currentStep || 0);
       } else {
@@ -165,6 +166,7 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
       // Set completing state to prevent re-rendering
       setCompleting(true);
       // Onboarding complete - don't change the current step, just complete
+      console.log("Completing onboarding from step", currentStep);
       completeOnboarding(stepData);
     } else {
       handleNext(stepData);
@@ -173,6 +175,8 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
   const completeOnboarding = async (finalData?: any) => {
     try {
+      console.log("Starting onboarding completion process");
+
       // Use the dedicated completion endpoint
       const response = await fetch("/api/onboarding/complete", {
         method: "POST",
@@ -187,17 +191,21 @@ export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
 
       if (response.ok) {
         const responseData = await response.json();
+        console.log("Onboarding completion response:", responseData);
 
         // Force JWT token refresh if requested
         if (responseData.forceRefresh) {
+          console.log("Forcing JWT token refresh after onboarding completion");
           try {
             await updateSession();
+            console.log("JWT token refresh completed");
           } catch (error) {
             console.error("Error refreshing JWT token:", error);
           }
         }
 
         // Use the same hard redirect approach as the English version
+        console.log("Redirecting to dashboard with refresh token");
         window.location.href =
           "/dashboard?refresh_token=true&onboarding_completed=true";
         return; // Exit early since we're doing a hard redirect

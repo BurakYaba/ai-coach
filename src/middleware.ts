@@ -146,6 +146,9 @@ export async function middleware(request: NextRequest) {
 
       // Allow access if refresh_token is present (for post-onboarding redirect)
       if (hasRefreshToken || hasOnboardingCompleted) {
+        console.log(
+          "Middleware: Allowing access due to refresh token parameters"
+        );
         return NextResponse.next();
       }
 
@@ -162,6 +165,9 @@ export async function middleware(request: NextRequest) {
           (referer.includes("refresh_token=true") ||
             referer.includes("onboarding_completed=true"))
         ) {
+          console.log(
+            "Middleware: Allowing API access due to dashboard referrer with refresh tokens"
+          );
           return NextResponse.next();
         }
       }
@@ -170,16 +176,27 @@ export async function middleware(request: NextRequest) {
       const onboardingCompleted = token.onboardingCompleted as boolean;
       const userRole = (token.role as string) || "user";
 
+      console.log("Middleware: Checking onboarding status", {
+        pathname,
+        onboardingCompleted,
+        userRole,
+        userId: token.id,
+      });
+
       // Only redirect regular users to onboarding (not admins or school admins)
       if (
         !onboardingCompleted &&
         userRole === "user" &&
         pathname !== "/onboarding"
       ) {
+        console.log("Middleware: Redirecting to onboarding - not completed");
         return NextResponse.redirect(new URL("/onboarding", request.url));
       }
 
       if (onboardingCompleted && pathname === "/onboarding") {
+        console.log(
+          "Middleware: Redirecting to dashboard - onboarding already completed"
+        );
         return NextResponse.redirect(new URL("/dashboard", request.url));
       }
     }

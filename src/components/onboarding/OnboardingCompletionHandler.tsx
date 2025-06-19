@@ -23,6 +23,9 @@ export default function OnboardingCompletionHandler() {
       session &&
       !isRefreshing
     ) {
+      console.log(
+        "OnboardingCompletionHandler: Handling onboarding completion redirect"
+      );
       hasProcessed.current = true;
       setIsRefreshing(true);
 
@@ -32,12 +35,20 @@ export default function OnboardingCompletionHandler() {
           await new Promise(resolve => setTimeout(resolve, 1000));
 
           // Force JWT token refresh by updating the session
+          console.log("OnboardingCompletionHandler: Forcing JWT token refresh");
           await updateSession({ forceRefresh: true });
 
           // Extended delay to ensure JWT refresh completes
           await new Promise(resolve => setTimeout(resolve, 2000));
 
+          console.log(
+            "OnboardingCompletionHandler: JWT token refresh completed"
+          );
+
           // Clean up the URL by removing the refresh_token parameters
+          console.log(
+            "OnboardingCompletionHandler: Cleaning up URL parameters"
+          );
           const url = new URL(window.location.href);
           url.searchParams.delete("refresh_token");
           url.searchParams.delete("onboarding_completed");

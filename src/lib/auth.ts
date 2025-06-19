@@ -9,7 +9,6 @@ import {
   createUserSession,
   validateSession,
   checkConcurrentLogin,
-  parseDeviceInfo,
   forceLogoutUser,
   terminateSession,
 } from "@/lib/session-manager";
@@ -80,6 +79,7 @@ export const authOptions: NextAuthOptions = {
 
             if (isStaleSession) {
               // Automatically clean up stale session and allow login
+              console.log(`Cleaning up stale session for user ${user._id}`);
               await terminateSession(activeSession.sessionToken, "expired");
             } else {
               // Session is recent, show concurrent login error with better message
@@ -133,15 +133,19 @@ export const authOptions: NextAuthOptions = {
 
         // Parse device info from request (req should contain the raw request)
         const deviceInfo = {
-          userAgent: "Unknown",
-          ip: "127.0.0.1",
+          userAgent: req?.headers?.["user-agent"] || "Unknown",
+          ip: "127.0.0.1", // Default IP since NextAuth req doesn't expose IP directly
           deviceType: "unknown" as const,
           browser: "Unknown",
           os: "Unknown",
         };
 
-        // Note: In NextAuth, getting request info in authorize is limited
-        // We'll create the session in the JWT callback where we have better access
+        // Create user session in database for concurrent login protection
+        const sessionToken = await createUserSession(
+          user._id.toString(),
+          deviceInfo,
+          expiresAt
+        );
 
         return {
           id: user._id.toString(),
@@ -149,6 +153,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           role: user.role,
           rememberMe,
+          sessionToken, // Now properly set
           subscription: {
             status: user.subscription.status,
             type: user.subscription.type,
@@ -203,6 +208,10 @@ export const authOptions: NextAuthOptions = {
       // Handle forced refresh or update trigger - immediately refresh user data
       if (trigger === "update") {
         try {
+          console.log(
+            "JWT callback: Handling forced refresh for user",
+            token.id
+          );
           await dbConnect();
           const user = await User.findById(token.id);
           if (user) {
@@ -212,6 +221,10 @@ export const authOptions: NextAuthOptions = {
             token.subscriptionType = user.subscription.type;
             token.subscriptionExpiry = user.subscription.endDate?.toISOString();
             token.subscriptionLastChecked = new Date().toISOString();
+            console.log(
+              "JWT callback: Updated onboardingCompleted to",
+              token.onboardingCompleted
+            );
           }
         } catch (error) {
           console.error("Error refreshing user data in JWT callback:", error);

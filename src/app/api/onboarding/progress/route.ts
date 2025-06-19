@@ -266,11 +266,15 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (typeof completed === "boolean") {
+      console.log(
+        `Setting onboarding completed to ${completed} for user ${session.user.id}`
+      );
       user.onboarding.completed = completed;
       if (completed && !user.onboarding.completedAt) {
         user.onboarding.completedAt = completedAt
           ? new Date(completedAt)
           : new Date();
+        console.log(`Set completion date: ${user.onboarding.completedAt}`);
       }
     }
 
@@ -331,6 +335,9 @@ export async function PATCH(request: NextRequest) {
     });
 
     await user.save();
+    console.log(
+      `User onboarding saved - completed: ${user.onboarding.completed}`
+    );
 
     return NextResponse.json({
       success: true,
