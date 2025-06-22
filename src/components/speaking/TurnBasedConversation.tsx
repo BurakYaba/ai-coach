@@ -38,6 +38,12 @@ import { toast } from "@/hooks/use-toast";
 import { uploadSpeakingRecording } from "@/lib/client/audio-upload";
 import { cn } from "@/lib/utils";
 
+// Avatar system imports
+import { AvatarSelector } from "./avatar/AvatarSelector";
+import { AvatarViewer } from "./avatar/AvatarViewer";
+import { AVATAR_CHARACTERS, getAvatarByVoiceId } from "./avatar/constants";
+import type { AvatarCharacter, FacialAnimationData } from "./avatar/types";
+
 // Image mapping for scenarios
 const SCENARIO_IMAGE_MAP: Record<string, string> = {
   free: "free conversation-min.webp",
@@ -475,7 +481,7 @@ const VOICE_OPTIONS = [
   },
 ];
 
-// VoiceImageSelector Component
+// VoiceImageSelector Component - Enhanced with Avatar System
 function VoiceImageSelector({
   voices,
   selectedVoice,
@@ -485,77 +491,27 @@ function VoiceImageSelector({
   selectedVoice: string;
   onVoiceChange: (voiceId: string) => void;
 }) {
+  // Convert voice selection to avatar character
+  const selectedAvatarCharacter =
+    getAvatarByVoiceId(selectedVoice) || AVATAR_CHARACTERS[0];
+
+  const handleAvatarChange = (character: AvatarCharacter) => {
+    onVoiceChange(character.voiceId);
+  };
+
   return (
-    <div className="space-y-3">
-      <span className="text-sm font-medium block">AI Voice:</span>
+    <div className="space-y-4">
+      <span className="text-sm font-medium block">
+        Choose Your Conversation Partner:
+      </span>
 
-      {/* Centered grid layout */}
-      <div className="flex justify-center">
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 sm:gap-4 max-w-4xl w-full">
-          {voices.map(voice => {
-            const imageSrc = VOICE_IMAGE_MAP[voice.id];
-            const isSelected = selectedVoice === voice.id;
-
-            return (
-              <div
-                key={voice.id}
-                className={cn(
-                  "cursor-pointer transition-all duration-200 hover:scale-105",
-                  isSelected ? "ring-2 ring-primary ring-offset-2" : ""
-                )}
-                onClick={() => onVoiceChange(voice.id)}
-                onKeyDown={e => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onVoiceChange(voice.id);
-                  }
-                }}
-                tabIndex={0}
-                role="button"
-                aria-label={`Select ${voice.name} voice: ${voice.description}`}
-                aria-pressed={isSelected}
-              >
-                <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 mx-auto">
-                  {imageSrc && (
-                    <Image
-                      src={`/images/voices/${imageSrc}`}
-                      alt={`${voice.name} voice`}
-                      fill
-                      className="object-cover transition-transform duration-200 hover:scale-110"
-                      sizes="(max-width: 640px) 64px, 80px"
-                      priority={voice.id === "alloy"} // Prioritize the default option
-                    />
-                  )}
-
-                  {/* Selected indicator */}
-                  {isSelected && (
-                    <div className="absolute top-1 right-1 w-3 h-3 sm:w-4 sm:h-4 bg-primary rounded-full flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full" />
-                    </div>
-                  )}
-                </div>
-
-                {/* Voice name */}
-                <div className="text-center mt-1">
-                  <p className="text-xs font-medium text-foreground">
-                    {voice.name}
-                  </p>
-                  <p className="text-xs text-muted-foreground capitalize">
-                    {voice.gender}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Selected voice description */}
-      <div className="text-center">
-        <p className="text-xs text-muted-foreground">
-          {voices.find(v => v.id === selectedVoice)?.description}
-        </p>
-      </div>
+      {/* Use our new AvatarSelector */}
+      <AvatarSelector
+        characters={AVATAR_CHARACTERS}
+        selectedCharacter={selectedAvatarCharacter}
+        onCharacterChange={handleAvatarChange}
+        disabled={false}
+      />
     </div>
   );
 }
@@ -689,7 +645,7 @@ export function TurnBasedConversation() {
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState("free");
   const [selectedLevel, setSelectedLevel] = useState("b1");
-  const [selectedVoice, setSelectedVoice] = useState("alloy");
+  const [selectedVoice, setSelectedVoice] = useState("echo");
   const [conversation, setConversation] = useState<
     Array<{ role: "user" | "assistant"; text: string }>
   >([]);
@@ -704,6 +660,8 @@ export function TurnBasedConversation() {
   const [sessionRecordings, setSessionRecordings] = useState<
     Array<{ blob: Blob; url?: string; timestamp: Date }>
   >([]);
+  const [currentFacialAnimationData, setCurrentFacialAnimationData] =
+    useState<FacialAnimationData>({ visemes: [] });
 
   // REAL-TIME TRANSCRIPTION: New state for audio visualization and immediate transcription
   const [audioLevel, setAudioLevel] = useState(0);
@@ -736,6 +694,10 @@ export function TurnBasedConversation() {
     translation: {},
   });
 
+  // REPLAY FIX: Store facial animation data per message for replay functionality
+  const [aiFacialAnimationData, setAiFacialAnimationData] = useState<{
+    [key: number]: FacialAnimationData;
+  }>({});
   // Refs
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -751,6 +713,19 @@ export function TurnBasedConversation() {
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
   const audioSimulationRef = useRef<NodeJS.Timeout | null>(null); // Add simulation cleanup ref
   const isRecordingRef = useRef<boolean>(false); // Add ref to track recording state reliably
+
+  // Avatar state
+  const [selectedCharacter, setSelectedCharacter] = useState<AvatarCharacter>(
+    getAvatarByVoiceId("echo") || AVATAR_CHARACTERS[2] // Alex is index 2
+  );
+
+  // Update selected character when voice changes
+  useEffect(() => {
+    const newCharacter = getAvatarByVoiceId(selectedVoice);
+    if (newCharacter && newCharacter.id !== selectedCharacter.id) {
+      setSelectedCharacter(newCharacter);
+    }
+  }, [selectedVoice, selectedCharacter.id]);
 
   // Auto-scroll to bottom when conversation updates
   useEffect(() => {
@@ -995,13 +970,13 @@ export function TurnBasedConversation() {
       setStatus("idle");
 
       // Get the selected voice name for the initial message
-      const selectedVoiceName =
-        VOICE_OPTIONS.find(v => v.id === selectedVoice)?.name || "AI";
+      const selectedAvatarCharacter = getAvatarByVoiceId(selectedVoice);
+      const selectedCharacterName = selectedAvatarCharacter?.name || "AI";
 
       setConversation([
         {
           role: "assistant",
-          text: `${selectedVoiceName} is getting ready. Please wait...`,
+          text: `${selectedCharacterName} is getting ready. Please wait...`,
         },
       ]);
 
@@ -1313,20 +1288,10 @@ export function TurnBasedConversation() {
 
       // Start appropriate audio visualization AFTER isRecording is set
       if (audioAnalysisWorking) {
-        console.log("Starting real audio analysis");
-        console.log("Analyser state:", {
-          analyser: !!analyserRef.current,
-          fftSize: analyserRef.current?.fftSize,
-          sampleRate: audioContextRef.current?.sampleRate,
-          state: audioContextRef.current?.state,
-          isRecording: true, // This should now be true
-        });
-
-        // Start immediately since isRecording is now true
-        console.log("Starting analyzeAudioLevel with isRecording: true");
+        // Production: Starting real audio analysis
         analyzeAudioLevel();
       } else {
-        console.log("Starting simulated audio visualization");
+        // Production: Starting simulated audio visualization
         startAudioSimulation();
       }
     } catch (error) {
@@ -1456,15 +1421,15 @@ export function TurnBasedConversation() {
       );
 
       // Get the selected voice name for the thinking message
-      const selectedVoiceName =
-        VOICE_OPTIONS.find(v => v.id === selectedVoice)?.name || "AI";
+      const selectedAvatarCharacter = getAvatarByVoiceId(selectedVoice);
+      const selectedCharacterName = selectedAvatarCharacter?.name || "AI";
 
-      // REAL-TIME TRANSCRIPTION: Show AI thinking immediately with voice name
+      // REAL-TIME TRANSCRIPTION: Show AI thinking immediately with character name
       setConversation(prev => [
         ...prev,
         {
           role: "assistant",
-          text: `💭 ${selectedVoiceName} is thinking...`,
+          text: `💭 ${selectedCharacterName} is thinking...`,
         },
       ]);
 
@@ -1621,6 +1586,20 @@ export function TurnBasedConversation() {
           if (data.audioUrl) {
             const messageIndex = newConversation.length - 1; // Index of the AI message we just added
             storeAIAudio(data.audioUrl, messageIndex);
+
+            // REPLAY FIX: Store facial animation data for replay (moved here for correct indexing)
+            if (
+              data.facialAnimationData &&
+              data.facialAnimationData.visemes &&
+              data.facialAnimationData.visemes.length > 0 &&
+              data.role === "assistant"
+            ) {
+              setAiFacialAnimationData(prevFacialData => ({
+                ...prevFacialData,
+                [messageIndex]: data.facialAnimationData,
+              }));
+              // Production: Facial animation data stored for replay
+            }
           }
 
           return newConversation;
@@ -1635,14 +1614,39 @@ export function TurnBasedConversation() {
           const audioLoadTimeout = setTimeout(() => {
             console.warn("Audio loading timeout, continuing in text mode");
             setStatus("idle");
+            setCurrentFacialAnimationData({ visemes: [] }); // Clear viseme data if audio fails
           }, 6000); // Reduced from 8000 to 6000 for faster fallback
 
           audioElementRef.current.onloadeddata = () => {
             clearTimeout(audioLoadTimeout);
             if (audioElementRef.current) {
+              // PHASE 2: Set facial animation data right before audio starts
+              // FIXED: Only set facial animation data for AI responses (not user speech)
+              if (
+                data.facialAnimationData &&
+                data.facialAnimationData.visemes &&
+                data.facialAnimationData.visemes.length > 0 &&
+                data.role === "assistant"
+              ) {
+                setCurrentFacialAnimationData(data.facialAnimationData);
+                // Production: Syncing facial animations with AI audio playback
+              } else {
+                // Clear facial animation data if this is user speech or no animation data
+                setCurrentFacialAnimationData({ visemes: [] });
+                if (
+                  data.facialAnimationData &&
+                  data.facialAnimationData.visemes &&
+                  data.facialAnimationData.visemes.length > 0
+                ) {
+                  // Production: Ignoring facial animation data for user speech
+                }
+                // Production: Avatar speaking without facial animations
+              }
+
               audioElementRef.current.play().catch(e => {
                 console.warn("Audio autoplay failed:", e);
                 setStatus("idle");
+                setCurrentFacialAnimationData({ visemes: [] }); // Clear viseme data if audio fails
               });
               setStatus("speaking");
             }
@@ -1650,19 +1654,70 @@ export function TurnBasedConversation() {
 
           audioElementRef.current.onended = () => {
             clearTimeout(audioLoadTimeout);
-            // console.log("Audio playback completed");
+            // Production: Audio playback completed
             setStatus("idle");
+            setCurrentFacialAnimationData({ visemes: [] }); // Clear viseme data when audio ends
+            // Production: Avatar state now idle (audio ended)
           };
 
           audioElementRef.current.onerror = e => {
             clearTimeout(audioLoadTimeout);
             console.error("Audio playback error:", e);
             setStatus("idle");
+            setCurrentFacialAnimationData({ visemes: [] }); // Clear viseme data on error
+            // Production: Avatar state now idle (audio error)
           };
         } else {
-          // console.log("No audio URL received or audio element not ready");
-          // console.log("Continuing conversation in text-only mode");
+          // Production: No audio URL received or audio element not ready
+          // Production: Continuing conversation in text-only mode
           setStatus("idle");
+          setCurrentFacialAnimationData({ visemes: [] }); // No audio means no lip sync
+          // Production: Avatar state now idle (no audio)
+        }
+
+        // PHASE 2: Store viseme data for lip sync animation
+        // Note: This is now moved to the audio loading section for better sync
+        if (!data.audioUrl) {
+          // Only set here if there's no audio
+          // FIXED: Only process viseme data for AI responses
+          if (
+            data.facialAnimationData &&
+            data.facialAnimationData.visemes &&
+            data.facialAnimationData.visemes.length > 0 &&
+            data.role === "assistant"
+          ) {
+            // Production: AI facial animation data available but no audio - lip sync disabled
+          }
+          setCurrentFacialAnimationData({ visemes: [] });
+        }
+
+        // DUPLICATE SECTION - COMMENTED OUT TO FIX ANIMATION OVERRIDE
+        // // PHASE 2: Store facial animation data for enhanced lip sync
+        // if (
+        //   data.facialAnimationData &&
+        //   data.facialAnimationData.visemes.length > 0
+        // ) {
+        //   console.log(
+        //     `🎭 Setting facial animation data: ${data.facialAnimationData.visemes.length} visemes`,
+        //     data.facialAnimationData
+        //   );
+        //   setCurrentFacialAnimationData(data.facialAnimationData);
+        //   console.log("🎭 Avatar state: speaking (with facial animations)");
+        // } else {
+        //   setCurrentFacialAnimationData({ visemes: [] });
+        //   console.log(
+        //     "🎭 Avatar state: speaking (no facial animations - user speech or no data)"
+        //   );
+        // }
+
+        // PHASE 2: Store AI audio for replay - FACIAL ANIMATION STORAGE MOVED TO setConversation CALLBACK
+        if (data.audioUrl) {
+          // Calculate the correct message index - this will be the index of the AI message we're about to add
+          const messageIndex = conversation.length;
+          storeAIAudio(data.audioUrl, messageIndex);
+
+          // DUPLICATE REMOVED: Facial animation data storage moved inside setConversation callback
+          // for correct indexing with newConversation.length - 1
         }
       } catch (error: any) {
         if (error.name === "AbortError") {
@@ -1843,33 +1898,14 @@ export function TurnBasedConversation() {
     }));
 
     try {
-      const response = await fetch("/api/speaking/ai-audio/store", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          audioData,
-          speakingSessionId,
-          messageIndex,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to store AI audio");
-      }
-
-      const data = await response.json();
-
+      // SIMPLIFIED: Store the audio URL directly instead of uploading to Cloudinary
+      // Since audioData is already a URL from Azure TTS, just store it
       setAiAudioUrls(prev => ({
         ...prev,
-        [messageIndex]: data.audioUrl,
+        [messageIndex]: audioData,
       }));
 
-      // console.log(
-      //   `AI audio stored for message ${messageIndex}:`,
-      //   data.audioUrl
-      // );
+      // Production: AI audio stored for message replay functionality
     } catch (error) {
       console.error("Error storing AI audio:", error);
       toast({
@@ -1888,11 +1924,48 @@ export function TurnBasedConversation() {
   // Repeat AI audio response
   const repeatAIAudio = async (messageIndex: number) => {
     const audioUrl = aiAudioUrls[messageIndex];
+    const facialAnimationData = aiFacialAnimationData[messageIndex];
+
+    // Production: Repeating audio for message with facial animation data
 
     if (audioUrl && audioElementRef.current) {
       try {
+        // Stop current audio first
+        audioElementRef.current.pause();
+        audioElementRef.current.currentTime = 0;
+
+        // REPLAY FIX: Restore facial animation data for this specific message
+        if (
+          facialAnimationData &&
+          facialAnimationData.visemes &&
+          facialAnimationData.visemes.length > 0
+        ) {
+          setCurrentFacialAnimationData(facialAnimationData);
+          // Production: Restored visemes for replay
+        } else {
+          setCurrentFacialAnimationData({ visemes: [] });
+          // Production: No facial animation data found - lip sync disabled for replay
+        }
+
+        // Set new source and play
         audioElementRef.current.src = audioUrl;
-        await audioElementRef.current.play();
+
+        // Wait for audio to load then play
+        audioElementRef.current.onloadeddata = () => {
+          audioElementRef.current?.play().catch(error => {
+            console.error("Error playing repeat audio:", error);
+            toast({
+              title: "Playback Error",
+              description: "Could not play the audio. Please try again.",
+              variant: "destructive",
+            });
+          });
+        };
+
+        // Handle immediate play if already loaded
+        if (audioElementRef.current.readyState >= 2) {
+          await audioElementRef.current.play();
+        }
       } catch (error) {
         console.error("Error playing AI audio:", error);
         toast({
@@ -1901,6 +1974,13 @@ export function TurnBasedConversation() {
           variant: "destructive",
         });
       }
+    } else {
+      // Production: No audio URL found for message
+      toast({
+        title: "Audio Not Available",
+        description: "This audio is no longer available for playback.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -2042,308 +2122,321 @@ export function TurnBasedConversation() {
             </Button>
           </div>
 
-          {status === "error" && (
-            <div className="bg-destructive/10 border border-destructive rounded-lg p-3 sm:p-4 mb-4">
-              <h3 className="text-destructive font-medium mb-2 text-sm">
-                Error
-              </h3>
-              <p className="text-xs sm:text-sm text-destructive/90 mb-3">
-                There was a problem with the conversation. Please check the
-                console for more details.
-              </p>
-              <Button
-                onClick={() => {
-                  // Reset the conversation and start fresh
-                  setStatus("idle");
-                  // If no conversation yet, need to re-initialize with AI greeting
-                  if (conversation.length === 0 && speakingSessionId) {
-                    const initialPrompt = getInitialPrompt();
-                    generateAIResponse(initialPrompt, true, speakingSessionId);
-                  }
-                }}
-                variant="outline"
-                className="mr-2 text-sm"
-                size="sm"
-              >
-                Retry
-              </Button>
+          {/* Main Layout: Avatar on Left, Conversation on Right */}
+          <div className="flex flex-col lg:flex-row gap-6 mb-4">
+            {/* Avatar Section - Left Side */}
+            <div className="lg:w-1/3 flex justify-center">
+              <div className="w-full max-w-sm">
+                <AvatarViewer
+                  character={selectedCharacter}
+                  state={status === "speaking" ? "speaking" : "idle"}
+                  facialAnimationData={currentFacialAnimationData}
+                  audioRef={audioElementRef} // Pass audio reference for real-time analysis
+                />
+              </div>
             </div>
-          )}
 
-          <div
-            ref={conversationContainerRef}
-            className="border rounded-lg p-2 sm:p-4 space-y-3 sm:space-y-4 max-h-[350px] sm:max-h-[400px] overflow-y-auto"
-          >
-            {conversation.length === 0 ? (
-              <p className="text-center text-muted-foreground text-xs sm:text-sm py-6 sm:py-8">
-                Click "Start Conversation" to begin speaking practice
-              </p>
-            ) : (
-              conversation.map((message: any, i: number) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "flex items-start gap-2",
-                    message.role === "user" ? "justify-end" : "justify-start"
-                  )}
-                >
-                  {/* AI Voice Profile Image - only for assistant messages */}
-                  {message.role === "assistant" && (
-                    <div className="flex-shrink-0">
-                      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full overflow-hidden bg-gray-100 border">
-                        {VOICE_IMAGE_MAP[selectedVoice] && (
-                          <Image
-                            src={`/images/voices/${VOICE_IMAGE_MAP[selectedVoice]}`}
-                            alt={`${VOICE_OPTIONS.find(v => v.id === selectedVoice)?.name} voice`}
-                            width={40}
-                            height={40}
-                            className="object-cover w-full h-full"
-                          />
+            {/* Conversation Section - Right Side */}
+            <div className="lg:w-2/3 space-y-4">
+              {status === "error" && (
+                <div className="bg-destructive/10 border border-destructive rounded-lg p-3 sm:p-4 mb-4">
+                  <h3 className="text-destructive font-medium mb-2 text-sm">
+                    Error
+                  </h3>
+                  <p className="text-xs sm:text-sm text-destructive/90 mb-3">
+                    There was a problem with the conversation. Please check the
+                    console for more details.
+                  </p>
+                  <Button
+                    onClick={() => {
+                      // Reset the conversation and start fresh
+                      setStatus("idle");
+                      // If no conversation yet, need to re-initialize with AI greeting
+                      if (conversation.length === 0 && speakingSessionId) {
+                        const initialPrompt = getInitialPrompt();
+                        generateAIResponse(
+                          initialPrompt,
+                          true,
+                          speakingSessionId
+                        );
+                      }
+                    }}
+                    variant="outline"
+                    className="mr-2 text-sm"
+                    size="sm"
+                  >
+                    Retry
+                  </Button>
+                </div>
+              )}
+
+              <div
+                ref={conversationContainerRef}
+                className="border rounded-lg p-2 sm:p-4 space-y-3 sm:space-y-4 h-[350px] sm:h-[400px] overflow-y-auto"
+              >
+                {conversation.length === 0 ? (
+                  <p className="text-center text-muted-foreground text-xs sm:text-sm py-6 sm:py-8">
+                    Click "Start Conversation" to begin speaking practice
+                  </p>
+                ) : (
+                  conversation.map((message: any, i: number) => (
+                    <div
+                      key={i}
+                      className={cn(
+                        "flex items-start gap-2",
+                        message.role === "user"
+                          ? "justify-end"
+                          : "justify-start"
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          "flex flex-col min-w-0", // min-w-0 allows text to wrap properly
+                          message.role === "user" ? "items-end" : "items-start"
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "rounded-lg p-2 sm:p-3 max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg",
+                            message.role === "user"
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted"
+                          )}
+                        >
+                          <p className="text-xs sm:text-sm leading-relaxed break-words">
+                            {message.text}
+                          </p>
+
+                          {/* Translation display for AI messages */}
+                          {message.role === "assistant" && translations[i] && (
+                            <div className="mt-2 pt-2 border-t border-muted-foreground/20">
+                              <p className="text-xs text-muted-foreground italic break-words">
+                                🇹🇷 {translations[i]}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Repeat and Translate buttons for AI messages */}
+                        {message.role === "assistant" && (
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2 mt-2 w-full sm:w-auto">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => repeatAIAudio(i)}
+                              disabled={
+                                !aiAudioUrls[i] || loadingStates.audio[i]
+                              }
+                              className="h-6 sm:h-7 px-2 text-xs w-full sm:w-auto justify-start sm:justify-center"
+                            >
+                              {loadingStates.audio[i] ? (
+                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                              ) : (
+                                <Volume2 className="h-3 w-3 mr-1" />
+                              )}
+                              {aiAudioUrls[i] ? "Repeat" : "Loading..."}
+                            </Button>
+
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                translateAIResponse(message.text, i)
+                              }
+                              disabled={
+                                loadingStates.translation[i] ||
+                                !!translations[i]
+                              }
+                              className="h-6 sm:h-7 px-2 text-xs w-full sm:w-auto justify-start sm:justify-center"
+                            >
+                              {loadingStates.translation[i] ? (
+                                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                              ) : (
+                                <Languages className="h-3 w-3 mr-1" />
+                              )}
+                              {translations[i] ? "Translated" : "Translate"}
+                            </Button>
+                          </div>
                         )}
                       </div>
                     </div>
-                  )}
+                  ))
+                )}
 
-                  <div
-                    className={cn(
-                      "flex flex-col min-w-0", // min-w-0 allows text to wrap properly
-                      message.role === "user" ? "items-end" : "items-start"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "rounded-lg p-2 sm:p-3 max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg",
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
-                      )}
-                    >
-                      <p className="text-xs sm:text-sm leading-relaxed break-words">
-                        {message.text}
-                      </p>
-
-                      {/* Translation display for AI messages */}
-                      {message.role === "assistant" && translations[i] && (
-                        <div className="mt-2 pt-2 border-t border-muted-foreground/20">
-                          <p className="text-xs text-muted-foreground italic break-words">
-                            🇹🇷 {translations[i]}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Repeat and Translate buttons for AI messages */}
-                    {message.role === "assistant" && (
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2 mt-2 w-full sm:w-auto">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => repeatAIAudio(i)}
-                          disabled={!aiAudioUrls[i] || loadingStates.audio[i]}
-                          className="h-6 sm:h-7 px-2 text-xs w-full sm:w-auto justify-start sm:justify-center"
-                        >
-                          {loadingStates.audio[i] ? (
-                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                          ) : (
-                            <Volume2 className="h-3 w-3 mr-1" />
-                          )}
-                          {aiAudioUrls[i] ? "Repeat" : "Loading..."}
-                        </Button>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => translateAIResponse(message.text, i)}
-                          disabled={
-                            loadingStates.translation[i] || !!translations[i]
-                          }
-                          className="h-6 sm:h-7 px-2 text-xs w-full sm:w-auto justify-start sm:justify-center"
-                        >
-                          {loadingStates.translation[i] ? (
-                            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                          ) : (
-                            <Languages className="h-3 w-3 mr-1" />
-                          )}
-                          {translations[i] ? "Translated" : "Translate"}
-                        </Button>
+                {/* REAL-TIME TRANSCRIPTION: Audio visualization during recording */}
+                {isRecording && (
+                  <div className="flex items-start gap-2 justify-end">
+                    <div className="flex justify-center">
+                      {/* Audio level bars with fixed height container */}
+                      <div className="flex items-end space-x-1 py-3 sm:py-4 h-12 sm:h-16">
+                        {[...Array(6)].map(
+                          (
+                            _,
+                            i // Reduced from 8 to 6 bars for mobile
+                          ) => (
+                            <div
+                              key={i}
+                              className={cn(
+                                "w-1.5 sm:w-2 bg-red-500 rounded-full transition-all duration-100",
+                                audioLevel > (i + 1) * 0.167 // Adjusted for 6 bars
+                                  ? "opacity-100"
+                                  : "opacity-30"
+                              )}
+                              style={{
+                                height:
+                                  audioLevel > (i + 1) * 0.167
+                                    ? `${Math.max(8, 8 + i * 3)}px` // Smaller bars for mobile
+                                    : "8px",
+                              }}
+                            />
+                          )
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
+                )}
 
-            {/* REAL-TIME TRANSCRIPTION: Audio visualization during recording */}
-            {isRecording && (
-              <div className="flex items-start gap-2 justify-end">
-                <div className="flex justify-center">
-                  {/* Audio level bars with fixed height container */}
-                  <div className="flex items-end space-x-1 py-3 sm:py-4 h-12 sm:h-16">
-                    {[...Array(6)].map(
-                      (
-                        _,
-                        i // Reduced from 8 to 6 bars for mobile
-                      ) => (
-                        <div
-                          key={i}
-                          className={cn(
-                            "w-1.5 sm:w-2 bg-red-500 rounded-full transition-all duration-100",
-                            audioLevel > (i + 1) * 0.167 // Adjusted for 6 bars
-                              ? "opacity-100"
-                              : "opacity-30"
-                          )}
-                          style={{
-                            height:
-                              audioLevel > (i + 1) * 0.167
-                                ? `${Math.max(8, 8 + i * 3)}px` // Smaller bars for mobile
-                                : "8px",
-                          }}
-                        />
-                      )
-                    )}
+                {isProcessing && (
+                  <div className="flex justify-center p-3 sm:p-4">
+                    <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-muted-foreground" />
                   </div>
-                </div>
-              </div>
-            )}
+                )}
 
-            {isProcessing && (
-              <div className="flex justify-center p-3 sm:p-4">
-                <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin text-muted-foreground" />
+                {conversation.length === 0 &&
+                  !isProcessing &&
+                  status !== "error" && (
+                    <div className="text-center text-muted-foreground p-3 sm:p-4">
+                      <p className="text-xs sm:text-sm">
+                        Starting conversation. Please wait...
+                      </p>
+                    </div>
+                  )}
               </div>
-            )}
 
-            {conversation.length === 0 &&
-              !isProcessing &&
-              status !== "error" && (
-                <div className="text-center text-muted-foreground p-3 sm:p-4">
-                  <p className="text-xs sm:text-sm">
-                    Starting conversation. Please wait...
-                  </p>
-                </div>
-              )}
+              <div className="flex justify-center mt-3 sm:mt-4 px-2 sm:px-0">
+                {isRecording ? (
+                  <Button
+                    variant="destructive"
+                    onClick={stopRecording}
+                    disabled={status === "processing" || status === "speaking"}
+                    className="animate-pulse w-full sm:w-auto text-sm"
+                    size="sm"
+                  >
+                    <Square className="mr-2 h-4 w-4" />
+                    Stop Recording
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={startRecording}
+                    disabled={
+                      status === "processing" ||
+                      status === "speaking" ||
+                      isProcessing ||
+                      isTranscribing ||
+                      status === "error"
+                    }
+                    className="w-full sm:w-auto text-sm"
+                    size="sm"
+                  >
+                    <Mic className="mr-2 h-4 w-4" />
+                    Record Response
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
 
-          <div className="flex justify-center mt-3 sm:mt-4 px-2 sm:px-0">
-            {isRecording ? (
-              <Button
-                variant="destructive"
-                onClick={stopRecording}
-                disabled={status === "processing" || status === "speaking"}
-                className="animate-pulse w-full sm:w-auto text-sm"
-                size="sm"
-              >
-                <Square className="mr-2 h-4 w-4" />
-                Stop Recording
-              </Button>
-            ) : (
-              <Button
-                onClick={startRecording}
-                disabled={
-                  status === "processing" ||
-                  status === "speaking" ||
-                  isProcessing ||
-                  isTranscribing ||
-                  status === "error"
-                }
-                className="w-full sm:w-auto text-sm"
-                size="sm"
-              >
-                <Mic className="mr-2 h-4 w-4" />
-                Record Response
-              </Button>
-            )}
-          </div>
+          {/* Hidden audio element for playback */}
+          <audio ref={audioElementRef} className="hidden" aria-hidden="true">
+            <track kind="captions" src="" label="English captions" />
+          </audio>
+
+          {/* Alert Dialog for evaluation progress */}
+          <AlertDialog open={isEvaluating}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {!evaluationComplete
+                    ? "Evaluating Your Speaking Session"
+                    : "Evaluation Complete!"}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {!evaluationComplete
+                    ? "Your conversation is being analyzed by our AI. This process evaluates your pronunciation, grammar, fluency, and vocabulary usage. This typically takes 20-30 seconds depending on the length of your session."
+                    : "Your speaking session has been fully analyzed. You can now view your detailed feedback and improvement suggestions on the dashboard."}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+
+              <div className="py-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-medium">Analysis Progress</span>
+                  <span className="text-sm text-muted-foreground">
+                    {evaluationProgress}%
+                  </span>
+                </div>
+                <Progress value={evaluationProgress} className="h-2" />
+
+                <div className="mt-4 text-sm text-muted-foreground">
+                  {evaluationProgress < 30 ? (
+                    <>Preparing audio and transcripts for analysis...</>
+                  ) : evaluationProgress < 60 ? (
+                    <>Processing your speech patterns and language use...</>
+                  ) : evaluationProgress < 90 ? (
+                    <>Generating detailed feedback for your session...</>
+                  ) : !evaluationComplete ? (
+                    <>Almost done! Finalizing your evaluation report...</>
+                  ) : (
+                    <>
+                      Evaluation complete! Your detailed feedback is ready to
+                      view.
+                    </>
+                  )}
+                </div>
+
+                <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                  <span>Time elapsed: {elapsedTime}s</span>
+                  <span>
+                    {estimatedTime > 0 && !evaluationComplete
+                      ? `Estimated time: ~${estimatedTime}s`
+                      : ""}
+                  </span>
+                </div>
+              </div>
+
+              <AlertDialogFooter>
+                {!evaluationComplete ? (
+                  <AlertDialogCancel
+                    onClick={() => {
+                      // Show confirmation before leaving, since evaluation continues in background
+                      if (
+                        window.confirm(
+                          "The evaluation will continue in the background but might not be fully complete. Are you sure you want to go to the dashboard now?"
+                        )
+                      ) {
+                        setUserRedirected(true);
+                        setIsEvaluating(false);
+                        router.replace("/dashboard/speaking");
+                      }
+                    }}
+                  >
+                    Continue in Background
+                  </AlertDialogCancel>
+                ) : (
+                  <AlertDialogAction
+                    onClick={() => {
+                      setUserRedirected(true);
+                      setIsEvaluating(false);
+                      router.replace("/dashboard/speaking");
+                    }}
+                  >
+                    Go to Dashboard
+                  </AlertDialogAction>
+                )}
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </>
       )}
-
-      {/* Hidden audio element for playback */}
-      <audio ref={audioElementRef} className="hidden" aria-hidden="true">
-        <track kind="captions" src="" label="English captions" />
-      </audio>
-
-      {/* Alert Dialog for evaluation progress */}
-      <AlertDialog open={isEvaluating}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {!evaluationComplete
-                ? "Evaluating Your Speaking Session"
-                : "Evaluation Complete!"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {!evaluationComplete
-                ? "Your conversation is being analyzed by our AI. This process evaluates your pronunciation, grammar, fluency, and vocabulary usage. This typically takes 20-30 seconds depending on the length of your session."
-                : "Your speaking session has been fully analyzed. You can now view your detailed feedback and improvement suggestions on the dashboard."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <div className="py-4">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-sm font-medium">Analysis Progress</span>
-              <span className="text-sm text-muted-foreground">
-                {evaluationProgress}%
-              </span>
-            </div>
-            <Progress value={evaluationProgress} className="h-2" />
-
-            <div className="mt-4 text-sm text-muted-foreground">
-              {evaluationProgress < 30 ? (
-                <>Preparing audio and transcripts for analysis...</>
-              ) : evaluationProgress < 60 ? (
-                <>Processing your speech patterns and language use...</>
-              ) : evaluationProgress < 90 ? (
-                <>Generating detailed feedback for your session...</>
-              ) : !evaluationComplete ? (
-                <>Almost done! Finalizing your evaluation report...</>
-              ) : (
-                <>
-                  Evaluation complete! Your detailed feedback is ready to view.
-                </>
-              )}
-            </div>
-
-            <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-              <span>Time elapsed: {elapsedTime}s</span>
-              <span>
-                {estimatedTime > 0 && !evaluationComplete
-                  ? `Estimated time: ~${estimatedTime}s`
-                  : ""}
-              </span>
-            </div>
-          </div>
-
-          <AlertDialogFooter>
-            {!evaluationComplete ? (
-              <AlertDialogCancel
-                onClick={() => {
-                  // Show confirmation before leaving, since evaluation continues in background
-                  if (
-                    window.confirm(
-                      "The evaluation will continue in the background but might not be fully complete. Are you sure you want to go to the dashboard now?"
-                    )
-                  ) {
-                    setUserRedirected(true);
-                    setIsEvaluating(false);
-                    router.replace("/dashboard/speaking");
-                  }
-                }}
-              >
-                Continue in Background
-              </AlertDialogCancel>
-            ) : (
-              <AlertDialogAction
-                onClick={() => {
-                  setUserRedirected(true);
-                  setIsEvaluating(false);
-                  router.replace("/dashboard/speaking");
-                }}
-              >
-                Go to Dashboard
-              </AlertDialogAction>
-            )}
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

@@ -323,11 +323,11 @@ export function FreeConversation() {
 
       // Add connection state change logging
       peerConnection.oniceconnectionstatechange = () => {
-        console.log("ICE connection state:", peerConnection.iceConnectionState);
+        // Production: ICE connection state changed
       };
 
       peerConnection.onconnectionstatechange = () => {
-        console.log("Connection state:", peerConnection.connectionState);
+        // Production: Connection state changed
       };
 
       // Step 5: Add local audio track for microphone input
@@ -363,15 +363,20 @@ export function FreeConversation() {
       });
       dataChannelRef.current = dataChannel;
 
-      dataChannel.addEventListener("open", () => {
-        console.log("Data channel is open");
+      dataChannel.onopen = () => {
+        // Production: Data channel is open
         setStatus("connected");
-      });
+      };
 
-      dataChannel.addEventListener("message", e => {
+      dataChannel.onclose = () => {
+        // Production: Data channel is closed
+        setStatus("idle");
+      };
+
+      dataChannel.onmessage = async e => {
         try {
           const eventData = JSON.parse(e.data);
-          handleServerEvent(eventData);
+          await handleServerEvent(eventData);
         } catch (parseError) {
           console.error("Error parsing server event:", parseError, e.data);
           toast({
@@ -380,24 +385,9 @@ export function FreeConversation() {
             variant: "destructive",
           });
         }
-      });
+      };
 
-      dataChannel.addEventListener("close", () => {
-        console.log("Data channel is closed");
-        // If we were previously connected, show an error
-        if (status !== "idle" && status !== "error") {
-          toast({
-            title: "Connection closed",
-            description: "The connection with OpenAI was closed",
-            variant: "destructive",
-          });
-          setStatus("error");
-        } else {
-          setStatus("idle");
-        }
-      });
-
-      dataChannel.addEventListener("error", err => {
+      dataChannel.onerror = err => {
         console.error("Data channel error:", err);
         // Set status to error
         setStatus("error");
@@ -426,7 +416,7 @@ export function FreeConversation() {
             );
           }
         }
-      });
+      };
 
       // Step 7: Create and set local description (offer)
       const offer = await peerConnection.createOffer();
@@ -455,20 +445,18 @@ export function FreeConversation() {
       }
 
       // Step 9: Set remote description (answer)
-      const answerSdp = await sdpResponse.text();
+      const responseData = await sdpResponse.json();
       console.log("Received SDP answer from OpenAI");
 
-      const answer = {
-        type: "answer",
-        sdp: answerSdp,
-      };
-
-      await peerConnection.setRemoteDescription(
-        answer as RTCSessionDescriptionInit
+      // Production: Received SDP answer from OpenAI
+      await peerConnectionRef.current.setRemoteDescription(
+        new RTCSessionDescription({
+          type: "answer",
+          sdp: responseData.sdp,
+        })
       );
 
-      console.log("WebRTC connection established");
-      // Note: We now wait for session.created event before adding welcome message
+      // Production: WebRTC connection established
     } catch (error: any) {
       console.error("Error starting conversation:", error);
       setStatus("error");
@@ -488,6 +476,8 @@ export function FreeConversation() {
     // Close data channel and peer connection
     if (dataChannelRef.current) {
       dataChannelRef.current.close();
+    } else {
+      // Production: Data channel already closing or closed
     }
 
     if (peerConnectionRef.current) {
@@ -553,79 +543,39 @@ export function FreeConversation() {
     }
   };
 
-  const updateSession = () => {
+  const updateSession = async () => {
     if (
-      dataChannelRef.current &&
-      dataChannelRef.current.readyState === "open"
+      !dataChannelRef.current ||
+      dataChannelRef.current.readyState !== "open"
     ) {
-      console.log("Preparing to update session after 500ms delay...");
+      // Production: Data channel not ready for session update
+      return;
+    }
 
-      // Delay the session update slightly to ensure the session is fully ready
-      setTimeout(() => {
-        const event = {
-          type: "session.update",
-          session: {
-            instructions: `You are a language learning assistant on Fluenta specializing in conversation practice.
-            
-            Your goal is to help the user improve their English speaking skills through natural conversation.
-            
-            Follow these guidelines:
-            1. Speak in a natural, conversational way
-            2. Adjust to the user's language level
-            3. Ask follow-up questions to keep the conversation flowing
-            4. When the user makes a grammar or pronunciation error, gently correct them by asking:
-               "Did you mean [corrected version]?" or "I think you meant to say [corrected version]."
-            5. For serious grammar mistakes that affect understanding, politely explain the correct grammar rule
-            6. Encourage the user to elaborate on their thoughts
-            7. End your responses with questions to promote continued dialogue
-            
-            Keep your responses brief and avoid long monologues to allow the user more speaking time.`,
+    // Production: Preparing to update session after delay
 
-            // Configure voice activity detection (VAD) according to the documentation
-            turn_detection: {
-              type: "server_vad",
-              threshold: 0.5, // Medium sensitivity
-              prefix_padding_ms: 300, // Include 300ms before speech detected
-              silence_duration_ms: 800, // Wait 800ms of silence before stopping
-              create_response: true, // Automatically create a response when speech ends
-              interrupt_response: true, // Allow interrupting the response with speech
-            },
-
-            // Add proper transcription configuration based on the documentation
-            input_audio_transcription: {
-              model: "gpt-4o-transcribe", // Use GPT-4o for transcription
-              prompt: "Expect natural conversation in English",
-              language: "en", // Use English language code
-            },
-
-            // Add noise reduction settings
-            input_audio_noise_reduction: {
-              type: "near_field", // Use near-field noise reduction
-            },
+    try {
+      const updateEvent = {
+        type: "session.update",
+        session: {
+          turn_detection: {
+            type: "server_vad",
+            threshold: 0.5,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 800,
           },
-        };
+          input_audio_transcription: {
+            model: "whisper-1",
+          },
+        },
+      };
 
-        try {
-          // Log the event structure for debugging
-          console.log(
-            "Sending session update with structure:",
-            JSON.stringify(event, null, 2)
-          );
+      // Production: Sending session update
+      dataChannelRef.current.send(JSON.stringify(updateEvent));
 
-          if (dataChannelRef.current?.readyState === "open") {
-            dataChannelRef.current.send(JSON.stringify(event));
-            console.log("Session update sent successfully");
-          } else {
-            console.error(
-              "Data channel not open when trying to send session update"
-            );
-          }
-        } catch (error) {
-          console.error("Error sending session update:", error);
-        }
-      }, 500); // Add a 500ms delay before sending the update
-    } else {
-      console.error("Cannot update session: data channel not ready");
+      // Production: Session update sent successfully
+    } catch (error) {
+      console.error("Error updating session:", error);
     }
   };
 
@@ -635,87 +585,25 @@ export function FreeConversation() {
       dataChannelRef.current &&
       dataChannelRef.current.readyState === "open"
     ) {
-      // Create progressive brevity instructions based on response count
-      let brevityInstructions = "";
-
-      if (responseCount >= 10) {
-        // Very concise after 10 responses
-        brevityInstructions = `Keep your responses extremely concise (under 25 words). 
-        Focus only on questions and minimal feedback. Correct grammar mistakes briefly.`;
-      } else if (responseCount >= 5) {
-        // Somewhat concise after 5 responses
-        brevityInstructions = `Keep your responses brief (under 40 words). 
-        Minimize explanations but continue to correct grammar errors with "Did you mean...?" format.`;
-      }
-
-      // Skip if no brevity settings needed yet
-      if (!brevityInstructions) return;
-
-      console.log(
-        `Preparing to update session verbosity (response count: ${responseCount})...`
-      );
-
-      // Delay the session update slightly to ensure stability
-      setTimeout(() => {
-        const event = {
-          type: "session.update",
-          session: {
-            instructions: `You are a language learning assistant on Fluenta specializing in conversation practice.
-            
-            ${brevityInstructions}
-            
-            Follow these guidelines:
-            1. Speak in a natural, conversational way
-            2. Adjust to the user's language level
-            3. Ask follow-up questions to keep the conversation flowing
-            4. When the user makes a grammar error, briefly ask "Did you mean [correction]?"
-            5. End your responses with questions to promote continued dialogue`,
-
-            // Configure voice activity detection (VAD)
-            turn_detection: {
-              type: "server_vad",
-              threshold: 0.5,
-              prefix_padding_ms: 300,
-              silence_duration_ms: 800,
-              create_response: true,
-              interrupt_response: true,
-            },
-
-            // Add proper transcription configuration based on the documentation
-            input_audio_transcription: {
-              model: "gpt-4o-transcribe", // Use GPT-4o for transcription
-              prompt: "Expect natural conversation in English",
-              language: "en", // Use English language code
-            },
-
-            // Add noise reduction settings
-            input_audio_noise_reduction: {
-              type: "near_field", // Use near-field noise reduction
-            },
+      const event = {
+        type: "session.update",
+        session: {
+          turn_detection: {
+            type: "server_vad",
+            threshold: 0.5,
+            prefix_padding_ms: 300,
+            silence_duration_ms: 800,
           },
-        };
+        },
+      };
 
-        try {
-          // Log the event structure for debugging
-          console.log(
-            "Sending verbosity update with structure:",
-            JSON.stringify(event, null, 2)
-          );
-
-          if (dataChannelRef.current?.readyState === "open") {
-            dataChannelRef.current.send(JSON.stringify(event));
-            console.log("Session verbosity updated successfully");
-          } else {
-            console.error(
-              "Data channel not open when trying to update verbosity"
-            );
-          }
-        } catch (error) {
-          console.error("Error updating session verbosity:", error);
-        }
-      }, 500); // Add a 500ms delay
-    } else {
-      console.error("Cannot update session verbosity: data channel not ready");
+      try {
+        // Production: Sending session verbosity update
+        dataChannelRef.current.send(JSON.stringify(event));
+        // Production: Session verbosity updated successfully
+      } catch (error) {
+        console.error("Error sending session verbosity update:", error);
+      }
     }
   };
 
@@ -741,181 +629,56 @@ export function FreeConversation() {
     }
   };
 
-  const handleServerEvent = (event: OpenAIEvent) => {
-    if (event.type !== "response.audio_transcript.delta") {
-      console.log("Server event:", event.type);
-    }
-
-    if (event.response_id && event.response_id !== currentAiResponseId) {
-      setCurrentAiResponseId(event.response_id);
-    }
-
-    if (event.item_id && event.item_id !== currentItemId) {
-      setCurrentItemId(event.item_id);
-    }
+  const handleServerEvent = async (event: OpenAIEvent) => {
+    // Production: Server event received
 
     // Variables used across multiple case statements
     let transcriptionText = "";
 
-    if (event.item && event.item.role === "user") {
-      const extractedText = extractUserText(event.item as Record<string, any>);
-
-      if (
-        extractedText &&
-        extractedText.trim() !== "" &&
-        extractedText !== "[object Object]" &&
-        !extractedText.includes('"type":"input_audio","transcript":null')
-      ) {
-        currentUserTranscriptRef.current = extractedText;
-        setUserTranscript(extractedText);
-
-        // Check for template match
-        const templateResponse = checkForTemplateMatch(extractedText);
-        if (templateResponse && Math.random() < 0.7) {
-          // 70% chance to use template
-          // Add template response to conversation for common phrases
-          const aiResponse = templateResponse;
-
-          // Simulate AI response with template
-          setAiTranscript(aiResponse);
-          currentAiTranscriptRef.current = aiResponse;
-          setCompleteAiMessage(aiResponse);
-
-          // Add to conversation
-          setConversation(prev => {
-            // First add user message if not exists
-            let newConv = [...prev];
-            const userExists = prev.some(
-              msg => msg.role === "user" && msg.text === extractedText
-            );
-            if (!userExists) {
-              newConv = [...newConv, { role: "user", text: extractedText }];
-            }
-
-            // Then add AI response
-            return [...newConv, { role: "assistant", text: aiResponse }];
-          });
-
-          // Save both messages to database
-          if (speakingSessionId) {
-            saveTranscript("user", extractedText, speakingSessionId);
-            saveTranscript("assistant", aiResponse, speakingSessionId);
-          }
-
-          // Don't need to continue with API call for this input
-          return;
-        }
-
-        setConversation(prev => {
-          const exists = prev.some(
-            msg => msg.role === "user" && msg.text === extractedText
-          );
-          if (exists) return prev;
-          return [...prev, { role: "user", text: extractedText }];
-        });
-
-        if (speakingSessionId) {
-          saveTranscript("user", extractedText, speakingSessionId);
-        }
-      }
-    }
-
-    if (
-      event.transcript &&
-      typeof event.transcript === "string" &&
-      event.transcript.trim()
-    ) {
-      currentUserTranscriptRef.current = event.transcript;
-      setUserTranscript(event.transcript);
-
-      if (speakingSessionId) {
-        saveTranscript("user", event.transcript, speakingSessionId);
-
-        if (
-          event.type.includes("input_audio") ||
-          (event.item_id && !event.response_id)
-        ) {
-          setConversation(prev => {
-            const exists = prev.some(
-              msg => msg.role === "user" && msg.text === event.transcript
-            );
-            if (exists) return prev;
-            return [...prev, { role: "user", text: event.transcript }];
-          });
-        }
-      }
-    }
-
+    // Handle different event types
     switch (event.type) {
       case "session.created": {
-        // Session was created successfully, update session configuration
-        console.log("Session created successfully:", event);
-
-        // Log the session object structure to understand the expected format
-        if (event.session) {
-          console.log(
-            "Original session structure from OpenAI:",
-            JSON.stringify(event.session, null, 2)
-          );
-          console.log(
-            "Available keys in session object:",
-            Object.keys(event.session)
-          );
-        }
-
-        // Set status to connected
+        // Production: Session created successfully
         setStatus("connected");
 
-        // Only update the session if the data channel is still open
-        if (dataChannelRef.current?.readyState === "open") {
-          // Now it's safe to update the session - the update is delayed in the function
-          updateSession();
+        // Production: Starting conversation session creation
+        const conversationStartResponse = await fetch(
+          "/api/speaking/conversation/start",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              voice: selectedVoice,
+              mode: "real-time",
+            }),
+          }
+        );
 
-          // Store session ID for welcome message
-          const currentSessionId = speakingSessionId;
+        if (conversationStartResponse.ok) {
+          const sessionData = await conversationStartResponse.json();
+          setSpeakingSessionId(sessionData.speakingSessionId);
+          // Production: Session started successfully
+        }
 
-          // Add welcome message after a short delay to ensure session update is processed
-          setTimeout(() => {
-            // Make sure connection is still active
-            if (
-              dataChannelRef.current?.readyState === "open" &&
-              speakingSessionId === currentSessionId
-            ) {
-              const welcomeMessage =
-                "Hello! I'm your AI speaking practice partner. What would you like to talk about today?";
+        // Update session with proper configuration
+        updateSession();
 
-              // Add directly to conversation state
-              setConversation(prev => {
-                // Only add if not already added
-                if (
-                  prev.some(
-                    msg =>
-                      msg.role === "assistant" && msg.text === welcomeMessage
-                  )
-                ) {
-                  return prev;
-                }
-                return [{ role: "assistant", text: welcomeMessage }];
-              });
+        // Add welcome message after session is ready
+        const welcomeMessage =
+          "Hello! I'm here to help you practice English conversation. What would you like to talk about today?";
 
-              setAiTranscript(welcomeMessage);
-              currentAiTranscriptRef.current = welcomeMessage;
-              setCompleteAiMessage(welcomeMessage);
+        setConversation(prev => [
+          ...prev,
+          { role: "assistant", text: welcomeMessage },
+        ]);
 
-              // Save welcome message to database
-              if (speakingSessionId) {
-                saveTranscript("assistant", welcomeMessage, speakingSessionId);
-              }
+        // Production: Welcome message added to conversation
 
-              console.log("Welcome message added to conversation");
-            } else {
-              console.log(
-                "Connection changed or closed, skipping welcome message"
-              );
-            }
-          }, 1000); // Wait 1 second before adding welcome message
-        } else {
-          console.log("Data channel no longer open, skipping session update");
+        if (speakingSessionId) {
+          // Production: Data channel no longer open, skipping session update
+          saveTranscript("assistant", welcomeMessage, speakingSessionId);
         }
 
         break;

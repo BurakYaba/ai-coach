@@ -14,6 +14,7 @@ import {
   Clock,
   Target,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -2585,7 +2586,7 @@ export function GuidedPractice() {
 
       const data = await response.json();
       setSpeakingSessionId(data.speakingSessionId);
-      console.log("Guided practice session started:", data.speakingSessionId);
+      // Production: Guided practice session started
     } catch (error) {
       console.error("Error starting guided practice session:", error);
       toast({
@@ -2616,7 +2617,7 @@ export function GuidedPractice() {
       }
 
       const data = await response.json();
-      console.log("Guided practice session ended:", data.sessionId);
+      // Production: Guided practice session ended
 
       // Show completion message
       toast({
