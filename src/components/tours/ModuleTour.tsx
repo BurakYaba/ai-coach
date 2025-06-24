@@ -1,12 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowLeft, ArrowRight, HelpCircle, Lightbulb } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import {
+  useFloating,
+  offset,
+  flip,
+  shift,
+  autoUpdate,
+  useInteractions,
+  useClick,
+  useDismiss,
+  useRole,
+  FloatingPortal,
+  FloatingOverlay,
+  FloatingFocusManager,
+} from "@floating-ui/react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, ArrowRight, X, HelpCircle, Lightbulb } from "lucide-react";
 
 export interface TourStep {
   id: string;
@@ -37,19 +51,48 @@ export default function ModuleTour({
   onStepChange,
 }: ModuleTourProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
-  const [overlayPosition, setOverlayPosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const tourRef = useRef<HTMLDivElement>(null);
+  const [isXsMobile, setIsXsMobile] = useState(false);
+  const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
+  const [tourKey, setTourKey] = useState(0);
 
+  // Floating UI setup with responsive configuration
+  const { refs, floatingStyles, context } = useFloating({
+    placement:
+      steps[currentStep]?.position === "center"
+        ? "top"
+        : steps[currentStep]?.position || "top",
+    middleware: [
+      offset(isXsMobile ? 6 : isMobile ? 8 : 12), // Smaller offset for extra small mobile
+      flip({
+        fallbackAxisSideDirection: "start",
+        padding: isXsMobile ? 2 : isMobile ? 4 : 8, // Smaller padding for extra small mobile
+      }),
+      shift({
+        padding: isXsMobile ? 2 : isMobile ? 4 : 8, // Smaller padding for extra small mobile
+      }),
+    ],
+    whileElementsMounted: autoUpdate,
+    open: isVisible && targetElement !== null,
+  });
+
+  const { getFloatingProps } = useInteractions([
+    useClick(context),
+    useDismiss(context),
+    useRole(context),
+  ]);
+
+  // Enhanced mobile detection with breakpoints
   useEffect(() => {
     setIsMounted(true);
 
-    // Check if mobile on mount and set up resize listener
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
+      const width = window.innerWidth;
+      // Three-tier responsive system
+      setIsXsMobile(width < 640); // Extra small mobile
+      setIsMobile(width >= 640 && width < 768); // Regular mobile/tablet
     };
 
     checkMobile();
@@ -58,6 +101,7 @@ export default function ModuleTour({
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  // Handle tour visibility
   useEffect(() => {
     if (isOpen && steps.length > 0) {
       setIsVisible(true);
@@ -68,146 +112,143 @@ export default function ModuleTour({
     }
   }, [isOpen, currentStep, steps]);
 
+  // Handle step changes
   useEffect(() => {
     if (onStepChange) {
       onStepChange(currentStep);
     }
   }, [currentStep, onStepChange]);
 
-  const highlightElement = async (stepIndex: number) => {
-    const step = steps[stepIndex];
-    if (!step) return;
+  // Update Floating UI placement when step changes
+  useEffect(() => {
+    if (isVisible && targetElement) {
+      // Force Floating UI to recalculate position
+      const element = targetElement;
+      refs.setReference(element);
+    }
+  }, [currentStep, isVisible, targetElement, refs]);
 
-    // Find the target element with retry mechanism
-    const findElementWithRetry = async (
-      retries = 3
-    ): Promise<HTMLElement | null> => {
-      const element = document.querySelector(step.target) as HTMLElement;
+  // Force tour re-render when opened
+  useEffect(() => {
+    if (isOpen) {
+      setTourKey(prev => prev + 1);
+    }
+  }, [isOpen]);
+
+  const findElementWithRetry = useCallback(
+    async (selector: string, retries = 3): Promise<HTMLElement | null> => {
+      const element = document.querySelector(selector) as HTMLElement;
       if (element) return element;
 
       if (retries > 0) {
         await new Promise(resolve => setTimeout(resolve, 100));
-        return findElementWithRetry(retries - 1);
+        return findElementWithRetry(selector, retries - 1);
       }
 
-      console.warn(
-        `Tour target element not found after retries: ${step.target}`
-      );
+      console.warn(`Tour target element not found after retries: ${selector}`);
       return null;
-    };
+    },
+    []
+  );
 
-    const element = await findElementWithRetry();
-    if (!element) return;
+  const highlightElement = useCallback(
+    async (stepIndex: number) => {
+      const step = steps[stepIndex];
+      if (!step) return;
 
-    setTargetElement(element);
-
-    // Calculate position for the tour overlay
-    const rect = element.getBoundingClientRect();
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const scrollLeft =
-      window.pageXOffset || document.documentElement.scrollLeft;
-
-    // Use conservative dimensions and viewport size
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const margin = 20; // Reduced margin for more space
-    const safeMargin = 60; // Extra safety margin from edges
-
-    // Get actual tour dimensions more conservatively
-    let tourWidth = 400; // More conservative default width
-    let tourHeight = 300; // More conservative default height
-
-    if (tourRef.current) {
-      const tourRect = tourRef.current.getBoundingClientRect();
-      if (tourRect.width > 0 && tourRect.height > 0) {
-        tourWidth = Math.min(tourRect.width, 400); // Cap at 400px
-        tourHeight = Math.min(tourRect.height, 350); // Cap at 350px
+      const element = await findElementWithRetry(step.target);
+      if (!element) {
+        // If element not found, show tour in center of screen
+        console.warn(
+          `Target element not found: ${step.target}, showing tour in center`
+        );
+        setTargetElement(null);
+        return;
       }
-    }
 
-    console.log("Tour positioning debug:", {
-      targetElement: step.target,
-      viewportWidth,
-      viewportHeight,
-      tourWidth,
-      tourHeight,
-      elementRect: rect,
-      step: step.position,
-      scrollTop,
-      scrollLeft,
-    });
+      setTargetElement(element);
 
-    let x = 0;
-    let y = 0;
-    const adjustedPosition = "center"; // Force all positions to center for reliability
+      // Set the reference element for Floating UI
+      refs.setReference(element);
 
-    // Always use safe center positioning for maximum reliability
-    x = scrollLeft + viewportWidth / 2;
-    // Place in upper-center area to prevent bottom overflow
-    y = scrollTop + Math.min(viewportHeight * 0.3, 200); // 30% from top or 200px, whichever is smaller
+      // Add highlight class to target element with mobile-specific styling
+      element.classList.add("tour-highlight");
+      element.style.position = "relative";
+      element.style.setProperty("z-index", "2147483646", "important");
 
-    console.log("Final position (safe center):", {
-      x,
-      y,
-      adjustedPosition,
-      popupHeight: tourHeight,
-      viewportHeight,
-      safeY: y,
-      viewport: {
-        left: scrollLeft,
-        right: scrollLeft + viewportWidth,
-        top: scrollTop,
-        bottom: scrollTop + viewportHeight,
-      },
-    });
+      // Mobile-specific highlight styling
+      if (isXsMobile) {
+        element.style.boxShadow =
+          "0 0 0 2px rgba(59, 130, 246, 0.7), 0 0 0 4px rgba(59, 130, 246, 0.4)";
+        element.style.borderRadius = "4px";
+      } else if (isMobile) {
+        element.style.boxShadow =
+          "0 0 0 3px rgba(59, 130, 246, 0.6), 0 0 0 6px rgba(59, 130, 246, 0.3)";
+        element.style.borderRadius = "6px";
+      } else {
+        element.style.boxShadow =
+          "0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 8px rgba(59, 130, 246, 0.2)";
+        element.style.borderRadius = "8px";
+      }
 
-    setOverlayPosition({ x, y });
+      element.style.isolation = "isolate";
 
-    // Store the adjusted position for transform calculation
-    (element as any)._tourAdjustedPosition = adjustedPosition;
+      // Mobile-optimized scroll behavior
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: isMobile ? "nearest" : "center", // Better for mobile
+        inline: isMobile ? "nearest" : "center",
+      });
 
-    // Add highlight class to target element
-    element.classList.add("tour-highlight");
-    element.style.position = "relative";
-    element.style.setProperty("z-index", "2147483646", "important");
-    element.style.boxShadow =
-      "0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 8px rgba(59, 130, 246, 0.2)";
-    element.style.borderRadius = "8px";
-    element.style.isolation = "isolate"; // Create new stacking context
-
-    // Scroll element into view with better positioning
-    element.scrollIntoView({
-      behavior: "smooth",
-      block: "center",
-      inline: "center",
-    });
-
-    // Handle action if specified
-    if (step.action && step.action !== "none") {
-      setTimeout(() => {
-        switch (step.action) {
-          case "click":
-            element.click();
-            break;
-          case "hover":
-            element.dispatchEvent(
-              new MouseEvent("mouseenter", { bubbles: true })
-            );
-            break;
-          case "focus":
-            if (
-              element instanceof HTMLInputElement ||
-              element instanceof HTMLTextAreaElement
-            ) {
-              element.focus();
+      // Handle action if specified with mobile considerations
+      if (step.action && step.action !== "none") {
+        setTimeout(
+          () => {
+            switch (step.action) {
+              case "click":
+                // Add touch-friendly click handling for mobile
+                if (isMobile) {
+                  element.dispatchEvent(
+                    new TouchEvent("touchend", { bubbles: true })
+                  );
+                }
+                element.click();
+                break;
+              case "hover":
+                // Hover actions might not work well on mobile, skip or adapt
+                if (!isMobile) {
+                  element.dispatchEvent(
+                    new MouseEvent("mouseenter", { bubbles: true })
+                  );
+                }
+                break;
+              case "focus":
+                if (
+                  element instanceof HTMLInputElement ||
+                  element instanceof HTMLTextAreaElement
+                ) {
+                  element.focus();
+                  // On mobile, ensure keyboard doesn't cover the element
+                  if (isMobile) {
+                    setTimeout(() => {
+                      element.scrollIntoView({
+                        behavior: "smooth",
+                        block: "center",
+                      });
+                    }, 300);
+                  }
+                }
+                break;
             }
-            break;
-        }
-      }, 1000);
-    }
-  };
+          },
+          isMobile ? 500 : 1000
+        ); // Faster action on mobile
+      }
+    },
+    [steps, refs, findElementWithRetry, isMobile, isXsMobile]
+  );
 
-  const clearHighlight = () => {
+  const clearHighlight = useCallback(() => {
     if (targetElement) {
       targetElement.classList.remove("tour-highlight");
       targetElement.style.boxShadow = "";
@@ -215,40 +256,43 @@ export default function ModuleTour({
       targetElement.style.isolation = "";
       setTargetElement(null);
     }
-  };
+  }, [targetElement]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (currentStep < steps.length - 1) {
       clearHighlight();
       setCurrentStep(currentStep + 1);
     } else {
       completeTour();
     }
-  };
+  }, [currentStep, steps.length, clearHighlight]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     if (currentStep > 0) {
       clearHighlight();
       setCurrentStep(currentStep - 1);
     }
-  };
+  }, [currentStep, clearHighlight]);
 
-  const handleSkip = () => {
+  const handleSkip = useCallback(() => {
     clearHighlight();
     onClose();
-  };
+  }, [clearHighlight, onClose]);
 
-  const completeTour = () => {
+  const completeTour = useCallback(() => {
     clearHighlight();
     onComplete();
-  };
+  }, [clearHighlight, onComplete]);
 
-  const handleStepJump = (stepIndex: number) => {
-    if (stepIndex >= 0 && stepIndex < steps.length) {
-      clearHighlight();
-      setCurrentStep(stepIndex);
-    }
-  };
+  const handleStepJump = useCallback(
+    (stepIndex: number) => {
+      if (stepIndex >= 0 && stepIndex < steps.length) {
+        clearHighlight();
+        setCurrentStep(stepIndex);
+      }
+    },
+    [steps.length, clearHighlight]
+  );
 
   if (!isVisible || steps.length === 0 || !isMounted) {
     return null;
@@ -257,196 +301,338 @@ export default function ModuleTour({
   const currentStepData = steps[currentStep];
   const progress = ((currentStep + 1) / steps.length) * 100;
 
-  // Get the adjusted position from the target element
-  const adjustedPosition = targetElement
-    ? (targetElement as any)._tourAdjustedPosition || currentStepData.position
-    : currentStepData.position;
+  return (
+    <FloatingPortal>
+      <FloatingOverlay lockScroll className="z-[2147483647]">
+        <FloatingFocusManager context={context}>
+          <AnimatePresence>
+            {isVisible && (
+              <>
+                {/* Dark overlay */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-black/50"
+                />
 
-  const tourContent = (
-    <AnimatePresence>
-      {isVisible && (
-        <>
-          {/* Dark overlay */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50"
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              zIndex: 2147483647,
-            }}
-          />
-
-          {/* Tour content */}
-          <motion.div
-            ref={tourRef}
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-            className="fixed left-4 right-4 sm:left-auto sm:right-auto sm:max-w-md"
-            style={{
-              left: isMobile ? undefined : overlayPosition.x,
-              top: isMobile ? "20px" : overlayPosition.y,
-              maxHeight: isMobile ? "calc(100vh - 40px)" : "80vh",
-              zIndex: 2147483647,
-              transform: isMobile
-                ? "none"
-                : adjustedPosition === "center"
-                  ? "translate(-50%, 0)"
-                  : adjustedPosition === "top"
-                    ? "translate(-50%, -100%)"
-                    : adjustedPosition === "bottom"
-                      ? "translate(-50%, 0)"
-                      : adjustedPosition === "left"
-                        ? "translate(-100%, -50%)"
-                        : "translate(0, -50%)",
-            }}
-          >
-            <Card className="border shadow-2xl w-full sm:w-auto sm:max-w-md sm:mx-auto">
-              <CardContent
-                className="p-4 sm:p-6 overflow-y-auto"
-                style={{
-                  maxHeight: isMobile ? "calc(100vh - 80px)" : "80vh",
-                }}
-              >
-                {/* Header */}
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <HelpCircle className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                    <h3 className="font-semibold text-base sm:text-lg">
-                      {currentStepData.title}
-                    </h3>
-                    {currentStepData.optional && (
-                      <Badge variant="secondary" className="text-xs">
-                        Optional
-                      </Badge>
-                    )}
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleSkip}
-                    className="h-6 w-6 sm:h-8 sm:w-8 p-0"
+                {/* Tour content */}
+                <motion.div
+                  key={tourKey}
+                  ref={refs.setFloating}
+                  style={floatingStyles}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className={`z-[2147483647] ${
+                    !targetElement
+                      ? `fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${
+                          isXsMobile
+                            ? "m-2 max-w-xs w-[95vw]"
+                            : isMobile
+                              ? "m-3 max-w-sm"
+                              : "m-4 max-w-md"
+                        }`
+                      : isXsMobile
+                        ? "fixed m-2 max-w-xs w-[95vw]"
+                        : isMobile
+                          ? "fixed m-3 max-w-sm"
+                          : "fixed m-4 max-w-md"
+                  }`}
+                  {...getFloatingProps()}
+                >
+                  <Card
+                    className={`border shadow-2xl mx-auto ${
+                      isXsMobile
+                        ? "w-full max-w-xs max-h-[70vh] mx-auto"
+                        : isMobile
+                          ? "w-auto max-w-sm max-h-[80vh]"
+                          : "w-full max-w-md max-h-[75vh] mx-auto"
+                    }`}
                   >
-                    <X className="h-3 w-3 sm:h-4 sm:w-4" />
-                  </Button>
-                </div>
+                    <CardContent
+                      className={`overflow-y-auto ${
+                        isXsMobile
+                          ? "p-2 max-h-[70vh]"
+                          : isMobile
+                            ? "p-3 max-h-[80vh]"
+                            : "p-3 max-h-[75vh]"
+                      }`}
+                    >
+                      {/* Header */}
+                      <div
+                        className={`flex items-center justify-between ${
+                          isXsMobile ? "mb-2" : isMobile ? "mb-2" : "mb-2"
+                        }`}
+                      >
+                        <div
+                          className={`flex items-center gap-1 ${
+                            isXsMobile ? "gap-1" : isMobile ? "gap-1" : "gap-1"
+                          }`}
+                        >
+                          <HelpCircle
+                            className={`text-primary ${
+                              isXsMobile
+                                ? "h-3 w-3"
+                                : isMobile
+                                  ? "h-4 w-4"
+                                  : "h-4 w-4"
+                            }`}
+                          />
+                          <h3
+                            className={`font-semibold ${
+                              isXsMobile
+                                ? "text-xs"
+                                : isMobile
+                                  ? "text-sm"
+                                  : "text-base"
+                            }`}
+                          >
+                            {currentStepData.title}
+                          </h3>
+                          {currentStepData.optional && (
+                            <Badge variant="secondary" className="text-xs">
+                              Optional
+                            </Badge>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleSkip}
+                          className={`p-0 ${
+                            isXsMobile
+                              ? "h-6 w-6"
+                              : isMobile
+                                ? "h-7 w-7"
+                                : "h-6 w-6"
+                          }`}
+                        >
+                          <X
+                            className={`$${
+                              isXsMobile
+                                ? "h-2.5 w-2.5"
+                                : isMobile
+                                  ? "h-3 w-3"
+                                  : "h-3 w-3"
+                            }`}
+                          />
+                        </Button>
+                      </div>
 
-                {/* Progress bar */}
-                <div className="mb-4">
-                  <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                    <span>
-                      Step {currentStep + 1} of {steps.length}
-                    </span>
-                    <span>{Math.round(progress)}%</span>
-                  </div>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div
-                      className="bg-primary h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Content */}
-                <div className="mb-4">
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {currentStepData.content}
-                  </p>
-
-                  {/* Tips */}
-                  {currentStepData.tips && currentStepData.tips.length > 0 && (
-                    <div className="bg-amber-50 dark:bg-amber-950/20 rounded-lg p-3 mb-3">
-                      <div className="flex items-start gap-2">
-                        <Lightbulb className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                        <div>
-                          <p className="text-sm font-medium text-amber-800 dark:text-amber-200 mb-1">
-                            Tips:
-                          </p>
-                          <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
-                            {currentStepData.tips.map((tip, index) => (
-                              <li
-                                key={index}
-                                className="flex items-start gap-1"
-                              >
-                                <span className="text-amber-600">•</span>
-                                <span>{tip}</span>
-                              </li>
-                            ))}
-                          </ul>
+                      {/* Progress bar */}
+                      <div
+                        className={
+                          isXsMobile ? "mb-2" : isMobile ? "mb-3" : "mb-3"
+                        }
+                      >
+                        <div
+                          className={`flex justify-between text-muted-foreground mb-2 ${
+                            isXsMobile
+                              ? "text-xs"
+                              : isMobile
+                                ? "text-xs"
+                                : "text-xs"
+                          }`}
+                        >
+                          <span>
+                            Step {currentStep + 1} of {steps.length}
+                          </span>
+                          <span>{Math.round(progress)}%</span>
+                        </div>
+                        <div className="w-full bg-secondary rounded-full h-2">
+                          <div
+                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${progress}%` }}
+                          />
                         </div>
                       </div>
-                    </div>
-                  )}
-                </div>
 
-                {/* Navigation */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
-                  <div className="flex items-center gap-1 sm:gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handlePrevious}
-                      disabled={currentStep === 0}
-                      className="text-xs sm:text-sm"
-                    >
-                      <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
-                      <span className="hidden sm:inline">Previous</span>
-                      <span className="sm:hidden">Prev</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleSkip}
-                      className="text-xs sm:text-sm"
-                    >
-                      <span className="hidden sm:inline">Skip Tour</span>
-                      <span className="sm:hidden">Skip</span>
-                    </Button>
-                  </div>
+                      {/* Content - Mobile optimized layout */}
+                      <div
+                        className={`${isXsMobile ? "flex-1 mb-2" : isMobile ? "flex-1 mb-3" : "mb-3"}`}
+                      >
+                        <p
+                          className={`text-muted-foreground mb-3 ${
+                            isXsMobile
+                              ? "text-xs leading-relaxed"
+                              : isMobile
+                                ? "text-sm leading-relaxed"
+                                : "text-sm leading-relaxed"
+                          }`}
+                        >
+                          {currentStepData.content}
+                        </p>
 
-                  <Button
-                    onClick={handleNext}
-                    size="sm"
-                    className="min-w-[80px] text-xs sm:text-sm order-first sm:order-last"
-                  >
-                    {currentStep === steps.length - 1 ? "Finish" : "Next"}
-                    {currentStep < steps.length - 1 && (
-                      <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1" />
-                    )}
-                  </Button>
-                </div>
+                        {/* Tips */}
+                        {currentStepData.tips &&
+                          currentStepData.tips.length > 0 && (
+                            <div
+                              className={`bg-amber-50 dark:bg-amber-950/20 rounded-lg mb-3 ${
+                                isXsMobile ? "p-2" : isMobile ? "p-3" : "p-2"
+                              }`}
+                            >
+                              <div className="flex items-start gap-2">
+                                <Lightbulb
+                                  className={`text-amber-600 mt-0.5 flex-shrink-0 ${
+                                    isXsMobile
+                                      ? "h-3 w-3"
+                                      : isMobile
+                                        ? "h-4 w-4"
+                                        : "h-4 w-4"
+                                  }`}
+                                />
+                                <div>
+                                  <p
+                                    className={`font-medium text-amber-800 dark:text-amber-200 mb-1 ${
+                                      isXsMobile
+                                        ? "text-xs"
+                                        : isMobile
+                                          ? "text-xs"
+                                          : "text-xs"
+                                    }`}
+                                  >
+                                    Tips:
+                                  </p>
+                                  <ul
+                                    className={`text-amber-700 dark:text-amber-300 space-y-1 ${
+                                      isXsMobile
+                                        ? "text-xs"
+                                        : isMobile
+                                          ? "text-xs"
+                                          : "text-xs"
+                                    }`}
+                                  >
+                                    {currentStepData.tips.map((tip, index) => (
+                                      <li
+                                        key={index}
+                                        className="flex items-start gap-1"
+                                      >
+                                        <span className="text-amber-600">
+                                          •
+                                        </span>
+                                        <span>{tip}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                      </div>
 
-                {/* Step indicators */}
-                <div className="flex justify-center gap-1 mt-4">
-                  {steps.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleStepJump(index)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === currentStep
-                          ? "bg-primary"
-                          : index < currentStep
-                            ? "bg-primary/50"
-                            : "bg-secondary"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+                      {/* Navigation - Mobile optimized */}
+                      <div
+                        className={`${
+                          isXsMobile
+                            ? "flex flex-col gap-1.5 mt-auto"
+                            : isMobile
+                              ? "flex flex-col gap-2 mt-auto"
+                              : "flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0"
+                        }`}
+                      >
+                        <div
+                          className={`flex items-center gap-1 ${isXsMobile ? "gap-1.5" : isMobile ? "gap-2" : "gap-2"}`}
+                        >
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handlePrevious}
+                            disabled={currentStep === 0}
+                            className={`${isXsMobile ? "text-xs flex-1 h-8" : isMobile ? "text-xs flex-1" : "text-xs flex-1"}`}
+                          >
+                            <ArrowLeft
+                              className={`mr-1 ${isXsMobile ? "h-2.5 w-2.5" : isMobile ? "h-3 w-3" : "h-3 w-3"}`}
+                            />
+                            <span
+                              className={
+                                isXsMobile
+                                  ? ""
+                                  : isMobile
+                                    ? ""
+                                    : "hidden sm:inline"
+                              }
+                            >
+                              Previous
+                            </span>
+                            <span
+                              className={
+                                isXsMobile
+                                  ? "hidden"
+                                  : isMobile
+                                    ? "hidden"
+                                    : "sm:hidden"
+                              }
+                            >
+                              Prev
+                            </span>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={handleSkip}
+                            className={`${isXsMobile ? "text-xs flex-1 h-8" : isMobile ? "text-xs flex-1" : "text-xs flex-1"}`}
+                          >
+                            <span
+                              className={
+                                isXsMobile
+                                  ? ""
+                                  : isMobile
+                                    ? ""
+                                    : "hidden sm:inline"
+                              }
+                            >
+                              Skip Tour
+                            </span>
+                            <span
+                              className={
+                                isXsMobile
+                                  ? "hidden"
+                                  : isMobile
+                                    ? "hidden"
+                                    : "sm:hidden"
+                              }
+                            >
+                              Skip
+                            </span>
+                          </Button>
+                        </div>
+                        <Button
+                          onClick={handleNext}
+                          size="sm"
+                          className={`${isXsMobile ? "text-xs w-full h-8" : isMobile ? "text-xs w-full" : "min-w-[80px] text-xs flex-1"}`}
+                        >
+                          {currentStep === steps.length - 1 ? "Finish" : "Next"}
+                          {currentStep < steps.length - 1 && (
+                            <ArrowRight
+                              className={`ml-1 ${isXsMobile ? "h-2.5 w-2.5" : isMobile ? "h-3 w-3" : "h-3 w-3"}`}
+                            />
+                          )}
+                        </Button>
+                      </div>
+
+                      {/* Step indicators */}
+                      <div
+                        className={`flex justify-center gap-1 ${isXsMobile ? "mt-2" : isMobile ? "mt-3" : "mt-3"}`}
+                      >
+                        {steps.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => handleStepJump(index)}
+                            className={`rounded-full transition-colors ${isXsMobile ? "w-1.5 h-1.5" : "w-2 h-2"} ${index === currentStep ? "bg-primary" : index < currentStep ? "bg-primary/50" : "bg-secondary"}`}
+                          />
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
+        </FloatingFocusManager>
+      </FloatingOverlay>
+    </FloatingPortal>
   );
-
-  return createPortal(tourContent, document.body);
 }
 
 // CSS for highlight effect (add to global styles)
@@ -458,12 +644,28 @@ export const tourStyles = `
   .tour-highlight::after {
     content: '';
     position: absolute;
-    inset: -8px;
     border: 2px solid rgb(59, 130, 246);
     border-radius: 12px;
     pointer-events: none;
     animation: pulse-border 2s infinite;
     z-index: 2147483645 !important;
+  }
+  
+  /* Desktop highlight */
+  @media (min-width: 768px) {
+    .tour-highlight::after {
+      inset: -8px;
+      border-radius: 12px;
+    }
+  }
+  
+  /* Mobile highlight */
+  @media (max-width: 767px) {
+    .tour-highlight::after {
+      inset: -6px;
+      border-radius: 8px;
+      border-width: 3px;
+    }
   }
   
   @keyframes pulse-border {
@@ -474,6 +676,17 @@ export const tourStyles = `
     50% {
       opacity: 0.7;
       transform: scale(1.02);
+    }
+  }
+  
+  /* Mobile-specific touch improvements */
+  @media (max-width: 767px) {
+    .tour-highlight {
+      touch-action: manipulation;
+    }
+    
+    .tour-highlight::after {
+      animation-duration: 1.5s;
     }
   }
 `;

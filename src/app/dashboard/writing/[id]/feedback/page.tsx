@@ -579,7 +579,10 @@ export default function FeedbackPage() {
         </div>
 
         {/* Header Card with Title and Score */}
-        <Card className="border-2 bg-white shadow-lg mb-6">
+        <Card
+          className="border-2 bg-white shadow-lg mb-6"
+          data-tour="ai-feedback"
+        >
           <CardHeader>
             <div className="grid grid-cols-12 items-center gap-4">
               <div className="col-span-2">

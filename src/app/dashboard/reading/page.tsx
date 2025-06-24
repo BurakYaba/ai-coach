@@ -25,12 +25,7 @@ export default function ReadingPage() {
   const searchParams = useSearchParams();
 
   // Tour functionality
-  const { isOpen, closeTour, completeTour } = useTour("reading");
-
-  // Handle manual tour start
-  const manualStart = () => {
-    // Tour logic handled by useTour hook
-  };
+  const { isOpen, closeTour, completeTour, manualStart } = useTour("reading");
 
   // Handle success and error messages from URL parameters
   let errorMessage: string | null = null;

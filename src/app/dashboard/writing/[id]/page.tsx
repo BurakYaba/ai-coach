@@ -474,6 +474,7 @@ export default function WritingSessionPage() {
                 placeholder="Start writing here..."
                 className="min-h-[300px] font-mono text-base flex-grow border-2 focus:border-blue-300 transition-colors"
                 disabled={!isEditable}
+                data-tour="writing-editor"
               />
             </CardContent>
             <CardFooter className="flex justify-between">

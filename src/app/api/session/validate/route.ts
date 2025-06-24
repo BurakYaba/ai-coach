@@ -24,9 +24,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // TEMPORARY: Disable aggressive session validation for avatar testing
-    // This prevents frequent logouts while we test the avatar system
-
     // Get device fingerprint from client-side detection
     const clientDeviceFingerprint = request.headers.get("X-Device-Fingerprint");
     let enhancedDeviceInfo = null;
@@ -50,25 +47,39 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // TEMPORARY: Skip session validation - just return valid for JWT tokens
-    // TODO: Re-enable after avatar testing is complete
-    /*
-    // Validate the session
-    const sessionValidation = await validateSession(
-      token.sessionToken as string
-    );
+    // RE-ENABLED: Validate the session (this was previously disabled)
+    try {
+      const sessionValidation = await validateSession(
+        token.sessionToken as string
+      );
 
-    if (!sessionValidation.isValid) {
+      if (!sessionValidation.isValid) {
+        console.log(
+          `Session validation failed for user ${token.id}: Session terminated or expired`
+        );
+        return NextResponse.json(
+          {
+            isValid: false,
+            error: "Session is no longer valid",
+            reason: "session_terminated",
+          },
+          { status: 401 }
+        );
+      }
+
+      console.log(`Session validation successful for user ${token.id}`);
+    } catch (validationError) {
+      console.error("Session validation error:", validationError);
+      // Return invalid session on database errors to trigger re-authentication
       return NextResponse.json(
         {
           isValid: false,
-          error: "Session is no longer valid",
-          reason: "session_terminated",
+          error: "Session validation failed",
+          reason: "validation_error",
         },
         { status: 401 }
       );
     }
-    */
 
     // Get session history if requested
     const includeHistory =

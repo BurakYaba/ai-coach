@@ -202,47 +202,63 @@ export async function validateSession(sessionToken: string): Promise<{
   session?: any;
 }> {
   if (!sessionToken) {
+    console.warn("validateSession called with empty sessionToken");
     return { isValid: false };
   }
 
-  await dbConnect();
+  try {
+    await dbConnect();
 
-  const session = await UserSession.findOne({
-    sessionToken,
-    isActive: true,
-  }).populate("userId");
+    const session = await UserSession.findOne({
+      sessionToken,
+      isActive: true,
+    }).populate("userId");
 
-  if (!session) {
+    if (!session) {
+      console.log(
+        `Session not found or inactive: ${sessionToken.substring(0, 8)}...`
+      );
+      return { isValid: false };
+    }
+
+    // Check if session is still valid
+    const isValid = session.isValidSession();
+
+    if (!isValid) {
+      console.log(
+        `Session expired for token: ${sessionToken.substring(0, 8)}..., terminating`
+      );
+      // Terminate invalid session
+      session.isActive = false;
+      session.terminatedAt = new Date();
+      session.terminationReason = "expired";
+      await session.save();
+
+      return { isValid: false };
+    }
+
+    // Update last activity
+    await session.updateActivity();
+
+    // Get the actual userId string - handle both populated and non-populated cases
+    const userIdString =
+      typeof session.userId === "string"
+        ? session.userId
+        : session.userId._id?.toString() || session.userId.toString();
+
+    console.log(
+      `Session valid for user: ${userIdString}, token: ${sessionToken.substring(0, 8)}...`
+    );
+
+    return {
+      isValid: true,
+      userId: userIdString,
+      session,
+    };
+  } catch (error) {
+    console.error("validateSession error:", error);
     return { isValid: false };
   }
-
-  // Check if session is still valid
-  const isValid = session.isValidSession();
-
-  if (!isValid) {
-    // Terminate invalid session
-    session.isActive = false;
-    session.terminatedAt = new Date();
-    session.terminationReason = "expired";
-    await session.save();
-
-    return { isValid: false };
-  }
-
-  // Update last activity
-  await session.updateActivity();
-
-  // Get the actual userId string - handle both populated and non-populated cases
-  const userIdString =
-    typeof session.userId === "string"
-      ? session.userId
-      : session.userId._id?.toString() || session.userId.toString();
-
-  return {
-    isValid: true,
-    userId: userIdString,
-    session,
-  };
 }
 
 // Terminate user session
@@ -250,9 +266,31 @@ export async function terminateSession(
   sessionToken: string,
   reason: "logout" | "concurrent_login" | "expired" | "forced" = "logout"
 ): Promise<boolean> {
-  await dbConnect();
+  if (!sessionToken) {
+    console.warn("terminateSession called with empty sessionToken");
+    return false;
+  }
 
-  return await UserSession.terminateSession(sessionToken, reason);
+  try {
+    await dbConnect();
+
+    const result = await UserSession.terminateSession(sessionToken, reason);
+
+    if (result) {
+      console.log(
+        `Session terminated successfully: ${sessionToken.substring(0, 8)}..., reason: ${reason}`
+      );
+    } else {
+      console.warn(
+        `Session termination failed - session not found: ${sessionToken.substring(0, 8)}..., reason: ${reason}`
+      );
+    }
+
+    return result;
+  } catch (error) {
+    console.error("terminateSession error:", error);
+    return false;
+  }
 }
 
 // Get active session for user
@@ -295,6 +333,22 @@ export async function forceLogoutUser(userId: string): Promise<number> {
         terminationReason: "forced",
       },
     }
+  );
+
+  // Trigger storage event to notify other tabs (browser-based only)
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem("force_logout", "true");
+      // Clear it immediately so it can be set again if needed
+      setTimeout(() => localStorage.removeItem("force_logout"), 100);
+    } catch (error) {
+      // Ignore localStorage errors
+      console.warn("Could not trigger storage event for logout:", error);
+    }
+  }
+
+  console.log(
+    `Force logout completed for user ${userId}: ${result.modifiedCount} sessions terminated`
   );
 
   return result.modifiedCount;

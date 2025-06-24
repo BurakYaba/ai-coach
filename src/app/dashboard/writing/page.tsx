@@ -130,7 +130,7 @@ export default function WritingDashboardPage() {
           <TabsContent value="sessions" className="mt-4 sm:mt-6">
             <div
               className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg"
-              data-tour="writing-sessions"
+              data-tour="writing-history"
             >
               <WritingSessionList />
             </div>

@@ -86,10 +86,8 @@ export default function DashboardHeader({
               <XpProgress />
             </div>
 
-            {/* Tour button - hidden on mobile, shown on desktop */}
-            <div className="hidden lg:block">
-              <DashboardTourTrigger />
-            </div>
+            {/* Tour button - visible on all devices */}
+            <DashboardTourTrigger />
 
             {/* User Navigation - hidden on mobile */}
             <div className="hidden lg:block">

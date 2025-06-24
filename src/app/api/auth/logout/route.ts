@@ -23,14 +23,30 @@ export async function POST(request: NextRequest) {
       }
     } catch (error) {
       // Body parsing failed, continue with session-based approach
+      console.warn("Failed to parse logout request body:", error);
     }
 
+    // Enhanced validation and logging
     if (!sessionToken) {
+      console.warn("Logout attempt without session token", {
+        hasSession: !!session,
+        sessionUserId: session?.user?.id,
+        userAgent: request.headers.get("user-agent"),
+        ip:
+          request.headers.get("x-forwarded-for") ||
+          request.headers.get("x-real-ip") ||
+          "unknown",
+      });
+
       return NextResponse.json(
         { error: "No session token found" },
         { status: 400 }
       );
     }
+
+    console.log(
+      `Attempting to terminate session: ${sessionToken.substring(0, 8)}... for reason: ${reason}`
+    );
 
     // Terminate the session
     const terminated = await terminateSession(
@@ -39,15 +55,23 @@ export async function POST(request: NextRequest) {
     );
 
     if (terminated) {
+      console.log(
+        `Session terminated successfully: ${sessionToken.substring(0, 8)}...`
+      );
       return NextResponse.json({
         success: true,
         message: "Session terminated successfully",
       });
     } else {
-      return NextResponse.json(
-        { error: "Failed to terminate session" },
-        { status: 500 }
+      console.warn(
+        `Failed to terminate session - session not found: ${sessionToken.substring(0, 8)}...`
       );
+      // Return success even if session wasn't found (idempotent operation)
+      // This prevents 500 errors when browser close detection tries to logout already-terminated sessions
+      return NextResponse.json({
+        success: true,
+        message: "Session already terminated or not found",
+      });
     }
   } catch (error) {
     console.error("Error in logout API:", error);

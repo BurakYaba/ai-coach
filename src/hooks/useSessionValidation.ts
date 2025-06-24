@@ -235,70 +235,32 @@ export function useSessionValidation(
     };
   }, [disabled, toast]);
 
-  // Add browser close detection
+  // Simplified browser close detection - DISABLED aggressive cleanup
   useEffect(() => {
     if (disabled || !session?.user?.sessionToken) return;
 
-    const handleBeforeUnload = async (event: BeforeUnloadEvent) => {
-      // Attempt to clean up session on browser close
-      try {
-        // Use sendBeacon for reliable cleanup even when page is closing
-        const cleanupData = JSON.stringify({
-          sessionToken: session.user.sessionToken,
-          reason: "browser_close",
+    // DISABLED: Aggressive browser close detection that was causing false logouts
+    // The concurrent login protection works through session validation, not browser events
+
+    console.log("Session monitoring enabled for user session");
+
+    // Only handle explicit logout scenarios, not automatic browser events
+    const handleStorageLogout = (event: StorageEvent) => {
+      if (event.key === "force_logout" && event.newValue === "true") {
+        // This is triggered by explicit logout actions
+        console.log("Force logout detected via storage event");
+        signOut({
+          redirect: true,
+          callbackUrl: "/login?reason=force_logout",
         });
-
-        if (navigator.sendBeacon) {
-          navigator.sendBeacon("/api/auth/logout", cleanupData);
-        } else {
-          // Fallback for browsers that don't support sendBeacon
-          fetch("/api/auth/logout", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: cleanupData,
-            keepalive: true, // Keep request alive even if page is closing
-          }).catch(() => {
-            // Ignore errors during page unload
-          });
-        }
-      } catch (error) {
-        // Ignore errors during page unload
       }
     };
 
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        // Page is being hidden (tab switch, minimize, etc.)
-        // Set a timeout to clean up session if page stays hidden too long
-        setTimeout(() => {
-          if (document.visibilityState === "hidden") {
-            // Page has been hidden for 30 seconds, likely closed
-            try {
-              if (navigator.sendBeacon && session?.user?.sessionToken) {
-                const cleanupData = JSON.stringify({
-                  sessionToken: session.user.sessionToken,
-                  reason: "browser_close",
-                });
-                navigator.sendBeacon("/api/auth/logout", cleanupData);
-              }
-            } catch (error) {
-              // Ignore errors
-            }
-          }
-        }, 30000); // 30 seconds
-      }
-    };
+    window.addEventListener("storage", handleStorageLogout);
 
-    // Add event listeners
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    // Cleanup event listeners
     return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("storage", handleStorageLogout);
+      console.log("Session monitoring cleanup");
     };
   }, [disabled, session?.user?.sessionToken]);
 
