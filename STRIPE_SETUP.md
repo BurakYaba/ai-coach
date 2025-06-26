@@ -55,7 +55,7 @@ STRIPE_ANNUAL_PRICE_ID=price_your_annual_price_id
 ### Registration Flow
 
 1. **Individual Registration**: Users can register without a school code
-2. **Free Trial**: All users get 7 days free access
+2. **Free Trial**: All users get 14 days free access
 3. **Payment Required**: After trial expires, individual users must pay
 
 ### School vs Individual Users

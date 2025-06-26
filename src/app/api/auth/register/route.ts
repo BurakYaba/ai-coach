@@ -55,10 +55,10 @@ export async function POST(req: Request) {
     const emailVerificationToken = randomBytes(32).toString("hex");
     const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours from now
 
-    // Set up free subscription with 7-day expiration
+    // Set up free subscription with 14-day expiration
     const startDate = new Date();
     const endDate = new Date(startDate);
-    endDate.setDate(endDate.getDate() + 7); // 7 days from now
+    endDate.setDate(endDate.getDate() + 14); // 14 days from now
 
     // Create new user with default values
     const userData: any = {

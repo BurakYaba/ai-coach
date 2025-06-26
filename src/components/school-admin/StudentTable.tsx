@@ -338,9 +338,9 @@ export function StudentTable({ userId }: StudentTableProps) {
         // Monthly subscription - X months based on selection
         endDate = addMonths(startDate, subscriptionMonths);
       } else {
-        // Free subscription - 1 week
+        // Free subscription - 2 weeks
         endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + 7);
+        endDate.setDate(endDate.getDate() + 14);
       }
 
       const response = await fetch(
@@ -711,7 +711,7 @@ export function StudentTable({ userId }: StudentTableProps) {
                   >
                     <span className="text-sm font-medium">Free</span>
                     <span className="text-xs text-muted-foreground mt-1">
-                      1 week access
+                      2 weeks access
                     </span>
                   </Label>
                 </div>
@@ -775,7 +775,7 @@ export function StudentTable({ userId }: StudentTableProps) {
 
             <div className="mt-2 text-sm bg-muted/30 p-3 rounded-md">
               {subscriptionType === "free" && (
-                <p>Free subscription provides 7 days of access.</p>
+                <p>Free subscription provides 14 days of access.</p>
               )}
               {subscriptionType === "monthly" && (
                 <p>

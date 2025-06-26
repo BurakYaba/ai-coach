@@ -513,7 +513,7 @@ export default function SpeakingModule() {
                 <CardTitle className="text-center">Free Trial</CardTitle>
                 <div className="text-center">
                   <span className="text-3xl font-bold">$0</span>
-                  <span className="text-muted-foreground">/7 days</span>
+                  <span className="text-muted-foreground">/14 days</span>
                 </div>
               </CardHeader>
               <CardContent>

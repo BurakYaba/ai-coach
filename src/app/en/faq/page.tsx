@@ -61,12 +61,12 @@ export default function EnglishFAQPage() {
         {
           question: "What are your pricing plans?",
           answer:
-            "We have 3 different plans: Free ($0/month - limited features), Premium ($14.99/month - all features), Pro ($24.99/month - 1:1 coaching + advanced features). All paid plans start with a 7-day free trial.",
+            "We have 3 different plans: Free ($0/month - limited features), Premium ($14.99/month - all features), Pro ($24.99/month - 1:1 coaching + advanced features). All paid plans start with a 14-day free trial.",
         },
         {
           question: "How does the free trial work?",
           answer:
-            "You can use all Premium plan features free for 7 days. No credit card required. No automatic billing after trial ends - you need to manually purchase a subscription.",
+            "You can use all Premium plan features free for 14 days. No credit card required. No automatic billing after trial ends - you need to manually purchase a subscription.",
         },
         {
           question: "Can I cancel anytime?",

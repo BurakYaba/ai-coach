@@ -111,9 +111,18 @@ export default async function PricingPage() {
 }
 
 function PricingContent({ session }: { session: any }) {
-  // Determine the correct back link based on authentication status
-  const backLink = session?.user ? "/dashboard" : "/";
-  const backText = session?.user ? "Back to Dashboard" : "Back to Home";
+  // Determine the correct back link based on authentication status and expired user status
+  const isExpiredUser = session?.user?.isExpiredUser;
+  const backLink = isExpiredUser
+    ? "/login"
+    : session?.user
+      ? "/dashboard"
+      : "/";
+  const backText = isExpiredUser
+    ? "Back to Login"
+    : session?.user
+      ? "Back to Dashboard"
+      : "Back to Home";
 
   return (
     <>
@@ -201,7 +210,7 @@ function PricingContent({ session }: { session: any }) {
           <div className="bg-white p-4 rounded-lg shadow">
             <h4 className="font-semibold mb-2">Do you offer a free trial?</h4>
             <p className="text-gray-600">
-              Yes! All new users get 7 days of free access to try all features
+              Yes! All new users get 14 days of free access to try all features
               before committing to a subscription.
             </p>
           </div>

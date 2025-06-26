@@ -22,7 +22,7 @@ const ogImages = [
   {
     filename: "og-pricing-tr.png",
     title: "Fiyatlandırma - Fluenta",
-    subtitle: "Size uygun planı seçin - 7 gün ücretsiz",
+    subtitle: "Size uygun planı seçin - 14 gün ücretsiz",
     gradient: ["#1e293b", "#475569"],
     textColor: "#ffffff",
     priceHighlight: "₺149 - ₺249",

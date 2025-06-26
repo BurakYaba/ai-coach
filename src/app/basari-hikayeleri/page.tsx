@@ -766,7 +766,7 @@ export default function BasariHikayeleri() {
 
               <div className="grid sm:grid-cols-3 gap-6 mb-10 max-w-2xl mx-auto">
                 <div className="text-center">
-                  <div className="text-2xl font-bold mb-1">7 Gün</div>
+                  <div className="text-2xl font-bold mb-1">14 Gün</div>
                   <div className="text-sm text-blue-100">Ücretsiz Deneme</div>
                 </div>
                 <div className="text-center">

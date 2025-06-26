@@ -204,8 +204,24 @@ export function LoginForm() {
         return;
       }
 
-      // Success - now check the user's role to determine redirect
+      // Success - now check the user's role and subscription status to determine redirect
       try {
+        // Get session to check for expired user status
+        const sessionResponse = await fetch("/api/auth/session");
+        const sessionData = await sessionResponse.json();
+
+        // Check if user is expired and redirect to pricing
+        if (sessionData?.user?.isExpiredUser) {
+          toast({
+            title: "Subscription Expired",
+            description:
+              "Your free trial has expired. Please choose a subscription plan to continue.",
+            variant: "destructive",
+          });
+          router.push("/pricing?expired=true");
+          return;
+        }
+
         const userResponse = await fetch("/api/user/profile");
         if (userResponse.ok) {
           const userData = await userResponse.json();
@@ -353,8 +369,19 @@ export function LoginForm() {
                             "Previous session terminated. You are now logged in.",
                         });
 
-                        // Redirect based on user role (same logic as normal login)
+                        // Redirect based on user role and subscription status (same logic as normal login)
                         try {
+                          // Get session to check for expired user status
+                          const sessionResponse =
+                            await fetch("/api/auth/session");
+                          const sessionData = await sessionResponse.json();
+
+                          // Check if user is expired and redirect to pricing
+                          if (sessionData?.user?.isExpiredUser) {
+                            router.push("/pricing?expired=true");
+                            return;
+                          }
+
                           const userResponse = await fetch("/api/user/profile");
                           if (userResponse.ok) {
                             const userData = await userResponse.json();

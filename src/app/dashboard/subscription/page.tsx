@@ -272,7 +272,7 @@ export default async function SubscriptionPage() {
               {!isActive && (
                 <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <p className="text-sm text-yellow-800">
-                    <strong>Free Trial:</strong> All new users get 7 days of
+                    <strong>Free Trial:</strong> All new users get 14 days of
                     free access to try all features before committing to a
                     subscription.
                   </p>

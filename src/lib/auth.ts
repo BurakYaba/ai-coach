@@ -54,11 +54,9 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Check subscription status (only for regular users, not admins)
-        if (user.role === "user" && !user.hasActiveSubscription()) {
-          throw new Error(
-            "Your subscription has expired. Please contact your administrator or renew your subscription to continue."
-          );
-        }
+        // Instead of blocking login, we'll let expired users login but redirect them to pricing
+        const hasActiveSubscription = user.hasActiveSubscription();
+        const isExpiredUser = user.role === "user" && !hasActiveSubscription;
 
         // Check for concurrent login (skip if force login is requested)
         const forceLogin = credentials.forceLogin === "true";
@@ -163,6 +161,7 @@ export const authOptions: NextAuthOptions = {
           branch: branch?._id?.toString() || null,
           onboardingCompleted: user.onboarding?.completed || false,
           sessionExpiry: expiresAt.toISOString(),
+          isExpiredUser, // Add expired status for redirect logic
         };
       },
     }),
@@ -197,6 +196,7 @@ export const authOptions: NextAuthOptions = {
         token.sessionValid = true;
         token.sessionCreated = Date.now();
         token.deviceFingerprint = user.deviceFingerprint;
+        token.isExpiredUser = user.isExpiredUser;
 
         // Add subscription info
         token.subscriptionStatus = user.subscription?.status || "inactive";
@@ -275,6 +275,9 @@ export const authOptions: NextAuthOptions = {
 
         // Add onboarding status to the session
         session.user.onboardingCompleted = token.onboardingCompleted as boolean;
+
+        // Add expired user status to the session
+        session.user.isExpiredUser = token.isExpiredUser as boolean;
       }
       return session;
     },
@@ -296,6 +299,7 @@ declare module "next-auth" {
         expiresAt: string;
       };
       onboardingCompleted?: boolean;
+      isExpiredUser?: boolean;
     };
   }
   interface User {
@@ -313,6 +317,7 @@ declare module "next-auth" {
     branch?: string | null;
     onboardingCompleted?: boolean;
     sessionExpiry?: string;
+    isExpiredUser?: boolean;
   }
 }
 
@@ -333,6 +338,7 @@ declare module "next-auth/jwt" {
     sessionValid?: boolean;
     sessionCreated?: number;
     deviceFingerprint?: string;
+    isExpiredUser?: boolean;
   }
 }
 

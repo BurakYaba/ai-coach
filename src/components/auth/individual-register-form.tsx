@@ -220,7 +220,7 @@ export function IndividualRegisterForm() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <h4 className="font-semibold text-blue-900 mb-2">What you get:</h4>
           <ul className="text-sm text-blue-800 space-y-1">
-            <li>• 7 days free trial</li>
+            <li>• 14 days free trial</li>
             <li>• Full access to all learning modules</li>
             <li>• AI-powered personalized feedback</li>
             <li>• After trial: $14.99/month subscription</li>

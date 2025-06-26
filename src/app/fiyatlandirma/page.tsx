@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { Metadata } from "next";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
 import { MainNav } from "@/components/navigation/main-nav";
 import FooterTr from "@/components/layout/FooterTr";
+import { ArrowLeft } from "lucide-react";
+import { ExpiredUserAlert } from "@/components/pricing/expired-user-alert";
+import { CheckoutButton } from "@/components/payments/checkout-button";
 
 export const metadata: Metadata = {
   title: "Fiyatlandırma - AI Destekli İngilizce Öğrenme Planları | Fluenta",
@@ -37,7 +42,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function TurkishPricingPage() {
+export default async function TurkishPricingPage() {
+  const session = await getServerSession(authOptions);
   const pricingPlans = [
     {
       name: "Ücretsiz",
@@ -57,9 +63,8 @@ export default function TurkishPricingPage() {
       popular: false,
     },
     {
-      name: "Premium",
+      name: "Aylık",
       price: "$14.99",
-      originalPrice: "$19.99",
       period: "/ay",
       description: "Tam özelliklerle hızlı öğrenme",
       features: [
@@ -71,31 +76,28 @@ export default function TurkishPricingPage() {
         "Öncelikli destek",
         "İlerleme sertifikaları",
       ],
-      buttonText: "Premium'u Dene",
-      buttonVariant: "default" as const,
-      popular: true,
-      savings: "$5 tasarruf",
-    },
-    {
-      name: "Pro",
-      price: "$24.99",
-      originalPrice: "$34.99",
-      period: "/ay",
-      description: "Profesyonel seviye için tam paket",
-      features: [
-        "Premium'daki tüm özellikler",
-        "1:1 AI koçluk seansları",
-        "IELTS/TOEFL hazırlık modülü",
-        "Canlı grup dersleri",
-        "Kişisel öğrenme planı",
-        "Uzman desteği",
-        "Sınırsız sertifika",
-        "Öncelikli yeni özellikler",
-      ],
-      buttonText: "Pro'yu Dene",
+      buttonText: "Aylık Planı Seç",
       buttonVariant: "outline" as const,
       popular: false,
-      savings: "$10 tasarruf",
+      planType: "monthly" as const,
+    },
+    {
+      name: "Yıllık",
+      price: "$149.99",
+      period: "/yıl",
+      description: "En iyi değer, uzun vadeli öğrenenler için",
+      features: [
+        "Aylık plandaki tüm özellikler",
+        "2 ay ücretsiz (30$ tasarruf)",
+        "Öncelikli müşteri desteği",
+        "Yeni özelliklere erken erişim",
+        "Gelişmiş analitik ve içgörüler",
+        "İndirilebilir sertifikalar",
+      ],
+      buttonText: "Yıllık Planı Seç",
+      buttonVariant: "default" as const,
+      popular: true,
+      planType: "annual" as const,
     },
   ];
 
@@ -103,7 +105,7 @@ export default function TurkishPricingPage() {
     {
       question: "Ücretsiz deneme süresi ne kadar?",
       answer:
-        "7 gün boyunca Premium planın tüm özelliklerini ücretsiz kullanabilirsiniz. Kredi kartı bilgisi gerektirmez.",
+        "14 gün boyunca Premium planın tüm özelliklerini ücretsiz kullanabilirsiniz. Kredi kartı bilgisi gerektirmez.",
     },
     {
       question: "İstediğim zaman iptal edebilir miyim?",
@@ -161,6 +163,42 @@ export default function TurkishPricingPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <TurkishPricingContent
+        session={session}
+        pricingPlans={pricingPlans}
+        faqs={faqs}
+        features={features}
+      />
+    </div>
+  );
+}
+
+function TurkishPricingContent({
+  session,
+  pricingPlans,
+  faqs,
+  features,
+}: {
+  session: any;
+  pricingPlans: any[];
+  faqs: any[];
+  features: any[];
+}) {
+  // Determine the correct back link based on authentication status and expired user status
+  const isExpiredUser = session?.user?.isExpiredUser;
+  const backLink = isExpiredUser
+    ? "/login"
+    : session?.user
+      ? "/dashboard"
+      : "/";
+  const backText = isExpiredUser
+    ? "Giriş Sayfasına Dön"
+    : session?.user
+      ? "Kontrol Paneline Dön"
+      : "Ana Sayfaya Dön";
+
+  return (
+    <>
       {/* Header */}
       <header className="border-b bg-background">
         <div className="container mx-auto px-4 py-4">
@@ -213,6 +251,18 @@ export default function TurkishPricingPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
+        <ExpiredUserAlert />
+
+        <div className="mb-8">
+          <Link
+            href={backLink}
+            className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            {backText}
+          </Link>
+        </div>
+
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
           <Link href="/" className="hover:text-primary">
@@ -226,7 +276,7 @@ export default function TurkishPricingPage() {
         <section className="text-center mb-16">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Badge variant="outline">💰 Fiyatlandırma</Badge>
-            <Badge variant="outline">7 Gün Ücretsiz</Badge>
+            <Badge variant="outline">14 Gün Ücretsiz</Badge>
             <Badge variant="outline">Para İade Garantisi</Badge>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold mb-6">
@@ -234,11 +284,11 @@ export default function TurkishPricingPage() {
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
             AI destekli İngilizce öğrenme platformumuzda hedeflerinize uygun
-            planı seçin. 7 gün ücretsiz deneme ile tüm özellikleri keşfedin.
+            planı seçin. 14 gün ücretsiz deneme ile tüm özellikleri keşfedin.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
             <Badge variant="secondary" className="text-green-600 bg-green-50">
-              ✓ 7 gün ücretsiz deneme
+              ✓ 14 gün ücretsiz deneme
             </Badge>
             <Badge variant="secondary" className="text-blue-600 bg-blue-50">
               ✓ 30 gün para iade garantisi
@@ -297,30 +347,42 @@ export default function TurkishPricingPage() {
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <Link href="/register">
-                    <Button
-                      variant={plan.buttonVariant}
+                  {session?.user ? (
+                    <CheckoutButton
+                      planType={plan.planType}
                       className="w-full mb-6"
-                      size="lg"
+                      variant={plan.buttonVariant}
                     >
                       {plan.buttonText}
-                    </Button>
-                  </Link>
+                    </CheckoutButton>
+                  ) : (
+                    <Link href="/register">
+                      <Button
+                        variant={plan.buttonVariant}
+                        className="w-full mb-6"
+                        size="lg"
+                      >
+                        {plan.buttonText}
+                      </Button>
+                    </Link>
+                  )}
                   <div className="space-y-3">
                     <div>
                       <h4 className="font-semibold text-sm mb-2">
                         DAHİL OLAN ÖZELLİKLER:
                       </h4>
                       <ul className="space-y-2">
-                        {plan.features.map((feature, featureIndex) => (
-                          <li
-                            key={featureIndex}
-                            className="flex items-start gap-2 text-sm"
-                          >
-                            <span className="text-green-500 mt-0.5">✓</span>
-                            <span>{feature}</span>
-                          </li>
-                        ))}
+                        {plan.features.map(
+                          (feature: string, featureIndex: number) => (
+                            <li
+                              key={featureIndex}
+                              className="flex items-start gap-2 text-sm"
+                            >
+                              <span className="text-green-500 mt-0.5">✓</span>
+                              <span>{feature}</span>
+                            </li>
+                          )
+                        )}
                       </ul>
                     </div>
                     {plan.limitations && (
@@ -330,7 +392,7 @@ export default function TurkishPricingPage() {
                         </h4>
                         <ul className="space-y-2">
                           {plan.limitations.map(
-                            (limitation, limitationIndex) => (
+                            (limitation: string, limitationIndex: number) => (
                               <li
                                 key={limitationIndex}
                                 className="flex items-start gap-2 text-sm text-muted-foreground"
@@ -441,12 +503,12 @@ export default function TurkishPricingPage() {
             <CardContent>
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
                 Fluenta'nın AI destekli İngilizce öğrenme platformu ile
-                hedeflerinize ulaşın. 7 gün ücretsiz deneme ile hemen başlayın!
+                hedeflerinize ulaşın. 14 gün ücretsiz deneme ile hemen başlayın!
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/register">
                   <Button size="lg" className="w-full sm:w-auto">
-                    7 Gün Ücretsiz Dene
+                    14 Gün Ücretsiz Dene
                   </Button>
                 </Link>
               </div>
@@ -457,6 +519,6 @@ export default function TurkishPricingPage() {
 
       {/* Footer */}
       <FooterTr />
-    </div>
+    </>
   );
 }

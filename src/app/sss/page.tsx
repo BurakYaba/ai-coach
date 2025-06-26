@@ -52,12 +52,12 @@ export default function TurkishFAQPage() {
         {
           question: "Fiyatlandırma planlarınız nelerdir?",
           answer:
-            "3 farklı planımız var: Ücretsiz ($0/ay - sınırlı özellikler), Premium ($14.99/ay - tüm özellikler), Pro ($24.99/ay - 1:1 koçluk + gelişmiş özellikler). Tüm ücretli planlar 7 gün ücretsiz deneme ile başlar.",
+            "3 farklı planımız var: Ücretsiz ($0/ay - sınırlı özellikler), Premium ($14.99/ay - tüm özellikler), Pro ($24.99/ay - 1:1 koçluk + gelişmiş özellikler). Tüm ücretli planlar 14 gün ücretsiz deneme ile başlar.",
         },
         {
           question: "Ücretsiz deneme nasıl çalışır?",
           answer:
-            "7 gün boyunca Premium planın tüm özelliklerini ücretsiz kullanabilirsiniz. Kredi kartı bilgisi gerekmez. Deneme süresi bitiminde otomatik ücretlendirme yapılmaz, manuel olarak abonelik satın almanız gerekir.",
+            "14 gün boyunca Premium planın tüm özelliklerini ücretsiz kullanabilirsiniz. Kredi kartı bilgisi gerekmez. Deneme süresi bitiminde otomatik ücretlendirme yapılmaz, manuel olarak abonelik satın almanız gerekir.",
         },
         {
           question: "İstediğim zaman iptal edebilir miyim?",
