@@ -69,6 +69,25 @@ const ONBOARDING_EXEMPT_PATHS = [
   "/api/gamification",
 ];
 
+// List of paths that should skip geolocation-based language detection
+const LANGUAGE_DETECTION_EXEMPT_PATHS = [
+  "/en",
+  "/tr",
+  "/api",
+  "/dashboard",
+  "/login",
+  "/register",
+  "/admin",
+  "/school-admin",
+  "/onboarding",
+  "/pricing",
+  "/profile",
+  "/favicon.ico",
+  "/robots.txt",
+  "/sitemap.xml",
+  "/manifest.json",
+];
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -87,6 +106,53 @@ export async function middleware(request: NextRequest) {
     pathname === "/favicon.ico"
   ) {
     return NextResponse.next();
+  }
+
+  // Geolocation-based language detection for root path
+  if (pathname === "/") {
+    const country =
+      request.geo?.country ||
+      request.headers.get("cf-ipcountry") ||
+      request.headers.get("x-vercel-ip-country");
+
+    // Check if user is from Turkey
+    if (country === "TR") {
+      // User is from Turkey, serve Turkish version (current root)
+      return NextResponse.next();
+    } else {
+      // User is from any other country, redirect to English version
+      const url = new URL("/en", request.url);
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Skip geolocation detection for exempt paths
+  const shouldSkipLanguageDetection = LANGUAGE_DETECTION_EXEMPT_PATHS.some(
+    path => pathname.startsWith(path)
+  );
+
+  if (!shouldSkipLanguageDetection) {
+    // For other paths, check if user is accessing a language-specific path
+    const isLanguagePath =
+      pathname.startsWith("/en") || pathname.startsWith("/tr");
+
+    if (!isLanguagePath) {
+      // If no language prefix and not exempt, apply geolocation detection
+      const country =
+        request.geo?.country ||
+        request.headers.get("cf-ipcountry") ||
+        request.headers.get("x-vercel-ip-country");
+
+      if (country === "TR") {
+        // User is from Turkey, redirect to Turkish version
+        const url = new URL(`/tr${pathname}`, request.url);
+        return NextResponse.redirect(url);
+      } else {
+        // User is from any other country, redirect to English version
+        const url = new URL(`/en${pathname}`, request.url);
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   // Check if the path is a protected API route
@@ -201,25 +267,21 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-    // Check for role-based access
+    // Role-based access control
     const userRole = (token.role as string) || "user";
 
-    // Handle school admin routes
-    const isSchoolAdminPath = SCHOOL_ADMIN_PATHS.some(path =>
-      pathname.startsWith(path)
-    );
-    if (
-      isSchoolAdminPath &&
-      userRole !== "school_admin" &&
-      userRole !== "admin"
-    ) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+    if (SCHOOL_ADMIN_PATHS.some(path => pathname.startsWith(path))) {
+      if (userRole !== "school_admin" && userRole !== "admin") {
+        console.log("Middleware: Access denied - school admin required");
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
     }
 
-    // Handle admin routes
-    const isAdminPath = ADMIN_PATHS.some(path => pathname.startsWith(path));
-    if (isAdminPath && userRole !== "admin") {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+    if (ADMIN_PATHS.some(path => pathname.startsWith(path))) {
+      if (userRole !== "admin") {
+        console.log("Middleware: Access denied - admin required");
+        return NextResponse.redirect(new URL("/dashboard", request.url));
+      }
     }
 
     // Add additional subscription check for regular users
