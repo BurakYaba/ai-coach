@@ -32,7 +32,7 @@ export default function CookiePolicyPage() {
                 Home
               </Link>
               <Link
-                href="/modules"
+                href="/en/modules"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Modules
@@ -274,7 +274,7 @@ export default function CookiePolicyPage() {
           <Link href="/terms">
             <Button variant="outline">Terms of Service</Button>
           </Link>
-          <Link href="/contact">
+          <Link href="/en/contact">
             <Button variant="outline">Contact Us</Button>
           </Link>
         </div>

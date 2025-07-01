@@ -32,7 +32,7 @@ export default function TermsOfServicePage() {
                 Home
               </Link>
               <Link
-                href="/modules"
+                href="/en/modules"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Modules
@@ -503,10 +503,10 @@ export default function TermsOfServicePage() {
           <Link href="/en/privacy">
             <Button variant="outline">Privacy Policy</Button>
           </Link>
-          <Link href="/cookie-policy">
+          <Link href="/en/cookie-policy">
             <Button variant="outline">Cookie Policy</Button>
           </Link>
-          <Link href="/contact">
+          <Link href="/en/contact">
             <Button variant="outline">Contact Us</Button>
           </Link>
         </div>

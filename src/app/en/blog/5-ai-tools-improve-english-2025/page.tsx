@@ -476,7 +476,7 @@ export default function BlogPost() {
                 Pricing
               </Link>
               <Link
-                href="/contact"
+                href="/en/contact"
                 className="text-sm hover:text-primary transition-colors"
               >
                 Contact

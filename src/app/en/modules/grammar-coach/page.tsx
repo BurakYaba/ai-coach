@@ -155,7 +155,7 @@ export default function GrammarCoachPage() {
                 Home
               </Link>
               <Link
-                href="/modules"
+                href="/en/modules"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Modules
@@ -183,7 +183,7 @@ export default function GrammarCoachPage() {
             Home
           </Link>
           <span>›</span>
-          <Link href="/modules" className="hover:text-primary">
+          <Link href="/en/modules" className="hover:text-primary">
             Modules
           </Link>
           <span>›</span>

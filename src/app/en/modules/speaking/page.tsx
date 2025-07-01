@@ -84,7 +84,7 @@ export default function SpeakingModule() {
             Home
           </Link>
           <span>›</span>
-          <Link href="/modules" className="hover:text-primary">
+          <Link href="/en/modules" className="hover:text-primary">
             Modules
           </Link>
           <span>›</span>

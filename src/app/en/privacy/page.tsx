@@ -517,10 +517,10 @@ export default function PrivacyPolicyPage() {
 
         {/* Footer Navigation */}
         <div className="flex justify-center gap-4 mt-12 pt-8 border-t">
-          <Link href="/terms">
+          <Link href="/en/terms">
             <Button variant="outline">Terms of Service</Button>
           </Link>
-          <Link href="/cookie-policy">
+          <Link href="/en/cookie-policy">
             <Button variant="outline">Cookie Policy</Button>
           </Link>
           <Link href="/en/contact">

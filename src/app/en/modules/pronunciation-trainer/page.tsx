@@ -130,7 +130,7 @@ export default function PronunciationTrainerPage() {
                 Home
               </Link>
               <Link
-                href="/modules"
+                href="/en/modules"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Modules
@@ -158,7 +158,7 @@ export default function PronunciationTrainerPage() {
             Home
           </Link>
           <span>›</span>
-          <Link href="/modules" className="hover:text-primary">
+          <Link href="/en/modules" className="hover:text-primary">
             Modules
           </Link>
           <span>›</span>
@@ -525,7 +525,7 @@ export default function PronunciationTrainerPage() {
                   Start Free Trial
                 </Button>
               </Link>
-              <Link href="/modules">
+              <Link href="/en/modules">
                 <Button variant="outline" size="lg" className="text-lg px-8">
                   Explore All Modules
                 </Button>

@@ -143,7 +143,7 @@ export default function AboutPage() {
                 Home
               </Link>
               <Link
-                href="/modules"
+                href="/en/modules"
                 className="text-sm font-medium hover:text-primary transition-colors"
               >
                 Modules
@@ -441,7 +441,7 @@ export default function AboutPage() {
                   Start Learning Today
                 </Button>
               </Link>
-              <Link href="/contact">
+              <Link href="/en/contact">
                 <Button variant="outline" size="lg" className="text-lg px-8">
                   Get in Touch
                 </Button>
