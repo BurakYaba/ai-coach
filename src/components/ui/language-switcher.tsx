@@ -67,7 +67,7 @@ export function LanguageSwitcher() {
         "/en/pricing": "/fiyatlandirma",
         "/en/faq": "/sss",
         "/en/blog": "/blog",
-        "/en/blog/english-grammar-rules-common-mistakes":
+        "/en/blog/english-grammar-mistakes-avoid":
           "/blog/ingilizce-gramer-rehberi",
       },
       // Turkish to English mappings
@@ -78,7 +78,7 @@ export function LanguageSwitcher() {
         "/sss": "/en/faq",
         "/blog": "/en/blog",
         "/blog/ingilizce-gramer-rehberi":
-          "/en/blog/english-grammar-rules-common-mistakes",
+          "/en/blog/english-grammar-mistakes-avoid",
       },
     };
 

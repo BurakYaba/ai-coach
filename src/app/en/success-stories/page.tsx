@@ -662,7 +662,7 @@ export default function SuccessStories() {
                 skills with Fluenta's AI-powered learning platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/en/register">
+                <Link href="/register">
                   <Button size="lg" className="w-full sm:w-auto">
                     Start Free Trial
                   </Button>

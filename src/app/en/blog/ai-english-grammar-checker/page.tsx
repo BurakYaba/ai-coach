@@ -59,7 +59,7 @@ export default function BlogPost() {
   const relatedPosts = [
     {
       title: "English Grammar Rules and Common Mistakes",
-      href: "/en/blog/english-grammar-rules-common-mistakes",
+      href: "/en/blog/english-grammar-mistakes-avoid",
       category: "Grammar",
     },
   ];

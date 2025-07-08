@@ -120,7 +120,7 @@ function VerifyEmailContent() {
                     <Link href="/en/login">Go to Login</Link>
                   </Button>
                   <Button variant="outline" asChild className="w-full">
-                    <Link href="/en/register">Create New Account</Link>
+                    <Link href="/register">Create New Account</Link>
                   </Button>
                 </div>
               </>

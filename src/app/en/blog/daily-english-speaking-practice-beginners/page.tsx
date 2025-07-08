@@ -227,8 +227,8 @@ const speakingTips = [
 
 const relatedPosts = [
   {
-    title: "Daily English Speaking Tips for Beginners",
-    href: "/en/blog/daily-english-speaking-tips",
+    title: "English Conversation Practice Apps: Top 8 Apps Reviewed [2025]",
+    href: "/en/blog/english-conversation-practice-app",
     category: "Speaking",
   },
 ];
