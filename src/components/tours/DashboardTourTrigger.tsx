@@ -35,13 +35,15 @@ export default function DashboardTourTrigger() {
               variant="ghost"
               size="sm"
               onClick={handleStartTour}
-              className="h-6 w-6 p-0 text-muted-foreground hover:text-primary sm:h-8 sm:w-8"
+              className="h-8 w-8 p-0 text-white/70 hover:text-white hover:bg-white/10 rounded-full transition-all duration-200 sm:h-9 sm:w-9 group"
             >
-              <HelpCircle className="h-3 w-3 sm:h-4 sm:w-4" />
+              <div className="p-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full group-hover:from-blue-500/30 group-hover:to-purple-500/30 transition-all duration-200">
+                <HelpCircle className="h-4 w-4 sm:h-4 sm:w-4 group-hover:scale-110 transition-transform duration-200" />
+              </div>
             </Button>
           </TooltipTrigger>
-          <TooltipContent>
-            <p>Take Dashboard Tour</p>
+          <TooltipContent className="bg-white/90 backdrop-blur-sm border border-white/20 text-gray-800 shadow-lg">
+            <p className="font-medium">Take Dashboard Tour</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

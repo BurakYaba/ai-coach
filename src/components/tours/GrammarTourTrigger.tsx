@@ -26,10 +26,15 @@ export default function GrammarTourTrigger() {
         variant="outline"
         size="sm"
         onClick={handleStartTour}
-        className="text-muted-foreground hover:text-primary"
+        className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 border-blue-500/30 hover:border-blue-500/50 text-blue-700 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200 transition-all duration-200 group shadow-sm hover:shadow-md text-xs sm:text-sm gap-1 sm:gap-2"
       >
-        <HelpCircle className="h-4 w-4 mr-2" />
-        Take the Tour
+        <div className="p-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full group-hover:scale-110 transition-transform duration-200">
+          <HelpCircle className="h-3 w-3 sm:h-4 sm:w-4 text-white" />
+        </div>
+        <span className="hidden min-[480px]:inline font-medium">
+          Take the Tour
+        </span>
+        <span className="min-[480px]:hidden font-medium">Tour</span>
       </Button>
 
       <GrammarTour

@@ -6,13 +6,11 @@ import { useSession } from "next-auth/react";
 import { useNotifications } from "@/hooks/use-notifications";
 
 export default function NotificationManager() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [reminderScheduled, setReminderScheduled] = useState(false);
   const [permissionRequested, setPermissionRequested] = useState(false);
-  const [onboardingCompleted, setOnboardingCompleted] = useState<
-    boolean | null
-  >(null);
   const {
     isSupported,
     permissionState,
@@ -20,128 +18,97 @@ export default function NotificationManager() {
     scheduleDailyReminder,
   } = useNotifications();
 
-  // Check onboarding completion status
   useEffect(() => {
-    const checkOnboardingStatus = async () => {
-      if (!session?.user?.id) return;
-
-      // First check: if user is on onboarding pages, skip entirely
-      if (
-        typeof window !== "undefined" &&
-        (window.location.pathname === "/onboarding" ||
-          window.location.pathname.startsWith("/onboarding/"))
-      ) {
-        console.log("Skipping notifications setup - user on onboarding page");
-        setOnboardingCompleted(false);
-        return;
-      }
-
-      try {
-        // Check onboarding status from API
-        const onboardingResponse = await fetch("/api/onboarding/progress");
-        if (onboardingResponse.ok) {
-          const data = await onboardingResponse.json();
-          const completed = data.onboarding?.completed || false;
-          setOnboardingCompleted(completed);
-
-          if (!completed) {
-            console.log(
-              "Skipping notifications setup - onboarding not completed"
-            );
-            return;
-          }
-        } else {
-          console.warn("Could not fetch onboarding status, assuming completed");
-          setOnboardingCompleted(true);
-        }
-      } catch (error) {
-        console.error("Error checking onboarding status:", error);
-        setOnboardingCompleted(true); // Assume completed on error
-      }
-    };
-
+    // Setup notifications for authenticated users
     if (session?.user) {
-      checkOnboardingStatus();
+      setupNotifications();
     }
   }, [session]);
 
-  // Fetch user data for notification preferences
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!session?.user?.id || onboardingCompleted !== true) return;
+  const setupNotifications = async () => {
+    try {
+      // Setup push notifications or other notification systems
+      console.log("Setting up notifications for user:", session?.user?.id);
+      setNotificationsEnabled(true);
 
-      try {
-        // Only proceed with profile/settings fetch if user has definitely completed onboarding
-        const profileResponse = await fetch("/api/user/profile");
-        if (!profileResponse.ok) {
-          console.warn(
-            "Could not fetch user profile for notifications:",
-            profileResponse.status
-          );
-          return;
-        }
+      // Fetch user data for notification preferences
+      await fetchUserData();
 
-        // Check if response is actually JSON
-        const contentType = profileResponse.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-          console.warn(
-            "User profile response is not JSON, skipping notifications setup"
-          );
-          return;
-        }
+      // Request notification permission if needed
+      await requestPermissionIfNeeded();
 
-        const profileData = await profileResponse.json();
-
-        // Fetch user settings for notification preferences
-        const settingsResponse = await fetch("/api/user/settings");
-        if (!settingsResponse.ok) {
-          console.warn(
-            "Could not fetch user settings for notifications:",
-            settingsResponse.status
-          );
-          return;
-        }
-
-        // Check if settings response is actually JSON
-        const settingsContentType =
-          settingsResponse.headers.get("content-type");
-        if (
-          !settingsContentType ||
-          !settingsContentType.includes("application/json")
-        ) {
-          console.warn(
-            "User settings response is not JSON, skipping notifications setup"
-          );
-          return;
-        }
-
-        const settingsData = await settingsResponse.json();
-
-        // Combine the data we need
-        setUserData({
-          preferredLearningTime:
-            profileData.user?.learningPreferences?.preferredLearningTime || [],
-          dailyGoal: profileData.user?.learningPreferences?.dailyGoal || 30,
-          progressReminders: settingsData.settings?.progressReminders,
-        });
-      } catch (error) {
-        console.error("Error fetching user notification preferences:", error);
-      }
-    };
-
-    if (session?.user && onboardingCompleted === true) {
-      fetchUserData();
+      // Schedule daily reminders based on user preferences
+      await scheduleDailyReminderBasedOnPreferences();
+    } catch (error) {
+      console.error("Error setting up notifications:", error);
     }
-  }, [session, onboardingCompleted]);
+  };
+
+  // Fetch user data for notification preferences
+  const fetchUserData = async () => {
+    if (!session?.user?.id) return;
+
+    try {
+      // Only proceed with profile/settings fetch if user has definitely completed onboarding
+      const profileResponse = await fetch("/api/user/profile");
+      if (!profileResponse.ok) {
+        console.warn(
+          "Could not fetch user profile for notifications:",
+          profileResponse.status
+        );
+        return;
+      }
+
+      // Check if response is actually JSON
+      const contentType = profileResponse.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        console.warn(
+          "User profile response is not JSON, skipping notifications setup"
+        );
+        return;
+      }
+
+      const profileData = await profileResponse.json();
+
+      // Fetch user settings for notification preferences
+      const settingsResponse = await fetch("/api/user/settings");
+      if (!settingsResponse.ok) {
+        console.warn(
+          "Could not fetch user settings for notifications:",
+          settingsResponse.status
+        );
+        return;
+      }
+
+      // Check if settings response is actually JSON
+      const settingsContentType = settingsResponse.headers.get("content-type");
+      if (
+        !settingsContentType ||
+        !settingsContentType.includes("application/json")
+      ) {
+        console.warn(
+          "User settings response is not JSON, skipping notifications setup"
+        );
+        return;
+      }
+
+      const settingsData = await settingsResponse.json();
+
+      // Combine the data we need
+      setUserData({
+        preferredLearningTime:
+          profileData.user?.learningPreferences?.preferredLearningTime || [],
+        dailyGoal: profileData.user?.learningPreferences?.dailyGoal || 30,
+        progressReminders: settingsData.settings?.progressReminders,
+      });
+    } catch (error) {
+      console.error("Error fetching user notification preferences:", error);
+    }
+  };
 
   // Request notification permission if needed
-  useEffect(() => {
-    if (
-      isSupported &&
-      !permissionRequested &&
-      permissionState === "default" &&
-      onboardingCompleted === true
-    ) {
+  const requestPermissionIfNeeded = async () => {
+    if (isSupported && !permissionRequested && permissionState === "default") {
       // Only ask for permission after user has used the site for a while
       const askForPermissionTimeout = setTimeout(
         () => {
@@ -153,16 +120,10 @@ export default function NotificationManager() {
 
       return () => clearTimeout(askForPermissionTimeout);
     }
-  }, [
-    isSupported,
-    permissionState,
-    permissionRequested,
-    requestPermission,
-    onboardingCompleted,
-  ]);
+  };
 
   // Schedule daily reminders based on user preferences
-  useEffect(() => {
+  const scheduleDailyReminderBasedOnPreferences = async () => {
     if (
       isSupported &&
       permissionState === "granted" &&
@@ -170,20 +131,12 @@ export default function NotificationManager() {
       userData &&
       userData.progressReminders &&
       userData.preferredLearningTime &&
-      userData.preferredLearningTime.length > 0 &&
-      onboardingCompleted === true
+      userData.preferredLearningTime.length > 0
     ) {
       scheduleDailyReminder(userData.preferredLearningTime, userData.dailyGoal);
       setReminderScheduled(true);
     }
-  }, [
-    isSupported,
-    permissionState,
-    reminderScheduled,
-    scheduleDailyReminder,
-    userData,
-    onboardingCompleted,
-  ]);
+  };
 
   // Reschedule reminders if user preferences change
   useEffect(() => {
@@ -194,8 +147,7 @@ export default function NotificationManager() {
       userData &&
       userData.progressReminders &&
       userData.preferredLearningTime &&
-      userData.preferredLearningTime.length > 0 &&
-      onboardingCompleted === true
+      userData.preferredLearningTime.length > 0
     ) {
       scheduleDailyReminder(userData.preferredLearningTime, userData.dailyGoal);
     }
@@ -207,9 +159,8 @@ export default function NotificationManager() {
     permissionState,
     reminderScheduled,
     scheduleDailyReminder,
-    onboardingCompleted,
   ]);
 
-  // This component doesn't render anything, just manages notifications
+  // This component manages notifications in the background
   return null;
 }

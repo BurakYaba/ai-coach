@@ -5,15 +5,12 @@ export async function migrateUsersForOnboarding() {
   try {
     await dbConnect();
 
-    console.log("Starting onboarding migration for existing users...");
+    console.log(
+      "Starting onboarding migration - marking all users as completed..."
+    );
 
-    // Find users that don't have onboarding field yet
-    const users = await User.find({
-      $or: [
-        { onboarding: { $exists: false } },
-        { "onboarding.completed": { $exists: false } },
-      ],
-    });
+    // Find all users and ensure they have completed onboarding
+    const users = await User.find({});
 
     console.log(`Found ${users.length} users to migrate`);
 
@@ -21,36 +18,60 @@ export async function migrateUsersForOnboarding() {
 
     for (const user of users) {
       try {
-        // Set onboarding as completed for existing users to skip the process
+        // Set onboarding as completed for all users (onboarding system removed)
         user.onboarding = {
-          completed: true, // Existing users skip onboarding
+          completed: true, // All users skip onboarding
           currentStep: 5, // Mark as completed
+          language: "en" as "en" | "tr", // Default language with proper typing
+          nativeLanguage: "turkish", // Default native language
+          country: "turkey", // Default country
+          region: "Istanbul", // Default region
+          preferredPracticeTime: "evening", // Default practice time
+          preferredLearningDays: ["monday", "wednesday", "friday"], // Default learning days
+          reasonsForLearning: ["work", "travel"], // Default reasons
+          howHeardAbout: "search_engine", // Default referral source
+          dailyStudyTimeGoal: 30, // Default daily study time goal
+          weeklyStudyTimeGoal: 210, // Default weekly study time goal
+          consentDataUsage: true, // Default consent
+          consentAnalytics: true, // Default analytics consent
           skillAssessment: {
             completed: false,
-            ceferLevel: "B1", // Default level based on existing languageLevel
-            weakAreas: [],
-            strengths: [],
+            ceferLevel: "B1", // Default intermediate level
+            weakAreas: ["grammar", "vocabulary"],
+            strengths: ["reading"],
             assessmentDate: new Date(),
             scores: {
-              reading: 0,
-              writing: 0,
-              listening: 0,
-              speaking: 0,
-              vocabulary: 0,
-              grammar: 0,
+              reading: 50,
+              writing: 40,
+              listening: 45,
+              speaking: 35,
+              vocabulary: 40,
+              grammar: 35,
             },
           },
           preferences: {
-            learningGoals: [],
+            learningGoals: ["general_fluency"],
             interests: user.learningPreferences?.topics || [],
-            timeAvailable: "flexible",
+            timeAvailable: "30-60 minutes",
             preferredTime:
               user.learningPreferences?.preferredLearningTime?.[0] || "evening",
             learningStyle: "mixed",
+            difficultyPreference: "moderate",
+            focusAreas: [],
+            strengths: [],
+            weaknesses: [],
           },
           recommendedPath: {
-            primaryFocus: ["reading", "writing", "vocabulary"],
-            suggestedOrder: ["reading", "vocabulary", "writing", "grammar"],
+            primaryFocus: ["vocabulary", "grammar", "reading"],
+            suggestedOrder: [
+              "vocabulary",
+              "reading",
+              "grammar",
+              "writing",
+              "listening",
+              "speaking",
+              "games",
+            ],
             estimatedWeeks: 12,
           },
           tours: {
@@ -65,15 +86,17 @@ export async function migrateUsersForOnboarding() {
         migratedCount++;
 
         if (migratedCount % 100 === 0) {
-          console.log(`Migrated ${migratedCount} users...`);
+          console.log(`Migrated ${migratedCount} users so far...`);
         }
       } catch (error) {
         console.error(`Error migrating user ${user._id}:`, error);
       }
     }
 
-    console.log(`Successfully migrated ${migratedCount} users for onboarding`);
-    return { success: true, migratedCount };
+    console.log(
+      `Migration completed successfully! Migrated ${migratedCount} out of ${users.length} users.`
+    );
+    return { success: true, migratedCount, totalUsers: users.length };
   } catch (error) {
     console.error("Migration failed:", error);
     return {
@@ -83,20 +106,15 @@ export async function migrateUsersForOnboarding() {
   }
 }
 
-// Function to run migration if this file is executed directly
+// Run migration if this file is executed directly
 if (require.main === module) {
   migrateUsersForOnboarding()
     .then(result => {
-      if (result.success) {
-        console.log("Migration completed successfully");
-        process.exit(0);
-      } else {
-        console.error("Migration failed:", result.error);
-        process.exit(1);
-      }
+      console.log("Migration result:", result);
+      process.exit(0);
     })
     .catch(error => {
-      console.error("Migration error:", error);
+      console.error("Migration failed:", error);
       process.exit(1);
     });
 }

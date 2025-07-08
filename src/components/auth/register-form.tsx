@@ -120,17 +120,21 @@ export function RegisterForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel className="text-white font-medium">Name</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your name" {...field} />
+                <Input
+                  placeholder="Enter your name"
+                  {...field}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20"
+                />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-red-300" />
             </FormItem>
           )}
         />
@@ -139,11 +143,16 @@ export function RegisterForm() {
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-white font-medium">Email</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your email" type="email" {...field} />
+                <Input
+                  placeholder="Enter your email"
+                  type="email"
+                  {...field}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20"
+                />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-red-300" />
             </FormItem>
           )}
         />
@@ -152,19 +161,20 @@ export function RegisterForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel className="text-white font-medium">Password</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     placeholder="Create a password"
                     type={showPassword ? "text" : "password"}
                     {...field}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20 pr-12"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
+                    className="absolute right-0 top-0 h-full px-3 py-2 text-white/60 hover:text-white hover:bg-white/10"
                     onClick={togglePasswordVisibility}
                     tabIndex={-1}
                   >
@@ -179,7 +189,7 @@ export function RegisterForm() {
                   </Button>
                 </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-red-300" />
             </FormItem>
           )}
         />
@@ -188,19 +198,22 @@ export function RegisterForm() {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm Password</FormLabel>
+              <FormLabel className="text-white font-medium">
+                Confirm Password
+              </FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     placeholder="Confirm your password"
                     type={showConfirmPassword ? "text" : "password"}
                     {...field}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20 pr-12"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
+                    className="absolute right-0 top-0 h-full px-3 py-2 text-white/60 hover:text-white hover:bg-white/10"
                     onClick={toggleConfirmPasswordVisibility}
                     tabIndex={-1}
                   >
@@ -215,7 +228,7 @@ export function RegisterForm() {
                   </Button>
                 </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-red-300" />
             </FormItem>
           )}
         />
@@ -224,21 +237,28 @@ export function RegisterForm() {
           name="schoolCode"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>School Registration Code *</FormLabel>
+              <FormLabel className="text-white font-medium">
+                School Registration Code *
+              </FormLabel>
               <FormControl>
                 <Input
                   placeholder="Enter your school registration code"
                   {...field}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20"
                 />
               </FormControl>
-              <FormDescription>
+              <FormDescription className="text-white/60">
                 Enter the 6-digit code provided by your school
               </FormDescription>
-              <FormMessage />
+              <FormMessage className="text-red-300" />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+          disabled={isLoading}
+        >
           {isLoading ? "Creating account..." : "Create account"}
         </Button>
       </form>

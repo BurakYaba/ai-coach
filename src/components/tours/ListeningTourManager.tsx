@@ -20,14 +20,15 @@ export default function ListeningTourManager() {
 
   const checkTourStatus = async () => {
     try {
-      // Small delay to ensure page is fully loaded
+      // Wait for page elements to load
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Check if essential listening elements are loaded
+      // Check if essential listening page elements are loaded
       const waitForListeningElements = () => {
         const essentialElements = [
-          '[data-tour="listening-header"]',
-          '[data-tour="listening-tabs"]',
+          '[data-tour="listening-sessions"]',
+          '[data-tour="create-session"]',
+          '[data-tour="stats-overview"]',
         ];
 
         return essentialElements.every(
@@ -35,7 +36,7 @@ export default function ListeningTourManager() {
         );
       };
 
-      // Wait up to 5 seconds for essential elements
+      // Wait up to 5 seconds for elements to load
       let attempts = 0;
       while (!waitForListeningElements() && attempts < 50) {
         await new Promise(resolve => setTimeout(resolve, 100));
@@ -43,7 +44,7 @@ export default function ListeningTourManager() {
       }
 
       if (!waitForListeningElements()) {
-        console.warn("Listening elements not fully loaded, skipping tour");
+        console.warn("Listening page elements not fully loaded, skipping tour");
         setLoading(false);
         return;
       }
@@ -53,24 +54,22 @@ export default function ListeningTourManager() {
         const data = await response.json();
         const onboarding = data.onboarding;
 
-        // Check if user has completed onboarding and not completed listening tour
-        const hasCompletedOnboarding = onboarding?.completed || false;
+        // Check tour completion status
         const tours = onboarding?.tours || { completed: [], skipped: [] };
         const hasCompletedListeningTour = tours.completed.includes("listening");
         const hasSkippedListeningTour = tours.skipped.includes("listening");
 
         setTourCompleted(hasCompletedListeningTour || hasSkippedListeningTour);
 
-        // Show tour only if onboarding is completed and tour hasn't been completed/skipped
-        if (
-          hasCompletedOnboarding &&
-          !hasCompletedListeningTour &&
-          !hasSkippedListeningTour
-        ) {
-          setShowTour(true);
+        // Show tour if it hasn't been completed or skipped
+        if (!hasCompletedListeningTour && !hasSkippedListeningTour) {
+          // Additional delay to ensure everything is settled
+          setTimeout(() => {
+            setShowTour(true);
+          }, 500);
         }
       } else {
-        console.warn("Failed to fetch onboarding progress, skipping tour");
+        console.warn("Failed to fetch tour status, skipping listening tour");
       }
     } catch (error) {
       console.error("Failed to check listening tour status:", error);

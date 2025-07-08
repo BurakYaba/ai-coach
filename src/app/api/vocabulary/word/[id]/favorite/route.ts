@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import mongoose from 'mongoose';
-import { VocabularyBank } from '@/models/VocabularyBank';
-import memoryCache from '@/lib/cache';
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import mongoose from "mongoose";
+import { VocabularyBank } from "@/models/VocabularyBank";
+import memoryCache from "@/lib/cache";
 
 // POST /api/vocabulary/word/[id]/favorite - Toggle favorite status of a word
 export async function POST(
@@ -12,7 +12,7 @@ export async function POST(
 ) {
   try {
     console.log(
-      'Processing POST request to toggle favorite status for word ID:',
+      "Processing POST request to toggle favorite status for word ID:",
       params.id
     );
 
@@ -20,22 +20,22 @@ export async function POST(
     const session = await getServerSession(authOptions);
 
     if (!session || !session.user) {
-      console.log('Unauthorized: No valid session found');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.log("Unauthorized: No valid session found");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get the user ID
     const userId = session.user.id;
     if (!userId) {
-      console.log('Unauthorized: No user ID in session');
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      console.log("Unauthorized: No user ID in session");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Validate the word ID
     if (!mongoose.isValidObjectId(params.id)) {
-      console.log('Invalid word ID format:', params.id);
+      console.log("Invalid word ID format:", params.id);
       return NextResponse.json(
-        { error: 'Invalid word ID format' },
+        { error: "Invalid word ID format" },
         { status: 400 }
       );
     }
@@ -48,7 +48,7 @@ export async function POST(
 
     if (!vocabBank) {
       return NextResponse.json(
-        { error: 'Vocabulary bank not found' },
+        { error: "Vocabulary bank not found" },
         { status: 404 }
       );
     }
@@ -59,7 +59,7 @@ export async function POST(
     );
 
     if (wordIndex === -1) {
-      return NextResponse.json({ error: 'Word not found' }, { status: 404 });
+      return NextResponse.json({ error: "Word not found" }, { status: 404 });
     }
 
     // Get the current word
@@ -67,11 +67,11 @@ export async function POST(
 
     // Toggle the favorite status
     const tags = word.tags || [];
-    const favoriteIndex = tags.indexOf('favorite');
+    const favoriteIndex = tags.indexOf("favorite");
 
     if (favoriteIndex === -1) {
       // Add favorite tag
-      tags.push('favorite');
+      tags.push("favorite");
       console.log(`Adding 'favorite' tag to word: ${word.word}`);
     } else {
       // Remove favorite tag
@@ -99,11 +99,11 @@ export async function POST(
       // Return the updated word
       return NextResponse.json(vocabBank.words[wordIndex]);
     } catch (saveError: any) {
-      console.error('Error saving vocabulary bank:', saveError);
+      console.error("Error saving vocabulary bank:", saveError);
 
-      if (saveError.name === 'ValidationError') {
+      if (saveError.name === "ValidationError") {
         return NextResponse.json(
-          { error: 'Validation error: ' + saveError.message },
+          { error: "Validation error: " + saveError.message },
           { status: 400 }
         );
       }
@@ -111,14 +111,14 @@ export async function POST(
       throw saveError;
     }
   } catch (error) {
-    console.error('Error toggling favorite status:', error);
+    console.error("Error toggling favorite status:", error);
 
-    let errorMessage = 'Internal server error';
-    let statusCode = 500;
+    let errorMessage = "Internal server error";
+    const statusCode = 500;
 
     if (error instanceof Error) {
       errorMessage = error.message;
-      console.error('Error stack:', error.stack);
+      console.error("Error stack:", error.stack);
     }
 
     return NextResponse.json({ error: errorMessage }, { status: statusCode });

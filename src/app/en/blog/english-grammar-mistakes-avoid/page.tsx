@@ -433,7 +433,7 @@ export default function BlogPost() {
                   Start Grammar Practice
                 </Button>
               </Link>
-              <Link href="/blog/ai-english-grammar-checker">
+              <Link href="/en/blog/ai-english-grammar-checker">
                 <Button variant="outline" size="lg" className="text-lg px-8">
                   Compare Grammar Tools
                 </Button>
@@ -449,7 +449,7 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/ai-english-grammar-checker"
+                      href="/en/blog/ai-english-grammar-checker"
                       className="hover:text-primary"
                     >
                       AI English Grammar Checker: Top 8 Tools Compared
@@ -465,7 +465,7 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/vocabulary-building-strategies-2025"
+                      href="/en/blog/vocabulary-building-strategies-2025"
                       className="hover:text-primary"
                     >
                       Advanced Vocabulary Building Strategies for 2025
@@ -481,7 +481,7 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/5-ai-tools-improve-english-2025"
+                      href="/en/blog/5-ai-tools-improve-english-2025"
                       className="hover:text-primary"
                     >
                       5 AI Tools to Improve Your English in 2025

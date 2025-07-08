@@ -227,6 +227,7 @@ export function LoginForm() {
           const userData = await userResponse.json();
           const userRole = userData.user?.role;
           const hasBranch = !!userData.user?.branch;
+          const onboardingCompleted = sessionData?.user?.onboardingCompleted;
 
           // Show success toast
           toast({
@@ -235,6 +236,12 @@ export function LoginForm() {
               ? "Login successful! Your credentials have been saved securely."
               : "Login successful!",
           });
+
+          // Check if user needs to complete onboarding
+          if (!onboardingCompleted && userRole === "user") {
+            router.push("/onboarding");
+            return;
+          }
 
           // If user is a school_admin and has a branch, redirect to school-admin dashboard
           if (userRole === "school_admin" && hasBranch) {
@@ -297,25 +304,31 @@ export function LoginForm() {
   return (
     <Form {...form}>
       {subscriptionError && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Subscription Required</AlertTitle>
-          <AlertDescription>{subscriptionError}</AlertDescription>
+        <Alert className="mb-6 bg-red-500/20 border-red-400/30">
+          <AlertCircle className="h-4 w-4 text-red-300" />
+          <AlertTitle className="text-red-200">
+            Subscription Required
+          </AlertTitle>
+          <AlertDescription className="text-red-100">
+            {subscriptionError}
+          </AlertDescription>
         </Alert>
       )}
 
       {emailVerificationError && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Email Verification Required</AlertTitle>
-          <AlertDescription className="space-y-2">
+        <Alert className="mb-6 bg-red-500/20 border-red-400/30">
+          <AlertCircle className="h-4 w-4 text-red-300" />
+          <AlertTitle className="text-red-200">
+            Email Verification Required
+          </AlertTitle>
+          <AlertDescription className="space-y-2 text-red-100">
             <p>{emailVerificationError}</p>
             <Button
               variant="outline"
               size="sm"
               onClick={handleResendVerification}
               disabled={isResendingVerification}
-              className="mt-2"
+              className="mt-3 bg-white/10 hover:bg-white/20 text-white border-white/30 font-medium"
             >
               {isResendingVerification
                 ? "Sending..."
@@ -327,12 +340,12 @@ export function LoginForm() {
 
       {/* Concurrent Login Error Alert */}
       {concurrentLoginError && (
-        <Alert variant="destructive" className="mb-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle className="text-red-600 font-semibold text-center justify-self-center">
+        <Alert className="mb-6 bg-red-500/20 border-red-400/30">
+          <AlertCircle className="h-4 w-4 text-red-300" />
+          <AlertTitle className="text-red-200 font-semibold text-center">
             Account Already in Use
           </AlertTitle>
-          <AlertDescription className="mt-2 text-center justify-self-center">
+          <AlertDescription className="mt-2 text-center text-red-100">
             <div className="text-center">{concurrentLoginError}</div>
             <div className="flex justify-center mt-4">
               <div className="flex flex-col sm:flex-row gap-3">
@@ -340,7 +353,7 @@ export function LoginForm() {
                   variant="secondary"
                   size="sm"
                   onClick={() => setConcurrentLoginError(null)}
-                  className="w-32 bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300"
+                  className="w-32 bg-white/10 hover:bg-white/20 text-white border border-white/30"
                 >
                   Dismiss
                 </Button>
@@ -387,6 +400,14 @@ export function LoginForm() {
                             const userData = await userResponse.json();
                             const userRole = userData.user?.role;
                             const hasBranch = !!userData.user?.branch;
+                            const onboardingCompleted =
+                              sessionData?.user?.onboardingCompleted;
+
+                            // Check if user needs to complete onboarding
+                            if (!onboardingCompleted && userRole === "user") {
+                              router.push("/onboarding");
+                              return;
+                            }
 
                             if (userRole === "school_admin" && hasBranch) {
                               router.push("/school-admin");
@@ -422,7 +443,7 @@ export function LoginForm() {
                     }
                   }}
                   disabled={isLoading}
-                  className="w-32 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm"
+                  className="w-32 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg"
                 >
                   {isLoading ? "Forcing Login..." : "Force Login"}
                 </Button>
@@ -432,17 +453,22 @@ export function LoginForm() {
         </Alert>
       )}
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel className="text-white font-medium">Email</FormLabel>
               <FormControl>
-                <Input placeholder="Enter your email" type="email" {...field} />
+                <Input
+                  placeholder="Enter your email"
+                  type="email"
+                  {...field}
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20"
+                />
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-red-300" />
             </FormItem>
           )}
         />
@@ -451,19 +477,20 @@ export function LoginForm() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel className="text-white font-medium">Password</FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     placeholder="Enter your password"
                     type={showPassword ? "text" : "password"}
                     {...field}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20 pr-12"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
+                    className="absolute right-0 top-0 h-full px-3 py-2 text-white/60 hover:text-white hover:bg-white/10"
                     onClick={togglePasswordVisibility}
                     tabIndex={-1}
                   >
@@ -478,7 +505,7 @@ export function LoginForm() {
                   </Button>
                 </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-red-300" />
             </FormItem>
           )}
         />
@@ -492,13 +519,14 @@ export function LoginForm() {
                 <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  className="border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
-                <FormLabel className="text-sm font-normal cursor-pointer">
+                <FormLabel className="text-sm font-normal cursor-pointer text-white">
                   Remember me on this device
                 </FormLabel>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-white/60">
                   Your login credentials will be saved securely for faster
                   access
                 </p>
@@ -507,7 +535,11 @@ export function LoginForm() {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+          disabled={isLoading}
+        >
           {isLoading ? "Logging in..." : "Login"}
         </Button>
 
@@ -518,7 +550,7 @@ export function LoginForm() {
               variant="ghost"
               size="sm"
               onClick={clearSavedCredentials}
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-xs text-white/60 hover:text-white hover:bg-white/10"
             >
               Clear saved credentials
             </Button>

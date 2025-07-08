@@ -650,7 +650,7 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/english-pronunciation-practice-online"
+                      href="/en/blog/english-pronunciation-practice-online"
                       className="hover:text-primary"
                     >
                       English Pronunciation Practice Online: Best Tools 2025
@@ -666,7 +666,7 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/ai-english-grammar-checker"
+                      href="/en/blog/ai-english-grammar-checker"
                       className="hover:text-primary"
                     >
                       AI English Grammar Checker: Top 8 Tools Compared
@@ -682,7 +682,7 @@ export default function BlogPost() {
                 <CardContent className="p-4">
                   <h3 className="font-semibold mb-2">
                     <Link
-                      href="/blog/english-conversation-practice-app"
+                      href="/en/blog/english-conversation-practice-app"
                       className="hover:text-primary"
                     >
                       Best English Conversation Practice Apps 2025

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
-import { MainNav } from "@/components/navigation/main-nav";
+
 import FooterTr from "@/components/layout/FooterTr";
 import { ArrowLeft } from "lucide-react";
 import { ExpiredUserAlert } from "@/components/pricing/expired-user-alert";

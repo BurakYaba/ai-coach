@@ -3,14 +3,6 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { ResetPasswordForm } from "@/components/auth/reset-password-form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Reset Password - Fluenta",
@@ -19,28 +11,39 @@ export const metadata: Metadata = {
 
 export default function ResetPasswordPage() {
   return (
-    <Card className="w-full">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-center">
-          Reset your password
-        </CardTitle>
-        <CardDescription className="text-center">
-          Enter your new password below
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Suspense fallback={<div>Loading...</div>}>
+    <div className="w-full">
+      {/* Header Section */}
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-white mb-3">
+          Reset Your{" "}
+          <span className="bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+            Password
+          </span>
+        </h2>
+        <p className="text-white/80 text-lg">Enter your new password below</p>
+      </div>
+
+      {/* Reset Password Form */}
+      <div className="mb-8">
+        <Suspense
+          fallback={<div className="text-white/70 text-center">Loading...</div>}
+        >
           <ResetPasswordForm />
         </Suspense>
-      </CardContent>
-      <CardFooter className="flex justify-center">
-        <div className="text-sm text-muted-foreground">
+      </div>
+
+      {/* Footer Link */}
+      <div className="text-center">
+        <div className="text-white/70">
           Remember your password?{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link
+            href="/login"
+            className="text-blue-300 hover:text-blue-200 font-medium hover:underline transition-colors"
+          >
             Sign in
           </Link>
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

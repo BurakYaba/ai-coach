@@ -3,7 +3,6 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 import { NewReadingSession } from "@/components/reading/NewReadingSession";
-import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "New Reading Session - Fluenta",

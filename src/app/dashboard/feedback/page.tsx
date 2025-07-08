@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, MessageSquare, Plus } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { FeedbackHistory } from "@/components/feedback/FeedbackHistory";

@@ -1,6 +1,5 @@
-import { AlertCircle, Volume2, BookOpen } from "lucide-react";
+import { AlertCircle, Volume2 } from "lucide-react";
 import { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { Suspense } from "react";
@@ -12,7 +11,7 @@ import {
   SessionSkeleton,
 } from "@/components/listening/SessionList";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { authOptions } from "@/lib/auth";

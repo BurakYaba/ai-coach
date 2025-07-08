@@ -1,8 +1,5 @@
 import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
-
-import { DashboardNav } from "@/components/dashboard/nav";
-import { UserNav } from "@/components/dashboard/user-nav";
 import NotificationManager from "@/components/notifications/NotificationManager";
 import { SubscriptionRefreshHandler } from "@/components/payments/subscription-refresh-handler";
 import SessionMonitor from "@/components/session/SessionMonitor";

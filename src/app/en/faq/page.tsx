@@ -1,25 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GradientCard } from "@/components/ui/gradient-card";
+import { Card, CardContent } from "@/components/ui/card";
+
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import {
-  ChevronRight,
-  Search,
-  MessageCircle,
-  Mail,
-  Phone,
-  Clock,
-  CheckCircle,
-} from "lucide-react";
+
 import { MainNav } from "@/components/navigation/main-nav";
 import PopularResourcesEn from "@/components/layout/PopularResourcesEn";
 import FooterEn from "@/components/layout/FooterEn";

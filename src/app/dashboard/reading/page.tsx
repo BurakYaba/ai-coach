@@ -11,10 +11,9 @@ import { ReadingSessionList } from "@/components/reading/ReadingSessionList";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ModuleTour from "@/components/tours/ModuleTour";
+import ReadingTour from "@/components/tours/ReadingTour";
 import { TakeTourButton } from "@/components/tours/TakeTourButton";
 import { useTour } from "@/hooks/useTour";
-import { tourSteps } from "@/data/tourSteps";
 
 // Add dynamic = 'force-dynamic' to ensure page is not statically cached
 export const dynamic = "force-dynamic";
@@ -195,9 +194,7 @@ export default function ReadingPage() {
         </Tabs>
 
         {/* Module Tour */}
-        <ModuleTour
-          module="reading"
-          steps={tourSteps.reading}
+        <ReadingTour
           isOpen={isOpen}
           onClose={closeTour}
           onComplete={completeTour}

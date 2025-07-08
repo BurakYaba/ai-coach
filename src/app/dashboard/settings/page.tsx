@@ -11,6 +11,11 @@ import {
   Bell,
   Settings as SettingsIcon,
   ArrowLeft,
+  Calendar,
+  Clock,
+  Target,
+  Mail,
+  Smartphone,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
@@ -54,6 +59,11 @@ const settingsFormSchema = z.object({
   emailNotifications: z.boolean().default(true),
   progressReminders: z.boolean().default(true),
   theme: z.enum(["light", "dark", "system"]).default("system"),
+  weeklyProgressReport: z.boolean().default(true),
+  achievementNotifications: z.boolean().default(true),
+  streakReminders: z.boolean().default(true),
+  studyReminders: z.boolean().default(true),
+  reminderTiming: z.enum(["15", "30", "60", "120"]).default("30"),
 });
 
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
@@ -91,12 +101,20 @@ export default function SettingsPage() {
   const [notificationPermissionRequested, setNotificationPermissionRequested] =
     useState(false);
 
+  // Add state for user's onboarding data
+  const [userOnboardingData, setUserOnboardingData] = useState<any>(null);
+
   const settingsForm = useForm<SettingsFormValues>({
     resolver: zodResolver(settingsFormSchema),
     defaultValues: {
       emailNotifications: true,
       progressReminders: true,
       theme: "system",
+      weeklyProgressReport: true,
+      achievementNotifications: true,
+      streakReminders: true,
+      studyReminders: true,
+      reminderTiming: "30",
     },
   });
 
@@ -121,17 +139,32 @@ export default function SettingsPage() {
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch("/api/user/settings");
-        if (!response.ok) {
+        // Fetch settings
+        const settingsResponse = await fetch("/api/user/settings");
+        if (!settingsResponse.ok) {
           throw new Error("Failed to fetch settings");
         }
-        const data = await response.json();
+        const settingsData = await settingsResponse.json();
+
+        // Fetch user profile for onboarding data
+        const profileResponse = await fetch("/api/user/profile");
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json();
+          setUserOnboardingData(profileData.user.onboarding);
+        }
 
         // Set form values
         settingsForm.reset({
-          emailNotifications: data.settings.emailNotifications,
-          progressReminders: data.settings.progressReminders,
-          theme: data.settings.theme,
+          emailNotifications: settingsData.settings.emailNotifications,
+          progressReminders: settingsData.settings.progressReminders,
+          theme: settingsData.settings.theme,
+          weeklyProgressReport:
+            settingsData.settings.weeklyProgressReport ?? true,
+          achievementNotifications:
+            settingsData.settings.achievementNotifications ?? true,
+          streakReminders: settingsData.settings.streakReminders ?? true,
+          studyReminders: settingsData.settings.studyReminders ?? true,
+          reminderTiming: settingsData.settings.reminderTiming ?? "30",
         });
       } catch (err) {
         console.error("Error fetching settings:", err);
@@ -251,6 +284,23 @@ export default function SettingsPage() {
     }
   };
 
+  // Add helper function to format learning schedule
+  const formatLearningSchedule = () => {
+    if (!userOnboardingData) return null;
+
+    const days = userOnboardingData.preferredLearningDays || [];
+    const time = userOnboardingData.preferredPracticeTime || "";
+    const dailyGoal = userOnboardingData.dailyStudyTimeGoal || 30;
+
+    return {
+      days: days
+        .map((day: string) => day.charAt(0).toUpperCase() + day.slice(1))
+        .join(", "),
+      time: time.charAt(0).toUpperCase() + time.slice(1),
+      dailyGoal,
+    };
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -295,13 +345,20 @@ export default function SettingsPage() {
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-white shadow-sm">
+          <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm">
             <TabsTrigger
               value="general"
               className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
             >
               <SettingsIcon className="w-4 h-4" />
               <span className="hidden sm:inline">General</span>
+            </TabsTrigger>
+            <TabsTrigger
+              value="notifications"
+              className="flex items-center gap-2 data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700"
+            >
+              <Bell className="w-4 h-4" />
+              <span className="hidden sm:inline">Notifications</span>
             </TabsTrigger>
             <TabsTrigger
               value="password"
@@ -313,6 +370,181 @@ export default function SettingsPage() {
           </TabsList>
 
           <TabsContent value="general" className="space-y-6">
+            {settingsError && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{settingsError}</AlertDescription>
+              </Alert>
+            )}
+
+            {settingsSuccess && (
+              <Alert className="bg-green-50 text-green-800 border border-green-200">
+                <CheckCircle className="h-4 w-4" />
+                <AlertTitle>Success</AlertTitle>
+                <AlertDescription>{settingsSuccess}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Learning Schedule Overview Card */}
+            {userOnboardingData && (
+              <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+                <CardHeader>
+                  <div className="flex items-center gap-4">
+                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+                      <Calendar className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-xl text-gray-800">
+                        Your Learning Schedule
+                      </CardTitle>
+                      <CardDescription className="text-gray-600">
+                        Current study preferences and goals
+                      </CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calendar className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium text-blue-800">
+                          Study Days
+                        </span>
+                      </div>
+                      <p className="text-sm text-blue-700">
+                        {formatLearningSchedule()?.days || "Not set"}
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Clock className="h-5 w-5 text-green-600" />
+                        <span className="font-medium text-green-800">
+                          Preferred Time
+                        </span>
+                      </div>
+                      <p className="text-sm text-green-700">
+                        {formatLearningSchedule()?.time || "Not set"}
+                      </p>
+                    </div>
+
+                    <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Target className="h-5 w-5 text-orange-600" />
+                        <span className="font-medium text-orange-800">
+                          Daily Goal
+                        </span>
+                      </div>
+                      <p className="text-sm text-orange-700">
+                        {formatLearningSchedule()?.dailyGoal || 30} minutes
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600">
+                      💡 Want to change your schedule? Update your preferences
+                      in your{" "}
+                      <a
+                        href="/dashboard/profile"
+                        className="text-blue-600 hover:underline"
+                      >
+                        profile settings
+                      </a>
+                      .
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Theme Settings Card */}
+            <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardHeader>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+                    <SettingsIcon className="h-8 w-8 text-purple-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl text-gray-800">
+                      Appearance
+                    </CardTitle>
+                    <CardDescription className="text-gray-600">
+                      Customize your app appearance
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Form {...settingsForm}>
+                  <form
+                    onSubmit={settingsForm.handleSubmit(onSubmitSettings)}
+                    className="space-y-6"
+                  >
+                    <FormField
+                      control={settingsForm.control}
+                      name="theme"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel className="text-gray-700 font-medium">
+                            Theme
+                          </FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="border-2 border-gray-300 focus:border-purple-500">
+                                <SelectValue placeholder="Select theme" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="light">
+                                <div className="flex items-center gap-2">
+                                  <Sun className="h-4 w-4" />
+                                  <span>Light</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="dark">
+                                <div className="flex items-center gap-2">
+                                  <Moon className="h-4 w-4" />
+                                  <span>Dark</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="system">
+                                <div className="flex items-center gap-2">
+                                  <Laptop className="h-4 w-4" />
+                                  <span>System</span>
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormDescription className="text-gray-600">
+                            Select your preferred theme for the application
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <div className="flex justify-end pt-4">
+                      <Button
+                        type="submit"
+                        disabled={savingSettings}
+                        className="bg-purple-500 hover:bg-purple-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                      >
+                        {savingSettings ? "Saving..." : "Save Settings"}
+                      </Button>
+                    </div>
+                  </form>
+                </Form>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-6">
             {settingsError && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
@@ -401,19 +633,19 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Preferences Card */}
+            {/* Enhanced Notification Preferences Card */}
             <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader>
                 <div className="flex items-center gap-4">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
-                    <SettingsIcon className="h-8 w-8 text-blue-600" />
+                    <Bell className="h-8 w-8 text-blue-600" />
                   </div>
                   <div>
                     <CardTitle className="text-xl text-gray-800">
-                      Preferences
+                      Notification Preferences
                     </CardTitle>
                     <CardDescription className="text-gray-600">
-                      Manage your notification and theme preferences
+                      Configure when and how you receive notifications
                     </CardDescription>
                   </div>
                 </div>
@@ -424,112 +656,153 @@ export default function SettingsPage() {
                     onSubmit={settingsForm.handleSubmit(onSubmitSettings)}
                     className="space-y-6"
                   >
-                    <FormField
-                      control={settingsForm.control}
-                      name="progressReminders"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border-2 border-gray-200 p-4 hover:border-blue-300 transition-colors">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel className="text-gray-700 font-medium">
-                              Progress Reminders
-                            </FormLabel>
-                            <FormDescription className="text-gray-600">
-                              Receive browser notifications at your preferred
-                              learning times to help maintain your daily study
-                              streak
-                            </FormDescription>
-                            {field.value &&
-                              isSupported &&
-                              permissionState !== "granted" && (
-                                <p className="text-sm text-amber-600 mt-2 p-2 bg-amber-50 rounded border border-amber-200">
-                                  You need to allow browser notifications for
-                                  reminders to work
-                                </p>
-                              )}
-                          </div>
-                        </FormItem>
-                      )}
-                    />
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-gray-800">
+                        Study Reminders
+                      </h4>
 
-                    <FormField
-                      control={settingsForm.control}
-                      name="emailNotifications"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border-2 border-gray-200 p-4 hover:border-blue-300 transition-colors">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel className="text-gray-700 font-medium">
-                              Weekly Progress Report
-                            </FormLabel>
-                            <FormDescription className="text-gray-600">
-                              Receive a weekly email summarizing your learning
-                              progress and achievements
-                            </FormDescription>
-                            <p className="text-sm text-amber-600 mt-2 p-2 bg-amber-50 rounded border border-amber-200">
-                              Coming soon! Email reporting feature is currently
-                              under development.
-                            </p>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={settingsForm.control}
-                      name="theme"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormLabel className="text-gray-700 font-medium">
-                            Theme
-                          </FormLabel>
-                          <Select
-                            onValueChange={field.onChange}
-                            defaultValue={field.value}
-                          >
+                      <FormField
+                        control={settingsForm.control}
+                        name="studyReminders"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border-2 border-gray-200 p-4 hover:border-blue-300 transition-colors">
                             <FormControl>
-                              <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500">
-                                <SelectValue placeholder="Select theme" />
-                              </SelectTrigger>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="light">
-                                <div className="flex items-center gap-2">
-                                  <Sun className="h-4 w-4" />
-                                  <span>Light</span>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="dark">
-                                <div className="flex items-center gap-2">
-                                  <Moon className="h-4 w-4" />
-                                  <span>Dark</span>
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="system">
-                                <div className="flex items-center gap-2">
-                                  <Laptop className="h-4 w-4" />
-                                  <span>System</span>
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription className="text-gray-600">
-                            Select your preferred theme for the application
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-gray-700 font-medium">
+                                Daily Study Reminders
+                              </FormLabel>
+                              <FormDescription className="text-gray-600">
+                                Get notified when it's time for your daily study
+                                session based on your preferred schedule
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={settingsForm.control}
+                        name="reminderTiming"
+                        render={({ field }) => (
+                          <FormItem className="ml-6">
+                            <FormLabel className="text-gray-700 font-medium">
+                              Reminder Timing
+                            </FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              value={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500">
+                                  <SelectValue placeholder="Select timing" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                <SelectItem value="15">
+                                  15 minutes before
+                                </SelectItem>
+                                <SelectItem value="30">
+                                  30 minutes before
+                                </SelectItem>
+                                <SelectItem value="60">
+                                  1 hour before
+                                </SelectItem>
+                                <SelectItem value="120">
+                                  2 hours before
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <FormDescription className="text-gray-600">
+                              How early should we remind you before your
+                              preferred study time?
+                            </FormDescription>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={settingsForm.control}
+                        name="streakReminders"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border-2 border-gray-200 p-4 hover:border-blue-300 transition-colors">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-gray-700 font-medium">
+                                Streak Reminders
+                              </FormLabel>
+                              <FormDescription className="text-gray-600">
+                                Get reminded when your learning streak is at
+                                risk of breaking
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-gray-800">
+                        Progress & Achievement Notifications
+                      </h4>
+
+                      <FormField
+                        control={settingsForm.control}
+                        name="achievementNotifications"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border-2 border-gray-200 p-4 hover:border-blue-300 transition-colors">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-gray-700 font-medium">
+                                Achievement Notifications
+                              </FormLabel>
+                              <FormDescription className="text-gray-600">
+                                Get notified when you unlock new achievements,
+                                badges, or level up
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={settingsForm.control}
+                        name="weeklyProgressReport"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-lg border-2 border-gray-200 p-4 hover:border-blue-300 transition-colors">
+                            <FormControl>
+                              <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-gray-700 font-medium">
+                                Weekly Progress Report
+                              </FormLabel>
+                              <FormDescription className="text-gray-600">
+                                Receive a weekly summary of your learning
+                                progress and achievements via email
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
                     <div className="flex justify-end pt-4">
                       <Button
@@ -537,7 +810,9 @@ export default function SettingsPage() {
                         disabled={savingSettings}
                         className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
                       >
-                        {savingSettings ? "Saving..." : "Save Settings"}
+                        {savingSettings
+                          ? "Saving..."
+                          : "Save Notification Settings"}
                       </Button>
                     </div>
                   </form>

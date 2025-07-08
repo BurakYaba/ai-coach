@@ -3,14 +3,6 @@ import type { Metadata } from "next";
 
 import { RegisterForm } from "@/components/auth/register-form";
 import { IndividualRegisterForm } from "@/components/auth/individual-register-form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Props {
@@ -56,8 +48,9 @@ export default function RegisterPage({ searchParams }: Props) {
   const plan = searchParams.plan;
 
   return (
-    <Card className="w-full">
-      <CardHeader className="space-y-1">
+    <div className="w-full">
+      {/* Header Section */}
+      <div className="text-center mb-8">
         <h1 className="sr-only">
           {plan === "monthly"
             ? "Sign Up for Monthly Plan - Fluenta AI English Learning"
@@ -65,30 +58,61 @@ export default function RegisterPage({ searchParams }: Props) {
               ? "Sign Up for Annual Plan - Fluenta AI English Learning"
               : "Create Your Fluenta Account - AI English Learning Platform"}
         </h1>
-        <CardTitle className="text-2xl text-center">
-          {plan === "monthly"
-            ? "Join Fluenta Monthly Plan"
-            : plan === "annual"
-              ? "Join Fluenta Annual Plan"
-              : "Join Fluenta - Start Your AI English Learning Journey"}
-        </CardTitle>
-        <CardDescription className="text-center">
+        <h2 className="text-3xl font-bold text-white mb-3">
+          {plan === "monthly" ? (
+            <>
+              Join{" "}
+              <span className="bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent">
+                Monthly Plan
+              </span>
+            </>
+          ) : plan === "annual" ? (
+            <>
+              Join{" "}
+              <span className="bg-gradient-to-r from-purple-300 to-indigo-300 bg-clip-text text-transparent">
+                Annual Plan
+              </span>
+            </>
+          ) : (
+            <>
+              Join{" "}
+              <span className="bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+                Fluenta
+              </span>
+            </>
+          )}
+        </h2>
+        <p className="text-white/80 text-lg">
           {plan
             ? `Complete your ${plan} plan registration and start learning`
-            : "Choose your registration type and enter your details"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+            : "Start your AI-powered English learning journey today"}
+        </p>
+      </div>
+
+      {/* Registration Form */}
+      <div className="mb-8">
         <Tabs defaultValue="individual" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="individual">Individual</TabsTrigger>
-            <TabsTrigger value="school">School Student</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-white/10 border border-white/20">
+            <TabsTrigger
+              value="individual"
+              className="data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/70"
+            >
+              Individual
+            </TabsTrigger>
+            <TabsTrigger
+              value="school"
+              className="data-[state=active]:bg-white/20 data-[state=active]:text-white text-white/70"
+            >
+              School Student
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="individual" className="mt-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold">Individual Registration</h3>
-              <p className="text-sm text-muted-foreground">
+            <div className="mb-6 text-center">
+              <h3 className="text-xl font-semibold text-white mb-2">
+                Individual Registration
+              </h3>
+              <p className="text-white/70">
                 Sign up as an individual learner with paid subscription plans
               </p>
             </div>
@@ -96,11 +120,11 @@ export default function RegisterPage({ searchParams }: Props) {
           </TabsContent>
 
           <TabsContent value="school" className="mt-6">
-            <div className="mb-4">
-              <h3 className="text-lg font-semibold">
+            <div className="mb-6 text-center">
+              <h3 className="text-xl font-semibold text-white mb-2">
                 School Student Registration
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-white/70">
                 Sign up with your school registration code provided by your
                 institution
               </p>
@@ -108,15 +132,20 @@ export default function RegisterPage({ searchParams }: Props) {
             <RegisterForm />
           </TabsContent>
         </Tabs>
-      </CardContent>
-      <CardFooter className="flex justify-center">
-        <div className="text-sm text-muted-foreground">
+      </div>
+
+      {/* Footer Link */}
+      <div className="text-center">
+        <div className="text-white/70">
           Already have an account?{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link
+            href="/login"
+            className="text-blue-300 hover:text-blue-200 font-medium hover:underline transition-colors"
+          >
             Sign in
           </Link>
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

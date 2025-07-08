@@ -1,18 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
+
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import {
-  Gamepad2,
-  Trophy,
-  Target,
-  Clock,
-  Star,
-  TrendingUp,
-} from "lucide-react";
+import { Gamepad2, Target, Clock, Star, TrendingUp } from "lucide-react";
 
 import { PlayButton } from "@/components/ui/play-button";
 import { Button } from "@/components/ui/button";
@@ -26,8 +19,6 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/hooks/use-toast";
 
 // Add dynamic = 'force-dynamic' to ensure page is not statically cached
 export const dynamic = "force-dynamic";

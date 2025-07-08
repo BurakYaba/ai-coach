@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import ModuleTour, { TourStep } from "./ModuleTour";
+import { translateTourSteps } from "@/lib/translations";
+import { useNativeLanguage } from "@/hooks/use-native-language";
 
 interface DashboardTourProps {
   isOpen: boolean;
@@ -132,6 +134,10 @@ export default function DashboardTour({
   onComplete,
 }: DashboardTourProps) {
   const [tourKey, setTourKey] = useState(0);
+  const [translatedSteps, setTranslatedSteps] =
+    useState<TourStep[]>(dashboardTourSteps);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const { nativeLanguage } = useNativeLanguage();
 
   // Force tour to re-render when opened to ensure proper positioning
   useEffect(() => {
@@ -139,6 +145,30 @@ export default function DashboardTour({
       setTourKey(prev => prev + 1);
     }
   }, [isOpen]);
+
+  // Translate tour steps based on user's native language
+  useEffect(() => {
+    const translateSteps = async () => {
+      setIsTranslating(true);
+      try {
+        const translated = await translateTourSteps(
+          dashboardTourSteps,
+          nativeLanguage
+        );
+        setTranslatedSteps(translated);
+      } catch (error) {
+        console.error("Failed to translate tour steps:", error);
+        // Fallback to original steps
+        setTranslatedSteps(dashboardTourSteps);
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+
+    if (isOpen) {
+      translateSteps();
+    }
+  }, [isOpen, nativeLanguage]);
 
   const handleTourComplete = async () => {
     try {
@@ -163,11 +193,16 @@ export default function DashboardTour({
     }
   };
 
+  // Don't render if still translating
+  if (isTranslating) {
+    return null;
+  }
+
   return (
     <ModuleTour
       key={tourKey}
       module="dashboard"
-      steps={dashboardTourSteps}
+      steps={translatedSteps}
       isOpen={isOpen}
       onClose={onClose}
       onComplete={handleTourComplete}

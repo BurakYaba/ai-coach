@@ -63,6 +63,46 @@ export async function PUT(request: NextRequest) {
       },
     };
 
+    // Handle onboarding data updates if provided
+    if (data.onboarding) {
+      const onboardingUpdates: any = {};
+
+      // Only update provided onboarding fields
+      if (data.onboarding.nativeLanguage !== undefined) {
+        onboardingUpdates["onboarding.nativeLanguage"] =
+          data.onboarding.nativeLanguage;
+      }
+      if (data.onboarding.country !== undefined) {
+        onboardingUpdates["onboarding.country"] = data.onboarding.country;
+      }
+      if (data.onboarding.region !== undefined) {
+        onboardingUpdates["onboarding.region"] = data.onboarding.region;
+      }
+      if (data.onboarding.preferredPracticeTime !== undefined) {
+        onboardingUpdates["onboarding.preferredPracticeTime"] =
+          data.onboarding.preferredPracticeTime;
+      }
+      if (data.onboarding.preferredLearningDays !== undefined) {
+        onboardingUpdates["onboarding.preferredLearningDays"] =
+          data.onboarding.preferredLearningDays;
+      }
+      if (data.onboarding.reasonsForLearning !== undefined) {
+        onboardingUpdates["onboarding.reasonsForLearning"] =
+          data.onboarding.reasonsForLearning;
+      }
+      if (data.onboarding.dailyStudyTimeGoal !== undefined) {
+        onboardingUpdates["onboarding.dailyStudyTimeGoal"] =
+          data.onboarding.dailyStudyTimeGoal;
+      }
+      if (data.onboarding.weeklyStudyTimeGoal !== undefined) {
+        onboardingUpdates["onboarding.weeklyStudyTimeGoal"] =
+          data.onboarding.weeklyStudyTimeGoal;
+      }
+
+      // Merge onboarding updates with allowed updates
+      Object.assign(allowedUpdates, onboardingUpdates);
+    }
+
     // Preserve existing topics if not provided to avoid overwriting them
     if (!data.topics) {
       const existingUser = await User.findById(session.user.id);

@@ -1,381 +1,1147 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+// Removed unused Card imports
 import { Progress } from "@/components/ui/progress";
-import LanguageSelectionStep from "./LanguageSelectionStep";
-import WelcomeStep from "./WelcomeStep";
-import SkillAssessmentStep from "./SkillAssessmentStep";
-import PreferencesStep from "./PreferencesStep";
-import LearningPathStep from "./LearningPathStep";
-import CompletionStep from "./CompletionStep";
-import { useOnboardingTranslations } from "@/lib/onboarding-translations";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { GradientCard } from "@/components/ui/gradient-card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Globe,
+  MapPin,
+  Clock,
+  Target,
+  Users,
+  Trophy,
+  Shield,
+  Languages,
+  Calendar,
+  BookOpen,
+  CheckCircle,
+  ArrowRight,
+  ArrowLeft,
+  Sparkles,
+} from "lucide-react";
 
 interface OnboardingData {
+  completed: boolean;
+  currentStep: number;
   language: "en" | "tr";
-  skillAssessment?: any;
-  learningPreferences?: any;
-  learningPath?: any;
-  onboarding?: any;
+  nativeLanguage: string;
+  country: string;
+  region: string;
+  preferredPracticeTime: string;
+  preferredLearningDays: string[];
+  reasonsForLearning: string[];
+  howHeardAbout: string;
+  dailyStudyTimeGoal: number;
+  weeklyStudyTimeGoal: number;
+  consentDataUsage: boolean;
+  consentAnalytics: boolean;
 }
 
 interface OnboardingFlowProps {
-  onComplete?: () => void;
+  initialData: OnboardingData;
 }
 
-export default function OnboardingFlow({ onComplete }: OnboardingFlowProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [data, setData] = useState<OnboardingData>({ language: "en" });
-  const [loading, setLoading] = useState(true);
-  const [completing, setCompleting] = useState(false);
-  const router = useRouter();
-  const { data: session, update: updateSession } = useSession();
+const LANGUAGES = [
+  { value: "turkish", label: "Turkish" },
+  { value: "english", label: "English" },
+  { value: "german", label: "German" },
+  { value: "french", label: "French" },
+  { value: "spanish", label: "Spanish" },
+  { value: "italian", label: "Italian" },
+  { value: "russian", label: "Russian" },
+  { value: "arabic", label: "Arabic" },
+  { value: "chinese", label: "Chinese" },
+  { value: "japanese", label: "Japanese" },
+  { value: "korean", label: "Korean" },
+  { value: "other", label: "Other (specify)" },
+];
 
-  const steps = [
-    {
-      id: "language",
-      name: "Language Selection",
-      component: LanguageSelectionStep,
-    },
-    { id: "welcome", name: "Welcome", component: WelcomeStep },
-    { id: "assessment", name: "Assessment", component: SkillAssessmentStep },
-    { id: "preferences", name: "Preferences", component: PreferencesStep },
-    { id: "learning-path", name: "Learning Path", component: LearningPathStep },
-    { id: "completion", name: "Completion", component: CompletionStep },
-  ];
+const COUNTRIES = [
+  { value: "turkey", label: "Turkey" },
+  { value: "united_states", label: "United States" },
+  { value: "united_kingdom", label: "United Kingdom" },
+  { value: "germany", label: "Germany" },
+  { value: "france", label: "France" },
+  { value: "spain", label: "Spain" },
+  { value: "italy", label: "Italy" },
+  { value: "canada", label: "Canada" },
+  { value: "australia", label: "Australia" },
+  { value: "other", label: "Other" },
+];
 
-  useEffect(() => {
-    fetchOnboardingProgress();
-  }, []);
+const PRACTICE_TIMES = [
+  { value: "morning", label: "Morning (6 AM - 12 PM)" },
+  { value: "afternoon", label: "Afternoon (12 PM - 6 PM)" },
+  { value: "evening", label: "Evening (6 PM - 12 AM)" },
+  { value: "night", label: "Night (12 AM - 6 AM)" },
+];
 
-  const fetchOnboardingProgress = async () => {
-    try {
-      const response = await fetch("/api/onboarding/progress");
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Fetched onboarding progress:", data);
-        setData(data.onboarding);
-        setCurrentStep(data.onboarding.currentStep || 0);
-      } else {
-        console.error("Failed to fetch onboarding progress:", response.status);
-      }
-    } catch (error) {
-      console.error("Error fetching onboarding progress:", error);
-    } finally {
-      setLoading(false);
+const LEARNING_DAYS = [
+  { value: "monday", label: "Monday" },
+  { value: "tuesday", label: "Tuesday" },
+  { value: "wednesday", label: "Wednesday" },
+  { value: "thursday", label: "Thursday" },
+  { value: "friday", label: "Friday" },
+  { value: "saturday", label: "Saturday" },
+  { value: "sunday", label: "Sunday" },
+];
+
+const REASONS_FOR_LEARNING = [
+  { value: "work", label: "Work/Professional Development", icon: "💼" },
+  { value: "education", label: "Education/Academic", icon: "🎓" },
+  { value: "travel", label: "Travel", icon: "✈️" },
+  { value: "personal", label: "Personal Interest", icon: "💡" },
+  { value: "immigration", label: "Immigration", icon: "🌍" },
+  { value: "social", label: "Social/Communication", icon: "👥" },
+  { value: "other", label: "Other", icon: "📝" },
+];
+
+const HOW_HEARD_ABOUT = [
+  { value: "social_media", label: "Social Media" },
+  { value: "search_engine", label: "Search Engine (Google, Bing, etc.)" },
+  { value: "friend_recommendation", label: "Friend/Family Recommendation" },
+  { value: "advertisement", label: "Advertisement" },
+  { value: "school", label: "School/Institution" },
+  { value: "app_store", label: "App Store" },
+  { value: "blog", label: "Blog/Article" },
+  { value: "other", label: "Other" },
+];
+
+const STUDY_TIME_GOALS = [
+  { value: 15, label: "15 minutes" },
+  { value: 30, label: "30 minutes" },
+  { value: 45, label: "45 minutes" },
+  { value: 60, label: "1 hour" },
+  { value: 90, label: "1.5 hours" },
+  { value: 120, label: "2 hours" },
+];
+
+const STEP_INFO = [
+  {
+    title: "Native Language",
+    description: "Help us personalize your experience",
+    icon: Languages,
+    color: "from-blue-500 to-purple-600",
+  },
+  {
+    title: "Location",
+    description: "Provide region-specific content",
+    icon: MapPin,
+    color: "from-green-500 to-blue-500",
+  },
+  {
+    title: "Schedule",
+    description: "Set your learning routine",
+    icon: Calendar,
+    color: "from-purple-500 to-pink-500",
+  },
+  {
+    title: "Goals",
+    description: "Define your learning objectives",
+    icon: Target,
+    color: "from-orange-500 to-red-500",
+  },
+  {
+    title: "Discovery",
+    description: "How you found us",
+    icon: Users,
+    color: "from-teal-500 to-green-500",
+  },
+  {
+    title: "Study Time",
+    description: "Set your daily goals",
+    icon: Clock,
+    color: "from-indigo-500 to-purple-500",
+  },
+  {
+    title: "Permissions",
+    description: "Privacy and analytics",
+    icon: Shield,
+    color: "from-pink-500 to-rose-500",
+  },
+];
+
+export function OnboardingFlow({ initialData }: OnboardingFlowProps) {
+  const { update } = useSession();
+  const [currentStep, setCurrentStep] = useState(initialData.currentStep);
+  const [isLoading, setIsLoading] = useState(false);
+  const [customLanguage, setCustomLanguage] = useState("");
+  const [formData, setFormData] = useState({
+    nativeLanguage: initialData.nativeLanguage,
+    country: initialData.country,
+    region: initialData.region,
+    preferredPracticeTime: initialData.preferredPracticeTime,
+    preferredLearningDays: initialData.preferredLearningDays,
+    reasonsForLearning: initialData.reasonsForLearning,
+    howHeardAbout: initialData.howHeardAbout,
+    dailyStudyTimeGoal: initialData.dailyStudyTimeGoal || 30,
+    weeklyStudyTimeGoal: initialData.weeklyStudyTimeGoal || 210,
+    consentDataUsage: initialData.consentDataUsage,
+    consentAnalytics: initialData.consentAnalytics,
+  });
+
+  const totalSteps = 7;
+  const progress = (currentStep / totalSteps) * 100;
+
+  const handleNext = async () => {
+    if (currentStep === 1 && !formData.nativeLanguage) {
+      toast({
+        title: "Required Field",
+        description: "Please select your native language.",
+        variant: "destructive",
+      });
+      return;
     }
-  };
 
-  const handleNext = async (stepData?: any) => {
-    setLoading(true);
+    if (
+      currentStep === 1 &&
+      formData.nativeLanguage === "other" &&
+      !customLanguage.trim()
+    ) {
+      toast({
+        title: "Required Field",
+        description: "Please specify your native language.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (currentStep === 2 && (!formData.country || !formData.region)) {
+      toast({
+        title: "Required Fields",
+        description: "Please fill in both country and region.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (
+      currentStep === 3 &&
+      (!formData.preferredPracticeTime ||
+        formData.preferredLearningDays.length === 0)
+    ) {
+      toast({
+        title: "Required Fields",
+        description:
+          "Please select your preferred practice time and at least one learning day.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (currentStep === 4 && formData.reasonsForLearning.length === 0) {
+      toast({
+        title: "Required Field",
+        description: "Please select at least one reason for learning English.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (currentStep === 5 && !formData.howHeardAbout) {
+      toast({
+        title: "Required Field",
+        description: "Please select how you heard about Fluenta AI.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (
+      currentStep === 6 &&
+      (!formData.dailyStudyTimeGoal || !formData.weeklyStudyTimeGoal)
+    ) {
+      toast({
+        title: "Required Fields",
+        description: "Please set your study time goals.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (
+      currentStep === 7 &&
+      (!formData.consentDataUsage || !formData.consentAnalytics)
+    ) {
+      toast({
+        title: "Required Consent",
+        description: "Please accept both consent options to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
 
     try {
-      // Update data with new step data
-      const updatedData = { ...data, ...stepData };
-      setData(updatedData);
+      // Prepare the data to send
+      const dataToSend = {
+        ...formData,
+        // If "other" is selected, use the custom language value
+        nativeLanguage:
+          formData.nativeLanguage === "other"
+            ? customLanguage
+            : formData.nativeLanguage,
+      };
 
-      // Clean the step data to remove any circular references, React components, or DOM elements
-      const cleanStepData = stepData ? cleanDataForAPI(stepData) : undefined;
+      // Save native language to localStorage for tour translations
+      if (dataToSend.nativeLanguage) {
+        localStorage.setItem(
+          "fluenta-native-language",
+          dataToSend.nativeLanguage
+        );
+      }
 
-      // Save progress to backend
-      await fetch("/api/onboarding/progress", {
-        method: "PATCH",
+      const response = await fetch("/api/onboarding", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          currentStep: currentStep + 1,
-          language: updatedData.language,
-          ...(cleanStepData && { [steps[currentStep].id]: cleanStepData }),
+          step: currentStep,
+          data: dataToSend,
         }),
       });
 
-      // Move to next step
-      setCurrentStep(prev => prev + 1);
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Something went wrong");
+      }
+
+      if (result.isCompleted) {
+        try {
+          await update({
+            onboardingCompleted: true,
+          });
+        } catch (error) {
+          console.error("OnboardingFlow: Error updating session:", error);
+        }
+
+        toast({
+          title: "Onboarding Complete!",
+          description:
+            "Welcome to Fluenta AI! Let's start your learning journey.",
+        });
+
+        // Use window.location.href to force a full page reload
+        // This ensures the middleware gets the updated JWT token
+        window.location.href = "/dashboard";
+        return;
+      }
+
+      setCurrentStep(currentStep + 1);
+      toast({
+        title: "Step Saved",
+        description: "Your information has been saved. Moving to next step.",
+      });
     } catch (error) {
-      console.error("Error saving onboarding progress:", error);
+      console.error("Error saving onboarding data:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save your information. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(prev => prev - 1);
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
     }
   };
 
-  const handleSkip = async () => {
-    setLoading(true);
+  const renderStep = () => {
+    const stepInfo = STEP_INFO[currentStep - 1];
+    const StepIcon = stepInfo.icon;
 
-    try {
-      // Skip entire onboarding process
-      await fetch("/api/onboarding/skip", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          language: data.language,
-        }),
-      });
-
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Error skipping onboarding:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleComplete = async () => {
-    setLoading(true);
-
-    try {
-      // Mark onboarding as completed
-      await fetch("/api/onboarding/progress", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          completed: true,
-          completedAt: new Date().toISOString(),
-          language: data.language,
-        }),
-      });
-
-      router.push("/dashboard");
-    } catch (error) {
-      console.error("Error completing onboarding:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleStepComplete = (stepData?: any) => {
-    const nextStep = currentStep + 1;
-
-    // Check if this is a completion request or if we're at the final step
-    if (
-      nextStep >= steps.length ||
-      stepData?.onboardingCompleted ||
-      stepData?.finalStep
-    ) {
-      // Set completing state to prevent re-rendering
-      setCompleting(true);
-      // Onboarding complete - don't change the current step, just complete
-      console.log("Completing onboarding from step", currentStep);
-      completeOnboarding(stepData);
-    } else {
-      handleNext(stepData);
-    }
-  };
-
-  const completeOnboarding = async (finalData?: any) => {
-    try {
-      console.log("Starting onboarding completion process");
-
-      // Use the dedicated completion endpoint
-      const response = await fetch("/api/onboarding/complete", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          completedAt: new Date().toISOString(),
-          finalData: finalData || {},
-        }),
-      });
-
-      if (response.ok) {
-        const responseData = await response.json();
-        console.log("Onboarding completion response:", responseData);
-
-        // Force JWT token refresh if requested
-        if (responseData.forceRefresh) {
-          console.log("Forcing JWT token refresh after onboarding completion");
-          try {
-            await updateSession();
-            console.log("JWT token refresh completed");
-          } catch (error) {
-            console.error("Error refreshing JWT token:", error);
-          }
-        }
-
-        // Use the same hard redirect approach as the English version
-        console.log("Redirecting to dashboard with refresh token");
-        window.location.href =
-          "/dashboard?refresh_token=true&onboarding_completed=true";
-        return; // Exit early since we're doing a hard redirect
-      } else {
-        const errorData = await response.text();
-        console.error("Failed to complete onboarding:", {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData,
-        });
-        setCompleting(false); // Reset completing state on error
-      }
-    } catch (error) {
-      console.error("Error completing onboarding:", error);
-      setCompleting(false); // Reset completing state on error
-    }
-  };
-
-  // Function to clean data and remove circular references, React components, etc.
-  const cleanDataForAPI = (data: any, visited = new WeakSet()): any => {
-    if (data === null || data === undefined) {
-      return data;
-    }
-
-    // Handle primitive types
-    if (typeof data !== "object") {
-      return data;
-    }
-
-    // Check for circular references
-    if (visited.has(data)) {
-      return null; // Skip circular references
-    }
-
-    if (Array.isArray(data)) {
-      visited.add(data);
-      const result = data.map(item => cleanDataForAPI(item, visited));
-      visited.delete(data);
-      return result;
-    }
-
-    // Check if it's a React element or has circular references
-    if (
-      data.$$typeof ||
-      data._reactInternalFiber ||
-      data.__reactFiber ||
-      data.stateNode
-    ) {
-      return null; // Remove React elements
-    }
-
-    visited.add(data);
-    const cleaned: any = {};
-
-    for (const key in data) {
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
-        const value = data[key];
-
-        // Skip functions and React-specific properties
-        if (typeof value === "function") {
-          continue;
-        }
-
-        // Skip properties that might cause circular references
-        if (
-          key.startsWith("_react") ||
-          key.startsWith("__react") ||
-          key === "stateNode"
-        ) {
-          continue;
-        }
-
-        // Skip React elements
-        if (
-          value &&
-          typeof value === "object" &&
-          (value.$$typeof || value._reactInternalFiber || value.__reactFiber)
-        ) {
-          continue;
-        }
-
-        cleaned[key] = cleanDataForAPI(value, visited);
-      }
-    }
-
-    visited.delete(data);
-    return cleaned;
-  };
-
-  const CurrentStepComponent = steps[currentStep]?.component;
-  const progressPercentage = ((currentStep + 1) / steps.length) * 100;
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show completing state instead of re-rendering the completion step
-  if (completing) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-green-600 mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Finalizing Your Setup...
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            Please wait while we prepare your learning dashboard
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="container mx-auto px-4 py-8">
-        {/* Progress Bar */}
-        {currentStep > 0 && (
-          <div className="mb-8">
-            <div className="max-w-2xl mx-auto">
-              <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                <span>
-                  Step {currentStep} of {steps.length - 1}
-                </span>
-                <span>{Math.round(progressPercentage)}% Complete</span>
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-3">
+              <div className="flex justify-center">
+                <div
+                  className={`p-3 rounded-full bg-gradient-to-r ${stepInfo.color} shadow-lg`}
+                >
+                  <StepIcon className="h-6 w-6 text-white" />
+                </div>
               </div>
-              <Progress value={progressPercentage} className="h-2" />
+              <div>
+                <h2 className="text-2xl font-bold text-center mb-2 text-white">
+                  What's your native language?
+                </h2>
+                <p className="text-white/80 text-center text-base">
+                  This helps us personalize your learning experience with better
+                  translations and cultural context.
+                </p>
+              </div>
+            </div>
+
+            <GradientCard className="p-4" variant="default">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
+                    <Globe className="h-4 w-4" />
+                    Select your native language
+                  </Label>
+                  <Select
+                    value={formData.nativeLanguage}
+                    onValueChange={value =>
+                      setFormData({ ...formData, nativeLanguage: value })
+                    }
+                  >
+                    <SelectTrigger className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60">
+                      <SelectValue placeholder="Choose your native language" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                      {LANGUAGES.map(language => (
+                        <SelectItem key={language.value} value={language.value}>
+                          {language.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.nativeLanguage === "other" && (
+                  <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                    <Label
+                      htmlFor="customLanguage"
+                      className="text-sm font-medium text-white"
+                    >
+                      Please specify your native language
+                    </Label>
+                    <Input
+                      id="customLanguage"
+                      placeholder="Enter your native language"
+                      value={customLanguage}
+                      onChange={e => setCustomLanguage(e.target.value)}
+                      className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                    />
+                  </div>
+                )}
+              </div>
+            </GradientCard>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-3">
+              <div className="flex justify-center">
+                <div
+                  className={`p-3 rounded-full bg-gradient-to-r ${stepInfo.color} shadow-lg`}
+                >
+                  <StepIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-center mb-2 text-white">
+                  Where are you located?
+                </h2>
+                <p className="text-white/80 text-center text-base">
+                  This helps us provide region-specific content and features
+                  tailored to your location.
+                </p>
+              </div>
+            </div>
+
+            <GradientCard className="p-4" variant="accent">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
+                    <MapPin className="h-4 w-4" />
+                    Country
+                  </Label>
+                  <Select
+                    value={formData.country}
+                    onValueChange={value =>
+                      setFormData({ ...formData, country: value })
+                    }
+                  >
+                    <SelectTrigger className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60">
+                      <SelectValue placeholder="Select your country" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                      {COUNTRIES.map(country => (
+                        <SelectItem key={country.value} value={country.value}>
+                          {country.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="region"
+                    className="text-sm font-medium flex items-center gap-2 text-white"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    Region/City
+                  </Label>
+                  <Input
+                    id="region"
+                    placeholder="Enter your region or city"
+                    value={formData.region}
+                    onChange={e =>
+                      setFormData({ ...formData, region: e.target.value })
+                    }
+                    className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60"
+                  />
+                </div>
+              </div>
+            </GradientCard>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-3">
+              <div className="flex justify-center">
+                <div
+                  className={`p-3 rounded-full bg-gradient-to-r ${stepInfo.color} shadow-lg`}
+                >
+                  <StepIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-center mb-2 text-white">
+                  When do you prefer to practice?
+                </h2>
+                <p className="text-white/80 text-center text-base">
+                  This helps us send reminders at the right time and optimize
+                  your learning schedule.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <GradientCard className="p-4" variant="secondary">
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
+                    <Clock className="h-4 w-4" />
+                    Preferred Practice Time
+                  </Label>
+                  <Select
+                    value={formData.preferredPracticeTime}
+                    onValueChange={value =>
+                      setFormData({ ...formData, preferredPracticeTime: value })
+                    }
+                  >
+                    <SelectTrigger className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60">
+                      <SelectValue placeholder="Select your preferred time" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                      {PRACTICE_TIMES.map(time => (
+                        <SelectItem key={time.value} value={time.value}>
+                          {time.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </GradientCard>
+
+              <GradientCard className="p-4" variant="default">
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
+                    <Calendar className="h-4 w-4" />
+                    Preferred Learning Days
+                  </Label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {LEARNING_DAYS.map(day => (
+                      <div
+                        key={day.value}
+                        role="button"
+                        tabIndex={0}
+                        className={`p-3 rounded-lg border-2 transition-all cursor-pointer hover:shadow-md ${
+                          formData.preferredLearningDays.includes(day.value)
+                            ? "border-primary bg-primary/20 shadow-sm text-white"
+                            : "border-white/30 hover:border-primary/50 text-white/80 hover:text-white"
+                        }`}
+                        onClick={() => {
+                          const isSelected =
+                            formData.preferredLearningDays.includes(day.value);
+                          if (isSelected) {
+                            setFormData({
+                              ...formData,
+                              preferredLearningDays:
+                                formData.preferredLearningDays.filter(
+                                  d => d !== day.value
+                                ),
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              preferredLearningDays: [
+                                ...formData.preferredLearningDays,
+                                day.value,
+                              ],
+                            });
+                          }
+                        }}
+                        onKeyDown={e => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            const isSelected =
+                              formData.preferredLearningDays.includes(
+                                day.value
+                              );
+                            if (isSelected) {
+                              setFormData({
+                                ...formData,
+                                preferredLearningDays:
+                                  formData.preferredLearningDays.filter(
+                                    d => d !== day.value
+                                  ),
+                              });
+                            } else {
+                              setFormData({
+                                ...formData,
+                                preferredLearningDays: [
+                                  ...formData.preferredLearningDays,
+                                  day.value,
+                                ],
+                              });
+                            }
+                          }
+                        }}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <Checkbox
+                            id={day.value}
+                            checked={formData.preferredLearningDays.includes(
+                              day.value
+                            )}
+                          />
+                          <Label
+                            htmlFor={day.value}
+                            className="text-sm font-medium cursor-pointer"
+                          >
+                            {day.label}
+                          </Label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </GradientCard>
             </div>
           </div>
-        )}
+        );
 
-        {/* Current Step Content */}
-        <div className="max-w-6xl mx-auto">
-          {CurrentStepComponent && (
-            <CurrentStepComponent
-              onNext={
-                currentStep === steps.length - 1
-                  ? handleStepComplete
-                  : handleNext
-              }
-              onBack={currentStep > 1 ? handleBack : undefined}
-              onSkip={currentStep > 1 ? handleSkip : undefined}
-              data={data}
-              language={data.language}
-              {...(currentStep === steps.length - 1 && {
-                onComplete: handleComplete,
-              })}
-            />
-          )}
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-3">
+              <div className="flex justify-center">
+                <div
+                  className={`p-3 rounded-full bg-gradient-to-r ${stepInfo.color} shadow-lg`}
+                >
+                  <StepIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-center mb-2 text-white">
+                  Why are you learning English?
+                </h2>
+                <p className="text-white/80 text-center text-base">
+                  Select all that apply. This helps us tailor your learning path
+                  and content.
+                </p>
+              </div>
+            </div>
+
+            <GradientCard className="p-4" variant="accent">
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2 text-white">
+                  <Target className="h-4 w-4" />
+                  Learning Goals
+                </Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {REASONS_FOR_LEARNING.map(reason => (
+                    <div
+                      key={reason.value}
+                      role="button"
+                      tabIndex={0}
+                      className={`p-4 rounded-lg border-2 transition-all cursor-pointer hover:shadow-md ${
+                        formData.reasonsForLearning.includes(reason.value)
+                          ? "border-primary bg-primary/20 shadow-sm text-white"
+                          : "border-white/30 hover:border-primary/50 text-white/80 hover:text-white"
+                      }`}
+                      onClick={() => {
+                        const isSelected = formData.reasonsForLearning.includes(
+                          reason.value
+                        );
+                        if (isSelected) {
+                          setFormData({
+                            ...formData,
+                            reasonsForLearning:
+                              formData.reasonsForLearning.filter(
+                                r => r !== reason.value
+                              ),
+                          });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            reasonsForLearning: [
+                              ...formData.reasonsForLearning,
+                              reason.value,
+                            ],
+                          });
+                        }
+                      }}
+                      onKeyDown={e => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          const isSelected =
+                            formData.reasonsForLearning.includes(reason.value);
+                          if (isSelected) {
+                            setFormData({
+                              ...formData,
+                              reasonsForLearning:
+                                formData.reasonsForLearning.filter(
+                                  r => r !== reason.value
+                                ),
+                            });
+                          } else {
+                            setFormData({
+                              ...formData,
+                              reasonsForLearning: [
+                                ...formData.reasonsForLearning,
+                                reason.value,
+                              ],
+                            });
+                          }
+                        }
+                      }}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Checkbox
+                          id={reason.value}
+                          checked={formData.reasonsForLearning.includes(
+                            reason.value
+                          )}
+                        />
+                        <span className="text-2xl">{reason.icon}</span>
+                        <Label
+                          htmlFor={reason.value}
+                          className="text-sm font-medium cursor-pointer flex-1"
+                        >
+                          {reason.label}
+                        </Label>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </GradientCard>
+          </div>
+        );
+
+      case 5:
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-3">
+              <div className="flex justify-center">
+                <div
+                  className={`p-3 rounded-full bg-gradient-to-r ${stepInfo.color} shadow-lg`}
+                >
+                  <StepIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-center mb-2 text-white">
+                  How did you hear about Fluenta AI?
+                </h2>
+                <p className="text-white/80 text-center text-base">
+                  This helps us improve our outreach and understand our users
+                  better.
+                </p>
+              </div>
+            </div>
+
+            <GradientCard className="p-4" variant="secondary">
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2 text-white">
+                  <Users className="h-4 w-4" />
+                  Discovery Source
+                </Label>
+                <Select
+                  value={formData.howHeardAbout}
+                  onValueChange={value =>
+                    setFormData({ ...formData, howHeardAbout: value })
+                  }
+                >
+                  <SelectTrigger className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60">
+                    <SelectValue placeholder="Select how you heard about us" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                    {HOW_HEARD_ABOUT.map(option => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </GradientCard>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-3">
+              <div className="flex justify-center">
+                <div
+                  className={`p-3 rounded-full bg-gradient-to-r ${stepInfo.color} shadow-lg`}
+                >
+                  <StepIcon className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-center mb-2 text-white">
+                  Set your study goals
+                </h2>
+                <p className="text-white/80 text-center text-base">
+                  Set realistic goals to stay motivated and track your progress
+                  effectively.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <GradientCard className="p-4" variant="default">
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
+                    <Trophy className="h-4 w-4" />
+                    Daily Study Time Goal
+                  </Label>
+                  <Select
+                    value={formData.dailyStudyTimeGoal.toString()}
+                    onValueChange={value =>
+                      setFormData({
+                        ...formData,
+                        dailyStudyTimeGoal: parseInt(value),
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60">
+                      <SelectValue placeholder="Select daily goal" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                      {STUDY_TIME_GOALS.map(goal => (
+                        <SelectItem
+                          key={goal.value}
+                          value={goal.value.toString()}
+                        >
+                          {goal.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </GradientCard>
+
+              <GradientCard className="p-4" variant="accent">
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
+                    <BookOpen className="h-4 w-4" />
+                    Weekly Study Time Goal
+                  </Label>
+                  <Select
+                    value={formData.weeklyStudyTimeGoal.toString()}
+                    onValueChange={value =>
+                      setFormData({
+                        ...formData,
+                        weeklyStudyTimeGoal: parseInt(value),
+                      })
+                    }
+                  >
+                    <SelectTrigger className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60">
+                      <SelectValue placeholder="Select weekly goal" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                      {STUDY_TIME_GOALS.map(goal => (
+                        <SelectItem
+                          key={goal.value * 7}
+                          value={(goal.value * 7).toString()}
+                        >
+                          {goal.value * 7} minutes ({goal.label} × 7 days)
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </GradientCard>
+            </div>
+          </div>
+        );
+
+      case 7:
+        return (
+          <div className="space-y-6">
+            <div className="text-center space-y-3">
+              <div className="flex justify-center">
+                <div
+                  className={`p-3 rounded-full bg-gradient-to-r ${stepInfo.color} shadow-lg animate-pulse-glow`}
+                >
+                  <Sparkles className="h-6 w-6 text-white" />
+                </div>
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-center mb-2 text-white">
+                  Almost done! 🎉
+                </h2>
+                <p className="text-white/80 text-center text-base">
+                  Please review and accept our terms to complete your setup and
+                  start learning.
+                </p>
+              </div>
+            </div>
+
+            <GradientCard className="p-4" variant="secondary">
+              <div className="space-y-4">
+                <div className="space-y-4">
+                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
+                    <Shield className="h-4 w-4" />
+                    Privacy & Analytics
+                  </Label>
+
+                  <div className="space-y-4">
+                    <div
+                      className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                        formData.consentDataUsage
+                          ? "border-primary bg-primary/20 text-white"
+                          : "border-white/30 text-white/80"
+                      }`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <Checkbox
+                          id="data-usage"
+                          checked={formData.consentDataUsage}
+                          onCheckedChange={checked =>
+                            setFormData({
+                              ...formData,
+                              consentDataUsage: !!checked,
+                            })
+                          }
+                        />
+                        <div className="space-y-2 flex-1">
+                          <Label
+                            htmlFor="data-usage"
+                            className="text-sm font-medium cursor-pointer text-white"
+                          >
+                            Data Usage Consent
+                          </Label>
+                          <p className="text-sm text-white/70">
+                            I consent to Fluenta AI using my data to provide
+                            personalized learning experiences, improve the
+                            service, and send relevant notifications about my
+                            progress and learning opportunities.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div
+                      className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                        formData.consentAnalytics
+                          ? "border-primary bg-primary/20 text-white"
+                          : "border-white/30 text-white/80"
+                      }`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <Checkbox
+                          id="analytics"
+                          checked={formData.consentAnalytics}
+                          onCheckedChange={checked =>
+                            setFormData({
+                              ...formData,
+                              consentAnalytics: !!checked,
+                            })
+                          }
+                        />
+                        <div className="space-y-2 flex-1">
+                          <Label
+                            htmlFor="analytics"
+                            className="text-sm font-medium cursor-pointer text-white"
+                          >
+                            Analytics Consent
+                          </Label>
+                          <p className="text-sm text-white/70">
+                            I consent to Fluenta AI collecting anonymous usage
+                            analytics to improve the platform and develop better
+                            learning features for all users.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </GradientCard>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="w-full max-w-4xl mx-auto">
+      <GradientCard className="overflow-hidden" variant="default">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-primary via-accent to-secondary p-4">
+          <div className="text-center space-y-2">
+            <h1 className="text-xl md:text-2xl font-bold text-white">
+              Welcome to Fluenta AI
+            </h1>
+            <p className="text-white/90 text-base">
+              Let's personalize your English learning journey
+            </p>
+          </div>
         </div>
 
-        {/* Skip Button (only show after language selection) */}
-        {currentStep > 0 && currentStep < steps.length - 1 && (
-          <div className="fixed bottom-4 right-4">
-            <button
-              onClick={handleSkip}
-              className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-            >
-              Skip Setup
-            </button>
+        {/* Progress Section */}
+        <div className="p-4 bg-white/5 backdrop-blur-sm">
+          <div className="space-y-3">
+            {/* Progress Bar */}
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm text-white/80">
+                <span>Progress</span>
+                <span>{Math.round(progress)}% Complete</span>
+              </div>
+              <div className="relative">
+                <Progress value={progress} className="h-2" />
+                <div
+                  className="absolute top-0 left-0 h-2 bg-gradient-to-r from-primary via-accent to-secondary rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Step Indicators */}
+            <div className="flex justify-between items-center">
+              {STEP_INFO.map((step, index) => {
+                const stepNumber = index + 1;
+                const isActive = stepNumber === currentStep;
+                const isCompleted = stepNumber < currentStep;
+                const StepIcon = step.icon;
+
+                return (
+                  <div
+                    key={stepNumber}
+                    className="flex flex-col items-center space-y-1"
+                  >
+                    <div
+                      className={`
+                      w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300
+                      ${
+                        isActive
+                          ? `bg-gradient-to-r ${step.color} shadow-lg scale-110`
+                          : isCompleted
+                            ? "bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md"
+                            : "bg-white/20 text-white/60"
+                      }
+                    `}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle className="h-4 w-4" />
+                      ) : (
+                        <StepIcon className="h-4 w-4" />
+                      )}
+                    </div>
+                    <div className="text-center">
+                      <div
+                        className={`text-xs font-medium ${isActive ? "text-white" : "text-white/70"}`}
+                      >
+                        Step {stepNumber}
+                      </div>
+                      <div className="text-xs text-white/60 hidden md:block">
+                        {step.title}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        )}
-      </div>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 md:p-6">
+          <div className="min-h-[300px]">{renderStep()}</div>
+
+          {/* Navigation */}
+          <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/20">
+            <Button
+              variant="outline"
+              onClick={handleBack}
+              disabled={currentStep === 1 || isLoading}
+              className="flex items-center gap-2 px-6 py-3 border-white/30 text-white hover:bg-white/10 hover:text-white"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <Badge
+                variant="secondary"
+                className="px-3 py-1 bg-white/20 text-white border-white/30"
+              >
+                {currentStep} of {totalSteps}
+              </Badge>
+            </div>
+
+            <Button
+              onClick={handleNext}
+              disabled={isLoading}
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-white"
+            >
+              {isLoading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  Saving...
+                </>
+              ) : currentStep === totalSteps ? (
+                <>
+                  Complete Setup
+                  <Sparkles className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  Next
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </GradientCard>
     </div>
   );
 }

@@ -2,14 +2,6 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export const metadata: Metadata = {
   title: "Reset Fluenta Password - Recover Account Access",
@@ -26,28 +18,39 @@ export const metadata: Metadata = {
 
 export default function ForgotPasswordPage() {
   return (
-    <Card className="w-full">
-      <CardHeader className="space-y-1">
+    <div className="w-full">
+      {/* Header Section */}
+      <div className="text-center mb-8">
         <h1 className="sr-only">Reset Your Fluenta Password</h1>
-        <CardTitle className="text-2xl text-center">
-          Reset Your Fluenta Password
-        </CardTitle>
-        <CardDescription className="text-center">
+        <h2 className="text-3xl font-bold text-white mb-3">
+          Reset Your{" "}
+          <span className="bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+            Password
+          </span>
+        </h2>
+        <p className="text-white/80 text-lg">
           Enter your email address and we'll send you a link to reset your
           password
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        </p>
+      </div>
+
+      {/* Forgot Password Form */}
+      <div className="mb-8">
         <ForgotPasswordForm />
-      </CardContent>
-      <CardFooter className="flex justify-center">
-        <div className="text-sm text-muted-foreground">
+      </div>
+
+      {/* Footer Link */}
+      <div className="text-center">
+        <div className="text-white/70">
           Remember your password?{" "}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link
+            href="/login"
+            className="text-blue-300 hover:text-blue-200 font-medium hover:underline transition-colors"
+          >
             Sign in
           </Link>
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

@@ -159,7 +159,7 @@ export const authOptions: NextAuthOptions = {
           },
           school: school?._id?.toString() || null,
           branch: branch?._id?.toString() || null,
-          onboardingCompleted: user.onboarding?.completed || false,
+          onboardingCompleted: user.onboarding?.completed ?? false,
           sessionExpiry: expiresAt.toISOString(),
           isExpiredUser, // Add expired status for redirect logic
         };
@@ -192,7 +192,7 @@ export const authOptions: NextAuthOptions = {
         token.sessionToken = user.sessionToken;
         token.school = user.school;
         token.branch = user.branch;
-        token.onboardingCompleted = user.onboardingCompleted;
+        token.onboardingCompleted = user.onboarding?.completed ?? false;
         token.sessionValid = true;
         token.sessionCreated = Date.now();
         token.deviceFingerprint = user.deviceFingerprint;
@@ -208,23 +208,15 @@ export const authOptions: NextAuthOptions = {
       // Handle forced refresh or update trigger - immediately refresh user data
       if (trigger === "update") {
         try {
-          console.log(
-            "JWT callback: Handling forced refresh for user",
-            token.id
-          );
           await dbConnect();
           const user = await User.findById(token.id);
           if (user) {
             // Update all user-related fields
-            token.onboardingCompleted = user.onboarding?.completed || false;
+            token.onboardingCompleted = user.onboarding?.completed ?? false;
             token.subscriptionStatus = user.subscription.status;
             token.subscriptionType = user.subscription.type;
             token.subscriptionExpiry = user.subscription.endDate?.toISOString();
             token.subscriptionLastChecked = new Date().toISOString();
-            console.log(
-              "JWT callback: Updated onboardingCompleted to",
-              token.onboardingCompleted
-            );
           }
         } catch (error) {
           console.error("Error refreshing user data in JWT callback:", error);
@@ -249,7 +241,7 @@ export const authOptions: NextAuthOptions = {
             token.subscriptionType = user.subscription.type;
             token.subscriptionExpiry = user.subscription.endDate?.toISOString();
             token.subscriptionLastChecked = now.toISOString();
-            token.onboardingCompleted = user.onboarding?.completed || false;
+            token.onboardingCompleted = user.onboarding?.completed ?? false;
           }
         } catch (error) {
           console.error("Error refreshing subscription status:", error);

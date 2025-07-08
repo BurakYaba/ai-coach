@@ -25,20 +25,15 @@ export default function GrammarTourManager() {
         const data = await response.json();
         const onboarding = data.onboarding;
 
-        // Check if user has completed onboarding and not completed grammar tour
-        const hasCompletedOnboarding = onboarding?.completed || false;
+        // Check tour completion status
         const tours = onboarding?.tours || { completed: [], skipped: [] };
         const hasCompletedGrammarTour = tours.completed.includes("grammar");
         const hasSkippedGrammarTour = tours.skipped.includes("grammar");
 
         setTourCompleted(hasCompletedGrammarTour || hasSkippedGrammarTour);
 
-        // Show tour only if onboarding is completed and tour hasn't been completed/skipped
-        if (
-          hasCompletedOnboarding &&
-          !hasCompletedGrammarTour &&
-          !hasSkippedGrammarTour
-        ) {
+        // Show tour if it hasn't been completed or skipped
+        if (!hasCompletedGrammarTour && !hasSkippedGrammarTour) {
           // Small delay to ensure page is loaded
           setTimeout(() => {
             setShowTour(true);

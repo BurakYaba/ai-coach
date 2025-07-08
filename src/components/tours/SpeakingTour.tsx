@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import ModuleTour, { TourStep } from "./ModuleTour";
+import { translateTourSteps } from "@/lib/translations";
+import { useNativeLanguage } from "@/hooks/use-native-language";
 
 interface SpeakingTourProps {
   isOpen: boolean;
@@ -130,6 +132,10 @@ export default function SpeakingTour({
   onComplete,
 }: SpeakingTourProps) {
   const [tourKey, setTourKey] = useState(0);
+  const [translatedSteps, setTranslatedSteps] =
+    useState<TourStep[]>(speakingTourSteps);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const { nativeLanguage } = useNativeLanguage();
 
   // Force tour to re-render when opened to ensure proper positioning
   useEffect(() => {
@@ -137,6 +143,30 @@ export default function SpeakingTour({
       setTourKey(prev => prev + 1);
     }
   }, [isOpen]);
+
+  // Translate tour steps based on user's native language
+  useEffect(() => {
+    const translateSteps = async () => {
+      setIsTranslating(true);
+      try {
+        const translated = await translateTourSteps(
+          speakingTourSteps,
+          nativeLanguage
+        );
+        setTranslatedSteps(translated);
+      } catch (error) {
+        console.error("Failed to translate tour steps:", error);
+        // Fallback to original steps
+        setTranslatedSteps(speakingTourSteps);
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+
+    if (isOpen) {
+      translateSteps();
+    }
+  }, [isOpen, nativeLanguage]);
 
   const handleTourComplete = async () => {
     try {
@@ -161,11 +191,16 @@ export default function SpeakingTour({
     }
   };
 
+  // Don't render if still translating
+  if (isTranslating) {
+    return null;
+  }
+
   return (
     <ModuleTour
       key={tourKey}
       module="speaking"
-      steps={speakingTourSteps}
+      steps={translatedSteps}
       isOpen={isOpen}
       onClose={onClose}
       onComplete={handleTourComplete}

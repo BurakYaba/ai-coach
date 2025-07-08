@@ -117,14 +117,17 @@ export function ResetPasswordForm() {
   if (!token) {
     return (
       <div className="space-y-4 text-center">
-        <div className="text-red-600 text-lg font-medium">
+        <div className="text-red-300 text-lg font-medium">
           Invalid Reset Link
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-white/80">
           This password reset link is invalid or has expired. Please request a
           new password reset link.
         </p>
-        <Button asChild>
+        <Button
+          asChild
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg"
+        >
           <a href="/forgot-password">Request New Reset Link</a>
         </Button>
       </div>
@@ -133,25 +136,28 @@ export function ResetPasswordForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <FormField
           control={form.control}
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>New Password</FormLabel>
+              <FormLabel className="text-white font-medium">
+                New Password
+              </FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     placeholder="Enter your new password"
                     type={showPassword ? "text" : "password"}
                     {...field}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20 pr-12"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
+                    className="absolute right-0 top-0 h-full px-3 py-2 text-white/60 hover:text-white hover:bg-white/10"
                     onClick={togglePasswordVisibility}
                     tabIndex={-1}
                   >
@@ -166,7 +172,7 @@ export function ResetPasswordForm() {
                   </Button>
                 </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-red-300" />
             </FormItem>
           )}
         />
@@ -175,19 +181,22 @@ export function ResetPasswordForm() {
           name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Confirm New Password</FormLabel>
+              <FormLabel className="text-white font-medium">
+                Confirm New Password
+              </FormLabel>
               <FormControl>
                 <div className="relative">
                   <Input
                     placeholder="Confirm your new password"
                     type={showConfirmPassword ? "text" : "password"}
                     {...field}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20 pr-12"
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 text-muted-foreground"
+                    className="absolute right-0 top-0 h-full px-3 py-2 text-white/60 hover:text-white hover:bg-white/10"
                     onClick={toggleConfirmPasswordVisibility}
                     tabIndex={-1}
                   >
@@ -202,11 +211,15 @@ export function ResetPasswordForm() {
                   </Button>
                 </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-red-300" />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+          disabled={isLoading}
+        >
           {isLoading ? "Resetting..." : "Reset Password"}
         </Button>
       </form>

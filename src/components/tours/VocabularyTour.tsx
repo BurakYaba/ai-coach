@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import ModuleTour, { TourStep } from "./ModuleTour";
+import { translateTourSteps } from "@/lib/translations";
+import { useNativeLanguage } from "@/hooks/use-native-language";
 
 interface VocabularyTourProps {
   isOpen: boolean;
@@ -95,31 +97,18 @@ const vocabularyTourSteps: TourStep[] = [
     ],
   },
   {
-    id: "word-features",
-    title: "Word Card Features",
+    id: "ready-to-start",
+    title: "Ready to Build Your Vocabulary?",
     content:
-      "Each word card shows mastery percentage, favorite status, definition, example context, tags, and quick access to detailed view.",
-    target: "[data-tour='word-card']",
+      "You're all set! Start with review sessions, explore your word collection, and track your progress. Your vocabulary will grow with every session!",
+    target: "[data-tour='vocabulary-header']",
     position: "center",
     action: "none",
     tips: [
-      "Mark words as favorites for easy access",
-      "Click 'Details' for comprehensive word information",
-      "Tags help categorize words by topic or difficulty",
-    ],
-  },
-  {
-    id: "navigation",
-    title: "Navigate Your Collection",
-    content:
-      "Use pagination to browse through your growing vocabulary collection. Words are organized for easy discovery and study.",
-    target: "[data-tour='vocabulary-pagination']",
-    position: "center",
-    action: "none",
-    tips: [
-      "Pagination keeps the interface clean and fast",
-      "Use search features to find specific words quickly",
-      "Sort options help organize words by difficulty or date",
+      "Regular review sessions are key to vocabulary retention",
+      "Focus on high-frequency words for maximum impact",
+      "Use context clues to understand word meanings",
+      "Practice using new words in your own sentences",
     ],
   },
 ];
@@ -130,6 +119,10 @@ export default function VocabularyTour({
   onComplete,
 }: VocabularyTourProps) {
   const [tourKey, setTourKey] = useState(0);
+  const [translatedSteps, setTranslatedSteps] =
+    useState<TourStep[]>(vocabularyTourSteps);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const { nativeLanguage } = useNativeLanguage();
 
   // Force tour to re-render when opened to ensure proper positioning
   useEffect(() => {
@@ -137,6 +130,30 @@ export default function VocabularyTour({
       setTourKey(prev => prev + 1);
     }
   }, [isOpen]);
+
+  // Translate tour steps based on user's native language
+  useEffect(() => {
+    const translateSteps = async () => {
+      setIsTranslating(true);
+      try {
+        const translated = await translateTourSteps(
+          vocabularyTourSteps,
+          nativeLanguage
+        );
+        setTranslatedSteps(translated);
+      } catch (error) {
+        console.error("Failed to translate tour steps:", error);
+        // Fallback to original steps
+        setTranslatedSteps(vocabularyTourSteps);
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+
+    if (isOpen) {
+      translateSteps();
+    }
+  }, [isOpen, nativeLanguage]);
 
   const handleTourComplete = async () => {
     try {
@@ -161,11 +178,16 @@ export default function VocabularyTour({
     }
   };
 
+  // Don't render if still translating
+  if (isTranslating) {
+    return null;
+  }
+
   return (
     <ModuleTour
       key={tourKey}
       module="vocabulary"
-      steps={vocabularyTourSteps}
+      steps={translatedSteps}
       isOpen={isOpen}
       onClose={onClose}
       onComplete={handleTourComplete}

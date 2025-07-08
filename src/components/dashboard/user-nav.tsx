@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   School,
-  MapPin,
   MessageSquare,
   History,
   User,
@@ -25,7 +24,25 @@ import {
   LogOut,
 } from "lucide-react";
 import { FeedbackForm } from "@/components/feedback/FeedbackForm";
-import { userNavTranslations } from "@/lib/onboarding-translations";
+// Simple translations for user navigation
+const userNavTranslations = {
+  en: {
+    profile: "Profile",
+    billing: "Subscription",
+    settings: "Settings",
+    feedback: "Send Feedback",
+    feedbackHistory: "My Feedback",
+    logout: "Log Out",
+  },
+  tr: {
+    profile: "Profil",
+    billing: "Abonelik",
+    settings: "Ayarlar",
+    feedback: "Geri Bildirim Gönder",
+    feedbackHistory: "Geri Bildirimlerim",
+    logout: "Çıkış Yap",
+  },
+};
 
 interface UserNavProps {
   user: {
@@ -130,16 +147,6 @@ export function UserNav({ user, children }: UserNavProps) {
           <Link href="/dashboard/profile">
             <User className="w-4 h-4 text-gray-600" />
             <span className="text-gray-700">{t.profile}</span>
-          </Link>
-        </DropdownMenuItem>
-
-        <DropdownMenuItem
-          asChild
-          className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer"
-        >
-          <Link href="/dashboard/learning-path">
-            <MapPin className="w-4 h-4 text-gray-600" />
-            <span className="text-gray-700">{t.learningPath}</span>
           </Link>
         </DropdownMenuItem>
 

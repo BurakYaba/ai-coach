@@ -17,7 +17,6 @@ import { dbConnect } from "@/lib/db";
 import User from "@/models/User";
 import { GamificationProfileStats } from "@/components/gamification/profile-stats";
 import DashboardTourManager from "@/components/tours/DashboardTourManager";
-import OnboardingCompletionHandler from "@/components/onboarding/OnboardingCompletionHandler";
 
 export const metadata: Metadata = {
   title: "Dashboard | Fluenta",
@@ -103,9 +102,6 @@ export default async function DashboardPage({
 
         {/* Dashboard Tour */}
         <DashboardTourManager />
-
-        {/* Onboarding Completion Handler */}
-        <OnboardingCompletionHandler />
       </div>
     </div>
   );

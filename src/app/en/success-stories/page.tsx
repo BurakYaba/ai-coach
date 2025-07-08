@@ -8,7 +8,6 @@ import { MainNav } from "@/components/navigation/main-nav";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
 import {
-  PlayCircle,
   Quote,
   TrendingUp,
   Award,
@@ -21,7 +20,7 @@ import {
   ChevronRight,
   Star,
 } from "lucide-react";
-import PopularResources from "@/components/layout/PopularResources";
+
 import FooterEn from "@/components/layout/FooterEn";
 
 export const metadata: Metadata = {

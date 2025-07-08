@@ -25,8 +25,7 @@ export default function VocabularyTourManager() {
         const data = await response.json();
         const onboarding = data.onboarding;
 
-        // Check if user has completed onboarding and not completed vocabulary tour
-        const hasCompletedOnboarding = onboarding?.completed || false;
+        // Check tour completion status
         const tours = onboarding?.tours || { completed: [], skipped: [] };
         const hasCompletedVocabularyTour =
           tours.completed.includes("vocabulary");
@@ -36,12 +35,8 @@ export default function VocabularyTourManager() {
           hasCompletedVocabularyTour || hasSkippedVocabularyTour
         );
 
-        // Show tour only if onboarding is completed and tour hasn't been completed/skipped
-        if (
-          hasCompletedOnboarding &&
-          !hasCompletedVocabularyTour &&
-          !hasSkippedVocabularyTour
-        ) {
+        // Show tour if it hasn't been completed or skipped
+        if (!hasCompletedVocabularyTour && !hasSkippedVocabularyTour) {
           // Small delay to ensure page is loaded
           setTimeout(() => {
             setShowTour(true);

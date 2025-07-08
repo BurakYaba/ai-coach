@@ -1,13 +1,5 @@
 import { Suspense } from "react";
-import {
-  CircleUser,
-  Flame,
-  Star,
-  Users,
-  Award,
-  Target,
-  LayoutGrid,
-} from "lucide-react";
+import { CircleUser, Flame, Users, Target, LayoutGrid } from "lucide-react";
 
 import { GamificationProfileStats } from "@/components/gamification/profile-stats";
 import { LeaderboardComponent } from "@/components/gamification/leaderboard";
@@ -15,14 +7,7 @@ import { ChallengesComponent } from "@/components/gamification/challenges";
 import { LearningGroupsComponent } from "@/components/gamification/learning-groups";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { ModuleProgress } from "@/components/gamification/module-progress";
 import { ModuleAchievements } from "@/components/gamification/module-achievements";
 

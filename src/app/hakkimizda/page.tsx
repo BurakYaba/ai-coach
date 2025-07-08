@@ -1,5 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
+
 import { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

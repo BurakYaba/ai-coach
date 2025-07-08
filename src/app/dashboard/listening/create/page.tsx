@@ -362,7 +362,6 @@ function ContentTypeOption({
   value,
   label,
   description,
-  name,
   checked,
 }: {
   value: string;

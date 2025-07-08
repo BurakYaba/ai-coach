@@ -25,20 +25,15 @@ export default function SpeakingTourManager() {
         const data = await response.json();
         const onboarding = data.onboarding;
 
-        // Check if user has completed onboarding and not completed speaking tour
-        const hasCompletedOnboarding = onboarding?.completed || false;
+        // Check tour completion status
         const tours = onboarding?.tours || { completed: [], skipped: [] };
         const hasCompletedSpeakingTour = tours.completed.includes("speaking");
         const hasSkippedSpeakingTour = tours.skipped.includes("speaking");
 
         setTourCompleted(hasCompletedSpeakingTour || hasSkippedSpeakingTour);
 
-        // Show tour only if onboarding is completed and tour hasn't been completed/skipped
-        if (
-          hasCompletedOnboarding &&
-          !hasCompletedSpeakingTour &&
-          !hasSkippedSpeakingTour
-        ) {
+        // Show tour if it hasn't been completed or skipped
+        if (!hasCompletedSpeakingTour && !hasSkippedSpeakingTour) {
           // Small delay to ensure page is loaded
           setTimeout(() => {
             setShowTour(true);

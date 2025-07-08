@@ -41,6 +41,11 @@ export interface IUser extends Document {
     emailNotifications: boolean;
     progressReminders: boolean;
     theme: "light" | "dark" | "system";
+    weeklyProgressReport: boolean;
+    achievementNotifications: boolean;
+    streakReminders: boolean;
+    studyReminders: boolean;
+    reminderTiming: string;
   };
   // Grammar-specific fields
   grammarProgress: {
@@ -59,16 +64,27 @@ export interface IUser extends Document {
     challengeStreak: number;
     savedFlashcards?: string[]; // IDs of saved flashcards
   };
-  // Onboarding fields - all optional to not break existing functionality
-  onboarding?: {
+  // Onboarding fields - now completed by default to skip onboarding flow
+  onboarding: {
     completed: boolean;
     currentStep: number;
-    language?: "en" | "tr"; // Add language preference
+    language: "en" | "tr";
+    nativeLanguage: string;
+    country: string;
+    region: string;
+    preferredPracticeTime: string;
+    preferredLearningDays: string[];
+    reasonsForLearning: string[];
+    howHeardAbout: string;
+    dailyStudyTimeGoal: number; // in minutes
+    weeklyStudyTimeGoal: number; // in minutes
+    consentDataUsage: boolean;
+    consentAnalytics: boolean;
     skillAssessment: {
       completed: boolean;
-      ceferLevel: string; // A1, A2, B1, B2, C1, C2
-      overallScore?: number; // Overall percentage score from assessment
-      weakAreas: string[]; // ['grammar', 'vocabulary', 'speaking', etc.]
+      ceferLevel: string;
+      overallScore?: number;
+      weakAreas: string[];
       strengths: string[];
       assessmentDate: Date;
       scores: {
@@ -81,18 +97,18 @@ export interface IUser extends Document {
       };
     };
     preferences: {
-      learningGoals: string[]; // ['business', 'travel', 'academic', etc.]
+      learningGoals: string[];
       interests: string[];
-      timeAvailable: string; // '15min', '30min', '60min', 'flexible'
-      preferredTime: string; // 'morning', 'afternoon', 'evening'
-      learningStyle: string; // 'visual', 'auditory', 'kinesthetic', 'mixed'
-      difficultyPreference?: string; // 'easy', 'moderate', 'challenging'
-      focusAreas?: string[]; // user-selected areas to focus on
-      strengths?: string[]; // user-reported strengths
-      weaknesses?: string[]; // user-reported weaknesses
+      timeAvailable: string;
+      preferredTime: string;
+      learningStyle: string;
+      difficultyPreference?: string;
+      focusAreas?: string[];
+      strengths?: string[];
+      weaknesses?: string[];
     };
     recommendedPath: {
-      primaryFocus: string[]; // modules to focus on
+      primaryFocus: string[];
       suggestedOrder: string[];
       estimatedWeeks: number;
     };
@@ -275,6 +291,28 @@ const userSchema = new Schema<IUser>(
         enum: ["light", "dark", "system"],
         default: "system",
       },
+      // Enhanced notification settings
+      weeklyProgressReport: {
+        type: Boolean,
+        default: true,
+      },
+      achievementNotifications: {
+        type: Boolean,
+        default: true,
+      },
+      streakReminders: {
+        type: Boolean,
+        default: true,
+      },
+      studyReminders: {
+        type: Boolean,
+        default: true,
+      },
+      reminderTiming: {
+        type: String,
+        enum: ["15", "30", "60", "120"], // minutes before preferred time
+        default: "30",
+      },
     },
     // Grammar-specific progress fields
     grammarProgress: {
@@ -330,174 +368,225 @@ const userSchema = new Schema<IUser>(
         default: [],
       },
     },
-    // Onboarding fields - all optional to not break existing functionality
+    // Onboarding fields - now completed by default to skip onboarding flow
     onboarding: {
-      type: {
+      completed: {
+        type: Boolean,
+        default: false,
+      },
+      currentStep: {
+        type: Number,
+        default: 1,
+      },
+      language: {
+        type: String,
+        enum: ["en", "tr"],
+        default: "en",
+      },
+      nativeLanguage: {
+        type: String,
+        default: "",
+      },
+      country: {
+        type: String,
+        default: "",
+      },
+      region: {
+        type: String,
+        default: "",
+      },
+      preferredPracticeTime: {
+        type: String,
+        default: "",
+      },
+      preferredLearningDays: {
+        type: [String],
+        default: [],
+      },
+      reasonsForLearning: {
+        type: [String],
+        default: [],
+      },
+      howHeardAbout: {
+        type: String,
+        default: "",
+      },
+      dailyStudyTimeGoal: {
+        type: Number,
+        default: 30,
+      },
+      weeklyStudyTimeGoal: {
+        type: Number,
+        default: 210,
+      },
+      consentDataUsage: {
+        type: Boolean,
+        default: false,
+      },
+      consentAnalytics: {
+        type: Boolean,
+        default: false,
+      },
+      skillAssessment: {
         completed: {
           type: Boolean,
           default: false,
         },
-        currentStep: {
-          type: Number,
-          default: 0,
-        },
-        language: {
+        ceferLevel: {
           type: String,
-          enum: ["en", "tr"],
-          default: "en",
+          enum: ["A1", "A2", "B1", "B2", "C1", "C2"],
+          default: "B1",
         },
-        skillAssessment: {
-          completed: {
-            type: Boolean,
-            default: false,
-          },
-          ceferLevel: {
-            type: String,
-            enum: ["A1", "A2", "B1", "B2", "C1", "C2"],
-            default: "B1",
-          },
-          overallScore: {
+        overallScore: {
+          type: Number,
+          default: null,
+        },
+        weakAreas: {
+          type: [String],
+          default: ["grammar", "vocabulary"],
+        },
+        strengths: {
+          type: [String],
+          default: ["reading"],
+        },
+        assessmentDate: {
+          type: Date,
+          default: Date.now,
+        },
+        scores: {
+          reading: {
             type: Number,
-            default: null,
+            default: 50,
+            min: 0,
+            max: 100,
           },
-          weakAreas: {
-            type: [String],
-            default: [],
+          writing: {
+            type: Number,
+            default: 40,
+            min: 0,
+            max: 100,
           },
-          strengths: {
-            type: [String],
-            default: [],
+          listening: {
+            type: Number,
+            default: 45,
+            min: 0,
+            max: 100,
           },
-          assessmentDate: {
+          speaking: {
+            type: Number,
+            default: 35,
+            min: 0,
+            max: 100,
+          },
+          vocabulary: {
+            type: Number,
+            default: 40,
+            min: 0,
+            max: 100,
+          },
+          grammar: {
+            type: Number,
+            default: 35,
+            min: 0,
+            max: 100,
+          },
+        },
+      },
+      preferences: {
+        learningGoals: {
+          type: [String],
+          default: ["general_fluency"],
+        },
+        interests: {
+          type: [String],
+          default: [],
+        },
+        timeAvailable: {
+          type: String,
+          default: "30-60 minutes",
+        },
+        preferredTime: {
+          type: String,
+          enum: ["morning", "afternoon", "evening"],
+          default: "evening",
+        },
+        learningStyle: {
+          type: String,
+          enum: ["visual", "auditory", "kinesthetic", "mixed"],
+          default: "mixed",
+        },
+        difficultyPreference: {
+          type: String,
+          enum: ["easy", "moderate", "challenging"],
+          default: "moderate",
+        },
+        focusAreas: {
+          type: [String],
+          default: [],
+        },
+        strengths: {
+          type: [String],
+          default: [],
+        },
+        weaknesses: {
+          type: [String],
+          default: [],
+        },
+      },
+      recommendedPath: {
+        primaryFocus: {
+          type: [String],
+          default: ["vocabulary", "grammar", "reading"],
+        },
+        suggestedOrder: {
+          type: [String],
+          default: [
+            "vocabulary",
+            "reading",
+            "grammar",
+            "writing",
+            "listening",
+            "speaking",
+            "games",
+          ],
+        },
+        estimatedWeeks: {
+          type: Number,
+          default: 12,
+        },
+      },
+      tours: {
+        completed: {
+          type: [String],
+          default: [],
+        },
+        skipped: {
+          type: [String],
+          default: [],
+        },
+      },
+      moduleVisits: {
+        type: Map,
+        of: {
+          firstVisit: {
             type: Date,
             default: Date.now,
           },
-          scores: {
-            reading: {
-              type: Number,
-              default: 0,
-              min: 0,
-              max: 100,
-            },
-            writing: {
-              type: Number,
-              default: 0,
-              min: 0,
-              max: 100,
-            },
-            listening: {
-              type: Number,
-              default: 0,
-              min: 0,
-              max: 100,
-            },
-            speaking: {
-              type: Number,
-              default: 0,
-              min: 0,
-              max: 100,
-            },
-            vocabulary: {
-              type: Number,
-              default: 0,
-              min: 0,
-              max: 100,
-            },
-            grammar: {
-              type: Number,
-              default: 0,
-              min: 0,
-              max: 100,
-            },
-          },
-        },
-        preferences: {
-          learningGoals: {
-            type: [String],
-            default: [],
-          },
-          interests: {
-            type: [String],
-            default: [],
-          },
-          timeAvailable: {
-            type: String,
-            enum: ["15min", "30min", "60min", "1hour", "flexible"],
-            default: "flexible",
-          },
-          preferredTime: {
-            type: String,
-            enum: ["morning", "afternoon", "evening"],
-            default: "evening",
-          },
-          learningStyle: {
-            type: String,
-            enum: ["visual", "auditory", "kinesthetic", "mixed"],
-            default: "mixed",
-          },
-          difficultyPreference: {
-            type: String,
-            enum: ["easy", "moderate", "challenging"],
-          },
-          focusAreas: {
-            type: [String],
-          },
-          strengths: {
-            type: [String],
-          },
-          weaknesses: {
-            type: [String],
-          },
-        },
-        recommendedPath: {
-          primaryFocus: {
-            type: [String],
-            default: [],
-          },
-          suggestedOrder: {
-            type: [String],
-            default: [],
-          },
-          estimatedWeeks: {
+          totalVisits: {
             type: Number,
-            default: 12,
+            default: 0,
+          },
+          lastVisit: {
+            type: Date,
+            default: Date.now,
           },
         },
-        tours: {
-          completed: {
-            type: [String],
-            default: [],
-          },
-          skipped: {
-            type: [String],
-            default: [],
-          },
-        },
-        moduleVisits: {
-          type: Map,
-          of: {
-            firstVisit: {
-              type: Date,
-              default: Date.now,
-            },
-            totalVisits: {
-              type: Number,
-              default: 1,
-            },
-            lastVisit: {
-              type: Date,
-              default: Date.now,
-            },
-          },
-          default: new Map(),
-        },
-        completedAt: {
-          type: Date,
-          default: null,
-        },
+        default: {},
       },
-      required: false,
-      default: undefined,
+      completedAt: {
+        type: Date,
+        default: Date.now,
+      },
     },
   },
   {

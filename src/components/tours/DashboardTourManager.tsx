@@ -20,74 +20,31 @@ export default function DashboardTourManager() {
 
   const checkTourStatus = async () => {
     try {
-      // Longer delay to ensure gamification data has time to load
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      // Check if essential dashboard elements are loaded
-      const waitForDashboardElements = () => {
-        const essentialElements = [
-          '[data-tour="dashboard-welcome"]',
-          '[data-tour="dashboard-nav"]',
-        ];
-
-        // Level XP card is optional since it depends on gamification data
-        const optionalElements = ['[data-tour="level-xp-card"]'];
-
-        const essentialLoaded = essentialElements.every(
-          selector => document.querySelector(selector) !== null
-        );
-
-        const optionalLoaded = optionalElements.some(
-          selector => document.querySelector(selector) !== null
-        );
-
-        return essentialLoaded; // Don't require optional elements
-      };
-
-      // Wait up to 10 seconds for essential elements (increased from 5 seconds)
-      let attempts = 0;
-      while (!waitForDashboardElements() && attempts < 100) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        attempts++;
-      }
-
-      if (!waitForDashboardElements()) {
-        console.warn(
-          "Essential dashboard elements not fully loaded, skipping tour"
-        );
-        setLoading(false);
-        return;
-      }
-
+      // Check if user has completed dashboard tour via API
       const response = await fetch("/api/onboarding/progress");
       if (response.ok) {
         const data = await response.json();
         const onboarding = data.onboarding;
 
-        // Check if user has completed onboarding and not completed dashboard tour
-        const hasCompletedOnboarding = onboarding?.completed || false;
+        // Check tour completion status
         const tours = onboarding?.tours || { completed: [], skipped: [] };
         const hasCompletedDashboardTour = tours.completed.includes("dashboard");
         const hasSkippedDashboardTour = tours.skipped.includes("dashboard");
 
         setTourCompleted(hasCompletedDashboardTour || hasSkippedDashboardTour);
 
-        // Show tour only if onboarding is completed and tour hasn't been completed/skipped
-        if (
-          hasCompletedOnboarding &&
-          !hasCompletedDashboardTour &&
-          !hasSkippedDashboardTour
-        ) {
-          // Additional delay to ensure everything is settled
+        // Show tour if it hasn't been completed or skipped
+        if (!hasCompletedDashboardTour && !hasSkippedDashboardTour) {
+          // Delay to ensure page is loaded
           setTimeout(() => {
             setShowTour(true);
           }, 1000);
         }
       } else {
-        console.warn("Failed to fetch onboarding progress, skipping tour");
+        console.warn("Failed to fetch tour status, skipping dashboard tour");
       }
     } catch (error) {
-      console.error("Failed to check tour status:", error);
+      console.error("Failed to check dashboard tour status:", error);
     } finally {
       setLoading(false);
     }
@@ -117,7 +74,7 @@ export default function DashboardTourManager() {
 
   const handleTourClose = () => {
     setShowTour(false);
-    // Optionally mark as skipped
+    // Mark as skipped
     markTourSkipped();
   };
 

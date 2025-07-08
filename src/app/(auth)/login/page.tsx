@@ -2,14 +2,6 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import { LoginForm } from "@/components/auth/login-form";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 interface Props {
   searchParams: { callbackUrl?: string };
@@ -45,39 +37,56 @@ export default function LoginPage({ searchParams }: Props) {
   const callbackUrl = searchParams.callbackUrl;
 
   return (
-    <Card className="w-full">
-      <CardHeader className="space-y-1">
+    <div className="w-full">
+      {/* Header Section */}
+      <div className="text-center mb-8">
         <h1 className="sr-only">
           {callbackUrl
             ? "Login to Continue - Fluenta Account Access"
             : "Login to Your Fluenta Account"}
         </h1>
-        <CardTitle className="text-2xl text-center">
-          {callbackUrl ? "Login to Continue" : "Welcome back to Fluenta"}
-        </CardTitle>
-        <CardDescription className="text-center">
-          Enter your email and password to login to your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+        <h2 className="text-3xl font-bold text-white mb-3">
+          {callbackUrl ? (
+            "Login to Continue"
+          ) : (
+            <>
+              Welcome back to{" "}
+              <span className="bg-gradient-to-r from-blue-300 to-purple-300 bg-clip-text text-transparent">
+                Fluenta
+              </span>
+            </>
+          )}
+        </h2>
+        <p className="text-white/80 text-lg">
+          Enter your email and password to access your account
+        </p>
+      </div>
+
+      {/* Login Form */}
+      <div className="mb-8">
         <LoginForm />
-      </CardContent>
-      <CardFooter className="flex flex-col space-y-4">
-        <div className="text-sm text-center text-muted-foreground">
+      </div>
+
+      {/* Footer Links */}
+      <div className="space-y-4 text-center">
+        <div className="text-white/70">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="text-primary hover:underline">
+          <Link
+            href="/register"
+            className="text-blue-300 hover:text-blue-200 font-medium hover:underline transition-colors"
+          >
             Sign up
           </Link>
         </div>
-        <div className="text-sm text-center">
+        <div>
           <Link
             href="/forgot-password"
-            className="text-primary hover:underline"
+            className="text-purple-300 hover:text-purple-200 font-medium hover:underline transition-colors"
           >
             Forgot your password?
           </Link>
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }

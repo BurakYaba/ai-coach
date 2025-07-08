@@ -1,10 +1,9 @@
 import Link from "next/link";
-import Image from "next/image";
+
 import { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GradientCard } from "@/components/ui/gradient-card";
+import { Card, CardContent } from "@/components/ui/card";
 import { MainNav } from "@/components/navigation/main-nav";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";

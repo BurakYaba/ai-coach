@@ -11,10 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { WritingProgress } from "@/components/writing/WritingProgress";
 import { WritingPromptList } from "@/components/writing/WritingPromptList";
 import { WritingSessionList } from "@/components/writing/WritingSessionList";
-import ModuleTour from "@/components/tours/ModuleTour";
+import WritingTour from "@/components/tours/WritingTour";
 import { TakeTourButton } from "@/components/tours/TakeTourButton";
 import { useTour } from "@/hooks/useTour";
-import { tourSteps } from "@/data/tourSteps";
 
 export default function WritingDashboardPage() {
   const { data: session, status } = useSession();
@@ -159,9 +158,7 @@ export default function WritingDashboardPage() {
         </Tabs>
 
         {/* Module Tour */}
-        <ModuleTour
-          module="writing"
-          steps={tourSteps.writing}
+        <WritingTour
           isOpen={isOpen}
           onClose={closeTour}
           onComplete={completeTour}

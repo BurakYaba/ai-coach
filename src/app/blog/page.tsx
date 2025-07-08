@@ -140,16 +140,38 @@ const blogPosts = [
     featured: false,
     tags: ["Dinleme", "Aksan", "Anlama", "Gelişim"],
   },
+  {
+    id: "ingilizce-konusma-pratigi-uygulamalari",
+    title: "2025'in En İyi İngilizce Konuşma Pratik Uygulamaları",
+    excerpt:
+      "AI destekli öğretmenlerden gerçek insan konuşmalarına kadar, güveninizi artıracak en iyi konuşma pratik uygulamalarını keşfedin.",
+    category: "Konuşma",
+    readTime: "14 dk okuma",
+    publishDate: "2024-12-25",
+    featured: false,
+    tags: ["Konuşma", "Uygulamalar", "AI", "Pratik"],
+  },
+  {
+    id: "ai-ingilizce-konusma-pratiği",
+    title: "AI İngilizce Konuşma Pratiği: Dil Öğrenmenin Geleceği",
+    excerpt:
+      "AI konuşma partnerlerinin İngilizce pratiğini nasıl devrimleştirdiğini keşfedin. Kişiselleştirilmiş geri bildirim ve 7/24 erişim avantajları.",
+    category: "AI Teknoloji",
+    readTime: "7 dk okuma",
+    publishDate: "2024-12-01",
+    featured: false,
+    tags: ["AI", "Konuşma", "Teknoloji", "Gelecek"],
+  },
 ];
 
 const categories = [
   { name: "Tümü", count: blogPosts.length, active: true },
-  { name: "AI Teknoloji", count: 2, active: false },
+  { name: "AI Teknoloji", count: 3, active: false },
   { name: "Telaffuz", count: 1, active: false },
   { name: "Gramer", count: 1, active: false },
   { name: "İş İngilizcesi", count: 1, active: false },
   { name: "IELTS", count: 1, active: false },
-  { name: "Konuşma", count: 2, active: false },
+  { name: "Konuşma", count: 3, active: false },
 ];
 
 export default function TurkishBlogPage() {

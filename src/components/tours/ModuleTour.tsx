@@ -176,19 +176,19 @@ export default function ModuleTour({
       element.style.position = "relative";
       element.style.setProperty("z-index", "2147483646", "important");
 
-      // Mobile-specific highlight styling
+      // Modern gradient highlight styling
       if (isXsMobile) {
         element.style.boxShadow =
-          "0 0 0 2px rgba(59, 130, 246, 0.7), 0 0 0 4px rgba(59, 130, 246, 0.4)";
-        element.style.borderRadius = "4px";
+          "0 0 0 2px rgba(59, 130, 246, 0.8), 0 0 0 4px rgba(147, 51, 234, 0.4), 0 0 20px rgba(59, 130, 246, 0.3)";
+        element.style.borderRadius = "8px";
       } else if (isMobile) {
         element.style.boxShadow =
-          "0 0 0 3px rgba(59, 130, 246, 0.6), 0 0 0 6px rgba(59, 130, 246, 0.3)";
-        element.style.borderRadius = "6px";
+          "0 0 0 3px rgba(59, 130, 246, 0.7), 0 0 0 6px rgba(147, 51, 234, 0.3), 0 0 25px rgba(59, 130, 246, 0.4)";
+        element.style.borderRadius = "10px";
       } else {
         element.style.boxShadow =
-          "0 0 0 4px rgba(59, 130, 246, 0.5), 0 0 0 8px rgba(59, 130, 246, 0.2)";
-        element.style.borderRadius = "8px";
+          "0 0 0 4px rgba(59, 130, 246, 0.6), 0 0 0 8px rgba(147, 51, 234, 0.2), 0 0 30px rgba(59, 130, 246, 0.5)";
+        element.style.borderRadius = "12px";
       }
 
       element.style.isolation = "isolate";
@@ -308,90 +308,97 @@ export default function ModuleTour({
           <AnimatePresence>
             {isVisible && (
               <>
-                {/* Dark overlay */}
+                {/* Overlay without blur to preserve page visibility */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 bg-black/50"
+                  className="fixed inset-0 bg-black/40"
                 />
 
-                {/* Tour content */}
+                {/* Tour content with glass-morphism */}
                 <motion.div
                   key={tourKey}
                   ref={refs.setFloating}
                   style={floatingStyles}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  transition={{ type: "spring", duration: 0.3 }}
                   className={`z-[2147483647] ${
                     !targetElement
                       ? `fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 ${
                           isXsMobile
-                            ? "m-2 max-w-xs w-[95vw]"
+                            ? "m-1 max-w-[280px] w-[90vw]"
                             : isMobile
-                              ? "m-3 max-w-sm"
-                              : "m-4 max-w-md"
+                              ? "m-2 max-w-sm w-[85vw]"
+                              : "m-3 max-w-md w-[400px]"
                         }`
                       : isXsMobile
-                        ? "fixed m-2 max-w-xs w-[95vw]"
+                        ? "fixed m-1 max-w-[280px] w-[90vw]"
                         : isMobile
-                          ? "fixed m-3 max-w-sm"
-                          : "fixed m-4 max-w-md"
+                          ? "fixed m-2 max-w-sm w-[85vw]"
+                          : "fixed m-3 max-w-md w-[400px]"
                   }`}
                   {...getFloatingProps()}
                 >
                   <Card
-                    className={`border shadow-2xl mx-auto ${
+                    className={`bg-white/95 backdrop-blur-xl border border-white/30 shadow-2xl mx-auto ${
                       isXsMobile
-                        ? "w-full max-w-xs max-h-[70vh] mx-auto"
+                        ? "w-full max-h-[85vh] rounded-xl"
                         : isMobile
-                          ? "w-auto max-w-sm max-h-[80vh]"
-                          : "w-full max-w-md max-h-[75vh] mx-auto"
+                          ? "w-auto max-h-[80vh] rounded-xl"
+                          : "w-full max-h-[75vh] rounded-2xl"
                     }`}
                   >
                     <CardContent
                       className={`overflow-y-auto ${
                         isXsMobile
-                          ? "p-2 max-h-[70vh]"
+                          ? "p-3 max-h-[85vh]"
                           : isMobile
-                            ? "p-3 max-h-[80vh]"
-                            : "p-3 max-h-[75vh]"
+                            ? "p-4 max-h-[80vh]"
+                            : "p-4 max-h-[75vh]"
                       }`}
                     >
                       {/* Header */}
                       <div
                         className={`flex items-center justify-between ${
-                          isXsMobile ? "mb-2" : isMobile ? "mb-2" : "mb-2"
+                          isXsMobile ? "mb-3" : isMobile ? "mb-3" : "mb-4"
                         }`}
                       >
                         <div
-                          className={`flex items-center gap-1 ${
-                            isXsMobile ? "gap-1" : isMobile ? "gap-1" : "gap-1"
+                          className={`flex items-center ${
+                            isXsMobile
+                              ? "gap-1.5"
+                              : isMobile
+                                ? "gap-2"
+                                : "gap-2"
                           }`}
                         >
-                          <HelpCircle
-                            className={`text-primary ${
-                              isXsMobile
-                                ? "h-3 w-3"
-                                : isMobile
-                                  ? "h-4 w-4"
-                                  : "h-4 w-4"
-                            }`}
-                          />
+                          <div className="p-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex-shrink-0">
+                            <HelpCircle
+                              className={`text-white ${
+                                isXsMobile
+                                  ? "h-3 w-3"
+                                  : isMobile
+                                    ? "h-3.5 w-3.5"
+                                    : "h-4 w-4"
+                              }`}
+                            />
+                          </div>
                           <h3
-                            className={`font-semibold ${
+                            className={`font-bold text-gray-900 ${
                               isXsMobile
-                                ? "text-xs"
+                                ? "text-sm"
                                 : isMobile
-                                  ? "text-sm"
+                                  ? "text-base"
                                   : "text-base"
                             }`}
                           >
                             {currentStepData.title}
                           </h3>
                           {currentStepData.optional && (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white text-xs border-0 py-0 px-1.5">
                               Optional
                             </Badge>
                           )}
@@ -400,39 +407,39 @@ export default function ModuleTour({
                           variant="ghost"
                           size="sm"
                           onClick={handleSkip}
-                          className={`p-0 ${
+                          className={`text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full ${
                             isXsMobile
-                              ? "h-6 w-6"
+                              ? "h-6 w-6 p-0"
                               : isMobile
-                                ? "h-7 w-7"
-                                : "h-6 w-6"
+                                ? "h-7 w-7 p-0"
+                                : "h-7 w-7 p-0"
                           }`}
                         >
                           <X
-                            className={`$${
+                            className={`${
                               isXsMobile
-                                ? "h-2.5 w-2.5"
+                                ? "h-3 w-3"
                                 : isMobile
-                                  ? "h-3 w-3"
-                                  : "h-3 w-3"
+                                  ? "h-3.5 w-3.5"
+                                  : "h-4 w-4"
                             }`}
                           />
                         </Button>
                       </div>
 
-                      {/* Progress bar */}
+                      {/* Progress bar with gradient */}
                       <div
                         className={
-                          isXsMobile ? "mb-2" : isMobile ? "mb-3" : "mb-3"
+                          isXsMobile ? "mb-3" : isMobile ? "mb-3" : "mb-4"
                         }
                       >
                         <div
-                          className={`flex justify-between text-muted-foreground mb-2 ${
+                          className={`flex justify-between text-gray-600 mb-2 ${
                             isXsMobile
                               ? "text-xs"
                               : isMobile
                                 ? "text-xs"
-                                : "text-xs"
+                                : "text-sm"
                           }`}
                         >
                           <span>
@@ -440,62 +447,64 @@ export default function ModuleTour({
                           </span>
                           <span>{Math.round(progress)}%</span>
                         </div>
-                        <div className="w-full bg-secondary rounded-full h-2">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
-                            className="bg-primary h-2 rounded-full transition-all duration-300"
+                            className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-500 shadow-sm"
                             style={{ width: `${progress}%` }}
                           />
                         </div>
                       </div>
 
-                      {/* Content - Mobile optimized layout */}
+                      {/* Content - More compact */}
                       <div
-                        className={`${isXsMobile ? "flex-1 mb-2" : isMobile ? "flex-1 mb-3" : "mb-3"}`}
+                        className={`${isXsMobile ? "flex-1 mb-3" : isMobile ? "flex-1 mb-3" : "mb-4"}`}
                       >
                         <p
-                          className={`text-muted-foreground mb-3 ${
+                          className={`text-gray-700 mb-3 leading-snug ${
                             isXsMobile
-                              ? "text-xs leading-relaxed"
+                              ? "text-xs"
                               : isMobile
-                                ? "text-sm leading-relaxed"
-                                : "text-sm leading-relaxed"
+                                ? "text-sm"
+                                : "text-sm"
                           }`}
                         >
                           {currentStepData.content}
                         </p>
 
-                        {/* Tips */}
+                        {/* Tips with modern styling - more compact */}
                         {currentStepData.tips &&
                           currentStepData.tips.length > 0 && (
                             <div
-                              className={`bg-amber-50 dark:bg-amber-950/20 rounded-lg mb-3 ${
-                                isXsMobile ? "p-2" : isMobile ? "p-3" : "p-2"
+                              className={`bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-lg ${
+                                isXsMobile ? "p-2" : isMobile ? "p-2.5" : "p-3"
                               }`}
                             >
                               <div className="flex items-start gap-2">
-                                <Lightbulb
-                                  className={`text-amber-600 mt-0.5 flex-shrink-0 ${
-                                    isXsMobile
-                                      ? "h-3 w-3"
-                                      : isMobile
-                                        ? "h-4 w-4"
-                                        : "h-4 w-4"
-                                  }`}
-                                />
+                                <div className="p-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-md flex-shrink-0">
+                                  <Lightbulb
+                                    className={`text-white ${
+                                      isXsMobile
+                                        ? "h-2.5 w-2.5"
+                                        : isMobile
+                                          ? "h-3 w-3"
+                                          : "h-3 w-3"
+                                    }`}
+                                  />
+                                </div>
                                 <div>
                                   <p
-                                    className={`font-medium text-amber-800 dark:text-amber-200 mb-1 ${
+                                    className={`font-semibold text-amber-800 mb-1 ${
                                       isXsMobile
                                         ? "text-xs"
                                         : isMobile
                                           ? "text-xs"
-                                          : "text-xs"
+                                          : "text-sm"
                                     }`}
                                   >
-                                    Tips:
+                                    Pro Tips:
                                   </p>
                                   <ul
-                                    className={`text-amber-700 dark:text-amber-300 space-y-1 ${
+                                    className={`text-amber-700 space-y-1 ${
                                       isXsMobile
                                         ? "text-xs"
                                         : isMobile
@@ -506,9 +515,9 @@ export default function ModuleTour({
                                     {currentStepData.tips.map((tip, index) => (
                                       <li
                                         key={index}
-                                        className="flex items-start gap-1"
+                                        className="flex items-start gap-1.5"
                                       >
-                                        <span className="text-amber-600">
+                                        <span className="text-amber-600 mt-0.5 flex-shrink-0">
                                           •
                                         </span>
                                         <span>{tip}</span>
@@ -521,28 +530,28 @@ export default function ModuleTour({
                           )}
                       </div>
 
-                      {/* Navigation - Mobile optimized */}
+                      {/* Navigation with gradient buttons - more compact */}
                       <div
                         className={`${
                           isXsMobile
-                            ? "flex flex-col gap-1.5 mt-auto"
+                            ? "flex flex-col gap-2 mt-auto"
                             : isMobile
                               ? "flex flex-col gap-2 mt-auto"
-                              : "flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-0"
+                              : "flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 sm:gap-2"
                         }`}
                       >
                         <div
-                          className={`flex items-center gap-1 ${isXsMobile ? "gap-1.5" : isMobile ? "gap-2" : "gap-2"}`}
+                          className={`flex items-center ${isXsMobile ? "gap-1.5" : isMobile ? "gap-2" : "gap-2"}`}
                         >
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={handlePrevious}
                             disabled={currentStep === 0}
-                            className={`${isXsMobile ? "text-xs flex-1 h-8" : isMobile ? "text-xs flex-1" : "text-xs flex-1"}`}
+                            className={`bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-all duration-200 ${isXsMobile ? "text-xs flex-1 h-8" : isMobile ? "text-xs flex-1 h-8" : "text-sm flex-1 h-9"}`}
                           >
                             <ArrowLeft
-                              className={`mr-1 ${isXsMobile ? "h-2.5 w-2.5" : isMobile ? "h-3 w-3" : "h-3 w-3"}`}
+                              className={`mr-1 ${isXsMobile ? "h-3 w-3" : isMobile ? "h-3 w-3" : "h-3.5 w-3.5"}`}
                             />
                             <span
                               className={
@@ -571,7 +580,7 @@ export default function ModuleTour({
                             variant="outline"
                             size="sm"
                             onClick={handleSkip}
-                            className={`${isXsMobile ? "text-xs flex-1 h-8" : isMobile ? "text-xs flex-1" : "text-xs flex-1"}`}
+                            className={`bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100 hover:border-gray-400 transition-all duration-200 ${isXsMobile ? "text-xs flex-1 h-8" : isMobile ? "text-xs flex-1 h-8" : "text-sm flex-1 h-9"}`}
                           >
                             <span
                               className={
@@ -600,26 +609,32 @@ export default function ModuleTour({
                         <Button
                           onClick={handleNext}
                           size="sm"
-                          className={`${isXsMobile ? "text-xs w-full h-8" : isMobile ? "text-xs w-full" : "min-w-[80px] text-xs flex-1"}`}
+                          className={`bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-300 ${isXsMobile ? "text-xs w-full h-8" : isMobile ? "text-sm w-full h-8" : "min-w-[90px] text-sm flex-1 h-9"}`}
                         >
                           {currentStep === steps.length - 1 ? "Finish" : "Next"}
                           {currentStep < steps.length - 1 && (
                             <ArrowRight
-                              className={`ml-1 ${isXsMobile ? "h-2.5 w-2.5" : isMobile ? "h-3 w-3" : "h-3 w-3"}`}
+                              className={`ml-1 ${isXsMobile ? "h-3 w-3" : isMobile ? "h-3 w-3" : "h-3.5 w-3.5"}`}
                             />
                           )}
                         </Button>
                       </div>
 
-                      {/* Step indicators */}
+                      {/* Step indicators with gradient - more compact */}
                       <div
-                        className={`flex justify-center gap-1 ${isXsMobile ? "mt-2" : isMobile ? "mt-3" : "mt-3"}`}
+                        className={`flex justify-center gap-1.5 ${isXsMobile ? "mt-3" : isMobile ? "mt-3" : "mt-4"}`}
                       >
                         {steps.map((_, index) => (
                           <button
                             key={index}
                             onClick={() => handleStepJump(index)}
-                            className={`rounded-full transition-colors ${isXsMobile ? "w-1.5 h-1.5" : "w-2 h-2"} ${index === currentStep ? "bg-primary" : index < currentStep ? "bg-primary/50" : "bg-secondary"}`}
+                            className={`rounded-full transition-all duration-300 ${isXsMobile ? "w-1.5 h-1.5" : "w-2 h-2"} ${
+                              index === currentStep
+                                ? "bg-gradient-to-r from-blue-500 to-purple-500 shadow-sm"
+                                : index < currentStep
+                                  ? "bg-gradient-to-r from-blue-400 to-purple-400 opacity-70"
+                                  : "bg-gray-300 hover:bg-gray-400"
+                            }`}
                           />
                         ))}
                       </div>
@@ -635,47 +650,53 @@ export default function ModuleTour({
   );
 }
 
-// CSS for highlight effect (add to global styles)
+// Enhanced CSS for modern highlight effect
 export const tourStyles = `
   .tour-highlight {
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
   
   .tour-highlight::after {
     content: '';
     position: absolute;
-    border: 2px solid rgb(59, 130, 246);
-    border-radius: 12px;
+    background: linear-gradient(45deg, rgba(59, 130, 246, 0.2), rgba(147, 51, 234, 0.2));
+    border: 3px solid;
+    border-image: linear-gradient(45deg, rgb(59, 130, 246), rgb(147, 51, 234)) 1;
+    border-radius: 16px;
     pointer-events: none;
-    animation: pulse-border 2s infinite;
+    animation: pulse-gradient 2s infinite;
     z-index: 2147483645 !important;
+    backdrop-filter: blur(1px);
   }
   
   /* Desktop highlight */
   @media (min-width: 768px) {
     .tour-highlight::after {
-      inset: -8px;
-      border-radius: 12px;
+      inset: -10px;
+      border-radius: 16px;
+      border-width: 3px;
     }
   }
   
   /* Mobile highlight */
   @media (max-width: 767px) {
     .tour-highlight::after {
-      inset: -6px;
-      border-radius: 8px;
-      border-width: 3px;
+      inset: -8px;
+      border-radius: 12px;
+      border-width: 2px;
     }
   }
   
-  @keyframes pulse-border {
+  @keyframes pulse-gradient {
     0%, 100% {
       opacity: 1;
       transform: scale(1);
+      filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.3));
     }
     50% {
-      opacity: 0.7;
-      transform: scale(1.02);
+      opacity: 0.8;
+      transform: scale(1.01);
+      filter: drop-shadow(0 0 20px rgba(147, 51, 234, 0.4));
     }
   }
   
@@ -686,7 +707,17 @@ export const tourStyles = `
     }
     
     .tour-highlight::after {
-      animation-duration: 1.5s;
+      animation-duration: 1.8s;
     }
+  }
+  
+  /* Enhanced gradient animations */
+  @keyframes floating {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+  }
+  
+  .tour-highlight {
+    animation: floating 3s ease-in-out infinite;
   }
 `;

@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 import Link from "next/link";
 import { getServerSession } from "next-auth";
-import { Check, ArrowLeft, AlertCircle } from "lucide-react";
+import { Check, ArrowLeft } from "lucide-react";
 import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+
 import { authOptions } from "@/lib/auth";
 import { CheckoutButton } from "@/components/payments/checkout-button";
 import { dbConnect } from "@/lib/db";

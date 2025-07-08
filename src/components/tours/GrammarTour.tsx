@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import ModuleTour, { TourStep } from "./ModuleTour";
+import { translateTourSteps } from "@/lib/translations";
+import { useNativeLanguage } from "@/hooks/use-native-language";
 
 interface GrammarTourProps {
   isOpen: boolean;
@@ -96,31 +98,32 @@ const grammarTourSteps: TourStep[] = [
     ],
   },
   {
-    id: "daily-challenge",
-    title: "Daily Grammar Challenge",
+    id: "practice-exercises",
+    title: "Practice Exercises",
     content:
-      "Test your grammar knowledge with daily challenges. Maintain your streak and compete with yourself to improve your grammar skills consistently.",
-    target: "[data-tour='daily-challenge']",
+      "Reinforce your grammar learning with interactive exercises, daily challenges, and flashcards. Practice makes perfect!",
+    target: "[data-tour='grammar-practice-tab']",
     position: "center",
     action: "none",
     tips: [
-      "New challenge available every day",
-      "Maintain streaks for better learning habits",
-      "Challenges adapt to your skill level",
+      "Daily challenges keep grammar practice consistent",
+      "Flashcards help memorize grammar rules",
+      "Interactive exercises test your understanding",
     ],
   },
   {
-    id: "flashcards",
-    title: "Grammar Flashcards",
+    id: "ready-to-improve",
+    title: "Ready to Improve Your Grammar?",
     content:
-      "Review grammar rules using spaced repetition flashcards. An effective way to memorize and internalize grammar concepts for long-term retention.",
-    target: "[data-tour='grammar-flashcards']",
+      "You're all set! Generate personalized lessons, track your grammar issues, and practice regularly. Your grammar will improve with every session!",
+    target: "[data-tour='generate-lesson-btn']",
     position: "center",
     action: "none",
     tips: [
-      "Spaced repetition improves long-term retention",
-      "Flashcards focus on rules you struggle with",
-      "Regular review sessions are most effective",
+      "Start with personalized lessons based on your mistakes",
+      "Focus on one grammar rule at a time",
+      "Practice regularly to reinforce learning",
+      "Track your progress to stay motivated",
     ],
   },
 ];
@@ -131,6 +134,10 @@ export default function GrammarTour({
   onComplete,
 }: GrammarTourProps) {
   const [tourKey, setTourKey] = useState(0);
+  const [translatedSteps, setTranslatedSteps] =
+    useState<TourStep[]>(grammarTourSteps);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const { nativeLanguage } = useNativeLanguage();
 
   // Force tour to re-render when opened to ensure proper positioning
   useEffect(() => {
@@ -138,6 +145,30 @@ export default function GrammarTour({
       setTourKey(prev => prev + 1);
     }
   }, [isOpen]);
+
+  // Translate tour steps based on user's native language
+  useEffect(() => {
+    const translateSteps = async () => {
+      setIsTranslating(true);
+      try {
+        const translated = await translateTourSteps(
+          grammarTourSteps,
+          nativeLanguage
+        );
+        setTranslatedSteps(translated);
+      } catch (error) {
+        console.error("Failed to translate tour steps:", error);
+        // Fallback to original steps
+        setTranslatedSteps(grammarTourSteps);
+      } finally {
+        setIsTranslating(false);
+      }
+    };
+
+    if (isOpen) {
+      translateSteps();
+    }
+  }, [isOpen, nativeLanguage]);
 
   const handleTourComplete = async () => {
     try {
@@ -162,11 +193,16 @@ export default function GrammarTour({
     }
   };
 
+  // Don't render if still translating
+  if (isTranslating) {
+    return null;
+  }
+
   return (
     <ModuleTour
       key={tourKey}
       module="grammar"
-      steps={grammarTourSteps}
+      steps={translatedSteps}
       isOpen={isOpen}
       onClose={onClose}
       onComplete={handleTourComplete}

@@ -67,6 +67,12 @@ export async function PUT(request: NextRequest) {
       "settings.emailNotifications": data.emailNotifications,
       "settings.progressReminders": data.progressReminders,
       "settings.theme": data.theme,
+      // Add new notification settings
+      "settings.weeklyProgressReport": data.weeklyProgressReport,
+      "settings.achievementNotifications": data.achievementNotifications,
+      "settings.streakReminders": data.streakReminders,
+      "settings.studyReminders": data.studyReminders,
+      "settings.reminderTiming": data.reminderTiming,
     };
 
     // Remove undefined values

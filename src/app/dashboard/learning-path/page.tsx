@@ -5,7 +5,6 @@ import { useSession } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import {
   BookOpen,
@@ -15,7 +14,6 @@ import {
   Trophy,
   Zap,
   ArrowRight,
-  User,
   Calendar,
   TrendingUp,
   CheckCircle,
@@ -24,7 +22,55 @@ import {
   Loader2,
 } from "lucide-react";
 
-import { learningPathTranslations } from "@/lib/onboarding-translations";
+// Simple translations for learning path page
+const learningPathTranslations = {
+  en: {
+    title: "Your Learning Path",
+    subtitle: "Personalized recommendations based on your assessment",
+    loading: "Loading your learning path...",
+    error: "Error loading learning path",
+    completeOnboarding:
+      "Please complete your assessment to see your personalized learning path.",
+    modules: {
+      reading: "Reading",
+      writing: "Writing",
+      speaking: "Speaking",
+      listening: "Listening",
+      vocabulary: "Vocabulary",
+      grammar: "Grammar",
+      games: "Games",
+    },
+    cards: {
+      currentLevel: "Current Level",
+      dailyTime: "Daily Time Commitment",
+      estimatedDuration: "Estimated Duration",
+      focusAreas: "Focus Areas",
+    },
+  },
+  tr: {
+    title: "Öğrenme Yolunuz",
+    subtitle: "Değerlendirmenize dayalı kişiselleştirilmiş öneriler",
+    loading: "Öğrenme yolunuz yükleniyor...",
+    error: "Öğrenme yolu yüklenirken hata oluştu",
+    completeOnboarding:
+      "Kişiselleştirilmiş öğrenme yolunuzu görmek için değerlendirmenizi tamamlayın.",
+    modules: {
+      reading: "Okuma",
+      writing: "Yazma",
+      speaking: "Konuşma",
+      listening: "Dinleme",
+      vocabulary: "Kelime Hazinesi",
+      grammar: "Gramer",
+      games: "Oyunlar",
+    },
+    cards: {
+      currentLevel: "Mevcut Seviye",
+      dailyTime: "Günlük Zaman Taahhüdü",
+      estimatedDuration: "Tahmini Süre",
+      focusAreas: "Odak Alanları",
+    },
+  },
+};
 
 interface LearningPathData {
   primaryFocus: string[];

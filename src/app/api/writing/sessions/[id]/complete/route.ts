@@ -11,7 +11,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
 import WritingSession, { IWritingSession } from "@/models/WritingSession";
-import { GamificationService } from "@/lib/gamification/gamification-service";
 import { recordWritingCompletion } from "@/lib/gamification/activity-recorder";
 
 interface IUserProgress extends Document {
