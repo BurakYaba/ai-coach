@@ -43,6 +43,7 @@ interface NotificationStats {
     sentAt: string;
     status: string;
     reason?: string;
+    provider?: string;
   }>;
 }
 
@@ -540,6 +541,13 @@ export default function NotificationAdminPage() {
                           <span className="text-sm text-gray-600">
                             User: {log.userId.slice(-8)}
                           </span>
+                          {log.provider && (
+                            <Badge variant="outline" className="text-xs">
+                              {log.provider === "resend"
+                                ? "📧 Resend"
+                                : "📮 SMTP"}
+                            </Badge>
+                          )}
                         </div>
                         <div className="text-right">
                           <p className="text-sm text-gray-600">

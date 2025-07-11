@@ -13,6 +13,115 @@ export interface NotificationLog {
   status: "sent" | "failed" | "skipped";
   reason?: string;
   messageId?: string;
+  provider?: string; // Track which email provider was used
+}
+
+// Email sending with intelligent fallback
+async function sendEmailWithFallback(
+  emailType: "study_reminder" | "weekly_progress",
+  params: any
+): Promise<{
+  success: boolean;
+  error?: string;
+  messageId?: string;
+  provider: string;
+}> {
+  // Try Resend first (if configured)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      console.log("Attempting to send email via Resend...");
+      let result;
+
+      if (emailType === "study_reminder") {
+        result = await sendStudyReminderEmailResend(
+          params.email,
+          params.name,
+          params.studyGoal,
+          params.preferredTime,
+          params.streakCount
+        );
+      } else if (emailType === "weekly_progress") {
+        // For weekly progress, we need to use the regular email function
+        // since sendWeeklyProgressEmailResend doesn't exist yet
+        throw new Error(
+          "Weekly progress not implemented in Resend, falling back to SMTP"
+        );
+      }
+
+      if (result && result.success) {
+        console.log(`Email sent successfully via Resend: ${result.messageId}`);
+        return {
+          success: true,
+          messageId: result.messageId,
+          provider: "resend",
+        };
+      }
+
+      // If Resend returns error, fall back to SMTP
+      console.log("Resend failed, falling back to SMTP:", result?.error);
+      throw new Error(result?.error || "Resend failed");
+    } catch (error) {
+      console.log("Resend failed, attempting fallback to SMTP:", error);
+
+      // Check if this is a rate limit error
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      if (
+        errorMessage.includes("rate limit") ||
+        errorMessage.includes("quota") ||
+        errorMessage.includes("limit")
+      ) {
+        console.log(
+          "⚠️  Resend rate limit detected, switching to SMTP fallback"
+        );
+      }
+    }
+  }
+
+  // Fallback to SMTP (GoDaddy)
+  try {
+    console.log("Sending email via SMTP fallback...");
+    let result;
+
+    if (emailType === "study_reminder") {
+      result = await sendStudyReminderEmail(
+        params.email,
+        params.name,
+        params.studyGoal,
+        params.preferredTime,
+        params.streakCount
+      );
+    } else if (emailType === "weekly_progress") {
+      result = await sendWeeklyProgressEmail(
+        params.email,
+        params.name,
+        params.progressData
+      );
+    }
+
+    if (result && result.success) {
+      console.log(`Email sent successfully via SMTP: ${result.messageId}`);
+      return {
+        success: true,
+        messageId: result.messageId,
+        provider: "smtp",
+      };
+    }
+
+    return {
+      success: false,
+      error: result?.error || "SMTP also failed",
+      provider: "smtp",
+    };
+  } catch (error) {
+    console.error("Both Resend and SMTP failed:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "All email providers failed",
+      provider: "none",
+    };
+  }
 }
 
 // Time conversion helpers
@@ -247,34 +356,26 @@ export async function sendStudyReminderToUser(userId: string): Promise<{
     // Get user's gamification profile for streak data
     const profile = await GamificationService.getUserProfile(userId);
 
-    // Determine which email service to use
-    let result;
-    if (process.env.RESEND_API_KEY) {
-      result = await sendStudyReminderEmailResend(
-        user.email,
-        user.name,
-        user.onboarding?.dailyStudyTimeGoal || 30,
-        user.onboarding?.preferredPracticeTime || "evening",
-        profile.streak?.current || 0
-      );
-    } else {
-      result = await sendStudyReminderEmail(
-        user.email,
-        user.name,
-        user.onboarding?.dailyStudyTimeGoal || 30,
-        user.onboarding?.preferredPracticeTime || "evening",
-        profile.streak?.current || 0
-      );
-    }
+    // Use intelligent fallback system
+    const result = await sendEmailWithFallback("study_reminder", {
+      email: user.email,
+      name: user.name,
+      studyGoal: user.onboarding?.dailyStudyTimeGoal || 30,
+      preferredTime: user.onboarding?.preferredPracticeTime || "evening",
+      streakCount: profile.streak?.current || 0,
+    });
 
-    // Log the notification attempt
+    // Enhanced logging with provider info
     await logNotification({
       userId,
       type: "study_reminder",
       sentAt: new Date(),
       status: result.success ? "sent" : "failed",
-      reason: result.success ? "Successfully sent" : result.error,
+      reason: result.success
+        ? `Successfully sent via ${result.provider}`
+        : result.error,
       messageId: result.messageId,
+      provider: result.provider,
     });
 
     return {
@@ -316,21 +417,24 @@ export async function sendWeeklyProgressToUser(userId: string): Promise<{
     // Calculate weekly progress data
     const weeklyData = await calculateWeeklyProgress(userId);
 
-    // Send the email
-    const result = await sendWeeklyProgressEmail(
-      user.email,
-      user.name,
-      weeklyData
-    );
+    // Use intelligent fallback system
+    const result = await sendEmailWithFallback("weekly_progress", {
+      email: user.email,
+      name: user.name,
+      progressData: weeklyData,
+    });
 
-    // Log the notification attempt
+    // Enhanced logging with provider info
     await logNotification({
       userId,
       type: "weekly_progress",
       sentAt: new Date(),
       status: result.success ? "sent" : "failed",
-      reason: result.success ? "Successfully sent" : result.error,
+      reason: result.success
+        ? `Successfully sent via ${result.provider}`
+        : result.error,
       messageId: result.messageId,
+      provider: result.provider,
     });
 
     return {

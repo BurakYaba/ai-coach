@@ -373,6 +373,35 @@ The notification system is configured to work with **Vercel Cron Jobs** for auto
 - **Rate Limits**: Vercel cron jobs have execution limits. Monitor usage in the dashboard
 - **Error Handling**: Failed notifications are logged with error details
 - **Scalability**: The system processes all users in batches for efficiency
+- **Email Fallback**: Intelligent fallback system automatically switches from Resend to SMTP when needed
+
+### Email Provider Fallback System:
+
+The system includes an intelligent fallback mechanism:
+
+1. **Primary Provider**: Resend (if `RESEND_API_KEY` is configured)
+2. **Fallback Provider**: SMTP (GoDaddy/Gmail based on `EMAIL_PROVIDER` setting)
+
+**Automatic Fallback Triggers:**
+
+- Resend API errors (rate limits, quota exceeded, service unavailable)
+- Network connectivity issues
+- API key problems
+- **Monthly limit reached**: When Resend monthly quota is exhausted
+
+**What Happens When Resend Hits Monthly Limits:**
+
+1. ✅ **Notifications continue working** - automatically switch to GoDaddy SMTP
+2. ✅ **Zero downtime** - users still receive study reminders and weekly reports
+3. ✅ **Transparent operation** - system logs show fallback to SMTP provider
+4. ✅ **Next month reset** - system automatically tries Resend again when quota resets
+
+**Monitoring:**
+
+- All emails are logged with provider information (`resend` or `smtp`)
+- Admin interface shows which provider was used for each email
+- Fallback events are logged for troubleshooting
+- **Rate limit warnings** are logged when Resend quota is reached
 
 ### Troubleshooting:
 
