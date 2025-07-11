@@ -28,11 +28,9 @@ export function TakeTourButton({
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button
-          variant={variant}
-          size={size}
+        <button
           onClick={onStartTour}
-          className={`${className} gap-1.5 sm:gap-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 border-blue-500/30 hover:border-blue-500/50 text-blue-700 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200 transition-all duration-200 group shadow-sm hover:shadow-md`}
+          className={`${className} gap-1.5 sm:gap-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 hover:from-blue-500/20 hover:to-purple-500/20 border-blue-500/30 hover:border-blue-500/50 text-blue-700 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200 transition-all duration-200 group shadow-sm hover:shadow-md border rounded-md px-3 py-1.5 text-sm font-medium cursor-pointer bg-transparent flex items-center justify-center`}
         >
           {showIcon && (
             <div className="p-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full group-hover:scale-110 transition-transform duration-200">
@@ -45,7 +43,7 @@ export function TakeTourButton({
           <span className="min-[480px]:hidden font-medium">
             {children ? children : "Tour"}
           </span>
-        </Button>
+        </button>
       </TooltipTrigger>
       <TooltipContent className="bg-white/95 backdrop-blur-sm border border-blue-200/50 text-gray-800 shadow-lg">
         <p className="font-medium">

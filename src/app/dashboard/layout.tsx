@@ -32,8 +32,10 @@ export default async function DashboardLayout({
     redirect("/school-admin");
   }
 
-  // Remove admin auto-redirect completely to allow admin users to access the dashboard
-  // This fixes the "Back to App" button functionality from the admin page
+  // Redirect admin users to admin dashboard
+  if (user?.role === "admin") {
+    redirect("/admin");
+  }
 
   // Prepare subscription info for the header
   const subscriptionInfo = user?.subscription

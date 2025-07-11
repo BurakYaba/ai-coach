@@ -1400,13 +1400,13 @@ export function FreeConversation() {
             <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder="Select a voice" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="alloy">Alloy</SelectItem>
-              <SelectItem value="shimmer">Shimmer</SelectItem>
-              <SelectItem value="nova">Nova</SelectItem>
-              <SelectItem value="echo">Echo</SelectItem>
-              <SelectItem value="fable">Fable</SelectItem>
-              <SelectItem value="onyx">Onyx</SelectItem>
+            <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+              <SelectItem value="A1">A1 - Beginner</SelectItem>
+              <SelectItem value="A2">A2 - Elementary</SelectItem>
+              <SelectItem value="B1">B1 - Intermediate</SelectItem>
+              <SelectItem value="B2">B2 - Upper Intermediate</SelectItem>
+              <SelectItem value="C1">C1 - Advanced</SelectItem>
+              <SelectItem value="C2">C2 - Proficient</SelectItem>
             </SelectContent>
           </Select>
         </div>

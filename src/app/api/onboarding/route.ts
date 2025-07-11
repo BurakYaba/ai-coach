@@ -65,35 +65,24 @@ export async function POST(req: Request) {
         user.onboarding.currentStep = 2;
         break;
 
-      case 2: // Country and region
-        user.onboarding.country = data.country;
-        user.onboarding.region = data.region;
+      case 2: // Preferred practice time, learning days, and reminder timing
+        user.onboarding.preferredPracticeTime = data.preferredPracticeTime;
+        user.onboarding.preferredLearningDays = data.preferredLearningDays;
+        user.onboarding.reminderTiming = data.reminderTiming;
         user.onboarding.currentStep = 3;
         break;
 
-      case 3: // Preferred practice time and learning days
-        user.onboarding.preferredPracticeTime = data.preferredPracticeTime;
-        user.onboarding.preferredLearningDays = data.preferredLearningDays;
+      case 3: // Reasons for learning English
+        user.onboarding.reasonsForLearning = data.reasonsForLearning;
         user.onboarding.currentStep = 4;
         break;
 
-      case 4: // Reasons for learning English
-        user.onboarding.reasonsForLearning = data.reasonsForLearning;
+      case 4: // How heard about Fluenta AI
+        user.onboarding.howHeardAbout = data.howHeardAbout;
         user.onboarding.currentStep = 5;
         break;
 
-      case 5: // How heard about Fluenta AI
-        user.onboarding.howHeardAbout = data.howHeardAbout;
-        user.onboarding.currentStep = 6;
-        break;
-
-      case 6: // Study time goals
-        user.onboarding.dailyStudyTimeGoal = data.dailyStudyTimeGoal;
-        user.onboarding.weeklyStudyTimeGoal = data.weeklyStudyTimeGoal;
-        user.onboarding.currentStep = 7;
-        break;
-
-      case 7: // Consent
+      case 5: // Consent
         user.onboarding.consentDataUsage = data.consentDataUsage;
         user.onboarding.consentAnalytics = data.consentAnalytics;
         user.onboarding.completed = true;

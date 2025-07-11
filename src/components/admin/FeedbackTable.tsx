@@ -13,6 +13,13 @@ import {
   MoreVertical,
   Loader2,
   Search,
+  User,
+  Tag,
+  AlertCircle,
+  FileText,
+  Globe,
+  Edit,
+  Send,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -519,119 +526,160 @@ export function FeedbackTable() {
 
       {/* Feedback Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Feedback Details</DialogTitle>
-            <DialogDescription>
-              View and respond to user feedback
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto p-0 border-0 shadow-2xl">
+          <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 min-h-full">
+            <DialogHeader className="bg-gradient-to-r from-green-600 to-teal-600 text-white p-6 rounded-t-lg">
+              <DialogTitle className="text-2xl font-bold">
+                Feedback Details
+              </DialogTitle>
+              <DialogDescription className="text-green-100">
+                View and respond to user feedback
+              </DialogDescription>
+            </DialogHeader>
 
-          {selectedFeedback && (
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <span className="text-sm font-medium">User</span>
-                  <div className="text-sm">
-                    <div>{selectedFeedback.user.name}</div>
-                    <div className="text-muted-foreground">
-                      {selectedFeedback.user.email}
+            {selectedFeedback && (
+              <div className="p-6 space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="bg-white/70 rounded-lg p-4 shadow-sm">
+                    <span className="text-sm font-semibold text-green-800 flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      User Information
+                    </span>
+                    <div className="mt-2 space-y-1">
+                      <div className="font-medium text-green-900">
+                        {selectedFeedback.user.name}
+                      </div>
+                      <div className="text-sm text-green-700">
+                        {selectedFeedback.user.email}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="bg-white/70 rounded-lg p-4 shadow-sm">
+                    <span className="text-sm font-semibold text-green-800 flex items-center gap-2">
+                      <Star className="h-4 w-4" />
+                      Rating
+                    </span>
+                    <div className="mt-2">
+                      <StarRating rating={selectedFeedback.rating} />
+                    </div>
+                  </div>
+                  <div className="bg-white/70 rounded-lg p-4 shadow-sm">
+                    <span className="text-sm font-semibold text-green-800 flex items-center gap-2">
+                      <Tag className="h-4 w-4" />
+                      Category
+                    </span>
+                    <div className="mt-2 text-sm font-medium text-green-900">
+                      {getCategoryLabel(selectedFeedback.category)}
+                    </div>
+                  </div>
+                  <div className="bg-white/70 rounded-lg p-4 shadow-sm">
+                    <span className="text-sm font-semibold text-green-800 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4" />
+                      Status
+                    </span>
+                    <div className="mt-2">
+                      {getStatusBadge(selectedFeedback.status)}
                     </div>
                   </div>
                 </div>
-                <div>
-                  <span className="text-sm font-medium">Rating</span>
-                  <div className="text-sm">
-                    <StarRating rating={selectedFeedback.rating} />
+
+                <div className="bg-white/70 rounded-lg p-4 shadow-sm">
+                  <span className="text-sm font-semibold text-green-800 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Subject
+                  </span>
+                  <div className="mt-2 text-sm font-medium text-green-900">
+                    {selectedFeedback.subject}
                   </div>
                 </div>
-                <div>
-                  <span className="text-sm font-medium">Category</span>
-                  <div className="text-sm">
-                    {getCategoryLabel(selectedFeedback.category)}
+
+                <div className="bg-white/70 rounded-lg p-4 shadow-sm">
+                  <span className="text-sm font-semibold text-green-800 flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Message
+                  </span>
+                  <div className="mt-2 p-3 bg-white/60 rounded-md border border-green-200">
+                    <p className="text-sm text-green-900 leading-relaxed">
+                      {selectedFeedback.message}
+                    </p>
                   </div>
                 </div>
-                <div>
-                  <span className="text-sm font-medium">Status</span>
-                  <div className="text-sm">
-                    {getStatusBadge(selectedFeedback.status)}
+
+                {selectedFeedback.metadata?.currentPage && (
+                  <div className="bg-white/70 rounded-lg p-4 shadow-sm">
+                    <span className="text-sm font-semibold text-green-800 flex items-center gap-2">
+                      <Globe className="h-4 w-4" />
+                      Context
+                    </span>
+                    <div className="mt-2 text-sm text-green-700">
+                      Page: {selectedFeedback.metadata.currentPage}
+                    </div>
                   </div>
+                )}
+
+                <div className="bg-white/70 rounded-lg p-4 shadow-sm">
+                  <label
+                    htmlFor="admin-notes"
+                    className="text-sm font-semibold text-green-800 flex items-center gap-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    Admin Notes
+                  </label>
+                  <Textarea
+                    id="admin-notes"
+                    placeholder="Internal notes about this feedback..."
+                    value={notesText}
+                    onChange={e => setNotesText(e.target.value)}
+                    className="mt-2 bg-white/60 border-green-200 focus:border-green-400 focus:ring-green-400"
+                  />
+                </div>
+
+                <div className="bg-white/70 rounded-lg p-4 shadow-sm">
+                  <label
+                    htmlFor="admin-response"
+                    className="text-sm font-semibold text-green-800 flex items-center gap-2"
+                  >
+                    <Send className="h-4 w-4" />
+                    Response to User
+                  </label>
+                  <Textarea
+                    id="admin-response"
+                    placeholder="Response that will be visible to the user..."
+                    value={responseText}
+                    onChange={e => setResponseText(e.target.value)}
+                    className="mt-2 bg-white/60 border-green-200 focus:border-green-400 focus:ring-green-400"
+                  />
+                </div>
+
+                <div className="flex justify-end gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setDetailsOpen(false)}
+                    disabled={isUpdating}
+                    className="border-green-300 text-green-700 hover:bg-green-50"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleResponseSubmit}
+                    disabled={
+                      isUpdating || (!responseText.trim() && !notesText.trim())
+                    }
+                    className="bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                  >
+                    {isUpdating ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      "Save Response"
+                    )}
+                  </Button>
                 </div>
               </div>
-
-              <div>
-                <span className="text-sm font-medium">Subject</span>
-                <div className="text-sm mt-1">{selectedFeedback.subject}</div>
-              </div>
-
-              <div>
-                <span className="text-sm font-medium">Message</span>
-                <div className="text-sm mt-1 p-3 bg-muted rounded-md">
-                  {selectedFeedback.message}
-                </div>
-              </div>
-
-              {selectedFeedback.metadata?.currentPage && (
-                <div>
-                  <span className="text-sm font-medium">Context</span>
-                  <div className="text-sm mt-1 text-muted-foreground">
-                    Page: {selectedFeedback.metadata.currentPage}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <label htmlFor="admin-notes" className="text-sm font-medium">
-                  Admin Notes
-                </label>
-                <Textarea
-                  id="admin-notes"
-                  placeholder="Internal notes about this feedback..."
-                  value={notesText}
-                  onChange={e => setNotesText(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="admin-response" className="text-sm font-medium">
-                  Response to User
-                </label>
-                <Textarea
-                  id="admin-response"
-                  placeholder="Response that will be visible to the user..."
-                  value={responseText}
-                  onChange={e => setResponseText(e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => setDetailsOpen(false)}
-                  disabled={isUpdating}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleResponseSubmit}
-                  disabled={
-                    isUpdating || (!responseText.trim() && !notesText.trim())
-                  }
-                >
-                  {isUpdating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save Response"
-                  )}
-                </Button>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

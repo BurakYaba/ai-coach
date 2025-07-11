@@ -1,62 +1,42 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { getToken } from "next-auth/jwt";
-import {
-  validateSession,
-  forceLogoutUser,
-  getUserSessionHistory,
-  parseDeviceInfo,
-} from "@/lib/session-manager";
+import { forceLogoutUser, validateSession } from "@/lib/session-manager";
 
 export async function GET(request: NextRequest) {
   try {
-    // Get the JWT token
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    if (!token || !token.sessionToken) {
+    if (!token) {
       return NextResponse.json(
-        { isValid: false, error: "No session token found" },
+        {
+          isValid: false,
+          message: "No token found",
+        },
         { status: 401 }
       );
     }
 
-    // Get device fingerprint from client-side detection
-    const clientDeviceFingerprint = request.headers.get("X-Device-Fingerprint");
-    let enhancedDeviceInfo = null;
-
-    if (clientDeviceFingerprint) {
-      try {
-        const clientInfo = JSON.parse(clientDeviceFingerprint);
-        // Combine server-side and client-side device info
-        const serverDeviceInfo = parseDeviceInfo(request);
-
-        enhancedDeviceInfo = {
-          ...serverDeviceInfo,
-          browser: clientInfo.browser || serverDeviceInfo.browser,
-          screen: clientInfo.screen,
-          timezone: clientInfo.timezone,
-          language: clientInfo.language,
-          platform: clientInfo.platform,
-        };
-      } catch (e) {
-        console.warn("Failed to parse client device fingerprint");
-      }
+    // Database session validation
+    if (!token.sessionToken) {
+      // For old users without sessionTokens, accept the JWT as valid
+      return NextResponse.json({
+        isValid: true,
+        userId: token.id,
+        message: "Session valid (JWT only - legacy user)",
+      });
     }
 
-    // RE-ENABLED: Validate the session (this was previously disabled)
     try {
       const sessionValidation = await validateSession(
         token.sessionToken as string
       );
 
       if (!sessionValidation.isValid) {
-        console.log(
-          `Session validation failed for user ${token.id}: Session terminated or expired`
-        );
         return NextResponse.json(
           {
             isValid: false,
@@ -67,46 +47,50 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      console.log(`Session validation successful for user ${token.id}`);
-    } catch (validationError) {
+      return NextResponse.json({
+        isValid: true,
+        userId: token.id,
+        message: "Session valid",
+      });
+    } catch (validationError: any) {
       console.error("Session validation error:", validationError);
-      // Return invalid session on database errors to trigger re-authentication
-      return NextResponse.json(
-        {
-          isValid: false,
-          error: "Session validation failed",
-          reason: "validation_error",
-        },
-        { status: 401 }
-      );
-    }
 
-    // Get session history if requested
-    const includeHistory =
-      request.nextUrl.searchParams.get("history") === "true";
-    let sessionHistory = [];
-
-    if (includeHistory && token.id) {
-      try {
-        sessionHistory = await getUserSessionHistory(token.id as string, 5);
-      } catch (error) {
-        console.warn("Failed to get session history:", error);
+      // For database connection errors, fall back to JWT validation
+      if (
+        validationError?.name === "MongoNetworkError" ||
+        validationError?.name === "MongoServerError" ||
+        validationError?.message?.includes("connection")
+      ) {
+        return NextResponse.json({
+          isValid: true,
+          userId: token.id,
+          message: "Session valid (JWT fallback due to DB error)",
+        });
       }
-    }
 
-    return NextResponse.json({
-      isValid: true,
-      userId: token.id,
-      sessionHistory: includeHistory ? sessionHistory : undefined,
-      deviceInfo: enhancedDeviceInfo,
-    });
+      // For session termination, return 401
+      if (validationError.message?.includes("session_terminated")) {
+        return NextResponse.json(
+          {
+            isValid: false,
+            error: "Session is no longer valid",
+            reason: "session_terminated",
+          },
+          { status: 401 }
+        );
+      }
+
+      // For other validation errors, fall back to JWT validation
+      return NextResponse.json({
+        isValid: true,
+        userId: token.id,
+        message: "Session valid (JWT fallback)",
+      });
+    }
   } catch (error) {
-    console.error("Session validation API error:", error);
+    console.error("Session validation request error:", error);
     return NextResponse.json(
-      {
-        isValid: false,
-        error: "Internal server error during session validation",
-      },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

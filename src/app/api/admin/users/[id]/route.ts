@@ -4,6 +4,25 @@ import { getServerSession } from "next-auth";
 import { authOptions, isAdmin } from "@/lib/auth";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
+import UserSession from "@/models/UserSession";
+import ListeningSession from "@/models/ListeningSession";
+import SpeakingSession from "@/models/SpeakingSession";
+import ReadingSession from "@/models/ReadingSession";
+import WritingSession from "@/models/WritingSession";
+import WritingPrompt from "@/models/WritingPrompt";
+import VocabularyBank from "@/models/VocabularyBank";
+import UserActivity from "@/models/UserActivity";
+import SkillAssessment from "@/models/SkillAssessment";
+import ListeningStats from "@/models/ListeningStats";
+import LearningGroup from "@/models/LearningGroup";
+import Leaderboard from "@/models/Leaderboard";
+import GrammarLesson from "@/models/GrammarLesson";
+import GrammarIssue from "@/models/GrammarIssue";
+import GamificationProfile from "@/models/GamificationProfile";
+import Feedback from "@/models/Feedback";
+import Challenge from "@/models/Challenge";
+import School from "@/models/School";
+import Branch from "@/models/Branch";
 import { forceLogoutUser } from "@/lib/session-manager";
 
 export const dynamic = "force-dynamic";
@@ -145,26 +164,114 @@ export async function DELETE(
       }
     }
 
-    // Delete all related data - this could include sessions, progress, etc.
-    // Here you would add code to delete from other collections as needed
+    // Delete all related data - comprehensive cleanup
+    const deletionResults = {
+      sessions: 0,
+      activities: 0,
+      progress: 0,
+      adminRoles: 0,
+    };
 
-    // Clean up all user sessions first
     try {
+      // 1. Clean up all user sessions first (force logout)
       const sessionCount = await forceLogoutUser(id);
-      console.log(`Cleaned up ${sessionCount} sessions for user ${id}`);
-    } catch (sessionError) {
-      console.error("Error cleaning up user sessions:", sessionError);
-      // Don't fail the deletion if session cleanup fails
-    }
+      console.log(`Cleaned up ${sessionCount} active sessions for user ${id}`);
 
-    // For example:
-    // await ListeningSession.deleteMany({ userId: id });
-    // await UserProgress.deleteMany({ userId: id });
+      // 2. Delete all user sessions from database
+      const userSessionsResult = await UserSession.deleteMany({ userId: id });
+      deletionResults.sessions += userSessionsResult.deletedCount;
+
+      // 3. Delete all learning sessions
+      const [listeningResult, speakingResult, readingResult, writingResult] =
+        await Promise.all([
+          ListeningSession.deleteMany({ userId: id }),
+          SpeakingSession.deleteMany({ user: id }), // Note: SpeakingSession uses "user" field
+          ReadingSession.deleteMany({ userId: id }),
+          WritingSession.deleteMany({ userId: id }),
+        ]);
+
+      deletionResults.sessions +=
+        listeningResult.deletedCount +
+        speakingResult.deletedCount +
+        readingResult.deletedCount +
+        writingResult.deletedCount;
+
+      // 4. Delete user progress and learning data
+      const [
+        writingPromptResult,
+        vocabResult,
+        skillResult,
+        statsResult,
+        grammarLessonResult,
+        grammarIssueResult,
+        gamificationResult,
+      ] = await Promise.all([
+        WritingPrompt.deleteMany({ userId: id }),
+        VocabularyBank.deleteMany({ userId: id }),
+        SkillAssessment.deleteMany({ userId: id }),
+        ListeningStats.deleteMany({ userId: id }),
+        GrammarLesson.deleteMany({ userId: id }),
+        GrammarIssue.deleteMany({ userId: id }),
+        GamificationProfile.deleteMany({ userId: id }),
+      ]);
+
+      deletionResults.progress +=
+        writingPromptResult.deletedCount +
+        vocabResult.deletedCount +
+        skillResult.deletedCount +
+        statsResult.deletedCount +
+        grammarLessonResult.deletedCount +
+        grammarIssueResult.deletedCount +
+        gamificationResult.deletedCount;
+
+      // 5. Delete user activities and challenges
+      const [
+        activityResult,
+        learningGroupResult,
+        leaderboardResult,
+        challengeResult,
+        feedbackResult,
+      ] = await Promise.all([
+        UserActivity.deleteMany({ userId: id }),
+        LearningGroup.deleteMany({ userId: id }),
+        Leaderboard.deleteMany({ userId: id }),
+        Challenge.deleteMany({ userId: id }),
+        Feedback.deleteMany({ userId: id }),
+      ]);
+
+      deletionResults.activities +=
+        activityResult.deletedCount +
+        learningGroupResult.deletedCount +
+        leaderboardResult.deletedCount +
+        challengeResult.deletedCount +
+        feedbackResult.deletedCount;
+
+      // 6. Remove user from school and branch admin arrays
+      const [schoolUpdateResult, branchUpdateResult] = await Promise.all([
+        School.updateMany({ admins: id }, { $pull: { admins: id } }),
+        Branch.updateMany({ admins: id }, { $pull: { admins: id } }),
+      ]);
+
+      deletionResults.adminRoles +=
+        schoolUpdateResult.modifiedCount + branchUpdateResult.modifiedCount;
+
+      console.log(
+        `User data cleanup completed for user ${id}:`,
+        deletionResults
+      );
+    } catch (cleanupError) {
+      console.error("Error during user data cleanup:", cleanupError);
+      // Continue with user deletion even if cleanup fails partially
+      // This prevents the system from being stuck if some cleanup fails
+    }
 
     // Finally, delete the user
     await User.findByIdAndDelete(id);
 
-    return NextResponse.json({ message: "User deleted successfully" });
+    return NextResponse.json({
+      message: "User deleted successfully",
+      cleanupResults: deletionResults,
+    });
   } catch (error) {
     console.error("Error deleting user:", error);
     return NextResponse.json(

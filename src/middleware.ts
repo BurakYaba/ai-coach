@@ -56,8 +56,8 @@ const SUBSCRIPTION_PROTECTED_PATHS = [
   "/dashboard/games",
 ];
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
 
   // Skip middleware for static files (images, scripts, stylesheets, etc.)
   if (
@@ -78,19 +78,19 @@ export async function middleware(request: NextRequest) {
 
   // Handle legacy URL redirects first (before other processing)
   if (pathname === "/gizlilik") {
-    return NextResponse.redirect(new URL("/gizlilik-politikasi", request.url));
+    return NextResponse.redirect(new URL("/gizlilik-politikasi", req.url));
   }
 
   // Redirect missing Turkish blog posts to Turkish equivalents
   if (pathname === "/blog/english-conversation-practice-app") {
     return NextResponse.redirect(
-      new URL("/blog/ingilizce-konusma-pratigi-uygulamalari", request.url)
+      new URL("/blog/ingilizce-konusma-pratigi-uygulamalari", req.url)
     );
   }
 
   if (pathname === "/blog/ai-english-conversation-practice") {
     return NextResponse.redirect(
-      new URL("/blog/ai-ingilizce-konusma-pratiği", request.url)
+      new URL("/blog/ai-ingilizce-konusma-pratiği", req.url)
     );
   }
 
@@ -147,17 +147,17 @@ export async function middleware(request: NextRequest) {
   // Language detection for root path and non-exempt paths (production only)
   if (!shouldSkipLanguageDetection && (pathname === "/" || pathname === "")) {
     try {
-      const countryCode = getCountryCode(request);
+      const countryCode = getCountryCode(req);
 
       // Enhanced language detection with Accept-Language fallback
       if (!countryCode) {
         // Try to use Accept-Language header as fallback
-        const acceptLanguage = request.headers.get("accept-language") || "";
+        const acceptLanguage = req.headers.get("accept-language") || "";
         const hasTurkish = /tr|turkish/i.test(acceptLanguage);
 
         // If no Turkish preference detected, redirect to English
         if (!hasTurkish && acceptLanguage) {
-          const redirectUrl = new URL("/en", request.url);
+          const redirectUrl = new URL("/en", req.url);
           return NextResponse.redirect(redirectUrl);
         }
         // Otherwise, let Turkish users stay at root
@@ -166,7 +166,7 @@ export async function middleware(request: NextRequest) {
 
       // Only redirect non-Turkish users to /en, Turkish users stay at root
       if (countryCode !== "TR") {
-        const redirectUrl = new URL("/en", request.url);
+        const redirectUrl = new URL("/en", req.url);
         return NextResponse.redirect(redirectUrl);
       }
     } catch (error) {
@@ -187,7 +187,7 @@ export async function middleware(request: NextRequest) {
   // Only check authentication for protected paths
   if (isProtectedPath) {
     const token = await getToken({
-      req: request,
+      req: req,
       secret: process.env.NEXTAUTH_SECRET,
     });
 
@@ -195,7 +195,7 @@ export async function middleware(request: NextRequest) {
 
     // Redirect unauthenticated users from protected paths
     if (!isAuthenticated) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/login", req.url));
     }
 
     // Check onboarding completion for authenticated users
@@ -216,13 +216,13 @@ export async function middleware(request: NextRequest) {
 
       if (SCHOOL_ADMIN_PATHS.some(path => pathname.startsWith(path))) {
         if (userRole !== "school_admin" && userRole !== "admin") {
-          return NextResponse.redirect(new URL("/dashboard", request.url));
+          return NextResponse.redirect(new URL("/dashboard", req.url));
         }
       }
 
       if (ADMIN_PATHS.some(path => pathname.startsWith(path))) {
         if (userRole !== "admin") {
-          return NextResponse.redirect(new URL("/dashboard", request.url));
+          return NextResponse.redirect(new URL("/dashboard", req.url));
         }
       }
 
@@ -237,9 +237,7 @@ export async function middleware(request: NextRequest) {
 
         // Allow access for non-expired active subscribers
         if (subscriptionStatus !== "active" || isExpiredUser) {
-          return NextResponse.redirect(
-            new URL("/dashboard/expired", request.url)
-          );
+          return NextResponse.redirect(new URL("/dashboard/expired", req.url));
         }
       }
     }

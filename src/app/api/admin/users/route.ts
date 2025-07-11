@@ -235,7 +235,6 @@ export async function POST(request: NextRequest) {
     // Return user without password
     const userResponse = user.toObject();
     const userWithoutPassword = { ...userResponse };
-    // @ts-expect-error - Password may not be recognized as a property by TypeScript
     delete userWithoutPassword.password;
 
     return NextResponse.json(userWithoutPassword, { status: 201 });

@@ -22,15 +22,23 @@ function FeedbackTableSkeleton() {
 
 export default function AdminFeedbackPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">User Feedback</h1>
-        <p className="text-muted-foreground">
-          Manage and respond to user feedback and suggestions.
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
+        {/* Page Header */}
+        <div className="bg-gradient-to-r from-orange-600 to-red-600 p-8 rounded-2xl shadow-lg text-white">
+          <h1 className="text-3xl font-bold tracking-tight mb-2">
+            User Feedback
+          </h1>
+          <p className="text-orange-100 text-lg">
+            Manage and respond to user feedback and suggestions.
+          </p>
+        </div>
 
-      <FeedbackTable />
+        {/* Feedback Content */}
+        <div className="bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-lg border border-white/30">
+          <FeedbackTable />
+        </div>
+      </div>
     </div>
   );
 }

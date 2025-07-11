@@ -443,7 +443,7 @@ export default function GrammarIssuesList() {
             <SelectTrigger className="w-[150px] bg-white border-gray-300">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
               <SelectItem value="all">All Categories</SelectItem>
               {categories.map(category => (
                 <SelectItem key={category} value={category}>
@@ -457,7 +457,7 @@ export default function GrammarIssuesList() {
             <SelectTrigger className="w-[150px] bg-white border-gray-300">
               <SelectValue placeholder="Level" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
               <SelectItem value="all">All Levels</SelectItem>
               {levels.map(level => (
                 <SelectItem key={level} value={level}>
@@ -471,7 +471,7 @@ export default function GrammarIssuesList() {
             <SelectTrigger className="w-[150px] bg-white border-gray-300">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
               <SelectItem value="all">All Issues</SelectItem>
               <SelectItem value="unresolved">Unresolved</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>

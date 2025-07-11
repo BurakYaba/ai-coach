@@ -259,7 +259,7 @@ export function FeedbackForm({ trigger, onSuccess }: FeedbackFormProps) {
                         <SelectValue placeholder="Select a category" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                       {categories.map(category => (
                         <SelectItem key={category.value} value={category.value}>
                           {category.label}

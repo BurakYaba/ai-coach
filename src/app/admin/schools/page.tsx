@@ -42,31 +42,35 @@ function SchoolTableSkeleton() {
 
 export default function SchoolManagementPage() {
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      <div className="flex items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="max-w-7xl mx-auto p-6 space-y-8">
+        {/* Page Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 p-8 rounded-2xl shadow-lg text-white">
+          <h1 className="text-3xl font-bold tracking-tight mb-2">
             School Management
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-purple-100 text-lg">
             Manage schools, branches, and school administrators
           </p>
         </div>
-      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Schools</CardTitle>
-          <CardDescription>
-            View and manage schools and their branches
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Suspense fallback={<SchoolTableSkeleton />}>
-            <SchoolTable />
-          </Suspense>
-        </CardContent>
-      </Card>
+        {/* Schools Table Card */}
+        <Card className="bg-white/80 backdrop-blur-sm border border-white/30 shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-slate-50 to-purple-50">
+            <CardTitle className="text-slate-800 text-xl font-semibold">
+              Schools
+            </CardTitle>
+            <CardDescription className="text-slate-600">
+              View and manage schools and their branches
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="p-6">
+            <Suspense fallback={<SchoolTableSkeleton />}>
+              <SchoolTable />
+            </Suspense>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

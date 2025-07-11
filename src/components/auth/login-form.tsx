@@ -18,25 +18,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "@/components/ui/use-toast";
-import { useLocalStorage } from "@/hooks/use-local-storage";
-import { encryptCredentials, decryptCredentials } from "@/lib/crypto-utils";
+import { trackEvent } from "@/lib/google-analytics";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  rememberMe: z.boolean().default(false),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
-
-interface SavedCredentials {
-  email: string;
-  password: string; // This will be encrypted when stored
-  rememberMe: boolean;
-}
 
 export function LoginForm() {
   const router = useRouter();
@@ -52,15 +43,6 @@ export function LoginForm() {
   >(null);
   const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  // Use localStorage to persist login credentials (encrypted)
-  const [savedCredentials, setSavedCredentials] =
-    useLocalStorage<SavedCredentials | null>("fluenta_login_credentials", null);
-
-  // Decrypt credentials for form initialization
-  const decryptedCredentials = savedCredentials
-    ? decryptCredentials(savedCredentials)
-    : null;
 
   // Check for subscription error in URL params
   useEffect(() => {
@@ -84,20 +66,10 @@ export function LoginForm() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: decryptedCredentials?.email || "",
-      password: decryptedCredentials?.password || "",
-      rememberMe: decryptedCredentials?.rememberMe || false,
+      email: "",
+      password: "",
     },
   });
-
-  // Update form when savedCredentials change (e.g., on component mount)
-  useEffect(() => {
-    if (decryptedCredentials) {
-      form.setValue("email", decryptedCredentials.email);
-      form.setValue("password", decryptedCredentials.password);
-      form.setValue("rememberMe", decryptedCredentials.rememberMe);
-    }
-  }, [decryptedCredentials, form]);
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -155,42 +127,40 @@ export function LoginForm() {
     setEmailVerificationError(null);
     setConcurrentLoginError(null);
 
-    try {
-      // Handle remember me functionality
-      if (data.rememberMe) {
-        // Encrypt and save credentials to localStorage
-        const encryptedCredentials = encryptCredentials({
-          email: data.email,
-          password: data.password,
-          rememberMe: true,
-        });
-        setSavedCredentials(encryptedCredentials);
-      } else {
-        // Clear saved credentials if remember me is unchecked
-        setSavedCredentials(null);
-      }
+    // Track login attempt
+    trackEvent("login_attempt", "authentication", "credentials");
 
+    try {
       // First attempt to sign in without redirect
       const result = await signIn("credentials", {
         email: data.email,
         password: data.password,
         redirect: false,
-        // Add remember me flag to session (will be used in auth config)
-        rememberMe: data.rememberMe.toString(),
       });
 
       if (!result?.ok) {
+        // Track specific login errors for analytics
+        let errorCategory = "general_error";
+        const errorLabel = result?.error || "unknown_error";
+
         // Check if this is an email verification error
         if (result?.error?.includes("verify your email")) {
+          errorCategory = "email_verification_required";
           setEmailVerificationError(result.error);
         }
         // Check if this is a subscription error
         else if (result?.error?.includes("subscription")) {
+          errorCategory = "subscription_error";
           setSubscriptionError(result.error);
         }
         // Check if this is a concurrent login error
         else if (result?.error?.includes("already logged in")) {
+          errorCategory = "concurrent_login";
           setConcurrentLoginError(result.error);
+        }
+        // Check if this is invalid credentials
+        else if (result?.error?.includes("Invalid email or password")) {
+          errorCategory = "invalid_credentials";
         } else {
           // Make sure to show toast for invalid credentials
           toast({
@@ -198,11 +168,24 @@ export function LoginForm() {
             description: result?.error || "Invalid email or password",
             variant: "destructive",
           });
-          console.error("Login error:", result?.error);
         }
-        setIsLoading(false);
+
+        // Track login failure with specific error type
+        trackEvent("login_failed", "authentication", errorCategory);
+
+        // Enhanced error logging
+        console.error("Login failed:", {
+          error: result?.error,
+          errorCategory,
+          email: data.email,
+          timestamp: new Date().toISOString(),
+        });
+
         return;
       }
+
+      // Track successful login
+      trackEvent("login_success", "authentication", "credentials");
 
       // Success - now check the user's role and subscription status to determine redirect
       try {
@@ -212,6 +195,11 @@ export function LoginForm() {
 
         // Check if user is expired and redirect to pricing
         if (sessionData?.user?.isExpiredUser) {
+          trackEvent(
+            "login_expired_user",
+            "authentication",
+            "subscription_expired"
+          );
           toast({
             title: "Subscription Expired",
             description:
@@ -229,12 +217,13 @@ export function LoginForm() {
           const hasBranch = !!userData.user?.branch;
           const onboardingCompleted = sessionData?.user?.onboardingCompleted;
 
+          // Track user role for analytics
+          trackEvent("login_redirect", "authentication", userRole);
+
           // Show success toast
           toast({
             title: "Success",
-            description: data.rememberMe
-              ? "Login successful! Your credentials have been saved securely."
-              : "Login successful!",
+            description: "Login successful!",
           });
 
           // Check if user needs to complete onboarding
@@ -256,139 +245,223 @@ export function LoginForm() {
             router.push("/dashboard");
           }
         } else {
-          // Fallback to regular dashboard if profile fetch fails
-          toast({
-            title: "Success",
-            description: data.rememberMe
-              ? "Login successful! Your credentials have been saved securely."
-              : "Login successful!",
-          });
+          // Fallback to dashboard if profile fetch fails
           router.push("/dashboard");
         }
       } catch (profileError) {
         console.error("Error fetching user profile:", profileError);
-        // Fallback to regular dashboard if profile fetch fails
-        toast({
-          title: "Success",
-          description: data.rememberMe
-            ? "Login successful! Your credentials have been saved securely."
-            : "Login successful!",
-        });
+        // Fallback to dashboard
         router.push("/dashboard");
       }
     } catch (error) {
-      console.error("Login submission error:", error);
+      console.error("Login error:", {
+        error: error instanceof Error ? error.message : "Unknown error",
+        stack: error instanceof Error ? error.stack : undefined,
+        email: data.email,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+      });
+
+      // Track unexpected errors
+      trackEvent("login_error", "authentication", "unexpected_error");
+
       toast({
         title: "Error",
         description: "Something went wrong. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   }
 
-  // Function to clear saved credentials
-  const clearSavedCredentials = () => {
-    setSavedCredentials(null);
-    form.reset({
-      email: "",
-      password: "",
-      rememberMe: false,
-    });
-    toast({
-      title: "Credentials cleared",
-      description: "Saved login credentials have been removed.",
-    });
-  };
-
   return (
-    <Form {...form}>
-      {subscriptionError && (
-        <Alert className="mb-6 bg-red-500/20 border-red-400/30">
-          <AlertCircle className="h-4 w-4 text-red-300" />
-          <AlertTitle className="text-red-200">
-            Subscription Required
-          </AlertTitle>
-          <AlertDescription className="text-red-100">
-            {subscriptionError}
-          </AlertDescription>
-        </Alert>
-      )}
+    <div className="space-y-6">
+      <div className="space-y-2 text-center">
+        <h1 className="text-2xl font-semibold tracking-tight text-white">
+          Welcome Back
+        </h1>
+        <p className="text-sm text-white/80">
+          Sign in to your account to continue
+        </p>
+      </div>
 
-      {emailVerificationError && (
-        <Alert className="mb-6 bg-red-500/20 border-red-400/30">
-          <AlertCircle className="h-4 w-4 text-red-300" />
-          <AlertTitle className="text-red-200">
-            Email Verification Required
-          </AlertTitle>
-          <AlertDescription className="space-y-2 text-red-100">
-            <p>{emailVerificationError}</p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleResendVerification}
-              disabled={isResendingVerification}
-              className="mt-3 bg-white/10 hover:bg-white/20 text-white border-white/30 font-medium"
-            >
-              {isResendingVerification
-                ? "Sending..."
-                : "Resend Verification Email"}
-            </Button>
-          </AlertDescription>
-        </Alert>
-      )}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white font-medium">Email</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter your email"
+                    type="email"
+                    autoComplete="username"
+                    {...field}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20"
+                  />
+                </FormControl>
+                <FormMessage className="text-red-300" />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-white font-medium">
+                  Password
+                </FormLabel>
+                <FormControl>
+                  <div className="relative">
+                    <Input
+                      placeholder="Enter your password"
+                      type={showPassword ? "text" : "password"}
+                      autoComplete="current-password"
+                      {...field}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20 pr-12"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-full px-3 py-2 text-white/60 hover:text-white hover:bg-white/10"
+                      onClick={togglePasswordVisibility}
+                      tabIndex={-1}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">
+                        {showPassword ? "Hide password" : "Show password"}
+                      </span>
+                    </Button>
+                  </div>
+                </FormControl>
+                <FormMessage className="text-red-300" />
+              </FormItem>
+            )}
+          />
 
-      {/* Concurrent Login Error Alert */}
-      {concurrentLoginError && (
-        <Alert className="mb-6 bg-red-500/20 border-red-400/30">
-          <AlertCircle className="h-4 w-4 text-red-300" />
-          <AlertTitle className="text-red-200 font-semibold text-center">
-            Account Already in Use
-          </AlertTitle>
-          <AlertDescription className="mt-2 text-center text-red-100">
-            <div className="text-center">{concurrentLoginError}</div>
-            <div className="flex justify-center mt-4">
-              <div className="flex flex-col sm:flex-row gap-3">
+          {/* Email Verification Error */}
+          {emailVerificationError && (
+            <Alert className="border-orange-500/50 bg-orange-500/10">
+              <AlertCircle className="h-4 w-4 text-orange-400" />
+              <AlertTitle className="text-orange-200">
+                Email Verification Required
+              </AlertTitle>
+              <AlertDescription className="text-orange-300">
+                {emailVerificationError}
                 <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setConcurrentLoginError(null)}
-                  className="w-32 bg-white/10 hover:bg-white/20 text-white border border-white/30"
+                  variant="link"
+                  className="h-auto p-0 text-orange-200 hover:text-orange-100 underline ml-1"
+                  onClick={handleResendVerification}
+                  disabled={isResendingVerification}
                 >
-                  Dismiss
+                  {isResendingVerification
+                    ? "Sending..."
+                    : "Resend verification email"}
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={async () => {
-                    try {
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Subscription Error */}
+          {subscriptionError && (
+            <Alert className="border-red-500/50 bg-red-500/10">
+              <AlertCircle className="h-4 w-4 text-red-400" />
+              <AlertTitle className="text-red-200">
+                Subscription Required
+              </AlertTitle>
+              <AlertDescription className="text-red-300">
+                {subscriptionError}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {/* Concurrent Login Error */}
+          {concurrentLoginError && (
+            <Alert className="border-yellow-500/50 bg-yellow-500/10">
+              <AlertCircle className="h-4 w-4 text-yellow-400" />
+              <AlertTitle className="text-yellow-200">
+                Session Conflict
+              </AlertTitle>
+              <AlertDescription className="text-yellow-300 space-y-2">
+                <p>{concurrentLoginError}</p>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="bg-yellow-500/20 border-yellow-500/50 text-yellow-200 hover:bg-yellow-500/30"
+                    disabled={isLoading}
+                    onClick={async () => {
                       setIsLoading(true);
-
-                      // Force login by attempting login with forceLogin flag
-                      const result = await signIn("credentials", {
-                        email: form.getValues("email"),
-                        password: form.getValues("password"),
-                        redirect: false,
-                        forceLogin: "true", // Special flag to force terminate other sessions
-                      });
-
-                      if (result?.ok) {
-                        // Clear the concurrent login error
-                        setConcurrentLoginError(null);
-
-                        // Show success message
-                        toast({
-                          title: "Login Successful",
-                          description:
-                            "Previous session terminated. You are now logged in.",
+                      try {
+                        const result = await signIn("credentials", {
+                          email: form.getValues("email"),
+                          password: form.getValues("password"),
+                          redirect: false,
+                          forceLogin: "true",
                         });
+
+                        if (!result?.ok) {
+                          toast({
+                            title: "Force login failed",
+                            description:
+                              result?.error || "Invalid email or password",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+
+                        // Add retry logic to ensure session is established after force login
+                        let sessionData = null;
+                        let retryCount = 0;
+                        const maxRetries = 3;
+
+                        while (retryCount < maxRetries) {
+                          try {
+                            // Small delay before each attempt
+                            if (retryCount > 0) {
+                              await new Promise(resolve =>
+                                setTimeout(resolve, 1000)
+                              );
+                            }
+
+                            const sessionResponse =
+                              await fetch("/api/auth/session");
+                            const data = await sessionResponse.json();
+
+                            // Check if we have a valid session with user ID
+                            if (data?.user?.id) {
+                              sessionData = data;
+                              break;
+                            }
+
+                            retryCount++;
+                          } catch (error) {
+                            retryCount++;
+                            if (retryCount >= maxRetries) {
+                              throw error;
+                            }
+                          }
+                        }
+
+                        if (!sessionData?.user?.id) {
+                          // If session still not available, use router.refresh() and redirect
+                          router.refresh();
+                          router.push("/dashboard");
+                          return;
+                        }
 
                         // Redirect based on user role and subscription status (same logic as normal login)
                         try {
-                          // Get session to check for expired user status
-                          const sessionResponse =
-                            await fetch("/api/auth/session");
-                          const sessionData = await sessionResponse.json();
-
                           // Check if user is expired and redirect to pricing
                           if (sessionData?.user?.isExpiredUser) {
                             router.push("/pricing?expired=true");
@@ -402,6 +475,12 @@ export function LoginForm() {
                             const hasBranch = !!userData.user?.branch;
                             const onboardingCompleted =
                               sessionData?.user?.onboardingCompleted;
+
+                            // Show success toast
+                            toast({
+                              title: "Success",
+                              description: "Force login successful!",
+                            });
 
                             // Check if user needs to complete onboarding
                             if (!onboardingCompleted && userRole === "user") {
@@ -422,141 +501,89 @@ export function LoginForm() {
                         } catch (profileError) {
                           router.push("/dashboard");
                         }
-                      } else {
+                      } catch (error) {
                         toast({
-                          title: "Force Login Failed",
+                          title: "Error",
                           description:
-                            result?.error ||
-                            "Unable to force login. Please try again.",
+                            "Something went wrong. Please try again.",
                           variant: "destructive",
                         });
+                      } finally {
+                        setIsLoading(false);
                       }
-                    } catch (error) {
-                      console.error("Force login error:", error);
-                      toast({
-                        title: "Error",
-                        description: "Something went wrong during force login.",
-                        variant: "destructive",
-                      });
-                    } finally {
-                      setIsLoading(false);
-                    }
-                  }}
-                  disabled={isLoading}
-                  className="w-32 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg"
-                >
-                  {isLoading ? "Forcing Login..." : "Force Login"}
-                </Button>
-              </div>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white font-medium">Email</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter your email"
-                  type="email"
-                  {...field}
-                  className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20"
-                />
-              </FormControl>
-              <FormMessage className="text-red-300" />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className="text-white font-medium">Password</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    placeholder="Enter your password"
-                    type={showPassword ? "text" : "password"}
-                    {...field}
-                    className="bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-white/40 focus:ring-white/20 pr-12"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full px-3 py-2 text-white/60 hover:text-white hover:bg-white/10"
-                    onClick={togglePasswordVisibility}
-                    tabIndex={-1}
+                    }}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                    <span className="sr-only">
-                      {showPassword ? "Hide password" : "Show password"}
-                    </span>
+                    Force Login
                   </Button>
                 </div>
-              </FormControl>
-              <FormMessage className="text-red-300" />
-            </FormItem>
+              </AlertDescription>
+            </Alert>
           )}
-        />
 
-        <FormField
-          control={form.control}
-          name="rememberMe"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                  className="border-white/30 data-[state=checked]:bg-blue-500 data-[state=checked]:border-blue-500"
-                />
-              </FormControl>
-              <div className="space-y-1 leading-none">
-                <FormLabel className="text-sm font-normal cursor-pointer text-white">
-                  Remember me on this device
-                </FormLabel>
-                <p className="text-xs text-white/60">
-                  Your login credentials will be saved securely for faster
-                  access
-                </p>
-              </div>
-            </FormItem>
-          )}
-        />
+          <Button
+            type="submit"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+            disabled={isLoading}
+          >
+            {isLoading ? "Signing in..." : "Sign In"}
+          </Button>
+        </form>
+      </Form>
+
+      {/* OAuth Sign In Options */}
+      <div className="space-y-4">
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-white/20" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-transparent px-2 text-white/60">
+              Or continue with
+            </span>
+          </div>
+        </div>
 
         <Button
-          type="submit"
-          className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300"
+          type="button"
+          variant="outline"
+          className="w-full bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-white/30"
+          onClick={() => {
+            trackEvent("oauth_login_attempt", "authentication", "google");
+            signIn("google", { callbackUrl: "/onboarding" });
+          }}
           disabled={isLoading}
         >
-          {isLoading ? "Logging in..." : "Login"}
+          <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
+            <path
+              fill="currentColor"
+              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            />
+            <path
+              fill="currentColor"
+              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            />
+            <path
+              fill="currentColor"
+              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+            />
+            <path
+              fill="currentColor"
+              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            />
+          </svg>
+          Continue with Google
         </Button>
+      </div>
 
-        {savedCredentials && (
-          <div className="flex justify-center">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={clearSavedCredentials}
-              className="text-xs text-white/60 hover:text-white hover:bg-white/10"
-            >
-              Clear saved credentials
-            </Button>
-          </div>
-        )}
-      </form>
-    </Form>
+      <div className="text-center">
+        <Button
+          variant="link"
+          className="text-white/80 hover:text-white"
+          onClick={() => router.push("/forgot-password")}
+        >
+          Forgot your password?
+        </Button>
+      </div>
+    </div>
   );
 }

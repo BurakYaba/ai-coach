@@ -92,74 +92,118 @@ export function DashboardStats({ variant = "default" }: StatsProps) {
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {/* User Statistics */}
-      <Card>
-        <CardHeader>
-          <CardTitle>User Statistics</CardTitle>
-          <CardDescription>Platform user activity and growth</CardDescription>
+      <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 border-blue-200 shadow-md hover:shadow-lg transition-all duration-300">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-blue-800 text-lg font-semibold">
+            User Statistics
+          </CardTitle>
+          <CardDescription className="text-blue-600">
+            Platform user activity and growth
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium">Total Users</p>
-              <p className="text-2xl font-bold">{stats.users.total}</p>
+            <div className="bg-white/60 rounded-lg p-3">
+              <p className="text-sm font-medium text-blue-700">Total Users</p>
+              <p className="text-3xl font-bold text-blue-900">
+                {stats.users.total}
+              </p>
             </div>
-            <div>
-              <p className="text-sm font-medium">New Users (Today)</p>
-              <p className="text-xl">{stats.users.newToday}</p>
+            <div className="bg-white/40 rounded-lg p-3">
+              <p className="text-sm font-medium text-blue-700">
+                New Users (Today)
+              </p>
+              <p className="text-xl font-semibold text-blue-800">
+                {stats.users.newToday}
+              </p>
             </div>
-            <div>
-              <p className="text-sm font-medium">Active Users (This Week)</p>
-              <p className="text-xl">{stats.users.activeThisWeek}</p>
+            <div className="bg-white/40 rounded-lg p-3">
+              <p className="text-sm font-medium text-blue-700">
+                Active Users (This Week)
+              </p>
+              <p className="text-xl font-semibold text-blue-800">
+                {stats.users.activeThisWeek}
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* School Statistics */}
-      <Card>
-        <CardHeader>
-          <CardTitle>School Statistics</CardTitle>
-          <CardDescription>School and branch overview</CardDescription>
+      <Card className="bg-gradient-to-br from-purple-50 to-pink-100 border-purple-200 shadow-md hover:shadow-lg transition-all duration-300">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-purple-800 text-lg font-semibold">
+            School Statistics
+          </CardTitle>
+          <CardDescription className="text-purple-600">
+            School and branch overview
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium">Total Schools</p>
-              <p className="text-2xl font-bold">{stats.schools.total}</p>
+            <div className="bg-white/60 rounded-lg p-3">
+              <p className="text-sm font-medium text-purple-700">
+                Total Schools
+              </p>
+              <p className="text-3xl font-bold text-purple-900">
+                {stats.schools.total}
+              </p>
             </div>
-            <div>
-              <p className="text-sm font-medium">Active Schools</p>
-              <p className="text-xl">{stats.schools.active}</p>
+            <div className="bg-white/40 rounded-lg p-3">
+              <p className="text-sm font-medium text-purple-700">
+                Active Schools
+              </p>
+              <p className="text-xl font-semibold text-purple-800">
+                {stats.schools.active}
+              </p>
             </div>
-            <div>
-              <p className="text-sm font-medium">Total Branches</p>
-              <p className="text-xl">{stats.schools.branches}</p>
+            <div className="bg-white/40 rounded-lg p-3">
+              <p className="text-sm font-medium text-purple-700">
+                Total Branches
+              </p>
+              <p className="text-xl font-semibold text-purple-800">
+                {stats.schools.branches}
+              </p>
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Feedback Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Feedback Overview</CardTitle>
-          <CardDescription>User feedback and ratings</CardDescription>
+      <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200 shadow-md hover:shadow-lg transition-all duration-300">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-green-800 text-lg font-semibold">
+            Feedback Overview
+          </CardTitle>
+          <CardDescription className="text-green-600">
+            User feedback and ratings
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <div>
-              <p className="text-sm font-medium">Total Feedback</p>
-              <p className="text-2xl font-bold">{stats.feedback.total}</p>
+            <div className="bg-white/60 rounded-lg p-3">
+              <p className="text-sm font-medium text-green-700">
+                Total Feedback
+              </p>
+              <p className="text-3xl font-bold text-green-900">
+                {stats.feedback.total}
+              </p>
             </div>
-            <div>
-              <p className="text-sm font-medium">Unresolved Feedback</p>
-              <p className="text-xl">{stats.feedback.unresolved}</p>
+            <div className="bg-white/40 rounded-lg p-3">
+              <p className="text-sm font-medium text-green-700">
+                Unresolved Feedback
+              </p>
+              <p className="text-xl font-semibold text-green-800">
+                {stats.feedback.unresolved}
+              </p>
             </div>
-            <div>
-              <p className="text-sm font-medium">Average Rating</p>
-              <p className="text-xl">
+            <div className="bg-white/40 rounded-lg p-3">
+              <p className="text-sm font-medium text-green-700">
+                Average Rating
+              </p>
+              <p className="text-xl font-semibold text-green-800">
                 {stats.feedback.averageRating.toFixed(1)} / 5.0
               </p>
             </div>

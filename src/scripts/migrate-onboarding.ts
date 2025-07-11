@@ -26,8 +26,9 @@ export async function migrateUsersForOnboarding() {
           nativeLanguage: "turkish", // Default native language
           country: "turkey", // Default country
           region: "Istanbul", // Default region
-          preferredPracticeTime: "evening", // Default practice time
+          preferredPracticeTime: "early_evening", // Default practice time
           preferredLearningDays: ["monday", "wednesday", "friday"], // Default learning days
+          reminderTiming: "1_hour", // Default reminder timing
           reasonsForLearning: ["work", "travel"], // Default reasons
           howHeardAbout: "search_engine", // Default referral source
           dailyStudyTimeGoal: 30, // Default daily study time goal

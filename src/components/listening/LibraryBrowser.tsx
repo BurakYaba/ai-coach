@@ -211,7 +211,7 @@ export function LibraryBrowser() {
             <SelectTrigger className="w-full sm:w-[140px] bg-white">
               <SelectValue placeholder="All Levels" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
               <SelectItem value="all">All Levels</SelectItem>
               <SelectItem value="A1">A1</SelectItem>
               <SelectItem value="A2">A2</SelectItem>
@@ -232,7 +232,7 @@ export function LibraryBrowser() {
             <SelectTrigger className="w-full sm:w-[140px] bg-white">
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
               <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="dialogue">Dialogue</SelectItem>
               <SelectItem value="monologue">Monologue</SelectItem>

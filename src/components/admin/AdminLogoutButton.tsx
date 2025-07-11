@@ -14,6 +14,12 @@ export function AdminLogoutButton() {
       if (session?.user?.sessionToken) {
         await fetch("/api/auth/logout", {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            reason: "logout",
+          }),
         });
       }
     } catch (error) {
@@ -33,7 +39,7 @@ export function AdminLogoutButton() {
       variant="outline"
       size="sm"
       onClick={handleLogout}
-      className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400 hover:bg-red-50"
+      className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400 hover:bg-red-50 shadow-sm hover:shadow-md transition-all duration-300"
     >
       <LogOut className="mr-2 h-4 w-4" />
       Logout

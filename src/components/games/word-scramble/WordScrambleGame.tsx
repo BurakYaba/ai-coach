@@ -296,13 +296,12 @@ export default function WordScrambleGame({
                   >
                     <SelectValue placeholder="Select difficulty" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="A1">A1 (Beginner)</SelectItem>
-                    <SelectItem value="A2">A2 (Elementary)</SelectItem>
-                    <SelectItem value="B1">B1 (Intermediate)</SelectItem>
-                    <SelectItem value="B2">B2 (Upper Intermediate)</SelectItem>
-                    <SelectItem value="C1">C1 (Advanced)</SelectItem>
-                    <SelectItem value="C2">C2 (Proficiency)</SelectItem>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                    <SelectItem value="A1">A1 - Beginner</SelectItem>
+                    <SelectItem value="A2">A2 - Elementary</SelectItem>
+                    <SelectItem value="B1">B1 - Intermediate</SelectItem>
+                    <SelectItem value="B2">B2 - Upper Intermediate</SelectItem>
+                    <SelectItem value="C1">C1 - Advanced</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -324,7 +323,7 @@ export default function WordScrambleGame({
                   >
                     <SelectValue placeholder="Select word count" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                     <SelectItem value="5">5 words</SelectItem>
                     <SelectItem value="10">10 words</SelectItem>
                     <SelectItem value="15">15 words</SelectItem>
@@ -350,7 +349,7 @@ export default function WordScrambleGame({
                   >
                     <SelectValue placeholder="Select time limit" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                     <SelectItem value="30">30 seconds (Quick)</SelectItem>
                     <SelectItem value="60">60 seconds (Normal)</SelectItem>
                     <SelectItem value="120">120 seconds (Relaxed)</SelectItem>

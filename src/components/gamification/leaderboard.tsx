@@ -126,10 +126,10 @@ export function LeaderboardComponent() {
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Time Period" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="weekly">This Week</SelectItem>
-                <SelectItem value="monthly">This Month</SelectItem>
-                <SelectItem value="all-time">All Time</SelectItem>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="week">This Week</SelectItem>
+                <SelectItem value="month">This Month</SelectItem>
               </SelectContent>
             </Select>
 
@@ -137,7 +137,7 @@ export function LeaderboardComponent() {
               <SelectTrigger className="w-[150px]">
                 <SelectValue placeholder="Category" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 <SelectItem value="xp">XP Gained</SelectItem>
                 <SelectItem value="streak">Streak Days</SelectItem>
                 <SelectItem value="module-specific">By Module</SelectItem>
@@ -149,7 +149,7 @@ export function LeaderboardComponent() {
                 <SelectTrigger className="w-[150px]">
                   <SelectValue placeholder="Select Module" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                   <SelectItem value="reading">Reading</SelectItem>
                   <SelectItem value="writing">Writing</SelectItem>
                   <SelectItem value="listening">Listening</SelectItem>

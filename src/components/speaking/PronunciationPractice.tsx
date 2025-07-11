@@ -1207,12 +1207,12 @@ export function PronunciationPractice() {
             <SelectTrigger className="w-full sm:w-64">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
-              {CEFR_LEVELS.map(level => (
-                <SelectItem key={level.id} value={level.id}>
-                  {level.name}
-                </SelectItem>
-              ))}
+            <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+              <SelectItem value="A1">A1 - Beginner</SelectItem>
+              <SelectItem value="A2">A2 - Elementary</SelectItem>
+              <SelectItem value="B1">B1 - Intermediate</SelectItem>
+              <SelectItem value="B2">B2 - Upper Intermediate</SelectItem>
+              <SelectItem value="C1">C1 - Advanced</SelectItem>
             </SelectContent>
           </Select>
         </div>

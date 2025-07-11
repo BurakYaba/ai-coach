@@ -23,12 +23,11 @@ export default function NotificationManager() {
     if (session?.user) {
       setupNotifications();
     }
-  }, [session]);
+  }, [session, status]);
 
   const setupNotifications = async () => {
     try {
       // Setup push notifications or other notification systems
-      console.log("Setting up notifications for user:", session?.user?.id);
       setNotificationsEnabled(true);
 
       // Fetch user data for notification preferences

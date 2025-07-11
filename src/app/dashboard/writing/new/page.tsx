@@ -295,7 +295,7 @@ export default function NewWritingSessionPage() {
                     >
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                       <SelectItem value="essay">Essay</SelectItem>
                       <SelectItem value="letter">Letter</SelectItem>
                       <SelectItem value="story">Story</SelectItem>
@@ -321,7 +321,7 @@ export default function NewWritingSessionPage() {
                     >
                       <SelectValue placeholder="Select level" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                       {levels.map(level => (
                         <SelectItem key={level.value} value={level.value}>
                           {level.label}
@@ -362,7 +362,7 @@ export default function NewWritingSessionPage() {
                     >
                       <SelectValue placeholder="Select a topic" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                       {availableTopics.map(topic => (
                         <SelectItem key={topic} value={topic}>
                           {topic}

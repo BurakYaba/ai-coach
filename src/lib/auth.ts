@@ -1,6 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
 import User from "@/models/User";
 import School from "@/models/School";
@@ -17,13 +18,16 @@ import dbConnect from "./db";
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
     CredentialsProvider({
       name: "credentials",
       credentials: {
-        email: { label: "Email", type: "text" },
+        email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
-        rememberMe: { label: "Remember Me", type: "text" },
-        forceLogin: { label: "Force Login", type: "text" },
+        forceLogin: { label: "Force Login", type: "checkbox" },
       },
       async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
@@ -123,9 +127,8 @@ export const authOptions: NextAuthOptions = {
           branch = await Branch.findById(user.branch);
         }
 
-        // Calculate session expiration
-        const rememberMe = credentials.rememberMe === "true";
-        const sessionDuration = rememberMe ? 3 : 1; // Much shorter: 3 days max, 1 day default
+        // Calculate session expiration - fixed 1 day duration
+        const sessionDuration = 1; // 1 day default
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + sessionDuration);
 
@@ -142,7 +145,11 @@ export const authOptions: NextAuthOptions = {
         const sessionToken = await createUserSession(
           user._id.toString(),
           deviceInfo,
-          expiresAt
+          expiresAt,
+          {
+            terminateOthers: true, // RESTORED: Concurrent login protection
+            reason: forceLogin ? "force_login" : "credentials_login",
+          }
         );
 
         return {
@@ -150,7 +157,6 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
-          rememberMe,
           sessionToken, // Now properly set
           subscription: {
             status: user.subscription.status,
@@ -168,27 +174,214 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: "jwt",
-    maxAge: 8 * 60 * 60, // 8 hours default (will be overridden in jwt callback based on rememberMe)
+    maxAge: 24 * 60 * 60, // 24 hours (1 day)
   },
   pages: {
     signIn: "/login",
     error: "/login",
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google") {
+        try {
+          await dbConnect();
+
+          // Check if user already exists
+          const existingUser = await User.findOne({ email: user.email });
+
+          if (existingUser) {
+            // Update existing user with OAuth provider info if not already set
+            if (
+              !existingUser.provider ||
+              existingUser.provider === "credentials"
+            ) {
+              existingUser.provider = account.provider;
+              existingUser.providerId = account.providerAccountId;
+              await existingUser.save();
+            }
+            return true;
+          }
+
+          // Create new OAuth user
+          const userData = {
+            name: user.name || profile?.name || "OAuth User",
+            email: user.email,
+            emailVerified: true, // OAuth emails are pre-verified
+            provider: account.provider,
+            providerId: account.providerAccountId,
+            role: "user", // Default role for OAuth users
+            subscription: {
+              type: "free",
+              status: "active",
+              startDate: new Date(),
+              endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days free trial
+            },
+            onboarding: {
+              completed: false, // OAuth users go through the same 5-step onboarding
+              currentStep: 1,
+              language: "en" as "en" | "tr",
+              nativeLanguage: "",
+              country: "", // Default value for compatibility
+              region: "", // Default value for compatibility
+              preferredPracticeTime: "",
+              preferredLearningDays: [],
+              reminderTiming: "1_hour", // Default reminder timing
+              reasonsForLearning: [],
+              howHeardAbout: account.provider, // Track OAuth source
+              dailyStudyTimeGoal: 30, // Default value for compatibility
+              weeklyStudyTimeGoal: 210, // Default value for compatibility
+              consentDataUsage: false,
+              consentAnalytics: false,
+              skillAssessment: {
+                completed: false,
+                ceferLevel: "B1",
+                weakAreas: ["grammar", "vocabulary"],
+                strengths: ["reading"],
+                assessmentDate: new Date(),
+                scores: {
+                  reading: 50,
+                  writing: 40,
+                  listening: 45,
+                  speaking: 35,
+                  vocabulary: 40,
+                  grammar: 35,
+                },
+              },
+              preferences: {
+                learningGoals: ["general_fluency"],
+                interests: [],
+                timeAvailable: "30-60 minutes",
+                preferredTime: "evening",
+                learningStyle: "mixed",
+                difficultyPreference: "moderate",
+                focusAreas: [],
+                strengths: [],
+                weaknesses: [],
+              },
+              recommendedPath: {
+                primaryFocus: ["vocabulary", "grammar", "reading"],
+                suggestedOrder: [
+                  "vocabulary",
+                  "reading",
+                  "grammar",
+                  "writing",
+                  "listening",
+                  "speaking",
+                  "games",
+                ],
+                estimatedWeeks: 12,
+              },
+              tours: {
+                completed: [],
+                skipped: [],
+              },
+              moduleVisits: {},
+            },
+          };
+
+          const newUser = new User(userData);
+          await newUser.save();
+
+          console.log(
+            `Created new OAuth user: ${user.email} via ${account.provider}`,
+            {
+              userId: newUser._id,
+              provider: account.provider,
+              providerId: account.providerAccountId,
+              subscriptionEndDate: userData.subscription.endDate,
+              timestamp: new Date().toISOString(),
+            }
+          );
+          return true;
+        } catch (error) {
+          console.error("Error in signIn callback:", error);
+          return false;
+        }
+      }
+
+      return true; // Allow credentials provider
+    },
     async jwt({
       token,
       user,
+      account,
       trigger,
     }: {
       token: JWT;
       user?: any;
+      account?: any;
       trigger?: string;
     }) {
-      // Add user info to token on sign in
-      if (user) {
+      // Handle OAuth user sign in
+      if (user && account && account.provider === "google") {
+        await dbConnect();
+
+        const dbUser = await User.findOne({ email: user.email });
+        if (dbUser) {
+          token.id = dbUser._id.toString();
+          token.role = dbUser.role;
+          token.provider = account.provider;
+
+          // Get school and branch info
+          let school = null;
+          let branch = null;
+          if (dbUser.school) {
+            school = await School.findById(dbUser.school);
+            token.school = school?._id?.toString() || null;
+          }
+          if (dbUser.branch) {
+            branch = await Branch.findById(dbUser.branch);
+            token.branch = branch?._id?.toString() || null;
+          }
+
+          token.onboardingCompleted = dbUser.onboarding?.completed ?? false;
+          token.sessionValid = true;
+          token.sessionCreated = Date.now();
+
+          // Add subscription info with defensive programming for old users
+          const subscription = dbUser.subscription || {};
+          token.subscriptionStatus = subscription.status || "inactive";
+          token.subscriptionType = subscription.type || "individual";
+          token.subscriptionExpiry =
+            subscription.endDate?.toISOString() || undefined;
+
+          // Check if user is expired (for individual users only)
+          const hasActiveSubscription = dbUser.hasActiveSubscription();
+          token.isExpiredUser =
+            dbUser.role === "user" && !hasActiveSubscription;
+
+          // Create session for OAuth users (for concurrent login protection)
+          if (!token.sessionToken) {
+            const deviceInfo = {
+              userAgent: "OAuth Login",
+              ip: "127.0.0.1",
+              deviceType: "unknown" as const,
+              browser: "Unknown",
+              os: "Unknown",
+            };
+
+            const expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + 1); // 1 day
+
+            try {
+              const sessionToken = await createUserSession(
+                dbUser._id.toString(),
+                deviceInfo,
+                expiresAt,
+                { terminateOthers: true, reason: "oauth_login" } // RESTORED: Concurrent login protection
+              );
+              token.sessionToken = sessionToken;
+            } catch (error) {
+              console.error("Error creating OAuth session:", error);
+            }
+          }
+        }
+      }
+
+      // Add user info to token on sign in for credentials provider
+      if (user && account && account.provider === "credentials") {
         token.id = user.id;
         token.role = user.role;
-        token.rememberMe = user.rememberMe;
         token.sessionToken = user.sessionToken;
         token.school = user.school;
         token.branch = user.branch;
@@ -202,49 +395,59 @@ export const authOptions: NextAuthOptions = {
         token.subscriptionStatus = user.subscription?.status || "inactive";
         token.subscriptionType = user.subscription?.type || "individual";
         token.subscriptionExpiry = user.subscription?.expiresAt;
-        token.subscriptionLastChecked = new Date().toISOString();
       }
 
-      // Handle forced refresh or update trigger - immediately refresh user data
+      // Handle forced refresh or update trigger
       if (trigger === "update") {
         try {
           await dbConnect();
           const user = await User.findById(token.id);
           if (user) {
-            // Update all user-related fields
+            // Update all user-related fields with defensive programming
             token.onboardingCompleted = user.onboarding?.completed ?? false;
-            token.subscriptionStatus = user.subscription.status;
-            token.subscriptionType = user.subscription.type;
-            token.subscriptionExpiry = user.subscription.endDate?.toISOString();
+            const subscription = user.subscription || {};
+            token.subscriptionStatus = subscription.status || "inactive";
+            token.subscriptionType = subscription.type || "individual";
+            token.subscriptionExpiry =
+              subscription.endDate?.toISOString() || undefined;
             token.subscriptionLastChecked = new Date().toISOString();
           }
         } catch (error) {
-          console.error("Error refreshing user data in JWT callback:", error);
+          console.error("Error in JWT update trigger:", error);
         }
         return token;
       }
 
-      // Only refresh subscription status every hour to avoid too many DB calls (for regular token refreshes)
+      // Only refresh subscription status every hour to avoid too many DB calls
       const now = new Date();
       const lastSubscriptionCheck = token.subscriptionLastChecked as string;
 
-      if (
+      const shouldRefreshSubscription =
         !lastSubscriptionCheck ||
         now.getTime() - new Date(lastSubscriptionCheck).getTime() >
-          60 * 60 * 1000 // 1 hour
-      ) {
+          60 * 60 * 1000;
+
+      if (shouldRefreshSubscription) {
         try {
           await dbConnect();
           const user = await User.findById(token.id);
           if (user) {
-            token.subscriptionStatus = user.subscription.status;
-            token.subscriptionType = user.subscription.type;
-            token.subscriptionExpiry = user.subscription.endDate?.toISOString();
+            const subscription = user.subscription || {};
+
+            token.subscriptionStatus = subscription.status || "inactive";
+            token.subscriptionType = subscription.type || "individual";
+            token.subscriptionExpiry =
+              subscription.endDate?.toISOString() || undefined;
             token.subscriptionLastChecked = now.toISOString();
             token.onboardingCompleted = user.onboarding?.completed ?? false;
           }
         } catch (error) {
           console.error("Error refreshing subscription status:", error);
+          // Use fallback values to prevent session invalidation
+          token.subscriptionStatus = token.subscriptionStatus || "inactive";
+          token.subscriptionType = token.subscriptionType || "individual";
+          token.subscriptionExpiry = token.subscriptionExpiry || undefined;
+          token.subscriptionLastChecked = now.toISOString();
         }
       }
 
@@ -255,7 +458,7 @@ export const authOptions: NextAuthOptions = {
       if (token) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
-        session.user.rememberMe = token.rememberMe as boolean;
+        session.user.provider = token.provider as string;
         session.user.sessionToken = token.sessionToken as string;
 
         // Add subscription info to the session
@@ -271,9 +474,11 @@ export const authOptions: NextAuthOptions = {
         // Add expired user status to the session
         session.user.isExpiredUser = token.isExpiredUser as boolean;
       }
+
       return session;
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
 declare module "next-auth" {
@@ -283,7 +488,7 @@ declare module "next-auth" {
       email: string;
       name: string;
       role: string;
-      rememberMe?: boolean;
+      provider?: string;
       sessionToken?: string;
       subscription?: {
         status: string;
@@ -299,7 +504,6 @@ declare module "next-auth" {
     email: string;
     name: string;
     role: string;
-    rememberMe?: boolean;
     subscription?: {
       status: string;
       type: string;
@@ -317,7 +521,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
     role?: string;
-    rememberMe?: boolean;
+    provider?: string;
     sessionToken?: string;
     subscriptionStatus?: string;
     subscriptionType?: string;

@@ -423,7 +423,7 @@ export const NewReadingSession = memo(function NewReadingSession() {
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select a topic" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 {topics.map(topic => (
                   <SelectItem key={topic} value={topic}>
                     {topic}
@@ -449,7 +449,7 @@ export const NewReadingSession = memo(function NewReadingSession() {
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select level" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 {levels.map(level => (
                   <SelectItem key={level.value} value={level.value}>
                     {level.label}
@@ -475,7 +475,7 @@ export const NewReadingSession = memo(function NewReadingSession() {
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select length" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 {textLengths.map(length => (
                   <SelectItem key={length.value} value={length.value}>
                     {length.label}
@@ -501,7 +501,7 @@ export const NewReadingSession = memo(function NewReadingSession() {
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Select number of questions" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 {questionCounts.map(count => (
                   <SelectItem key={count} value={count.toString()}>
                     {count} questions

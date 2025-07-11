@@ -126,15 +126,17 @@ export function generateSessionToken(): string {
   return randomBytes(32).toString("hex");
 }
 
-// Create new user session (terminates existing ones)
+// Create new user session (with option to terminate existing ones)
 export async function createUserSession(
   userId: string,
   deviceInfo: DeviceInfo,
-  expiresAt: Date
+  expiresAt: Date,
+  options: { terminateOthers?: boolean; reason?: string } = {}
 ): Promise<string> {
   await dbConnect();
 
   const sessionToken = generateSessionToken();
+  const { terminateOthers = false, reason = "login" } = options;
 
   try {
     const userSession = new UserSession({
@@ -143,55 +145,14 @@ export async function createUserSession(
       deviceInfo,
       expiresAt,
       isActive: true,
+      _terminateOthers: terminateOthers,
     });
 
-    await userSession.save(); // Pre-save middleware will terminate other sessions
+    await userSession.save(); // Pre-save middleware will terminate other sessions if _terminateOthers is true
     return sessionToken;
-  } catch (error: any) {
-    // Handle duplicate key error - this might be due to index issues
-    if (error.code === 11000) {
-      console.warn(
-        "Duplicate key error in session creation, attempting cleanup and retry"
-      );
-
-      try {
-        // First, force terminate all existing sessions for this user
-        await UserSession.updateMany(
-          { userId, isActive: true },
-          {
-            $set: {
-              isActive: false,
-              terminatedAt: new Date(),
-              terminationReason: "concurrent_login",
-            },
-          }
-        );
-
-        // Generate a new token and try again
-        const newSessionToken = generateSessionToken();
-        const newUserSession = new UserSession({
-          userId,
-          sessionToken: newSessionToken,
-          deviceInfo,
-          expiresAt,
-          isActive: true,
-        });
-
-        await newUserSession.save();
-        return newSessionToken;
-      } catch (retryError) {
-        console.error(
-          "Failed to create session even after cleanup:",
-          retryError
-        );
-        // Return a fallback session token - the system will work without session tracking
-        return generateSessionToken();
-      }
-    }
-
-    // For other errors, log and return a fallback token
-    console.error("Session creation error:", error);
-    return generateSessionToken();
+  } catch (error) {
+    console.error("Error creating user session:", error);
+    throw error;
   }
 }
 
@@ -202,7 +163,6 @@ export async function validateSession(sessionToken: string): Promise<{
   session?: any;
 }> {
   if (!sessionToken) {
-    console.warn("validateSession called with empty sessionToken");
     return { isValid: false };
   }
 
@@ -215,9 +175,6 @@ export async function validateSession(sessionToken: string): Promise<{
     }).populate("userId");
 
     if (!session) {
-      console.log(
-        `Session not found or inactive: ${sessionToken.substring(0, 8)}...`
-      );
       return { isValid: false };
     }
 
@@ -225,9 +182,6 @@ export async function validateSession(sessionToken: string): Promise<{
     const isValid = session.isValidSession();
 
     if (!isValid) {
-      console.log(
-        `Session expired for token: ${sessionToken.substring(0, 8)}..., terminating`
-      );
       // Terminate invalid session
       session.isActive = false;
       session.terminatedAt = new Date();
@@ -246,17 +200,13 @@ export async function validateSession(sessionToken: string): Promise<{
         ? session.userId
         : session.userId._id?.toString() || session.userId.toString();
 
-    console.log(
-      `Session valid for user: ${userIdString}, token: ${sessionToken.substring(0, 8)}...`
-    );
-
     return {
       isValid: true,
       userId: userIdString,
       session,
     };
   } catch (error) {
-    console.error("validateSession error:", error);
+    console.error("Session validation error:", error);
     return { isValid: false };
   }
 }

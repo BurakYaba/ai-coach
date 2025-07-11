@@ -54,6 +54,12 @@ export function SchoolAdminSidebar() {
       if (session?.user?.sessionToken) {
         await fetch("/api/auth/logout", {
           method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            reason: "logout",
+          }),
         });
       }
     } catch (error) {

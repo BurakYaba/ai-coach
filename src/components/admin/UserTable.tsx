@@ -13,6 +13,7 @@ import {
   Clock,
   AlertCircle,
   RefreshCw,
+  Download,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 
@@ -130,6 +131,9 @@ export function UserTable() {
   const [selectedSchoolId, setSelectedSchoolId] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [syncingSubscriptions, setSyncingSubscriptions] = useState(false);
+  const [schoolsError, setSchoolsError] = useState<string | null>(null);
+  const [branchesError, setBranchesError] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   // Initialize form
   const addUserForm = useForm<z.infer<typeof addUserSchema>>({
@@ -146,6 +150,8 @@ export function UserTable() {
 
   const fetchUsers = async () => {
     setLoading(true);
+    setError(null);
+
     try {
       let url = `/api/admin/users?page=${currentPage}&limit=10`;
 
@@ -156,15 +162,24 @@ export function UserTable() {
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error("Failed to fetch users");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error ||
+            `Failed to fetch users (${response.status}: ${response.statusText})`
+        );
       }
 
       const data = await response.json();
-      setUsers(data.users);
-      setTotalPages(data.pagination.pages);
-    } catch (err) {
+      setUsers(data.users || []);
+      setTotalPages(data.pagination?.pages || 1);
+    } catch (err: any) {
       console.error("Error fetching users:", err);
-      setError("Failed to load users");
+      setError(
+        err.message ||
+          "Failed to load users. Please check your connection and try again."
+      );
+      setUsers([]);
+      setTotalPages(1);
     } finally {
       setLoading(false);
     }
@@ -228,23 +243,35 @@ export function UserTable() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to delete user");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error ||
+            `Failed to delete user (${response.status}: ${response.statusText})`
+        );
       }
+
+      const result = await response.json();
 
       // Remove user from state
       setUsers(users.filter(user => user._id !== selectedUser._id));
 
+      // Show success message with cleanup details
+      const cleanupSummary = result.cleanupResults
+        ? `Cleaned up: ${result.cleanupResults.sessions} sessions, ${result.cleanupResults.progress} progress records, ${result.cleanupResults.activities} activities`
+        : "All associated data has been cleaned up";
+
       toast({
-        title: "User deleted",
-        description: `${selectedUser.name} has been permanently deleted`,
+        title: "User Successfully Deleted",
+        description: `${selectedUser.name} has been permanently deleted. ${cleanupSummary}`,
+        duration: 5000,
       });
     } catch (err: any) {
       console.error("Error deleting user:", err);
       toast({
-        title: "Error",
-        description: err.message || "Failed to delete user",
+        title: "Error Deleting User",
+        description: err.message || "Failed to delete user. Please try again.",
         variant: "destructive",
+        duration: 5000,
       });
     } finally {
       setDeletingUser(false);
@@ -281,19 +308,29 @@ export function UserTable() {
     if (schools.length > 0) return; // Only fetch once
 
     setLoadingSchools(true);
+    setSchoolsError(null);
+
     try {
       const response = await fetch("/api/admin/schools?limit=100");
       if (!response.ok) {
-        throw new Error("Failed to fetch schools");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error ||
+            `Failed to fetch schools (${response.status}: ${response.statusText})`
+        );
       }
 
       const data = await response.json();
-      setSchools(data.schools);
-    } catch (err) {
+      setSchools(data.schools || []);
+      setSchoolsError(null);
+    } catch (err: any) {
       console.error("Error fetching schools:", err);
+      const errorMessage = err.message || "Failed to load schools";
+      setSchoolsError(errorMessage);
+
       toast({
-        title: "Error",
-        description: "Failed to load schools",
+        title: "Error Loading Schools",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -302,6 +339,8 @@ export function UserTable() {
   };
 
   const fetchBranches = async (schoolId: string) => {
+    setBranchesError(null);
+
     try {
       // Check if we already have branches for this school
       const schoolWithBranches = schools.find(
@@ -311,7 +350,11 @@ export function UserTable() {
 
       const response = await fetch(`/api/admin/branches?schoolId=${schoolId}`);
       if (!response.ok) {
-        throw new Error("Failed to fetch branches");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error ||
+            `Failed to fetch branches (${response.status}: ${response.statusText})`
+        );
       }
 
       const data = await response.json();
@@ -320,12 +363,21 @@ export function UserTable() {
       setSchools(
         schools.map(school =>
           school._id === schoolId
-            ? { ...school, branches: data.branches }
+            ? { ...school, branches: data.branches || [] }
             : school
         )
       );
-    } catch (err) {
+      setBranchesError(null);
+    } catch (err: any) {
       console.error("Error fetching branches:", err);
+      const errorMessage = err.message || "Failed to load branches";
+      setBranchesError(errorMessage);
+
+      toast({
+        title: "Error Loading Branches",
+        description: errorMessage,
+        variant: "destructive",
+      });
     }
   };
 
@@ -406,14 +458,17 @@ export function UserTable() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to sync subscriptions");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error ||
+            `Failed to sync subscriptions (${response.status}: ${response.statusText})`
+        );
       }
 
       const result = await response.json();
 
       toast({
-        title: "Subscriptions synced",
+        title: "Subscriptions Synced",
         description: `Updated ${result.usersUpdated} expired subscriptions`,
       });
 
@@ -422,12 +477,124 @@ export function UserTable() {
     } catch (err: any) {
       console.error("Error syncing subscriptions:", err);
       toast({
-        title: "Error",
-        description: err.message || "Failed to sync subscriptions",
+        title: "Error Syncing Subscriptions",
+        description:
+          err.message || "Failed to sync subscriptions. Please try again.",
         variant: "destructive",
       });
     } finally {
       setSyncingSubscriptions(false);
+    }
+  };
+
+  const exportUsersToCSV = async () => {
+    setExporting(true);
+
+    try {
+      // Fetch all users for export (not just current page)
+      const response = await fetch(
+        `/api/admin/users?limit=1000${searchTerm ? `&search=${encodeURIComponent(searchTerm)}` : ""}`
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData.error ||
+            `Failed to fetch users for export (${response.status}: ${response.statusText})`
+        );
+      }
+
+      const data = await response.json();
+      const allUsers = data.users || [];
+
+      if (allUsers.length === 0) {
+        toast({
+          title: "No Data to Export",
+          description: "No users found to export.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Prepare CSV data
+      const csvHeaders = [
+        "Name",
+        "Email",
+        "Role",
+        "Joined Date",
+        "Last Active",
+        "Total Sessions",
+        "Completed Sessions",
+        "Completion Rate (%)",
+        "Subscription Type",
+        "Subscription Status",
+        "Subscription End Date",
+      ];
+
+      const csvData = allUsers.map((user: UserData) => [
+        user.name,
+        user.email,
+        user.role,
+        format(new Date(user.createdAt), "yyyy-MM-dd"),
+        user.stats.lastActive
+          ? format(new Date(user.stats.lastActive), "yyyy-MM-dd HH:mm")
+          : "Never",
+        user.stats.totalSessions,
+        user.stats.completedSessions,
+        user.stats.completionRate.toFixed(1),
+        user.subscription.type,
+        user.subscription.status,
+        user.subscription.endDate
+          ? format(new Date(user.subscription.endDate), "yyyy-MM-dd")
+          : "N/A",
+      ]);
+
+      // Create CSV content
+      const csvContent = [
+        csvHeaders.join(","),
+        ...csvData.map((row: (string | number)[]) =>
+          row
+            .map((cell: string | number) =>
+              typeof cell === "string" &&
+              (cell.includes(",") || cell.includes('"') || cell.includes("\n"))
+                ? `"${cell.replace(/"/g, '""')}"`
+                : cell
+            )
+            .join(",")
+        ),
+      ].join("\n");
+
+      // Create and download file
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      const url = URL.createObjectURL(blob);
+
+      link.setAttribute("href", url);
+      link.setAttribute(
+        "download",
+        `fluenta-users-${format(new Date(), "yyyy-MM-dd")}.csv`
+      );
+      link.style.visibility = "hidden";
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "Export Successful",
+        description: `Exported ${allUsers.length} users to CSV file.`,
+      });
+    } catch (err: any) {
+      console.error("Error exporting users:", err);
+      toast({
+        title: "Export Failed",
+        description: err.message || "Failed to export users. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -436,7 +603,25 @@ export function UserTable() {
   }
 
   if (error) {
-    return <div className="text-center text-red-500">{error}</div>;
+    return (
+      <div className="text-center p-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+          <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-red-800 mb-2">
+            Error Loading Users
+          </h3>
+          <p className="text-red-600 mb-4">{error}</p>
+          <Button
+            onClick={fetchUsers}
+            variant="outline"
+            className="border-red-300 text-red-700 hover:bg-red-50"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -459,6 +644,16 @@ export function UserTable() {
             />
             {syncingSubscriptions ? "Syncing..." : "Sync Subscriptions"}
           </Button>
+          <Button
+            variant="outline"
+            onClick={exportUsersToCSV}
+            disabled={exporting}
+          >
+            <Download
+              className={`mr-2 h-4 w-4 ${exporting ? "animate-pulse" : ""}`}
+            />
+            {exporting ? "Exporting..." : "Export CSV"}
+          </Button>
           <Button onClick={() => setIsAddUserDialogOpen(true)}>
             <Plus className="mr-2 h-4 w-4" /> Add User
           </Button>
@@ -479,10 +674,45 @@ export function UserTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.length === 0 ? (
+            {loading && users.length === 0 ? (
+              // Show loading skeleton rows
+              [...Array(5)].map((_, i) => (
+                <TableRow key={`loading-${i}`}>
+                  <TableCell>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full animate-pulse" />
+                      <div className="space-y-2">
+                        <div className="h-4 bg-gray-200 rounded w-24 animate-pulse" />
+                        <div className="h-3 bg-gray-200 rounded w-32 animate-pulse" />
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-6 bg-gray-200 rounded w-16 animate-pulse" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 bg-gray-200 rounded w-20 animate-pulse" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 bg-gray-200 rounded w-16 animate-pulse" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-4 bg-gray-200 rounded w-12 animate-pulse" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-6 bg-gray-200 rounded w-20 animate-pulse" />
+                  </TableCell>
+                  <TableCell>
+                    <div className="h-8 bg-gray-200 rounded w-8 animate-pulse ml-auto" />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : users.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center h-24">
-                  No users found
+                  {searchTerm
+                    ? `No users found matching "${searchTerm}"`
+                    : "No users found"}
                 </TableCell>
               </TableRow>
             ) : (
@@ -854,6 +1084,10 @@ export function UserTable() {
                               <SelectItem value="loading" disabled>
                                 Loading schools...
                               </SelectItem>
+                            ) : schoolsError ? (
+                              <SelectItem value="error" disabled>
+                                Error loading schools
+                              </SelectItem>
                             ) : schools.length === 0 ? (
                               <SelectItem value="none" disabled>
                                 No schools available
@@ -868,6 +1102,21 @@ export function UserTable() {
                           </SelectContent>
                         </Select>
                         <FormMessage />
+                        {schoolsError && (
+                          <div className="text-sm text-red-600 mt-1 flex items-center gap-2">
+                            <AlertCircle className="h-3 w-3" />
+                            <span>{schoolsError}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={fetchSchools}
+                              className="h-auto p-1 text-red-600 hover:text-red-700"
+                            >
+                              Retry
+                            </Button>
+                          </div>
+                        )}
                       </FormItem>
                     )}
                   />
@@ -915,6 +1164,23 @@ export function UserTable() {
                               Branch selection is optional for school admins
                             </FormDescription>
                             <FormMessage />
+                            {branchesError && (
+                              <div className="text-sm text-red-600 mt-1 flex items-center gap-2">
+                                <AlertCircle className="h-3 w-3" />
+                                <span>{branchesError}</span>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() =>
+                                    fetchBranches(selectedSchoolId!)
+                                  }
+                                  className="h-auto p-1 text-red-600 hover:text-red-700"
+                                >
+                                  Retry
+                                </Button>
+                              </div>
+                            )}
                           </FormItem>
                         );
                       }}

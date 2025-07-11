@@ -150,15 +150,15 @@ export default function GenerateListeningPage() {
                           <SelectValue placeholder="Select a level" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
-                        <SelectItem value="A1">A1 (Beginner)</SelectItem>
-                        <SelectItem value="A2">A2 (Elementary)</SelectItem>
-                        <SelectItem value="B1">B1 (Intermediate)</SelectItem>
+                      <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                        <SelectItem value="A1">A1 - Beginner</SelectItem>
+                        <SelectItem value="A2">A2 - Elementary</SelectItem>
+                        <SelectItem value="B1">B1 - Intermediate</SelectItem>
                         <SelectItem value="B2">
-                          B2 (Upper Intermediate)
+                          B2 - Upper Intermediate
                         </SelectItem>
-                        <SelectItem value="C1">C1 (Advanced)</SelectItem>
-                        <SelectItem value="C2">C2 (Proficiency)</SelectItem>
+                        <SelectItem value="C1">C1 - Advanced</SelectItem>
+                        <SelectItem value="C2">C2 - Proficient</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormDescription>
@@ -207,7 +207,7 @@ export default function GenerateListeningPage() {
                           <SelectValue placeholder="Select content type" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                         <SelectItem value="dialogue">Dialogue</SelectItem>
                         <SelectItem value="monologue">Monologue</SelectItem>
                         <SelectItem value="interview">Interview</SelectItem>

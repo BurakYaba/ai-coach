@@ -35,7 +35,24 @@ interface UserDocument {
   email: string;
   lastActive?: Date;
   updatedAt: Date;
+  createdAt: Date;
   onboarding?: {
+    completed: boolean;
+    currentStep: number;
+    language: "en" | "tr";
+    nativeLanguage: string;
+    country: string;
+    region: string;
+    preferredPracticeTime: string;
+    preferredLearningDays: string[];
+    reminderTiming: string;
+    reasonsForLearning: string[];
+    howHeardAbout: string;
+    dailyStudyTimeGoal: number;
+    weeklyStudyTimeGoal: number;
+    consentDataUsage: boolean;
+    consentAnalytics: boolean;
+    completedAt?: Date;
     skillAssessment?: {
       ceferLevel?: string;
     };
@@ -61,11 +78,14 @@ export async function GET(req: NextRequest) {
 
     await dbConnect();
 
-    // Get pagination parameters from URL
+    // Get pagination and filter parameters from URL
     const url = new URL(req.url);
     const page = parseInt(url.searchParams.get("page") || "1");
     const limit = parseInt(url.searchParams.get("limit") || "10");
     const search = url.searchParams.get("search") || "";
+    const moduleFilter = url.searchParams.get("module") || "all";
+    const dateFrom = url.searchParams.get("dateFrom");
+    const dateTo = url.searchParams.get("dateTo");
     const skip = (page - 1) * limit;
 
     // Build search query
@@ -78,103 +98,183 @@ export async function GET(req: NextRequest) {
         }
       : {};
 
+    // Build date range filter for activity queries
+    const dateFilter: any = {};
+    if (dateFrom || dateTo) {
+      dateFilter.createdAt = {};
+      if (dateFrom) {
+        dateFilter.createdAt.$gte = new Date(dateFrom);
+      }
+      if (dateTo) {
+        dateFilter.createdAt.$lte = new Date(dateTo);
+      }
+    } else {
+      // Default to last 30 days if no date range specified
+      dateFilter.createdAt = {
+        $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      };
+    }
+
+    // Build module filter for activity queries
+    const activityMatchFilter: any = {
+      activityType: "complete_session",
+      ...dateFilter,
+    };
+    if (moduleFilter !== "all") {
+      activityMatchFilter.module = moduleFilter;
+    }
+
     // Get total count for pagination
     const totalUsers = await User.countDocuments(searchQuery);
 
-    // Get users with pagination
+    // Get users with pagination (ordered from newest to oldest by registration date)
     const users = await User.find(searchQuery)
       .select(
-        "name email progress onboarding subscription lastActive updatedAt"
+        "name email progress onboarding subscription lastActive updatedAt createdAt"
       )
-      .sort({ lastActive: -1 })
+      .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)
       .lean<UserDocument[]>();
 
-    // Get analytics for each user
-    const usersWithAnalytics = await Promise.all(
-      users.map(async user => {
-        const userId = user._id;
+    if (users.length === 0) {
+      return NextResponse.json({
+        users: [],
+        pagination: {
+          total: totalUsers,
+          pages: Math.ceil(totalUsers / limit),
+          currentPage: page,
+          perPage: limit,
+        },
+      });
+    }
 
-        // Get total sessions across all modules
-        const totalSessions = await UserActivity.countDocuments({
-          userId,
-          activityType: "complete_session",
-        });
+    const userIds = users.map(user => new mongoose.Types.ObjectId(user._id));
 
-        // Get detailed module metrics
-        const moduleMetrics = await UserActivity.aggregate([
-          {
-            $match: {
-              userId: new mongoose.Types.ObjectId(userId),
-              activityType: "complete_session",
+    // Bulk fetch all user activities with optimized aggregation
+    const bulkActivityMetrics = await UserActivity.aggregate([
+      {
+        $match: {
+          userId: { $in: userIds },
+          ...activityMatchFilter,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            userId: "$userId",
+            module: "$module",
+          },
+          totalSessions: { $sum: 1 },
+          completedSessions: {
+            $sum: {
+              $cond: [{ $eq: ["$metadata.completed", true] }, 1, 0],
             },
           },
-          {
-            $group: {
-              _id: "$module",
-              totalSessions: { $sum: 1 },
-              completedSessions: {
-                $sum: {
-                  $cond: [{ $eq: ["$metadata.completed", true] }, 1, 0],
-                },
-              },
-              averageScore: { $avg: "$metadata.score" },
-              timeSpent: { $sum: "$metadata.duration" },
-              itemsCompleted: { $sum: "$metadata.itemsCompleted" },
-              totalWordCount: { $sum: "$metadata.wordCount" },
-              uniqueWords: { $addToSet: "$metadata.uniqueWords" },
-              accuracy: { $avg: "$metadata.accuracy" },
+          averageScore: { $avg: "$metadata.score" },
+          timeSpent: { $sum: "$metadata.duration" },
+          itemsCompleted: { $sum: "$metadata.itemsCompleted" },
+          totalWordCount: { $sum: "$metadata.wordCount" },
+          uniqueWords: { $addToSet: "$metadata.uniqueWords" },
+          accuracy: { $avg: "$metadata.accuracy" },
+        },
+      },
+    ]);
+
+    // Bulk fetch gamification profiles
+    const gamificationProfiles = await GamificationProfile.find({
+      userId: { $in: userIds },
+    }).lean();
+
+    // Bulk fetch activity trends
+    const bulkActivityTrends = await UserActivity.aggregate([
+      {
+        $match: {
+          userId: { $in: userIds },
+          ...dateFilter,
+        },
+      },
+      {
+        $group: {
+          _id: {
+            userId: "$userId",
+            date: {
+              $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
             },
+            module: "$module",
           },
-        ]);
+          count: { $sum: 1 },
+          xpEarned: { $sum: "$xpEarned" },
+        },
+      },
+      {
+        $sort: { "_id.date": 1 },
+      },
+    ]);
 
-        // Get gamification stats
-        const gamificationProfile = await GamificationProfile.findOne({
-          userId: new mongoose.Types.ObjectId(userId),
-        }).lean();
+    // Create lookup maps for efficient data processing
+    const activityByUser = new Map();
+    const gamificationByUser = new Map();
+    const trendsbyUser = new Map();
 
-        // Get recent activity trend
-        const recentActivity = await UserActivity.aggregate([
-          {
-            $match: {
-              userId: new mongoose.Types.ObjectId(userId),
-              createdAt: {
-                $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
-              },
-            },
-          },
-          {
-            $group: {
-              _id: {
-                date: {
-                  $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
-                },
-                module: "$module",
-              },
-              count: { $sum: 1 },
-              xpEarned: { $sum: "$xpEarned" },
-            },
-          },
-          {
-            $sort: { "_id.date": 1 },
-          },
-        ]);
+    // Process bulk activity metrics
+    bulkActivityMetrics.forEach(metric => {
+      const userId = metric._id.userId.toString();
+      if (!activityByUser.has(userId)) {
+        activityByUser.set(userId, {});
+      }
+      activityByUser.get(userId)[metric._id.module] = metric;
+    });
 
-        // Process module metrics
-        const moduleActivityMap: ModuleActivityMap = {
-          reading: 0,
-          writing: 0,
-          speaking: 0,
-          grammar: 0,
-          vocabulary: 0,
-          games: 0,
-        };
+    // Process gamification profiles
+    gamificationProfiles.forEach(profile => {
+      gamificationByUser.set(profile.userId.toString(), profile);
+    });
 
-        const detailedMetrics: Record<string, ModuleMetrics> = {};
+    // Process activity trends
+    bulkActivityTrends.forEach(trend => {
+      const userId = trend._id.userId.toString();
+      const moduleName = trend._id.module;
+      if (!trendsbyUser.has(userId)) {
+        trendsbyUser.set(userId, {});
+      }
+      if (!trendsbyUser.get(userId)[moduleName]) {
+        trendsbyUser.get(userId)[moduleName] = [];
+      }
+      trendsbyUser.get(userId)[moduleName].push({
+        date: trend._id.date,
+        sessions: trend.count,
+        xp: trend.xpEarned,
+      });
+    });
 
-        moduleMetrics.forEach(metric => {
-          const moduleName = metric._id;
+    // Transform users with their analytics
+    const usersWithAnalytics = users.map(user => {
+      const userId = user._id.toString();
+      const userActivity = activityByUser.get(userId) || {};
+      const gamificationProfile = gamificationByUser.get(userId);
+      const userTrends = trendsbyUser.get(userId) || {};
+
+      // Calculate total sessions
+      const totalSessions = Object.values(userActivity).reduce(
+        (sum: number, activity: any) => sum + (activity.totalSessions || 0),
+        0
+      );
+
+      // Process module metrics
+      const moduleActivityMap: ModuleActivityMap = {
+        reading: 0,
+        writing: 0,
+        speaking: 0,
+        grammar: 0,
+        vocabulary: 0,
+        games: 0,
+      };
+
+      const detailedMetrics: Record<string, ModuleMetrics> = {};
+
+      Object.entries(userActivity).forEach(
+        ([moduleName, metric]: [string, any]) => {
           moduleActivityMap[moduleName] = metric.totalSessions;
           detailedMetrics[moduleName] = {
             totalSessions: metric.totalSessions,
@@ -186,72 +286,71 @@ export async function GET(req: NextRequest) {
             uniqueWords: metric.uniqueWords?.length,
             accuracy: Math.round((metric.accuracy || 0) * 100),
           };
-        });
+        }
+      );
 
-        // Calculate completion rates
-        const completionRates: Record<string, number> = {};
-        Object.entries(detailedMetrics).forEach(([moduleName, metrics]) => {
-          completionRates[moduleName] =
-            metrics.totalSessions > 0
-              ? Math.round(
-                  (metrics.completedSessions / metrics.totalSessions) * 100
-                )
-              : 0;
-        });
+      // Calculate completion rates
+      const completionRates: Record<string, number> = {};
+      Object.entries(detailedMetrics).forEach(([moduleName, metrics]) => {
+        completionRates[moduleName] =
+          metrics.totalSessions > 0
+            ? Math.round(
+                (metrics.completedSessions / metrics.totalSessions) * 100
+              )
+            : 0;
+      });
 
-        // Process activity trends
-        const activityTrends = recentActivity.reduce(
-          (acc, curr) => {
-            const { date, module: moduleName } = curr._id;
-            if (!acc[moduleName]) {
-              acc[moduleName] = [];
-            }
-            acc[moduleName].push({
-              date,
-              sessions: curr.count,
-              xp: curr.xpEarned,
-            });
-            return acc;
+      return {
+        _id: userId,
+        name: user.name,
+        email: user.email,
+        totalSessions,
+        lastActive: (user.lastActive || user.updatedAt).toISOString(),
+        registeredAt: user.createdAt.toISOString(),
+        moduleActivity: moduleActivityMap,
+        completionRates,
+        detailedMetrics,
+        activityTrends: userTrends,
+        gamification: {
+          level: gamificationProfile?.level || 1,
+          experience: gamificationProfile?.experience || 0,
+          streak: {
+            current: gamificationProfile?.streak?.current || 0,
+            longest: gamificationProfile?.streak?.longest || 0,
           },
-          {} as Record<
-            string,
-            Array<{ date: string; sessions: number; xp: number }>
-          >
-        );
-
-        return {
-          _id: userId.toString(),
-          name: user.name,
-          email: user.email,
-          totalSessions,
-          lastActive: (user.lastActive || user.updatedAt).toISOString(),
-          moduleActivity: moduleActivityMap,
-          completionRates,
-          detailedMetrics,
-          activityTrends,
-          gamification: {
-            level: gamificationProfile?.level || 1,
-            experience: gamificationProfile?.experience || 0,
-            streak: {
-              current: gamificationProfile?.streak?.current || 0,
-              longest: gamificationProfile?.streak?.longest || 0,
-            },
-            achievements: gamificationProfile?.achievements?.length || 0,
-            badges: gamificationProfile?.badges?.length || 0,
-            stats: gamificationProfile?.stats || {
-              totalXP: 0,
-              activeDays: 0,
-              moduleActivity: moduleActivityMap,
-            },
+          achievements: gamificationProfile?.achievements?.length || 0,
+          badges: gamificationProfile?.badges?.length || 0,
+          stats: gamificationProfile?.stats || {
+            totalXP: 0,
+            activeDays: 0,
+            moduleActivity: moduleActivityMap,
           },
-          progress: {
-            level: user.onboarding?.skillAssessment?.ceferLevel || "N/A",
-            xp: user.progress?.totalPoints || 0,
-            streak: user.progress?.streak || 0,
-          },
-        };
-      })
-    );
+        },
+        progress: {
+          level: user.onboarding?.skillAssessment?.ceferLevel || "N/A",
+          xp: user.progress?.totalPoints || 0,
+          streak: user.progress?.streak || 0,
+        },
+        onboarding: {
+          completed: user.onboarding?.completed || false,
+          currentStep: user.onboarding?.currentStep || 1,
+          language: user.onboarding?.language || "en",
+          nativeLanguage: user.onboarding?.nativeLanguage || "",
+          country: user.onboarding?.country || "",
+          region: user.onboarding?.region || "",
+          preferredPracticeTime: user.onboarding?.preferredPracticeTime || "",
+          preferredLearningDays: user.onboarding?.preferredLearningDays || [],
+          reminderTiming: user.onboarding?.reminderTiming || "",
+          reasonsForLearning: user.onboarding?.reasonsForLearning || [],
+          howHeardAbout: user.onboarding?.howHeardAbout || "",
+          dailyStudyTimeGoal: user.onboarding?.dailyStudyTimeGoal || 0,
+          weeklyStudyTimeGoal: user.onboarding?.weeklyStudyTimeGoal || 0,
+          consentDataUsage: user.onboarding?.consentDataUsage || false,
+          consentAnalytics: user.onboarding?.consentAnalytics || false,
+          completedAt: user.onboarding?.completedAt?.toISOString() || null,
+        },
+      };
+    });
 
     return NextResponse.json({
       users: usersWithAnalytics,

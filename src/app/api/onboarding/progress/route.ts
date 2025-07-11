@@ -102,17 +102,18 @@ export async function PATCH(request: NextRequest) {
     if (!user.onboarding) {
       user.onboarding = {
         completed: true,
-        currentStep: 7,
+        currentStep: 5,
         language: "en",
         nativeLanguage: "",
         country: "",
         region: "",
         preferredPracticeTime: "",
         preferredLearningDays: [],
+        reminderTiming: "1_hour",
         reasonsForLearning: [],
         howHeardAbout: "",
-        dailyStudyTimeGoal: 0,
-        weeklyStudyTimeGoal: 0,
+        dailyStudyTimeGoal: 30,
+        weeklyStudyTimeGoal: 210,
         consentDataUsage: false,
         consentAnalytics: false,
         skillAssessment: {

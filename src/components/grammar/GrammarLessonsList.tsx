@@ -229,7 +229,7 @@ export default function GrammarLessonsList() {
           <SelectTrigger className="w-[150px] bg-white border-gray-300">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
             <SelectItem value="all">All Categories</SelectItem>
             {categories.map(category => (
               <SelectItem key={category} value={category}>
@@ -243,13 +243,13 @@ export default function GrammarLessonsList() {
           <SelectTrigger className="w-[150px] bg-white border-gray-300">
             <SelectValue placeholder="Level" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
             <SelectItem value="all">All Levels</SelectItem>
-            {levels.map(level => (
-              <SelectItem key={level} value={level}>
-                {level}
-              </SelectItem>
-            ))}
+            <SelectItem value="A1">A1</SelectItem>
+            <SelectItem value="A2">A2</SelectItem>
+            <SelectItem value="B1">B1</SelectItem>
+            <SelectItem value="B2">B2</SelectItem>
+            <SelectItem value="C1">C1</SelectItem>
           </SelectContent>
         </Select>
 
@@ -257,7 +257,7 @@ export default function GrammarLessonsList() {
           <SelectTrigger className="w-[150px] bg-white border-gray-300">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
             <SelectItem value="all">All Lessons</SelectItem>
             <SelectItem value="incomplete">In Progress</SelectItem>
             <SelectItem value="completed">Completed</SelectItem>

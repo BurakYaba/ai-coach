@@ -225,12 +225,12 @@ export function WritingPromptList() {
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="essay">Essay</SelectItem>
                 <SelectItem value="letter">Letter</SelectItem>
                 <SelectItem value="story">Story</SelectItem>
-                <SelectItem value="argument">Argument</SelectItem>
+                <SelectItem value="report">Report</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -239,7 +239,7 @@ export function WritingPromptList() {
               <SelectTrigger className="w-40">
                 <SelectValue placeholder="Level" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                 <SelectItem value="all">All Levels</SelectItem>
                 <SelectItem value="A1">A1</SelectItem>
                 <SelectItem value="A2">A2</SelectItem>

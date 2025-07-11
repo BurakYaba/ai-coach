@@ -20,15 +20,12 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { Badge } from "@/components/ui/badge";
 import {
   Globe,
-  MapPin,
   Clock,
   Target,
   Users,
-  Trophy,
   Shield,
   Languages,
   Calendar,
-  BookOpen,
   CheckCircle,
   ArrowRight,
   ArrowLeft,
@@ -40,14 +37,11 @@ interface OnboardingData {
   currentStep: number;
   language: "en" | "tr";
   nativeLanguage: string;
-  country: string;
-  region: string;
   preferredPracticeTime: string;
   preferredLearningDays: string[];
+  reminderTiming: string;
   reasonsForLearning: string[];
   howHeardAbout: string;
-  dailyStudyTimeGoal: number;
-  weeklyStudyTimeGoal: number;
   consentDataUsage: boolean;
   consentAnalytics: boolean;
 }
@@ -71,24 +65,18 @@ const LANGUAGES = [
   { value: "other", label: "Other (specify)" },
 ];
 
-const COUNTRIES = [
-  { value: "turkey", label: "Turkey" },
-  { value: "united_states", label: "United States" },
-  { value: "united_kingdom", label: "United Kingdom" },
-  { value: "germany", label: "Germany" },
-  { value: "france", label: "France" },
-  { value: "spain", label: "Spain" },
-  { value: "italy", label: "Italy" },
-  { value: "canada", label: "Canada" },
-  { value: "australia", label: "Australia" },
-  { value: "other", label: "Other" },
+const PRACTICE_TIMES = [
+  { value: "early_morning", label: "Early Morning (6-9 AM)" },
+  { value: "mid_morning", label: "Mid Morning (9 AM-12 PM)" },
+  { value: "afternoon", label: "Afternoon (12-5 PM)" },
+  { value: "early_evening", label: "Early Evening (5-8 PM)" },
+  { value: "late_evening", label: "Late Evening (8-10 PM)" },
 ];
 
-const PRACTICE_TIMES = [
-  { value: "morning", label: "Morning (6 AM - 12 PM)" },
-  { value: "afternoon", label: "Afternoon (12 PM - 6 PM)" },
-  { value: "evening", label: "Evening (6 PM - 12 AM)" },
-  { value: "night", label: "Night (12 AM - 6 AM)" },
+const REMINDER_TIMING = [
+  { value: "30_min", label: "30 minutes before" },
+  { value: "1_hour", label: "1 hour before" },
+  { value: "2_hours", label: "2 hours before" },
 ];
 
 const LEARNING_DAYS = [
@@ -112,23 +100,21 @@ const REASONS_FOR_LEARNING = [
 ];
 
 const HOW_HEARD_ABOUT = [
-  { value: "social_media", label: "Social Media" },
   { value: "search_engine", label: "Search Engine (Google, Bing, etc.)" },
+  { value: "ai_assistant", label: "AI Assistant (ChatGPT, Claude, etc.)" },
   { value: "friend_recommendation", label: "Friend/Family Recommendation" },
-  { value: "advertisement", label: "Advertisement" },
+  { value: "youtube", label: "YouTube" },
+  { value: "instagram", label: "Instagram" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "facebook", label: "Facebook" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "reddit", label: "Reddit/Forum" },
+  { value: "advertisement", label: "Online Advertisement" },
+  { value: "app_store", label: "App Store/Play Store" },
   { value: "school", label: "School/Institution" },
-  { value: "app_store", label: "App Store" },
   { value: "blog", label: "Blog/Article" },
+  { value: "podcast", label: "Podcast" },
   { value: "other", label: "Other" },
-];
-
-const STUDY_TIME_GOALS = [
-  { value: 15, label: "15 minutes" },
-  { value: 30, label: "30 minutes" },
-  { value: 45, label: "45 minutes" },
-  { value: 60, label: "1 hour" },
-  { value: 90, label: "1.5 hours" },
-  { value: 120, label: "2 hours" },
 ];
 
 const STEP_INFO = [
@@ -137,12 +123,6 @@ const STEP_INFO = [
     description: "Help us personalize your experience",
     icon: Languages,
     color: "from-blue-500 to-purple-600",
-  },
-  {
-    title: "Location",
-    description: "Provide region-specific content",
-    icon: MapPin,
-    color: "from-green-500 to-blue-500",
   },
   {
     title: "Schedule",
@@ -158,15 +138,9 @@ const STEP_INFO = [
   },
   {
     title: "Discovery",
-    description: "How you found us",
+    description: "Tell us how you found us",
     icon: Users,
     color: "from-teal-500 to-green-500",
-  },
-  {
-    title: "Study Time",
-    description: "Set your daily goals",
-    icon: Clock,
-    color: "from-indigo-500 to-purple-500",
   },
   {
     title: "Permissions",
@@ -183,19 +157,16 @@ export function OnboardingFlow({ initialData }: OnboardingFlowProps) {
   const [customLanguage, setCustomLanguage] = useState("");
   const [formData, setFormData] = useState({
     nativeLanguage: initialData.nativeLanguage,
-    country: initialData.country,
-    region: initialData.region,
     preferredPracticeTime: initialData.preferredPracticeTime,
     preferredLearningDays: initialData.preferredLearningDays,
+    reminderTiming: initialData.reminderTiming || "1_hour",
     reasonsForLearning: initialData.reasonsForLearning,
     howHeardAbout: initialData.howHeardAbout,
-    dailyStudyTimeGoal: initialData.dailyStudyTimeGoal || 30,
-    weeklyStudyTimeGoal: initialData.weeklyStudyTimeGoal || 210,
     consentDataUsage: initialData.consentDataUsage,
     consentAnalytics: initialData.consentAnalytics,
   });
 
-  const totalSteps = 7;
+  const totalSteps = 5;
   const progress = (currentStep / totalSteps) * 100;
 
   const handleNext = async () => {
@@ -221,30 +192,22 @@ export function OnboardingFlow({ initialData }: OnboardingFlowProps) {
       return;
     }
 
-    if (currentStep === 2 && (!formData.country || !formData.region)) {
-      toast({
-        title: "Required Fields",
-        description: "Please fill in both country and region.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (
-      currentStep === 3 &&
+      currentStep === 2 &&
       (!formData.preferredPracticeTime ||
-        formData.preferredLearningDays.length === 0)
+        formData.preferredLearningDays.length === 0 ||
+        !formData.reminderTiming)
     ) {
       toast({
         title: "Required Fields",
         description:
-          "Please select your preferred practice time and at least one learning day.",
+          "Please select your preferred practice time, at least one learning day, and reminder timing.",
         variant: "destructive",
       });
       return;
     }
 
-    if (currentStep === 4 && formData.reasonsForLearning.length === 0) {
+    if (currentStep === 3 && formData.reasonsForLearning.length === 0) {
       toast({
         title: "Required Field",
         description: "Please select at least one reason for learning English.",
@@ -253,7 +216,7 @@ export function OnboardingFlow({ initialData }: OnboardingFlowProps) {
       return;
     }
 
-    if (currentStep === 5 && !formData.howHeardAbout) {
+    if (currentStep === 4 && !formData.howHeardAbout) {
       toast({
         title: "Required Field",
         description: "Please select how you heard about Fluenta AI.",
@@ -263,19 +226,7 @@ export function OnboardingFlow({ initialData }: OnboardingFlowProps) {
     }
 
     if (
-      currentStep === 6 &&
-      (!formData.dailyStudyTimeGoal || !formData.weeklyStudyTimeGoal)
-    ) {
-      toast({
-        title: "Required Fields",
-        description: "Please set your study time goals.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (
-      currentStep === 7 &&
+      currentStep === 5 &&
       (!formData.consentDataUsage || !formData.consentAnalytics)
     ) {
       toast({
@@ -456,82 +407,11 @@ export function OnboardingFlow({ initialData }: OnboardingFlowProps) {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-center mb-2 text-white">
-                  Where are you located?
+                  Set up your study schedule
                 </h2>
                 <p className="text-white/80 text-center text-base">
-                  This helps us provide region-specific content and features
-                  tailored to your location.
-                </p>
-              </div>
-            </div>
-
-            <GradientCard className="p-4" variant="accent">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
-                    <MapPin className="h-4 w-4" />
-                    Country
-                  </Label>
-                  <Select
-                    value={formData.country}
-                    onValueChange={value =>
-                      setFormData({ ...formData, country: value })
-                    }
-                  >
-                    <SelectTrigger className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60">
-                      <SelectValue placeholder="Select your country" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-                      {COUNTRIES.map(country => (
-                        <SelectItem key={country.value} value={country.value}>
-                          {country.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="region"
-                    className="text-sm font-medium flex items-center gap-2 text-white"
-                  >
-                    <MapPin className="h-4 w-4" />
-                    Region/City
-                  </Label>
-                  <Input
-                    id="region"
-                    placeholder="Enter your region or city"
-                    value={formData.region}
-                    onChange={e =>
-                      setFormData({ ...formData, region: e.target.value })
-                    }
-                    className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60"
-                  />
-                </div>
-              </div>
-            </GradientCard>
-          </div>
-        );
-
-      case 3:
-        return (
-          <div className="space-y-6">
-            <div className="text-center space-y-3">
-              <div className="flex justify-center">
-                <div
-                  className={`p-3 rounded-full bg-gradient-to-r ${stepInfo.color} shadow-lg`}
-                >
-                  <StepIcon className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-center mb-2 text-white">
-                  When do you prefer to practice?
-                </h2>
-                <p className="text-white/80 text-center text-base">
-                  This helps us send reminders at the right time and optimize
-                  your learning schedule.
+                  Tell us when and how often you'd like to study. We'll send you
+                  perfectly timed reminders to keep you motivated.
                 </p>
               </div>
             </div>
@@ -647,11 +527,40 @@ export function OnboardingFlow({ initialData }: OnboardingFlowProps) {
                   </div>
                 </div>
               </GradientCard>
+
+              <GradientCard className="p-4" variant="accent">
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
+                    <Clock className="h-4 w-4" />
+                    Reminder Timing
+                  </Label>
+                  <p className="text-sm text-white/70 mb-3">
+                    When should we remind you before your study time?
+                  </p>
+                  <Select
+                    value={formData.reminderTiming}
+                    onValueChange={value =>
+                      setFormData({ ...formData, reminderTiming: value })
+                    }
+                  >
+                    <SelectTrigger className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60">
+                      <SelectValue placeholder="Select reminder timing" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                      {REMINDER_TIMING.map(timing => (
+                        <SelectItem key={timing.value} value={timing.value}>
+                          {timing.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </GradientCard>
             </div>
           </div>
         );
 
-      case 4:
+      case 3:
         return (
           <div className="space-y-6">
             <div className="text-center space-y-3">
@@ -760,7 +669,7 @@ export function OnboardingFlow({ initialData }: OnboardingFlowProps) {
           </div>
         );
 
-      case 5:
+      case 4:
         return (
           <div className="space-y-6">
             <div className="text-center space-y-3">
@@ -773,11 +682,11 @@ export function OnboardingFlow({ initialData }: OnboardingFlowProps) {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-center mb-2 text-white">
-                  How did you hear about Fluenta AI?
+                  How did you discover Fluenta AI?
                 </h2>
                 <p className="text-white/80 text-center text-base">
-                  This helps us improve our outreach and understand our users
-                  better.
+                  Help us understand how you found us so we can reach more
+                  learners like you and improve our community.
                 </p>
               </div>
             </div>
@@ -810,97 +719,7 @@ export function OnboardingFlow({ initialData }: OnboardingFlowProps) {
           </div>
         );
 
-      case 6:
-        return (
-          <div className="space-y-6">
-            <div className="text-center space-y-3">
-              <div className="flex justify-center">
-                <div
-                  className={`p-3 rounded-full bg-gradient-to-r ${stepInfo.color} shadow-lg`}
-                >
-                  <StepIcon className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold text-center mb-2 text-white">
-                  Set your study goals
-                </h2>
-                <p className="text-white/80 text-center text-base">
-                  Set realistic goals to stay motivated and track your progress
-                  effectively.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <GradientCard className="p-4" variant="default">
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
-                    <Trophy className="h-4 w-4" />
-                    Daily Study Time Goal
-                  </Label>
-                  <Select
-                    value={formData.dailyStudyTimeGoal.toString()}
-                    onValueChange={value =>
-                      setFormData({
-                        ...formData,
-                        dailyStudyTimeGoal: parseInt(value),
-                      })
-                    }
-                  >
-                    <SelectTrigger className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60">
-                      <SelectValue placeholder="Select daily goal" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-                      {STUDY_TIME_GOALS.map(goal => (
-                        <SelectItem
-                          key={goal.value}
-                          value={goal.value.toString()}
-                        >
-                          {goal.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </GradientCard>
-
-              <GradientCard className="p-4" variant="accent">
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium flex items-center gap-2 text-white">
-                    <BookOpen className="h-4 w-4" />
-                    Weekly Study Time Goal
-                  </Label>
-                  <Select
-                    value={formData.weeklyStudyTimeGoal.toString()}
-                    onValueChange={value =>
-                      setFormData({
-                        ...formData,
-                        weeklyStudyTimeGoal: parseInt(value),
-                      })
-                    }
-                  >
-                    <SelectTrigger className="h-12 text-base bg-white/10 border-white/20 text-white placeholder:text-white/60">
-                      <SelectValue placeholder="Select weekly goal" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-                      {STUDY_TIME_GOALS.map(goal => (
-                        <SelectItem
-                          key={goal.value * 7}
-                          value={(goal.value * 7).toString()}
-                        >
-                          {goal.value * 7} minutes ({goal.label} × 7 days)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </GradientCard>
-            </div>
-          </div>
-        );
-
-      case 7:
+      case 5:
         return (
           <div className="space-y-6">
             <div className="text-center space-y-3">

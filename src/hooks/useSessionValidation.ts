@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
@@ -32,7 +32,7 @@ export function useSessionValidation(
     disabled = false,
   } = options;
 
-  const validateSession = async (): Promise<boolean> => {
+  const validateSession = useCallback(async (): Promise<boolean> => {
     if (!session?.user?.sessionToken || disabled) {
       setIsValid(true);
       setError(null);
@@ -144,7 +144,13 @@ export function useSessionValidation(
       // Don't log out on network errors, just log them
       return true;
     }
-  };
+  }, [
+    session?.user?.sessionToken,
+    disabled,
+    toast,
+    onSessionTerminated,
+    router,
+  ]);
 
   // Cleanup function
   const cleanup = () => {
@@ -153,6 +159,10 @@ export function useSessionValidation(
       intervalRef.current = undefined;
     }
   };
+
+  // Store the latest validateSession function in a ref to avoid dependency cycles
+  const validateSessionRef = useRef(validateSession);
+  validateSessionRef.current = validateSession;
 
   // Set up periodic validation
   useEffect(() => {
@@ -163,27 +173,19 @@ export function useSessionValidation(
 
     // Initial validation after a short delay
     const initialDelay = setTimeout(() => {
-      validateSession();
+      validateSessionRef.current();
     }, 5000); // Wait 5 seconds after mount
 
     // Set up recurring validation
     intervalRef.current = setInterval(() => {
-      const now = Date.now();
-
-      // Throttle validation to prevent excessive calls
-      if (now - lastValidationRef.current < checkInterval) {
-        return;
-      }
-
-      lastValidationRef.current = now;
-      validateSession();
+      validateSessionRef.current();
     }, checkInterval);
 
     return () => {
       cleanup();
       clearTimeout(initialDelay);
     };
-  }, [status, session, checkInterval, disabled]);
+  }, [status, checkInterval, disabled]); // Removed validateSession from dependency array
 
   // Listen for visibility changes to validate when tab becomes active
   useEffect(() => {
@@ -195,7 +197,7 @@ export function useSessionValidation(
         session?.user?.sessionToken
       ) {
         // Validate session when user returns to tab
-        validateSession();
+        validateSessionRef.current();
       }
     };
 
@@ -204,7 +206,7 @@ export function useSessionValidation(
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [session, disabled]);
+  }, [disabled]); // Removed validateSession from dependency array
 
   // Listen for storage events (for logout in other tabs)
   useEffect(() => {
@@ -264,10 +266,10 @@ export function useSessionValidation(
     };
   }, [disabled, session?.user?.sessionToken]);
 
-  // Manual validation function
-  const manualValidate = async (): Promise<boolean> => {
+  // Manual validation function - memoized to prevent recreation on every render
+  const manualValidate = useCallback(async (): Promise<boolean> => {
     return await validateSession();
-  };
+  }, [validateSession]);
 
   // Cleanup on unmount
   useEffect(() => {

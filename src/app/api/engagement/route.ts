@@ -9,6 +9,7 @@ import {
   sendWeeklyProgressEmail,
   sendAchievementEmail,
 } from "@/lib/email";
+import { calculateWeeklyProgress } from "@/lib/notifications/progress-calculator";
 
 // POST /api/engagement - Trigger engagement emails
 export async function POST(request: NextRequest) {
@@ -120,85 +121,6 @@ export async function POST(request: NextRequest) {
       { error: "Internal server error" },
       { status: 500 }
     );
-  }
-}
-
-// Helper function to calculate weekly progress
-async function calculateWeeklyProgress(userId: string) {
-  try {
-    const user = await User.findById(userId);
-    const profile = await GamificationService.getUserProfile(userId);
-
-    // Get weekly goal from user onboarding
-    const weeklyGoal = user?.onboarding?.weeklyStudyTimeGoal || 210; // default 30 min * 7 days
-
-    // Calculate actual study time for the past week
-    // This would typically involve querying activity logs
-    // For now, we'll use mock data based on the user's activity
-    const actualStudyTime = Math.floor(weeklyGoal * 0.75); // Mock: 75% of goal achieved
-
-    // Get strongest skill and improvement area from skill assessment
-    const skillAssessment = user?.onboarding?.skillAssessment;
-    const scores = skillAssessment?.scores || {};
-
-    let strongestSkill = "reading";
-    let improvementArea = "speaking";
-    let highestScore = 0;
-    let lowestScore = 100;
-
-    Object.entries(scores).forEach(([skill, score]) => {
-      const numericScore = typeof score === "number" ? score : 0;
-      if (numericScore > highestScore) {
-        highestScore = numericScore;
-        strongestSkill = skill;
-      }
-      if (numericScore < lowestScore) {
-        lowestScore = numericScore;
-        improvementArea = skill;
-      }
-    });
-
-    // Mock XP earned this week (would be calculated from actual activity)
-    const xpEarned = Math.floor(Math.random() * 500) + 200;
-
-    // Mock completed sessions (would be calculated from actual activity)
-    const completedSessions = Math.floor(
-      actualStudyTime / (user?.onboarding?.dailyStudyTimeGoal || 30)
-    );
-
-    // Mock recent achievements (would be fetched from recent activity)
-    const achievements =
-      profile.achievements.length > 0
-        ? profile.achievements.slice(-2).map(a => a.id)
-        : [];
-
-    return {
-      weeklyGoal,
-      actualStudyTime,
-      streakCount: profile.streak?.current || 0,
-      completedSessions,
-      strongestSkill:
-        strongestSkill.charAt(0).toUpperCase() + strongestSkill.slice(1),
-      improvementArea:
-        improvementArea.charAt(0).toUpperCase() + improvementArea.slice(1),
-      xpEarned,
-      level: profile.level,
-      achievements,
-    };
-  } catch (error) {
-    console.error("Error calculating weekly progress:", error);
-    // Return default data if calculation fails
-    return {
-      weeklyGoal: 210,
-      actualStudyTime: 150,
-      streakCount: 0,
-      completedSessions: 5,
-      strongestSkill: "Reading",
-      improvementArea: "Speaking",
-      xpEarned: 250,
-      level: 1,
-      achievements: [],
-    };
   }
 }
 

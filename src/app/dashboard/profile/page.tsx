@@ -4,21 +4,15 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   CheckCircle,
   AlertCircle,
-  Shield,
   Clock,
   Smartphone,
   User,
   Settings,
   ArrowLeft,
   Globe,
-  BookOpen,
   Target,
   Calendar,
-  TrendingUp,
-  MapPin,
   Languages,
-  Star,
-  Mail,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
@@ -50,7 +44,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
-import { useLocalStorage } from "@/hooks/use-local-storage";
 import {
   Select,
   SelectContent,
@@ -58,14 +51,74 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Progress } from "@/components/ui/progress";
+
 import { Label } from "@/components/ui/label";
 
-const learningTimeOptions = [
-  { value: "morning", label: "Morning" },
-  { value: "afternoon", label: "Afternoon" },
-  { value: "evening", label: "Evening" },
-  { value: "night", label: "Night" },
+const LANGUAGES = [
+  { value: "turkish", label: "Turkish" },
+  { value: "english", label: "English" },
+  { value: "german", label: "German" },
+  { value: "french", label: "French" },
+  { value: "spanish", label: "Spanish" },
+  { value: "italian", label: "Italian" },
+  { value: "russian", label: "Russian" },
+  { value: "arabic", label: "Arabic" },
+  { value: "chinese", label: "Chinese" },
+  { value: "japanese", label: "Japanese" },
+  { value: "korean", label: "Korean" },
+  { value: "other", label: "Other (specify)" },
+];
+
+const PRACTICE_TIMES = [
+  { value: "early_morning", label: "Early Morning (6-9 AM)" },
+  { value: "mid_morning", label: "Mid Morning (9 AM-12 PM)" },
+  { value: "afternoon", label: "Afternoon (12-5 PM)" },
+  { value: "early_evening", label: "Early Evening (5-8 PM)" },
+  { value: "late_evening", label: "Late Evening (8-10 PM)" },
+];
+
+const REMINDER_TIMING = [
+  { value: "30_min", label: "30 minutes before" },
+  { value: "1_hour", label: "1 hour before" },
+  { value: "2_hours", label: "2 hours before" },
+];
+
+const LEARNING_DAYS = [
+  { value: "monday", label: "Monday" },
+  { value: "tuesday", label: "Tuesday" },
+  { value: "wednesday", label: "Wednesday" },
+  { value: "thursday", label: "Thursday" },
+  { value: "friday", label: "Friday" },
+  { value: "saturday", label: "Saturday" },
+  { value: "sunday", label: "Sunday" },
+];
+
+const REASONS_FOR_LEARNING = [
+  { value: "work", label: "Work/Professional Development", icon: "💼" },
+  { value: "education", label: "Education/Academic", icon: "🎓" },
+  { value: "travel", label: "Travel", icon: "✈️" },
+  { value: "personal", label: "Personal Interest", icon: "💡" },
+  { value: "immigration", label: "Immigration", icon: "🌍" },
+  { value: "social", label: "Social/Communication", icon: "👥" },
+  { value: "other", label: "Other", icon: "📝" },
+];
+
+const HOW_HEARD_ABOUT = [
+  { value: "search_engine", label: "Search Engine (Google, Bing, etc.)" },
+  { value: "ai_assistant", label: "AI Assistant (ChatGPT, Claude, etc.)" },
+  { value: "friend_recommendation", label: "Friend/Family Recommendation" },
+  { value: "youtube", label: "YouTube" },
+  { value: "instagram", label: "Instagram" },
+  { value: "tiktok", label: "TikTok" },
+  { value: "facebook", label: "Facebook" },
+  { value: "linkedin", label: "LinkedIn" },
+  { value: "reddit", label: "Reddit/Forum" },
+  { value: "advertisement", label: "Online Advertisement" },
+  { value: "app_store", label: "App Store/Play Store" },
+  { value: "school", label: "School/Institution" },
+  { value: "blog", label: "Blog/Article" },
+  { value: "podcast", label: "Podcast" },
+  { value: "other", label: "Other" },
 ];
 
 const profileFormSchema = z.object({
@@ -73,35 +126,36 @@ const profileFormSchema = z.object({
     .string()
     .min(2, { message: "Name must be at least 2 characters long" })
     .max(50, { message: "Name must be less than 50 characters" }),
-  dailyGoal: z
-    .number()
-    .min(5, { message: "Daily goal must be at least 5 minutes" })
-    .max(240, { message: "Daily goal must be less than 240 minutes" }),
-  preferredLearningTime: z
-    .array(z.string())
-    .min(1, { message: "Please select at least one preferred learning time" }),
   nativeLanguage: z
     .string()
     .min(1, { message: "Please select your native language" }),
-  country: z.string().min(1, { message: "Please select your country" }),
-  region: z.string().min(1, { message: "Please enter your region" }),
   preferredPracticeTime: z
     .string()
     .min(1, { message: "Please select preferred practice time" }),
   preferredLearningDays: z
     .array(z.string())
     .min(1, { message: "Please select at least one learning day" }),
+  reminderTiming: z
+    .string()
+    .min(1, { message: "Please select reminder timing" }),
   reasonsForLearning: z
     .array(z.string())
     .min(1, { message: "Please select at least one reason" }),
-  dailyStudyTimeGoal: z.number().min(5).max(240),
-  weeklyStudyTimeGoal: z.number().min(35).max(1680),
+  howHeardAbout: z
+    .string()
+    .min(1, { message: "Please select how you heard about us" }),
+  consentDataUsage: z
+    .boolean()
+    .refine(val => val === true, { message: "Data usage consent is required" }),
+  consentAnalytics: z
+    .boolean()
+    .refine(val => val === true, { message: "Analytics consent is required" }),
 });
 
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
-export default function ProfilePage() {
-  const { data: session, update } = useSession();
+function ProfileContent() {
+  const { data: session, update, status } = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -110,36 +164,32 @@ export default function ProfilePage() {
   const [userData, setUserData] = useState<any>(null);
   const [customLanguage, setCustomLanguage] = useState("");
 
-  // Check for saved credentials
-  const [savedCredentials] = useLocalStorage<any>(
-    "fluenta_login_credentials",
-    null
-  );
-
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
       name: "",
-      dailyGoal: 30,
-      preferredLearningTime: [],
       nativeLanguage: "",
-      country: "",
-      region: "",
       preferredPracticeTime: "",
       preferredLearningDays: [],
+      reminderTiming: "",
       reasonsForLearning: [],
-      dailyStudyTimeGoal: 30,
-      weeklyStudyTimeGoal: 210,
+      howHeardAbout: "",
+      consentDataUsage: false,
+      consentAnalytics: false,
     },
   });
 
-  // Handle authentication
+  // Handle authentication - fixed to handle loading states properly
   useEffect(() => {
-    if (!session?.user) {
+    // Don't redirect during loading state or initial hydration
+    if (status === "loading") return;
+
+    // Only redirect if we're sure there's no session
+    if (status === "unauthenticated") {
       router.push("/login");
       return;
     }
-  }, [session, router]);
+  }, [status, router]);
 
   // Fetch user data
   useEffect(() => {
@@ -156,19 +206,16 @@ export default function ProfilePage() {
         const nativeLanguage = data.user.onboarding?.nativeLanguage || "";
         form.reset({
           name: data.user.name,
-          dailyGoal: data.user.learningPreferences.dailyGoal,
-          preferredLearningTime:
-            data.user.learningPreferences.preferredLearningTime,
           nativeLanguage: nativeLanguage,
-          country: data.user.onboarding?.country || "",
-          region: data.user.onboarding?.region || "",
           preferredPracticeTime:
             data.user.onboarding?.preferredPracticeTime || "",
           preferredLearningDays:
             data.user.onboarding?.preferredLearningDays || [],
+          reminderTiming: data.user.onboarding?.reminderTiming || "",
           reasonsForLearning: data.user.onboarding?.reasonsForLearning || [],
-          dailyStudyTimeGoal: data.user.onboarding?.dailyStudyTimeGoal || 30,
-          weeklyStudyTimeGoal: data.user.onboarding?.weeklyStudyTimeGoal || 210,
+          howHeardAbout: data.user.onboarding?.howHeardAbout || "",
+          consentDataUsage: data.user.onboarding?.consentDataUsage || false,
+          consentAnalytics: data.user.onboarding?.consentAnalytics || false,
         });
 
         // Set custom language if native language is not in the predefined list
@@ -196,10 +243,11 @@ export default function ProfilePage() {
       }
     };
 
-    if (session?.user) {
+    // Only fetch data if session is authenticated and loaded
+    if (status === "authenticated" && session?.user) {
       fetchUserData();
     }
-  }, [session, form]);
+  }, [status, session, form]);
 
   // Handle form submission
   const onSubmit = async (values: ProfileFormValues) => {
@@ -215,20 +263,18 @@ export default function ProfilePage() {
         },
         body: JSON.stringify({
           name: values.name,
-          dailyGoal: values.dailyGoal,
-          preferredLearningTime: values.preferredLearningTime,
           onboarding: {
             nativeLanguage:
               values.nativeLanguage === "other"
                 ? customLanguage
                 : values.nativeLanguage,
-            country: values.country,
-            region: values.region,
             preferredPracticeTime: values.preferredPracticeTime,
             preferredLearningDays: values.preferredLearningDays,
+            reminderTiming: values.reminderTiming,
             reasonsForLearning: values.reasonsForLearning,
-            dailyStudyTimeGoal: values.dailyStudyTimeGoal,
-            weeklyStudyTimeGoal: values.weeklyStudyTimeGoal,
+            howHeardAbout: values.howHeardAbout,
+            consentDataUsage: values.consentDataUsage,
+            consentAnalytics: values.consentAnalytics,
           },
         }),
       });
@@ -251,94 +297,30 @@ export default function ProfilePage() {
         localStorage.setItem("fluenta-native-language", nativeLanguage);
       }
 
-      // Update the session data to reflect name change if it changed
-      if (session?.user?.name !== values.name) {
-        await update({ name: values.name });
-      }
+      // DISABLED AGAIN: session.update() is corrupting JWT tokens for old testing users
+      // Even with defensive error handling, this call seems to invalidate sessions
+      console.log("Session update disabled - name will update on next login");
+
+      // if (session?.user?.name !== values.name) {
+      //   try {
+      //     await update({ name: values.name });
+      //     console.log("Session name updated successfully");
+      //   } catch (error) {
+      //     console.warn("Failed to update session name (continuing):", error);
+      //   }
+      // }
     } catch (err: any) {
+      console.error(`❌ CLIENT: Profile update failed:`, err.message);
       setError(err.message || "An error occurred while updating your profile");
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  // Function to clear saved credentials
-  const clearSavedCredentials = () => {
-    localStorage.removeItem("fluenta_login_credentials");
-    toast({
-      title: "Credentials cleared",
-      description:
-        "Saved login credentials have been removed from this device.",
-    });
-    // Force a re-render by updating a dummy state or using window.location.reload()
-    window.location.reload();
-  };
-
-  // Calculate session expiry
-  const getSessionInfo = () => {
-    if (!session?.user) return null;
-
-    const rememberMe = session.user.rememberMe;
-    const sessionDuration = rememberMe ? 30 : 7; // 30 days for remember me, 7 days otherwise
-
-    return {
-      rememberMe,
-      sessionDuration,
-      hasRememberMe: !!savedCredentials,
-    };
-  };
-
-  const sessionInfo = getSessionInfo();
-
-  // Add a new function to test engagement emails
-  const sendTestEmail = async (type: string) => {
-    try {
-      const response = await fetch("/api/engagement", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type,
-          data:
-            type === "achievement"
-              ? {
-                  achievement: {
-                    name: "Test Achievement",
-                    description:
-                      "This is a test achievement to demonstrate the email system",
-                    xpReward: 100,
-                    category: "testing",
-                  },
-                }
-              : undefined,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        toast({
-          title: "Email Sent!",
-          description: `Test ${type.replace("_", " ")} email sent successfully.`,
-        });
-      } else {
-        toast({
-          title: "Email Failed",
-          description: result.error || "Failed to send test email",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send test email",
-        variant: "destructive",
+      console.log("🔄 Profile update completed:", {
+        timestamp: new Date().toISOString(),
       });
     }
   };
 
-  if (isLoading) {
+  if (status === "loading" || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
         <div className="max-w-4xl mx-auto p-6">
@@ -356,7 +338,8 @@ export default function ProfilePage() {
     );
   }
 
-  if (!session?.user) {
+  // Don't render if not authenticated
+  if (status !== "authenticated" || !session?.user) {
     return null;
   }
 
@@ -459,80 +442,6 @@ export default function ProfilePage() {
                     </FormItem>
                   )}
                 />
-                {/* Daily Goal */}
-                <FormField
-                  control={form.control}
-                  name="dailyGoal"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 font-medium">
-                        Daily Learning Goal (minutes)
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          min={5}
-                          max={240}
-                          {...field}
-                          onChange={e =>
-                            field.onChange(parseInt(e.target.value))
-                          }
-                          className="border-2 border-gray-300 focus:border-blue-500"
-                        />
-                      </FormControl>
-                      <FormDescription className="text-gray-500">
-                        How many minutes do you want to study each day?
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {/* Preferred Learning Time */}
-                <FormField
-                  control={form.control}
-                  name="preferredLearningTime"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 font-medium">
-                        Preferred Learning Time
-                      </FormLabel>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
-                        {learningTimeOptions.map(option => (
-                          <FormItem
-                            key={option.value}
-                            className="flex items-center space-x-2 space-y-0 p-3 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
-                          >
-                            <FormControl>
-                              <Checkbox
-                                checked={field.value?.includes(option.value)}
-                                onCheckedChange={checked => {
-                                  return checked
-                                    ? field.onChange([
-                                        ...field.value,
-                                        option.value,
-                                      ])
-                                    : field.onChange(
-                                        field.value?.filter(
-                                          value => value !== option.value
-                                        )
-                                      );
-                                }}
-                              />
-                            </FormControl>
-                            <Label className="text-sm font-normal cursor-pointer text-gray-700">
-                              {option.label}
-                            </Label>
-                          </FormItem>
-                        ))}
-                      </div>
-                      <FormDescription className="text-gray-500">
-                        When do you prefer to study? We'll send reminders during
-                        these times.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </CardContent>
             </Card>
 
@@ -575,21 +484,15 @@ export default function ProfilePage() {
                                 <SelectValue placeholder="Select your native language" />
                               </SelectTrigger>
                             </FormControl>
-                            <SelectContent>
-                              <SelectItem value="turkish">Turkish</SelectItem>
-                              <SelectItem value="english">English</SelectItem>
-                              <SelectItem value="german">German</SelectItem>
-                              <SelectItem value="french">French</SelectItem>
-                              <SelectItem value="spanish">Spanish</SelectItem>
-                              <SelectItem value="italian">Italian</SelectItem>
-                              <SelectItem value="russian">Russian</SelectItem>
-                              <SelectItem value="arabic">Arabic</SelectItem>
-                              <SelectItem value="chinese">Chinese</SelectItem>
-                              <SelectItem value="japanese">Japanese</SelectItem>
-                              <SelectItem value="korean">Korean</SelectItem>
-                              <SelectItem value="other">
-                                Other (specify)
-                              </SelectItem>
+                            <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg max-h-60 overflow-y-auto">
+                              {LANGUAGES.map(language => (
+                                <SelectItem
+                                  key={language.value}
+                                  value={language.value}
+                                >
+                                  {language.label}
+                                </SelectItem>
+                              ))}
                             </SelectContent>
                           </Select>
 
@@ -606,73 +509,11 @@ export default function ProfilePage() {
                       </FormItem>
                     )}
                   />
-
-                  {/* Country */}
-                  <FormField
-                    control={form.control}
-                    name="country"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-gray-700 font-medium flex items-center gap-2">
-                          <MapPin className="h-4 w-4" />
-                          Country
-                        </FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          value={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="border-2 border-gray-300 focus:border-purple-500">
-                              <SelectValue placeholder="Select your country" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="turkey">Turkey</SelectItem>
-                            <SelectItem value="united_states">
-                              United States
-                            </SelectItem>
-                            <SelectItem value="united_kingdom">
-                              United Kingdom
-                            </SelectItem>
-                            <SelectItem value="germany">Germany</SelectItem>
-                            <SelectItem value="france">France</SelectItem>
-                            <SelectItem value="spain">Spain</SelectItem>
-                            <SelectItem value="italy">Italy</SelectItem>
-                            <SelectItem value="canada">Canada</SelectItem>
-                            <SelectItem value="australia">Australia</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </div>
-
-                {/* Region/City */}
-                <FormField
-                  control={form.control}
-                  name="region"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-gray-700 font-medium">
-                        Region/City
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="Enter your region or city"
-                          {...field}
-                          className="border-2 border-gray-300 focus:border-purple-500"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
               </CardContent>
             </Card>
 
-            {/* Study Goals & Schedule Card */}
+            {/* Study Schedule Card */}
             <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader>
                 <div className="flex items-center gap-4">
@@ -681,10 +522,10 @@ export default function ProfilePage() {
                   </div>
                   <div>
                     <CardTitle className="text-xl text-gray-800">
-                      Study Goals & Schedule
+                      Study Schedule
                     </CardTitle>
                     <CardDescription className="text-gray-600">
-                      Your learning schedule and time commitments
+                      Your learning schedule and preferences
                     </CardDescription>
                   </div>
                 </div>
@@ -709,19 +550,12 @@ export default function ProfilePage() {
                             <SelectValue placeholder="Select preferred time" />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="morning">
-                            Morning (6 AM - 12 PM)
-                          </SelectItem>
-                          <SelectItem value="afternoon">
-                            Afternoon (12 PM - 6 PM)
-                          </SelectItem>
-                          <SelectItem value="evening">
-                            Evening (6 PM - 12 AM)
-                          </SelectItem>
-                          <SelectItem value="night">
-                            Night (12 AM - 6 AM)
-                          </SelectItem>
+                        <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg max-h-60 overflow-y-auto">
+                          {PRACTICE_TIMES.map(time => (
+                            <SelectItem key={time.value} value={time.value}>
+                              {time.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -740,39 +574,34 @@ export default function ProfilePage() {
                         Preferred Learning Days
                       </FormLabel>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {[
-                          "monday",
-                          "tuesday",
-                          "wednesday",
-                          "thursday",
-                          "friday",
-                          "saturday",
-                          "sunday",
-                        ].map(day => (
+                        {LEARNING_DAYS.map(day => (
                           <FormItem
-                            key={day}
+                            key={day.value}
                             className="flex items-center space-x-2 space-y-0"
                           >
                             <FormControl>
                               <Checkbox
-                                id={day}
-                                checked={field.value?.includes(day)}
+                                id={day.value}
+                                checked={field.value?.includes(day.value)}
                                 onCheckedChange={checked => {
                                   if (checked) {
                                     field.onChange([
                                       ...(field.value || []),
-                                      day,
+                                      day.value,
                                     ]);
                                   } else {
                                     field.onChange(
-                                      field.value?.filter(d => d !== day)
+                                      field.value?.filter(d => d !== day.value)
                                     );
                                   }
                                 }}
                               />
                             </FormControl>
-                            <Label htmlFor={day} className="capitalize text-sm">
-                              {day.slice(0, 3)}
+                            <Label
+                              htmlFor={day.value}
+                              className="text-sm font-medium"
+                            >
+                              {day.label}
                             </Label>
                           </FormItem>
                         ))}
@@ -782,108 +611,58 @@ export default function ProfilePage() {
                   )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Daily Study Time Goal */}
-                  <FormField
-                    control={form.control}
-                    name="dailyStudyTimeGoal"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-gray-700 font-medium">
-                          Daily Study Time Goal (minutes)
-                        </FormLabel>
-                        <Select
-                          onValueChange={value =>
-                            field.onChange(parseInt(value))
-                          }
-                          value={field.value?.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="border-2 border-gray-300 focus:border-orange-500">
-                              <SelectValue placeholder="Select daily goal" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="15">15 minutes</SelectItem>
-                            <SelectItem value="30">30 minutes</SelectItem>
-                            <SelectItem value="45">45 minutes</SelectItem>
-                            <SelectItem value="60">1 hour</SelectItem>
-                            <SelectItem value="90">1.5 hours</SelectItem>
-                            <SelectItem value="120">2 hours</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {/* Weekly Study Time Goal */}
-                  <FormField
-                    control={form.control}
-                    name="weeklyStudyTimeGoal"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-gray-700 font-medium">
-                          Weekly Study Time Goal (minutes)
-                        </FormLabel>
-                        <Select
-                          onValueChange={value =>
-                            field.onChange(parseInt(value))
-                          }
-                          value={field.value?.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="border-2 border-gray-300 focus:border-orange-500">
-                              <SelectValue placeholder="Select weekly goal" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="105">
-                              105 minutes (15 min × 7 days)
+                {/* Reminder Timing */}
+                <FormField
+                  control={form.control}
+                  name="reminderTiming"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-700 font-medium flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Reminder Timing
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="border-2 border-gray-300 focus:border-orange-500">
+                            <SelectValue placeholder="Select reminder timing" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg max-h-60 overflow-y-auto">
+                          {REMINDER_TIMING.map(timing => (
+                            <SelectItem key={timing.value} value={timing.value}>
+                              {timing.label}
                             </SelectItem>
-                            <SelectItem value="210">
-                              210 minutes (30 min × 7 days)
-                            </SelectItem>
-                            <SelectItem value="315">
-                              315 minutes (45 min × 7 days)
-                            </SelectItem>
-                            <SelectItem value="420">
-                              420 minutes (1 hour × 7 days)
-                            </SelectItem>
-                            <SelectItem value="630">
-                              630 minutes (1.5 hours × 7 days)
-                            </SelectItem>
-                            <SelectItem value="840">
-                              840 minutes (2 hours × 7 days)
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </CardContent>
             </Card>
 
-            {/* Learning Motivation Card */}
+            {/* Learning Goals Card */}
             <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
               <CardHeader>
                 <div className="flex items-center gap-4">
                   <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
-                    <BookOpen className="h-8 w-8 text-green-600" />
+                    <Target className="h-8 w-8 text-green-600" />
                   </div>
                   <div>
                     <CardTitle className="text-xl text-gray-800">
-                      Learning Motivation
+                      Learning Goals
                     </CardTitle>
                     <CardDescription className="text-gray-600">
-                      Your reasons for learning English
+                      Why are you learning English?
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-6">
                 {/* Reasons for Learning */}
                 <FormField
                   control={form.control}
@@ -891,24 +670,13 @@ export default function ProfilePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-gray-700 font-medium">
-                        Why are you learning English?
+                        Select all that apply
                       </FormLabel>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        {[
-                          {
-                            value: "work",
-                            label: "Work/Professional Development",
-                          },
-                          { value: "education", label: "Education/Academic" },
-                          { value: "travel", label: "Travel" },
-                          { value: "personal", label: "Personal Interest" },
-                          { value: "immigration", label: "Immigration" },
-                          { value: "social", label: "Social/Communication" },
-                          { value: "other", label: "Other" },
-                        ].map(reason => (
+                        {REASONS_FOR_LEARNING.map(reason => (
                           <FormItem
                             key={reason.value}
-                            className="flex items-center space-x-2 space-y-0 p-3 border-2 border-gray-200 rounded-lg hover:border-blue-300 transition-colors"
+                            className="flex items-center space-x-2 space-y-0 p-3 border-2 border-gray-200 rounded-lg hover:border-green-300 transition-colors"
                           >
                             <FormControl>
                               <Checkbox
@@ -929,6 +697,7 @@ export default function ProfilePage() {
                                 }}
                               />
                             </FormControl>
+                            <span className="text-xl">{reason.icon}</span>
                             <Label className="text-sm font-normal cursor-pointer">
                               {reason.label}
                             </Label>
@@ -936,6 +705,105 @@ export default function ProfilePage() {
                         ))}
                       </div>
                       <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            {/* Discovery & Consent Card */}
+            <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
+              <CardHeader>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+                    <User className="h-8 w-8 text-blue-600" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-xl text-gray-800">
+                      Discovery & Preferences
+                    </CardTitle>
+                    <CardDescription className="text-gray-600">
+                      How you found us and privacy preferences
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* How Heard About */}
+                <FormField
+                  control={form.control}
+                  name="howHeardAbout"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-700 font-medium">
+                        How did you hear about Fluenta AI?
+                      </FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="border-2 border-gray-300 focus:border-blue-500">
+                            <SelectValue placeholder="Select how you heard about us" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg max-h-60 overflow-y-auto">
+                          {HOW_HEARD_ABOUT.map(option => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Data Usage Consent */}
+                <FormField
+                  control={form.control}
+                  name="consentDataUsage"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-gray-200 p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Data Usage Consent</FormLabel>
+                        <FormDescription>
+                          I consent to Fluenta AI using my data to provide
+                          personalized learning experiences, improve the
+                          service, and send relevant notifications.
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Analytics Consent */}
+                <FormField
+                  control={form.control}
+                  name="consentAnalytics"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border border-gray-200 p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Analytics Consent</FormLabel>
+                        <FormDescription>
+                          I consent to Fluenta AI collecting anonymous usage
+                          analytics to improve the platform and develop better
+                          learning features.
+                        </FormDescription>
+                      </div>
                     </FormItem>
                   )}
                 />
@@ -953,281 +821,11 @@ export default function ProfilePage() {
             </div>
           </form>
         </Form>
-
-        {/* Skill Assessment Results Card */}
-        {userData?.onboarding?.skillAssessment && (
-          <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
-            <CardHeader>
-              <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-indigo-50 to-indigo-100 border border-indigo-200">
-                  <TrendingUp className="h-8 w-8 text-indigo-600" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl text-gray-800">
-                    Skill Assessment Results
-                  </CardTitle>
-                  <CardDescription className="text-gray-600">
-                    Your current English proficiency level
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 bg-indigo-50 rounded-lg border border-indigo-200">
-                <div>
-                  <h4 className="font-semibold text-indigo-800">CEFR Level</h4>
-                  <p className="text-sm text-indigo-600">
-                    Your overall proficiency level
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-indigo-600" />
-                  <span className="text-2xl font-bold text-indigo-800">
-                    {userData.onboarding.skillAssessment.ceferLevel}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries(userData.onboarding.skillAssessment.scores).map(
-                  ([skill, score]) => (
-                    <div key={skill} className="p-4 bg-gray-50 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-gray-700 capitalize">
-                          {skill}
-                        </span>
-                        <span className="text-sm text-gray-600">
-                          {score as number}/100
-                        </span>
-                      </div>
-                      <Progress value={score as number} className="h-2" />
-                    </div>
-                  )
-                )}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <h4 className="font-semibold text-green-800 mb-2">
-                    Strengths
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {userData.onboarding.skillAssessment.strengths.map(
-                      (strength: string, index: number) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="bg-green-100 text-green-800"
-                        >
-                          {strength}
-                        </Badge>
-                      )
-                    )}
-                  </div>
-                </div>
-
-                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <h4 className="font-semibold text-orange-800 mb-2">
-                    Areas to Improve
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {userData.onboarding.skillAssessment.weakAreas.map(
-                      (area: string, index: number) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="bg-orange-100 text-orange-800"
-                        >
-                          {area}
-                        </Badge>
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Engagement Testing Card */}
-        <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader>
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-pink-50 to-pink-100 border border-pink-200">
-                <Mail className="h-8 w-8 text-pink-600" />
-              </div>
-              <div>
-                <CardTitle className="text-xl text-gray-800">
-                  Engagement System Test
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                  Test the email notification system
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Test the engagement email system to see how reminders and
-              notifications work.
-            </p>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button
-                variant="outline"
-                onClick={() => sendTestEmail("study_reminder")}
-                className="flex items-center gap-2 border-2 border-blue-300 hover:bg-blue-50"
-              >
-                <Clock className="h-4 w-4" />
-                Study Reminder
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => sendTestEmail("weekly_progress")}
-                className="flex items-center gap-2 border-2 border-green-300 hover:bg-green-50"
-              >
-                <TrendingUp className="h-4 w-4" />
-                Weekly Report
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={() => sendTestEmail("achievement")}
-                className="flex items-center gap-2 border-2 border-yellow-300 hover:bg-yellow-50"
-              >
-                <Star className="h-4 w-4" />
-                Achievement
-              </Button>
-            </div>
-
-            <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-sm text-blue-700">
-                💡 <strong>Note:</strong> These are test emails that will be
-                sent to your registered email address. Make sure your email
-                settings allow notifications from Fluenta AI.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Security & Sessions Card */}
-        <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300">
-          <CardHeader>
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
-                <Shield className="h-8 w-8 text-green-600" />
-              </div>
-              <div>
-                <CardTitle className="text-xl text-gray-800">
-                  Security & Sessions
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                  Manage your login sessions and security preferences
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <Clock className="h-5 w-5 text-blue-600" />
-                  <span className="text-sm font-medium text-blue-800">
-                    Session Duration
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant={sessionInfo?.rememberMe ? "default" : "secondary"}
-                    className="bg-blue-100 text-blue-800"
-                  >
-                    {sessionInfo?.sessionDuration} days
-                  </Badge>
-                  <span className="text-sm text-blue-700">
-                    {sessionInfo?.rememberMe
-                      ? "Extended (Remember Me)"
-                      : "Standard"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <Smartphone className="h-5 w-5 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-800">
-                    Remember Me Status
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge
-                    variant={sessionInfo?.hasRememberMe ? "default" : "outline"}
-                    className={
-                      sessionInfo?.hasRememberMe
-                        ? "bg-purple-100 text-purple-800"
-                        : ""
-                    }
-                  >
-                    {sessionInfo?.hasRememberMe ? "Enabled" : "Disabled"}
-                  </Badge>
-                  {sessionInfo?.hasRememberMe && (
-                    <span className="text-sm text-purple-700">
-                      Credentials saved
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {sessionInfo?.hasRememberMe && (
-              <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-yellow-800">
-                    Saved Login Credentials
-                  </p>
-                  <p className="text-xs text-yellow-700">
-                    Your login credentials are saved securely on this device for
-                    faster access
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearSavedCredentials}
-                  className="text-red-600 hover:text-red-700 border-red-300 hover:border-red-400"
-                >
-                  Clear Credentials
-                </Button>
-              </div>
-            )}
-
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <h4 className="text-sm font-medium text-gray-800 mb-3">
-                Security Tips
-              </h4>
-              <ul className="text-sm text-gray-600 space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
-                  Only use "Remember Me" on trusted devices
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
-                  Clear saved credentials if using a shared computer
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
-                  Your session will automatically expire after{" "}
-                  {sessionInfo?.sessionDuration} days
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
-                  Log out from all devices if you suspect unauthorized access
-                </li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
+}
+
+export default function ProfilePage() {
+  return <ProfileContent />;
 }

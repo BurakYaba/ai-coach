@@ -204,7 +204,7 @@ export default function CreateListeningSessionPage() {
                           <SelectValue placeholder="Select your level" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent>
+                      <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
                         <SelectItem value="A1">A1 - Beginner</SelectItem>
                         <SelectItem value="A2">A2 - Elementary</SelectItem>
                         <SelectItem value="B1">B1 - Intermediate</SelectItem>

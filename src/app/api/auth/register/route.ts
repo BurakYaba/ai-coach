@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import dbConnect from "@/lib/db";
 import { sendEmailVerification } from "@/lib/email";
+import { sendEmailVerificationResend } from "@/lib/email-resend";
 
 export async function POST(req: Request) {
   try {
@@ -88,6 +89,7 @@ export async function POST(req: Request) {
         region: "",
         preferredPracticeTime: "",
         preferredLearningDays: [],
+        reminderTiming: "1_hour",
         reasonsForLearning: [],
         howHeardAbout: "",
         dailyStudyTimeGoal: 30,
@@ -167,15 +169,32 @@ export async function POST(req: Request) {
 
     // Send verification email (don't fail registration if email fails)
     let emailSent = false;
+    let emailProvider = "none";
     try {
-      const emailResult = await sendEmailVerification(
-        user.email,
-        user.name,
-        emailVerificationToken
-      );
-      emailSent = emailResult.success;
-      if (!emailResult.success) {
-        console.log("Email verification failed:", emailResult.error);
+      // Try Resend first (better deliverability)
+      if (process.env.RESEND_API_KEY) {
+        const emailResult = await sendEmailVerificationResend(
+          user.email,
+          user.name,
+          emailVerificationToken
+        );
+        emailSent = emailResult.success;
+        emailProvider = "resend";
+        if (!emailResult.success) {
+          console.log("Resend email verification failed:", emailResult.error);
+        }
+      } else {
+        // Fallback to SMTP if Resend not configured
+        const emailResult = await sendEmailVerification(
+          user.email,
+          user.name,
+          emailVerificationToken
+        );
+        emailSent = emailResult.success;
+        emailProvider = "smtp";
+        if (!emailResult.success) {
+          console.log("SMTP email verification failed:", emailResult.error);
+        }
       }
     } catch (emailError) {
       console.error("Failed to send verification email:", emailError);
@@ -202,8 +221,15 @@ export async function POST(req: Request) {
           endDate: user.subscription.endDate,
         },
         emailSent: emailSent,
+        emailProvider: emailProvider,
         userId: user._id,
         emailVerificationRequired: true,
+        deliverabilityNote:
+          emailProvider === "resend"
+            ? "Email sent via Resend for better deliverability"
+            : emailProvider === "smtp"
+              ? "Email sent via SMTP - consider upgrading to Resend"
+              : "Email delivery not configured",
       },
       { status: 201 }
     );

@@ -198,7 +198,7 @@ const XCircleIcon: React.FC<IconProps> = props => (
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 24 24"
-    strokeWidth={1.5}
+    strokeWidth="1.5"
     stroke="currentColor"
     {...props}
   >
@@ -215,7 +215,7 @@ const LightBulbIcon: React.FC<IconProps> = props => (
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 24 24"
-    strokeWidth={1.5}
+    strokeWidth="1.5"
     stroke="currentColor"
     {...props}
   >
@@ -232,7 +232,7 @@ const CheckCircleIcon: React.FC<IconProps> = props => (
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 24 24"
-    strokeWidth={1.5}
+    strokeWidth="1.5"
     stroke="currentColor"
     {...props}
   >
@@ -249,7 +249,7 @@ const ArrowTrendingUpIcon: React.FC<IconProps> = props => (
     xmlns="http://www.w3.org/2000/svg"
     fill="none"
     viewBox="0 0 24 24"
-    strokeWidth={1.5}
+    strokeWidth="1.5"
     stroke="currentColor"
     {...props}
   >

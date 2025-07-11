@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 import { getServerSession } from "next-auth/next";
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
 import {
   Card,
@@ -54,7 +55,8 @@ export default async function DashboardPage({
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    throw new Error("User not authenticated");
+    // Redirect to login instead of throwing error
+    redirect("/login");
   }
 
   await dbConnect();

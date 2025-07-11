@@ -3,12 +3,16 @@ import mongoose, { Document, Model, Schema } from "mongoose";
 
 export interface IUser extends Document {
   email: string;
-  password: string;
+  password?: string;
   name: string;
   image?: string;
   role: "user" | "school_admin" | "admin";
   school?: mongoose.Types.ObjectId;
   branch?: mongoose.Types.ObjectId;
+
+  // OAuth provider fields
+  provider?: string;
+  providerId?: string;
 
   // Email verification and password reset fields
   emailVerified?: boolean;
@@ -74,6 +78,7 @@ export interface IUser extends Document {
     region: string;
     preferredPracticeTime: string;
     preferredLearningDays: string[];
+    reminderTiming: string;
     reasonsForLearning: string[];
     howHeardAbout: string;
     dailyStudyTimeGoal: number; // in minutes
@@ -144,7 +149,10 @@ const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: [true, "Password is required"],
+      required: function () {
+        // Password not required for OAuth users
+        return !this.provider || this.provider === "credentials";
+      },
       minlength: [8, "Password must be at least 8 characters long"],
     },
     name: {
@@ -169,6 +177,16 @@ const userSchema = new Schema<IUser>(
     branch: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Branch",
+      required: false,
+    },
+
+    // OAuth provider fields
+    provider: {
+      type: String,
+      required: false,
+    },
+    providerId: {
+      type: String,
       required: false,
     },
 
@@ -403,6 +421,10 @@ const userSchema = new Schema<IUser>(
         type: [String],
         default: [],
       },
+      reminderTiming: {
+        type: String,
+        default: "1_hour",
+      },
       reasonsForLearning: {
         type: [String],
         default: [],
@@ -603,7 +625,7 @@ userSchema.index({ "onboarding.completed": 1 }); // For onboarding queries
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
+  if (!this.isModified("password") || !this.password) return next();
 
   try {
     const salt = await bcrypt.genSalt(10);
@@ -618,6 +640,10 @@ userSchema.pre("save", async function (next) {
 userSchema.methods.comparePassword = async function (
   candidatePassword: string
 ): Promise<boolean> {
+  if (!this.password) {
+    // OAuth users don't have passwords
+    return false;
+  }
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

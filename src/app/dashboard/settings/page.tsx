@@ -54,6 +54,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNotifications } from "@/hooks/use-notifications";
+import {
+  formatPracticeTime,
+  formatLearningDays,
+} from "@/lib/formatting/display-formatters";
 
 const settingsFormSchema = z.object({
   emailNotifications: z.boolean().default(true),
@@ -293,10 +297,8 @@ export default function SettingsPage() {
     const dailyGoal = userOnboardingData.dailyStudyTimeGoal || 30;
 
     return {
-      days: days
-        .map((day: string) => day.charAt(0).toUpperCase() + day.slice(1))
-        .join(", "),
-      time: time.charAt(0).toUpperCase() + time.slice(1),
+      days: formatLearningDays(days),
+      time: formatPracticeTime(time),
       dailyGoal,
     };
   };

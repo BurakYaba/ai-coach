@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { sendPasswordResetEmail } from "@/lib/email";
+import { sendPasswordResetEmailResend } from "@/lib/email-resend";
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,11 +40,22 @@ export async function POST(request: NextRequest) {
     await user.save();
 
     // Send password reset email
-    const emailResult = await sendPasswordResetEmail(
-      user.email,
-      user.name,
-      resetToken
-    );
+    let emailResult;
+    if (process.env.RESEND_API_KEY) {
+      // Use Resend for better deliverability
+      emailResult = await sendPasswordResetEmailResend(
+        user.email,
+        user.name,
+        resetToken
+      );
+    } else {
+      // Fallback to SMTP
+      emailResult = await sendPasswordResetEmail(
+        user.email,
+        user.name,
+        resetToken
+      );
+    }
 
     if (!emailResult.success) {
       console.error("Failed to send password reset email:", emailResult.error);
