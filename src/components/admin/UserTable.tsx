@@ -109,6 +109,8 @@ const addUserSchema = z.object({
   role: z.enum(["user", "school_admin", "admin"]),
   schoolId: z.string().optional(),
   branchId: z.string().optional(),
+  subscriptionType: z.enum(["free", "monthly", "annual"]).default("free"),
+  months: z.coerce.number().min(1).max(11).optional(),
 });
 
 export function UserTable() {
@@ -134,6 +136,10 @@ export function UserTable() {
   const [schoolsError, setSchoolsError] = useState<string | null>(null);
   const [branchesError, setBranchesError] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [subscriptionType, setSubscriptionType] = useState<
+    "free" | "monthly" | "annual"
+  >("free");
+  const [months, setMonths] = useState<number>(1);
 
   // Initialize form
   const addUserForm = useForm<z.infer<typeof addUserSchema>>({
@@ -143,6 +149,8 @@ export function UserTable() {
       email: "",
       password: "",
       role: "user",
+      subscriptionType: "free",
+      months: 1,
     },
   });
 
@@ -385,11 +393,29 @@ export function UserTable() {
   const handleAddUser = async (data: z.infer<typeof addUserSchema>) => {
     setAddingUser(true);
     try {
+      const subscription: any = {
+        type: data.subscriptionType,
+        status: "active",
+      };
+      if (data.subscriptionType === "monthly") {
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setMonth(endDate.getMonth() + (data.months || 1));
+        subscription.startDate = startDate;
+        subscription.endDate = endDate;
+      } else if (data.subscriptionType === "annual") {
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setFullYear(endDate.getFullYear() + 1);
+        subscription.startDate = startDate;
+        subscription.endDate = endDate;
+      }
       const userData = {
         name: data.name,
         email: data.email,
         password: data.password,
         role: data.role,
+        subscription,
         ...(data.role === "school_admin" &&
           data.schoolId && {
             school: data.schoolId,
@@ -1187,6 +1213,63 @@ export function UserTable() {
                     />
                   )}
                 </>
+              )}
+
+              <FormField
+                control={addUserForm.control}
+                name="subscriptionType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subscription Type</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={value => {
+                        field.onChange(value);
+                        setSubscriptionType(value as any);
+                      }}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a subscription type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="free">Free</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="annual">Annual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {subscriptionType === "monthly" && (
+                <FormField
+                  control={addUserForm.control}
+                  name="months"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Months</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={11}
+                          value={field.value || months}
+                          onChange={e => {
+                            const val = Number(e.target.value);
+                            setMonths(val);
+                            field.onChange(val);
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Choose between 1 and 11 months.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
 
               <DialogFooter>

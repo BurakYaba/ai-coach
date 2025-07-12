@@ -159,6 +159,7 @@ export async function POST(request: NextRequest) {
       role,
       school: schoolId,
       branch: branchId,
+      subscription: subscriptionFromBody,
     } = body;
 
     // Validate required fields
@@ -206,10 +207,11 @@ export async function POST(request: NextRequest) {
       email,
       password, // Use the plain password - the pre-save hook in the User model will hash it
       role,
-      subscription: {
+      subscription: subscriptionFromBody || {
         type: "free",
         status: "active", // Default to active for all users created by admin
       },
+      emailVerified: true, // Mark email as verified for admin-created users
     };
 
     // Add school reference if school_admin
