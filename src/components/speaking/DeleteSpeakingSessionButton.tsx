@@ -83,8 +83,8 @@ export const DeleteSpeakingSessionButton = memo(
         <AlertDialogTrigger asChild>
           {variant === "button" ? (
             <Button
-              variant="outline"
-              className="w-full text-destructive border-destructive hover:bg-destructive/10 hover:text-destructive"
+              variant="destructive"
+              className="w-full"
               onClick={e => e.stopPropagation()}
             >
               <Trash2 className="h-4 w-4 mr-2" />

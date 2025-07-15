@@ -10,18 +10,19 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+          "bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white shadow-md hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700",
         destructive:
-          "bg-red-600 text-white shadow-xs hover:bg-red-700 focus-visible:ring-red-600/20 dark:focus-visible:ring-red-800/40",
+          "bg-gradient-to-r from-red-600 to-pink-600 text-white shadow-md hover:from-red-700 hover:to-pink-700",
         outline:
-          "border border-input bg-background shadow-xs hover:bg-accent hover:text-accent-foreground",
-        secondary:
-          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
-        accent: "bg-accent text-accent-foreground shadow-xs hover:bg-accent/90",
+          "border border-blue-400 bg-white text-blue-700 shadow-sm hover:bg-blue-50 hover:text-blue-800",
+        secondary: "bg-blue-50 text-blue-700 shadow-sm hover:bg-blue-100",
+        ghost:
+          "bg-transparent text-blue-700 hover:bg-blue-50 hover:text-blue-800",
+        link: "bg-transparent bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 underline-offset-4 hover:underline",
+        accent:
+          "bg-gradient-to-r from-green-400 to-blue-500 text-white shadow-md hover:from-green-500 hover:to-blue-600",
         progress:
-          "bg-progress text-progress-foreground shadow-xs hover:bg-progress/90",
+          "bg-gradient-to-r from-green-600 to-green-400 text-white shadow-md hover:from-green-700 hover:to-green-500",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

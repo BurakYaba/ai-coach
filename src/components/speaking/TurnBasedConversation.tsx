@@ -37,6 +37,7 @@ import {
 import { toast } from "@/hooks/use-toast";
 import { uploadSpeakingRecording } from "@/lib/client/audio-upload";
 import { cn } from "@/lib/utils";
+import { useNativeLanguage } from "@/hooks/use-native-language";
 
 // Avatar system imports
 import { AvatarSelector } from "./avatar/AvatarSelector";
@@ -1984,7 +1985,37 @@ export function TurnBasedConversation() {
     }
   };
 
-  // Translate AI response to Turkish
+  // Helper function to get language flag emoji
+  const getLanguageFlag = (language: string) => {
+    const flagMap: { [key: string]: string } = {
+      turkish: "🇹🇷",
+      english: "🇺🇸",
+      german: "🇩🇪",
+      french: "🇫🇷",
+      spanish: "🇪🇸",
+      italian: "🇮🇹",
+      russian: "🇷🇺",
+      arabic: "🇸🇦",
+      chinese: "🇨🇳",
+      japanese: "🇯🇵",
+      korean: "🇰🇷",
+    };
+    return flagMap[language] || "🌐";
+  };
+
+  // Get user's native language flag
+  const { nativeLanguage: userNativeLanguage } = useNativeLanguage();
+  const userLanguageFlag = getLanguageFlag(userNativeLanguage);
+
+  // Debug logging
+  console.log("Session data:", session);
+  console.log(
+    "User native language from session:",
+    session?.user?.nativeLanguage
+  );
+  console.log("Using native language:", userNativeLanguage);
+
+  // Translate AI response to user's native language
   const translateAIResponse = async (text: string, messageIndex: number) => {
     setLoadingStates(prev => ({
       ...prev,
@@ -1997,7 +2028,10 @@ export function TurnBasedConversation() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({
+          text,
+          targetLanguage: userNativeLanguage,
+        }),
       });
 
       if (!response.ok) {
@@ -2013,7 +2047,7 @@ export function TurnBasedConversation() {
 
       toast({
         title: "Translation Complete",
-        description: "AI response has been translated to Turkish.",
+        description: `AI response has been translated to ${userNativeLanguage.charAt(0).toUpperCase() + userNativeLanguage.slice(1)}.`,
       });
     } catch (error) {
       console.error("Error translating text:", error);
@@ -2172,7 +2206,7 @@ export function TurnBasedConversation() {
 
               <div
                 ref={conversationContainerRef}
-                className="border rounded-lg p-2 sm:p-4 space-y-3 sm:space-y-4 h-[350px] sm:h-[400px] overflow-y-auto"
+                className="border rounded-lg p-2 sm:p-4 space-y-3 sm:space-y-4 h-[350px] sm:h-[400px] overflow-y-auto bg-gradient-to-br from-white via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900"
               >
                 {conversation.length === 0 ? (
                   <p className="text-center text-muted-foreground text-xs sm:text-sm py-6 sm:py-8">
@@ -2183,7 +2217,7 @@ export function TurnBasedConversation() {
                     <div
                       key={i}
                       className={cn(
-                        "flex items-start gap-2",
+                        "flex w-full items-end gap-2 animate-fade-in",
                         message.role === "user"
                           ? "justify-end"
                           : "justify-start"
@@ -2191,27 +2225,27 @@ export function TurnBasedConversation() {
                     >
                       <div
                         className={cn(
-                          "flex flex-col min-w-0", // min-w-0 allows text to wrap properly
+                          "flex flex-col min-w-0",
                           message.role === "user" ? "items-end" : "items-start"
                         )}
                       >
                         <div
                           className={cn(
-                            "rounded-lg p-2 sm:p-3 max-w-[280px] sm:max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg",
+                            "rounded-2xl shadow-md px-4 py-2 max-w-[80vw] sm:max-w-xs md:max-w-sm lg:max-w-md xl:max-w-lg transition-all duration-200",
                             message.role === "user"
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted"
+                              ? "bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white border border-blue-700"
+                              : "bg-white/90 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700"
                           )}
                         >
-                          <p className="text-xs sm:text-sm leading-relaxed break-words">
+                          <p className="text-sm leading-relaxed break-words whitespace-pre-line">
                             {message.text}
                           </p>
 
                           {/* Translation display for AI messages */}
                           {message.role === "assistant" && translations[i] && (
-                            <div className="mt-2 pt-2 border-t border-muted-foreground/20">
+                            <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
                               <p className="text-xs text-muted-foreground italic break-words">
-                                🇹🇷 {translations[i]}
+                                {userLanguageFlag} {translations[i]}
                               </p>
                             </div>
                           )}
@@ -2219,7 +2253,7 @@ export function TurnBasedConversation() {
 
                         {/* Repeat and Translate buttons for AI messages */}
                         {message.role === "assistant" && (
-                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-2 mt-2 w-full sm:w-auto">
+                          <div className="flex flex-row flex-wrap items-center gap-2 mt-2 w-full sm:w-auto">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -2227,7 +2261,7 @@ export function TurnBasedConversation() {
                               disabled={
                                 !aiAudioUrls[i] || loadingStates.audio[i]
                               }
-                              className="h-6 sm:h-7 px-2 text-xs w-full sm:w-auto justify-start sm:justify-center"
+                              className="h-7 px-2 text-xs w-auto justify-center border border-gray-200 dark:border-gray-700"
                             >
                               {loadingStates.audio[i] ? (
                                 <Loader2 className="h-3 w-3 animate-spin mr-1" />
@@ -2247,7 +2281,7 @@ export function TurnBasedConversation() {
                                 loadingStates.translation[i] ||
                                 !!translations[i]
                               }
-                              className="h-6 sm:h-7 px-2 text-xs w-full sm:w-auto justify-start sm:justify-center"
+                              className="h-7 px-2 text-xs w-auto justify-center border border-gray-200 dark:border-gray-700"
                             >
                               {loadingStates.translation[i] ? (
                                 <Loader2 className="h-3 w-3 animate-spin mr-1" />

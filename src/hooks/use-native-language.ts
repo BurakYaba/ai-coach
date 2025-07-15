@@ -1,58 +1,74 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import {
-  getUserNativeLanguage,
-  saveUserNativeLanguage,
-} from "@/lib/translations";
 
 export function useNativeLanguage() {
-  const [nativeLanguage, setNativeLanguage] = useState<string>("english");
+  const [nativeLanguage, setNativeLanguage] = useState<string>("turkish");
   const [isLoading, setIsLoading] = useState(true);
   const { data: session } = useSession();
 
   useEffect(() => {
     const fetchNativeLanguage = async () => {
-      // First check localStorage
-      const savedLanguage = getUserNativeLanguage();
-
-      // If we have a saved language that's not the default, use it
-      if (savedLanguage !== "english") {
-        setNativeLanguage(savedLanguage);
+      if (!session?.user?.id) {
         setIsLoading(false);
         return;
       }
 
-      // If no saved language or it's the default, check user profile
-      if (session?.user?.id) {
-        try {
-          const response = await fetch("/api/user/profile");
-          if (response.ok) {
-            const data = await response.json();
-            const userNativeLanguage = data.user.onboarding?.nativeLanguage;
+      try {
+        // Always fetch from database to ensure consistency
+        const response = await fetch("/api/user/profile");
+        if (response.ok) {
+          const data = await response.json();
+          const userNativeLanguage = data.user.onboarding?.nativeLanguage;
 
-            if (userNativeLanguage) {
-              setNativeLanguage(userNativeLanguage);
-              // Save to localStorage for future use
-              saveUserNativeLanguage(userNativeLanguage);
+          if (userNativeLanguage) {
+            setNativeLanguage(userNativeLanguage);
+          } else {
+            // Fallback to session if database doesn't have it
+            const sessionLanguage = session?.user?.nativeLanguage;
+            if (sessionLanguage) {
+              setNativeLanguage(sessionLanguage);
             }
           }
-        } catch (error) {
-          console.error(
-            "Failed to fetch user profile for native language:",
-            error
-          );
         }
+      } catch (error) {
+        console.error(
+          "Failed to fetch user profile for native language:",
+          error
+        );
+        // Fallback to session
+        const sessionLanguage = session?.user?.nativeLanguage;
+        if (sessionLanguage) {
+          setNativeLanguage(sessionLanguage);
+        }
+      } finally {
+        setIsLoading(false);
       }
-
-      setIsLoading(false);
     };
 
     fetchNativeLanguage();
-  }, [session?.user?.id]);
+  }, [session?.user?.id, session?.user?.nativeLanguage]);
 
-  const updateNativeLanguage = (language: string) => {
-    setNativeLanguage(language);
-    saveUserNativeLanguage(language);
+  const updateNativeLanguage = async (language: string) => {
+    try {
+      // Update in database
+      const response = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          onboarding: {
+            nativeLanguage: language,
+          },
+        }),
+      });
+
+      if (response.ok) {
+        setNativeLanguage(language);
+      }
+    } catch (error) {
+      console.error("Failed to update native language:", error);
+    }
   };
 
   return {

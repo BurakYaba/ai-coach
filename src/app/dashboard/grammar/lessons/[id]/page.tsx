@@ -354,7 +354,28 @@ export default function GrammarLessonPage() {
                         {exercise.question}
                       </p>
 
-                      {exercise.options ? (
+                      {!exercise.options || exercise.options.length < 2 ? (
+                        <div className="mb-4">
+                          <input
+                            type="text"
+                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
+                            value={answers[index] || ""}
+                            onChange={e =>
+                              handleAnswerChange(index, e.target.value)
+                            }
+                            disabled={showResults}
+                            placeholder={
+                              exercise.question.toLowerCase().includes("blank")
+                                ? "Type your answer in the blank..."
+                                : exercise.question
+                                      .toLowerCase()
+                                      .includes("correct")
+                                  ? "Type the corrected sentence..."
+                                  : "Type your answer here..."
+                            }
+                          />
+                        </div>
+                      ) : (
                         <RadioGroup
                           value={answers[index]}
                           onValueChange={value =>
@@ -401,19 +422,6 @@ export default function GrammarLessonPage() {
                             ))}
                           </div>
                         </RadioGroup>
-                      ) : (
-                        <div className="mb-4">
-                          <input
-                            type="text"
-                            className="w-full p-3 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:outline-none transition-colors"
-                            value={answers[index] || ""}
-                            onChange={e =>
-                              handleAnswerChange(index, e.target.value)
-                            }
-                            disabled={showResults}
-                            placeholder="Type your answer here..."
-                          />
-                        </div>
                       )}
 
                       {showResults && (

@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import Link from "next/link";
 
 // Type-specific topic lists
 const topicsByType = {
@@ -245,158 +246,176 @@ export default function NewWritingSessionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <div className="max-w-7xl mx-auto p-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col items-center justify-start py-6 sm:py-8">
+      <div className="w-full max-w-4xl px-2 sm:px-4 lg:px-6">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => router.push("/dashboard/writing")}
-            className="border-2 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+        <div className="mb-4 sm:mb-8">
+          <Link
+            href="/dashboard/writing"
+            className="inline-flex items-center text-xs sm:text-sm text-gray-500 hover:text-gray-900 mb-4 sm:mb-6 transition-colors"
           >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">
-              New Writing Session
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to writing dashboard
+          </Link>
+
+          {/* Gradient accent card */}
+          <div className="relative overflow-hidden rounded-2xl p-4 sm:p-6 shadow-xl bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 mb-2">
+            <div className="absolute right-2 top-2 sm:right-4 sm:top-4 opacity-20 text-white text-5xl sm:text-7xl pointer-events-none select-none">
+              <PenTool className="w-12 h-12 sm:w-20 sm:h-20" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-1 sm:mb-2 z-10 relative">
+              Create New Writing Session
             </h1>
-            <p className="text-gray-600">
-              Start a new writing practice session
+            <p className="text-base sm:text-lg text-blue-100 z-10 relative">
+              Generate a personalized writing prompt tailored to your level and
+              interests.
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* First card: Choose Writing Type and Level */}
-            <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300 h-full">
-              <CardHeader>
-                <CardTitle className="text-xl text-gray-800">
-                  Choose Writing Type and Level
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                  Select the type of writing you want to practice and your
-                  current level
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="type"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Writing Type
-                  </Label>
-                  <Select value={selectedType} onValueChange={setSelectedType}>
-                    <SelectTrigger
-                      id="type"
-                      className="border-2 hover:border-blue-300 transition-colors"
-                    >
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-                      <SelectItem value="essay">Essay</SelectItem>
-                      <SelectItem value="letter">Letter</SelectItem>
-                      <SelectItem value="story">Story</SelectItem>
-                      <SelectItem value="argument">Argument</SelectItem>
-                    </SelectContent>
-                  </Select>
+        {/* Form with gradient border */}
+        <div className="gradient-border rounded-2xl shadow-lg bg-white/90 dark:bg-gray-900/90 p-0">
+          <div className="p-4 sm:p-6 lg:p-8">
+            <form onSubmit={handleSubmit}>
+              <div className="space-y-8">
+                {/* Writing Type and Level */}
+                <div className="grid grid-cols-1 gap-8">
+                  <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300 h-full">
+                    <CardHeader>
+                      <CardTitle className="text-xl text-gray-800">
+                        Choose Writing Type and Level
+                      </CardTitle>
+                      <CardDescription className="text-gray-600">
+                        Select the type of writing you want to practice and your
+                        current level
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="type"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Writing Type
+                        </Label>
+                        <Select
+                          value={selectedType}
+                          onValueChange={setSelectedType}
+                        >
+                          <SelectTrigger
+                            id="type"
+                            className="border-2 hover:border-blue-300 transition-colors"
+                          >
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                            <SelectItem value="essay">Essay</SelectItem>
+                            <SelectItem value="letter">Letter</SelectItem>
+                            <SelectItem value="story">Story</SelectItem>
+                            <SelectItem value="argument">Argument</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="level"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Difficulty Level
+                        </Label>
+                        <Select
+                          value={selectedLevel}
+                          onValueChange={setSelectedLevel}
+                        >
+                          <SelectTrigger
+                            id="level"
+                            className="border-2 hover:border-blue-300 transition-colors"
+                          >
+                            <SelectValue placeholder="Select level" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                            {levels.map(level => (
+                              <SelectItem key={level.value} value={level.value}>
+                                {level.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="level"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Difficulty Level
-                  </Label>
-                  <Select
-                    value={selectedLevel}
-                    onValueChange={setSelectedLevel}
-                  >
-                    <SelectTrigger
-                      id="level"
-                      className="border-2 hover:border-blue-300 transition-colors"
-                    >
-                      <SelectValue placeholder="Select level" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-                      {levels.map(level => (
-                        <SelectItem key={level.value} value={level.value}>
-                          {level.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                {/* Topic Selection */}
+                <div className="grid grid-cols-1 gap-8">
+                  <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col">
+                    <CardHeader>
+                      <CardTitle className="text-xl text-gray-800">
+                        Choose a Topic
+                      </CardTitle>
+                      <CardDescription className="text-gray-600">
+                        Select a topic for your {selectedType.toLowerCase()}{" "}
+                        writing prompt
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6 flex-grow">
+                      <div className="space-y-2">
+                        <Label
+                          htmlFor="topic"
+                          className="text-sm font-medium text-gray-700"
+                        >
+                          Topic
+                        </Label>
+                        <Select
+                          value={customTopic}
+                          onValueChange={(value: string) =>
+                            setCustomTopic(value)
+                          }
+                        >
+                          <SelectTrigger
+                            id="topic"
+                            className="border-2 hover:border-blue-300 transition-colors"
+                          >
+                            <SelectValue placeholder="Select a topic" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
+                            {availableTopics.map(topic => (
+                              <SelectItem key={topic} value={topic}>
+                                {topic}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <p className="text-sm text-gray-500">
+                          Our system will generate a{" "}
+                          {selectedType.toLowerCase()} prompt based on your
+                          selected topic and level
+                        </p>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="flex justify-between mt-auto">
+                      <Button
+                        variant="outline"
+                        type="button"
+                        onClick={() => router.push("/dashboard/writing")}
+                        className="border-2 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={creating || !customTopic}
+                        className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
+                      >
+                        <PenTool className="w-4 h-4 mr-2" />
+                        {creating ? "Creating..." : "Start Writing Session"}
+                      </Button>
+                    </CardFooter>
+                  </Card>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Second card: Choose Topic */}
-            <Card className="border-2 bg-white shadow-lg hover:shadow-xl transition-all duration-300 h-full flex flex-col">
-              <CardHeader>
-                <CardTitle className="text-xl text-gray-800">
-                  Choose a Topic
-                </CardTitle>
-                <CardDescription className="text-gray-600">
-                  Select a topic for your {selectedType.toLowerCase()} writing
-                  prompt
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6 flex-grow">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="topic"
-                    className="text-sm font-medium text-gray-700"
-                  >
-                    Topic
-                  </Label>
-                  <Select
-                    value={customTopic}
-                    onValueChange={(value: string) => setCustomTopic(value)}
-                  >
-                    <SelectTrigger
-                      id="topic"
-                      className="border-2 hover:border-blue-300 transition-colors"
-                    >
-                      <SelectValue placeholder="Select a topic" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg">
-                      {availableTopics.map(topic => (
-                        <SelectItem key={topic} value={topic}>
-                          {topic}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-gray-500">
-                    Our system will generate a {selectedType.toLowerCase()}{" "}
-                    prompt based on your selected topic and level
-                  </p>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between mt-auto">
-                <Button
-                  variant="outline"
-                  type="button"
-                  onClick={() => router.push("/dashboard/writing")}
-                  className="border-2 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={creating || !customTopic}
-                  className="bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50"
-                >
-                  <PenTool className="w-4 h-4 mr-2" />
-                  {creating ? "Creating..." : "Start Writing Session"}
-                </Button>
-              </CardFooter>
-            </Card>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

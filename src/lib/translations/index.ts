@@ -54,6 +54,3 @@ export async function translateTourSteps(
 
   return translatedSteps;
 }
-
-// Re-export utils
-export { getUserNativeLanguage, saveUserNativeLanguage } from "./utils";

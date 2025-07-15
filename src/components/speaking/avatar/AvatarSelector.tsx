@@ -45,16 +45,39 @@ function AvatarCard({
   return (
     <Card
       className={cn(
-        "cursor-pointer transition-all duration-200 hover:shadow-md",
-        isSelected && "ring-2 ring-primary ring-offset-2",
+        // Base styles
+        "cursor-pointer transition-all duration-200 hover:shadow-lg border-2 bg-white/5 backdrop-blur-sm relative group",
+        // Selected styles
+        isSelected
+          ? "border-primary ring-2 ring-primary ring-offset-2 bg-primary/10 shadow-xl"
+          : "border-transparent hover:border-primary/40",
+        // Disabled styles
         disabled && "opacity-50 cursor-not-allowed"
       )}
       onClick={() => !disabled && onSelect()}
     >
+      {/* Checkmark overlay when selected */}
+      {isSelected && (
+        <div className="absolute top-2 left-2 z-10 bg-primary rounded-full p-1 shadow-md">
+          <svg
+            className="w-4 h-4 text-white"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        </div>
+      )}
       <CardContent className="p-4">
         <div className="space-y-3">
           {/* Avatar Preview Image */}
-          <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-muted">
+          <div className="relative aspect-square w-full overflow-hidden rounded-lg bg-muted group-hover:scale-105 transition-transform duration-200">
             {!imageError && !previewImage.includes("default-avatar") ? (
               <Image
                 src={previewImage}
@@ -82,7 +105,9 @@ function AvatarCard({
 
           {/* Character Info */}
           <div className="space-y-1">
-            <h3 className="font-semibold text-sm">{character.name}</h3>
+            <h3 className="font-semibold text-sm text-white/90 group-hover:text-primary transition-colors duration-200">
+              {character.name}
+            </h3>
             <p className="text-xs text-muted-foreground line-clamp-2">
               {character.description}
             </p>

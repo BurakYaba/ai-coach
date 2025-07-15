@@ -166,6 +166,7 @@ export const authOptions: NextAuthOptions = {
           school: school?._id?.toString() || null,
           branch: branch?._id?.toString() || null,
           onboardingCompleted: user.onboarding?.completed ?? false,
+          nativeLanguage: user.onboarding?.nativeLanguage || "turkish",
           sessionExpiry: expiresAt.toISOString(),
           isExpiredUser, // Add expired status for redirect logic
         };
@@ -335,6 +336,7 @@ export const authOptions: NextAuthOptions = {
           }
 
           token.onboardingCompleted = dbUser.onboarding?.completed ?? false;
+          token.nativeLanguage = dbUser.onboarding?.nativeLanguage || "turkish";
           token.sessionValid = true;
           token.sessionCreated = Date.now();
 
@@ -390,6 +392,7 @@ export const authOptions: NextAuthOptions = {
         token.sessionCreated = Date.now();
         token.deviceFingerprint = user.deviceFingerprint;
         token.isExpiredUser = user.isExpiredUser;
+        token.nativeLanguage = user.nativeLanguage;
 
         // Add subscription info
         token.subscriptionStatus = user.subscription?.status || "inactive";
@@ -405,6 +408,7 @@ export const authOptions: NextAuthOptions = {
           if (user) {
             // Update all user-related fields with defensive programming
             token.onboardingCompleted = user.onboarding?.completed ?? false;
+            token.nativeLanguage = user.onboarding?.nativeLanguage || "turkish";
             const subscription = user.subscription || {};
             token.subscriptionStatus = subscription.status || "inactive";
             token.subscriptionType = subscription.type || "individual";
@@ -440,6 +444,7 @@ export const authOptions: NextAuthOptions = {
               subscription.endDate?.toISOString() || undefined;
             token.subscriptionLastChecked = now.toISOString();
             token.onboardingCompleted = user.onboarding?.completed ?? false;
+            token.nativeLanguage = user.onboarding?.nativeLanguage || "turkish";
           }
         } catch (error) {
           console.error("Error refreshing subscription status:", error);
@@ -470,6 +475,7 @@ export const authOptions: NextAuthOptions = {
 
         // Add onboarding status to the session
         session.user.onboardingCompleted = token.onboardingCompleted as boolean;
+        session.user.nativeLanguage = token.nativeLanguage as string;
 
         // Add expired user status to the session
         session.user.isExpiredUser = token.isExpiredUser as boolean;
@@ -497,6 +503,7 @@ declare module "next-auth" {
       };
       onboardingCompleted?: boolean;
       isExpiredUser?: boolean;
+      nativeLanguage?: string;
     };
   }
   interface User {
@@ -535,6 +542,7 @@ declare module "next-auth/jwt" {
     sessionCreated?: number;
     deviceFingerprint?: string;
     isExpiredUser?: boolean;
+    nativeLanguage?: string;
   }
 }
 

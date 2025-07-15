@@ -921,7 +921,7 @@ export function OnboardingFlow({ initialData }: OnboardingFlowProps) {
               variant="outline"
               onClick={handleBack}
               disabled={currentStep === 1 || isLoading}
-              className="flex items-center gap-2 px-6 py-3 border-white/30 text-white hover:bg-white/10 hover:text-white"
+              className="flex items-center gap-2 px-6 py-3 border border-white/40 bg-transparent text-white hover:bg-white/10 hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" />
               Back

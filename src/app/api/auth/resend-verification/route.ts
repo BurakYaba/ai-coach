@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import dbConnect from "@/lib/db";
 import User from "@/models/User";
 import { sendEmailVerification } from "@/lib/email";
+import { sendEmailVerificationResend } from "@/lib/email-resend";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,18 +46,45 @@ export async function POST(request: NextRequest) {
     user.emailVerificationExpires = emailVerificationExpires;
     await user.save();
 
-    // Send verification email
-    const emailResult = await sendEmailVerification(
-      user.email,
-      user.name,
-      emailVerificationToken
-    );
+    // Send verification email with dual provider system
+    let emailResult;
+    let emailProvider = "none";
+
+    try {
+      // Try Resend first (better deliverability)
+      if (process.env.RESEND_API_KEY) {
+        emailResult = await sendEmailVerificationResend(
+          user.email,
+          user.name,
+          emailVerificationToken
+        );
+        emailProvider = "resend";
+        if (!emailResult.success) {
+          console.log("Resend email verification failed:", emailResult.error);
+        }
+      } else {
+        // Fallback to SMTP if Resend not configured
+        emailResult = await sendEmailVerification(
+          user.email,
+          user.name,
+          emailVerificationToken
+        );
+        emailProvider = "smtp";
+        if (!emailResult.success) {
+          console.log("SMTP email verification failed:", emailResult.error);
+        }
+      }
+    } catch (emailError) {
+      console.error("Failed to send verification email:", emailError);
+      emailResult = { success: false, error: "Email sending failed" };
+    }
 
     if (emailResult.success) {
       return NextResponse.json(
         {
           message:
             "Verification email sent successfully. Please check your inbox.",
+          provider: emailProvider,
         },
         { status: 200 }
       );

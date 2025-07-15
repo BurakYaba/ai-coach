@@ -43,6 +43,7 @@ export function LoginForm() {
   >(null);
   const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showedMessageToast, setShowedMessageToast] = useState(false);
 
   // Check for subscription error in URL params
   useEffect(() => {
@@ -61,7 +62,17 @@ export function LoginForm() {
           "Your session has been terminated. This may be due to a login from another device."
       );
     }
-  }, []);
+
+    // Show toast for generic message (e.g., after registration)
+    if (messageParam && !showedMessageToast) {
+      toast({
+        title: "Notice",
+        description: messageParam,
+        duration: 7000,
+      });
+      setShowedMessageToast(true);
+    }
+  }, [showedMessageToast]);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
