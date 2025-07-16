@@ -47,7 +47,7 @@ export default function PopularResources() {
             <p className="text-sm text-muted-foreground mb-4">
               Kullanıcı deneyimleri
             </p>
-            <Link href="/basari-hikayeleri">
+            <Link href="/blog">
               <Button variant="outline" size="sm">
                 Hikayeleri Oku
               </Button>

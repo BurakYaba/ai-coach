@@ -33,14 +33,6 @@ export default function FooterTr() {
                 İletişim
               </Link>
             </li>
-            <li>
-              <Link
-                href="/basari-hikayeleri"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                Başarı Hikayeleri
-              </Link>
-            </li>
           </ul>
         </div>
 

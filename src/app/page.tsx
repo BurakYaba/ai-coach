@@ -2,13 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  GradientCard,
-  GradientCardSimple,
-} from "@/components/ui/gradient-card";
+import { GradientCard } from "@/components/ui/gradient-card";
 import {
   StructuredData,
   organizationSchema,
@@ -20,6 +16,7 @@ import {
 } from "@/hooks/use-mobile-detection";
 import { MainNav } from "@/components/navigation/main-nav";
 import FooterTr from "@/components/layout/FooterTr";
+import AvatarCarousel from "@/components/AvatarCarousel";
 
 // Custom components based on Brainwave design
 const Tagline = ({ children }: { children: React.ReactNode }) => (
@@ -192,6 +189,142 @@ export default function TurkishLandingPage() {
               </Link>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* 3D Avatar Speaking Module Showcase */}
+      <section className="relative py-16 md:py-24 overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50">
+        <div className="container mx-auto px-5 relative z-10">
+          <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
+            <Tagline>AI Konuşma Partnerleri</Tagline>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Gerçek Zamanlı 3D Avatar'larla İngilizce Konuşın
+            </h2>
+            <p className="text-muted-foreground">
+              Kişiselleştirilmiş AI konuşma partnerlerinizle pratik yapın,
+              telaffuzunuzu geliştirin ve güvenle konuşun
+            </p>
+          </div>
+
+          {/* Avatar Showcase Grid */}
+          <AvatarCarousel
+            avatars={[
+              {
+                name: "Alex",
+                image: "/images/avatars/Alex.webp",
+                role: "İş Profesyoneli",
+                rating: 5.0,
+                status: "Çevrimiçi",
+                description:
+                  "İş görüşmeleri, toplantılar ve profesyonel İngilizce konuşma pratiği için özel olarak tasarlanmıştır.",
+                tags: [
+                  { label: "İş İngilizcesi", color: "#3b82f6" },
+                  { label: "Görüşme Pratiği", color: "#22c55e" },
+                  { label: "Sunumlar", color: "#a21caf" },
+                ],
+              },
+              {
+                name: "Emma",
+                image: "/images/avatars/Emma.webp",
+                role: "Günlük Konuşma",
+                rating: 5.0,
+                status: "Çevrimiçi",
+                description:
+                  "Günlük konuşmalar, seyahat ve sosyal durumlar için rahat ve doğal İngilizce pratiği.",
+                tags: [
+                  { label: "Günlük Konuşma", color: "#ec4899" },
+                  { label: "Seyahat", color: "#f59e42" },
+                  { label: "Sosyal", color: "#facc15" },
+                ],
+              },
+              {
+                name: "Marcus",
+                image: "/images/avatars/Marcus.webp",
+                role: "Akademik Eğitmen",
+                rating: 5.0,
+                status: "Çevrimiçi",
+                description:
+                  "IELTS, TOEFL ve akademik İngilizce için özel olarak tasarlanmış gelişmiş konuşma pratiği.",
+                tags: [
+                  { label: "IELTS", color: "#6366f1" },
+                  { label: "TOEFL", color: "#3b82f6" },
+                  { label: "Akademik", color: "#a21caf" },
+                ],
+              },
+              {
+                name: "Oliver",
+                image: "/images/avatars/Oliver.webp",
+                role: "Akıcılık Koçu",
+                rating: 5.0,
+                status: "Çevrimiçi",
+                description:
+                  "Gerçek yaşam senaryoları ve anlık geri bildirimlerle akıcılık ve spontane konuşma pratiği yapın.",
+                tags: [
+                  { label: "Akıcılık", color: "#0ea5e9" },
+                  { label: "Spontane", color: "#f59e42" },
+                  { label: "Geri Bildirim", color: "#22c55e" },
+                ],
+              },
+              {
+                name: "Sarah",
+                image: "/images/avatars/Sarah.webp",
+                role: "Telaffuz Uzmanı",
+                rating: 5.0,
+                status: "Çevrimiçi",
+                description:
+                  "Telaffuz, aksan azaltma ve net iletişim için uzman yardımı alın.",
+                tags: [
+                  { label: "Telaffuz", color: "#f43f5e" },
+                  { label: "Aksan", color: "#6366f1" },
+                  { label: "Netlik", color: "#22c55e" },
+                ],
+              },
+              {
+                name: "Zoe",
+                image: "/images/avatars/Zoe.webp",
+                role: "Konuşma Partneri",
+                rating: 5.0,
+                status: "Çevrimiçi",
+                description:
+                  "Başlangıçtan ileri seviyeye kadar her düzey ve konuda samimi konuşma pratiği.",
+                tags: [
+                  { label: "Samimi", color: "#f59e42" },
+                  { label: "Tüm Seviyeler", color: "#3b82f6" },
+                  { label: "Konu", color: "#a21caf" },
+                ],
+              },
+            ]}
+          />
+
+          {/* Live Demo Section */}
+          <div className="text-center">
+            <h3 className="text-2xl font-bold mb-4 mt-10">
+              3D Avatar'larla Gerçek Zamanlı Konuşma
+            </h3>
+            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+              AI destekli 3D avatar'larımızla anında konuşma pratiği yapın.
+              Telaffuz, akıcılık ve gramer geri bildirimi alın.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/register">
+                <Button className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:scale-105 transform shadow-lg">
+                  Ücretsiz Demo Başlat
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Decorative background elements */}
+        <div className="absolute -z-10 pointer-events-none inset-0 opacity-20">
+          <div
+            className="absolute top-1/4 right-0 w-72 h-72 bg-blue-500 bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
+            style={{ animationDuration: "8s" }}
+          />
+          <div
+            className="absolute bottom-1/4 left-0 w-72 h-72 bg-purple-500 bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
+            style={{ animationDuration: "6s", animationDelay: "2s" }}
+          />
         </div>
       </section>
 
@@ -909,131 +1042,11 @@ export default function TurkishLandingPage() {
         {/* Decorative background elements */}
         <div className="absolute -z-10 pointer-events-none inset-0 opacity-20">
           <div
-            className="absolute top-0 right-1/4 w-72 h-72 bg-accent bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
+            className="absolute top-1/4 right-0 w-72 h-72 bg-primary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
             style={{ animationDuration: "8s" }}
           />
           <div
-            className="absolute bottom-0 left-1/4 w-72 h-72 bg-primary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
-            style={{ animationDuration: "6s", animationDelay: "2s" }}
-          />
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section
-        id="testimonials"
-        className="relative py-16 md:py-24 overflow-hidden"
-      >
-        <div className="container mx-auto px-5 relative z-10">
-          <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
-            <Tagline>Kullanıcı Yorumları</Tagline>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Kullanıcılarımız Ne Diyor
-            </h2>
-            <p className="text-muted-foreground">
-              Dil becerilerini dönüştüren binlerce memnun öğrenciye katılın
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <GradientCardSimple
-              variant="default"
-              borderOpacity="low"
-              className="relative group hover:shadow-glow transition-all duration-500 backdrop-blur-card"
-            >
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-12 h-12 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-xl font-bold">
-                1
-              </div>
-              <div className="space-y-4">
-                <p className="italic text-muted-foreground">
-                  "Okuma, yazma, dinleme ve konuşma modüllerinin kombinasyonu
-                  İngilizce öğrenme yolculuğumu dönüştürdü. Konuşma ve yazma
-                  konularındaki kişiselleştirilmiş geri bildirimler inanılmaz
-                  derecede detaylı ve faydalı."
-                </p>
-                <div className="flex items-center gap-3 pt-3 border-t border-foreground border-opacity-5">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent bg-opacity-30 flex items-center justify-center">
-                    <span className="text-sm font-semibold">S</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Selin K.</h4>
-                    <p className="text-sm text-muted-foreground">
-                      İş Profesyoneli
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </GradientCardSimple>
-
-            <GradientCardSimple
-              variant="accent"
-              borderOpacity="low"
-              className="relative group hover:shadow-glow transition-all duration-500 backdrop-blur-card"
-            >
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-12 h-12 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-xl font-bold">
-                2
-              </div>
-              <div className="space-y-4">
-                <p className="italic text-muted-foreground">
-                  "Kelime ve gramer modülleri mükemmel bir uyum içinde
-                  çalışıyor. Uygulamanın zorlandığım kelimeleri takip etmesi ve
-                  yaygın hatalarıma dayalı özelleştirilmiş gramer dersleri
-                  oluşturması harika. İlerleme takibi beni motive ediyor."
-                </p>
-                <div className="flex items-center gap-3 pt-3 border-t border-foreground border-opacity-5">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent bg-opacity-30 flex items-center justify-center">
-                    <span className="text-sm font-semibold">M</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Mehmet T.</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Üniversite Öğrencisi
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </GradientCardSimple>
-
-            <GradientCardSimple
-              variant="secondary"
-              borderOpacity="low"
-              className="relative group hover:shadow-glow transition-all duration-500 backdrop-blur-card"
-            >
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-12 h-12 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-xl font-bold">
-                3
-              </div>
-              <div className="space-y-4">
-                <p className="italic text-muted-foreground">
-                  "Bir dil öğretmeni olarak kapsamlı yaklaşımdan etkilendim.
-                  İnteraktif oyunlar öğrenmeyi eğlenceli hale getiriyor ve
-                  kelime bölümündeki aralıklı tekrar sistemi öğrencilerimin
-                  öğrendiklerini hatırlamalarını sağlıyor. Konuşma modülünün
-                  geri bildirimi olağanüstü."
-                </p>
-                <div className="flex items-center gap-3 pt-3 border-t border-foreground border-opacity-5">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent bg-opacity-30 flex items-center justify-center">
-                    <span className="text-sm font-semibold">E</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Elif K.</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Dil Öğretmeni
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </GradientCardSimple>
-          </div>
-        </div>
-
-        {/* Decorative background elements */}
-        <div className="absolute -z-10 pointer-events-none inset-0 opacity-20">
-          <div
-            className="absolute top-1/4 left-0 w-72 h-72 bg-primary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
-            style={{ animationDuration: "8s" }}
-          />
-          <div
-            className="absolute bottom-1/4 right-0 w-72 h-72 bg-secondary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
+            className="absolute bottom-1/4 left-0 w-72 h-72 bg-secondary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
             style={{ animationDuration: "6s", animationDelay: "2s" }}
           />
         </div>

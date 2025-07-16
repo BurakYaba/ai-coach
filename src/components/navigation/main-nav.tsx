@@ -33,7 +33,6 @@ export function MainNav({ currentPath = "/", language = "tr" }: MainNavProps) {
           { href: "/moduller", label: "Modüller" },
           { href: "/#features", label: "Özellikler" },
           { href: "/blog", label: "Blog" },
-          { href: "/basari-hikayeleri", label: "Başarı Hikayeleri" },
           { href: "/sss", label: "SSS" },
           { href: "/#pricing", label: "Fiyatlandırma" },
         ]
@@ -41,7 +40,6 @@ export function MainNav({ currentPath = "/", language = "tr" }: MainNavProps) {
           { href: "/en/modules", label: "Modules" },
           { href: "/en#features", label: "Features" },
           { href: "/en/blog", label: "Blog" },
-          { href: "/en/success-stories", label: "Success Stories" },
           { href: "/en/faq", label: "FAQ" },
           { href: "/en#pricing", label: "Pricing" },
         ];

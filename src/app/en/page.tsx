@@ -20,6 +20,7 @@ import {
 } from "@/hooks/use-mobile-detection";
 import { MainNav } from "@/components/navigation/main-nav";
 import FooterEn from "@/components/layout/FooterEn";
+import AvatarCarousel from "@/components/AvatarCarousel";
 
 // Custom components based on Brainwave design
 const Tagline = ({ children }: { children: React.ReactNode }) => (
@@ -195,6 +196,142 @@ export default function LandingPage() {
               </Link>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* 3D Avatar Speaking Module Showcase */}
+      <section className="relative py-16 md:py-24 overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-indigo-50">
+        <div className="container mx-auto px-5 relative z-10">
+          <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
+            <Tagline>AI Conversation Partners</Tagline>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Practice English with Real-Time 3D Avatars
+            </h2>
+            <p className="text-muted-foreground">
+              Practice with personalized AI conversation partners, improve your
+              pronunciation, and speak with confidence
+            </p>
+          </div>
+
+          {/* Avatar Showcase Grid */}
+          <AvatarCarousel
+            avatars={[
+              {
+                name: "Alex",
+                image: "/images/avatars/Alex.webp",
+                role: "Business Professional",
+                rating: 5.0,
+                status: "Online",
+                description:
+                  "Specially designed for job interviews, meetings, and professional English conversation practice.",
+                tags: [
+                  { label: "Business English", color: "#3b82f6" },
+                  { label: "Interview Practice", color: "#22c55e" },
+                  { label: "Presentations", color: "#a21caf" },
+                ],
+              },
+              {
+                name: "Emma",
+                image: "/images/avatars/Emma.webp",
+                role: "Casual Conversation",
+                rating: 5.0,
+                status: "Online",
+                description:
+                  "Relaxed and natural English practice for daily conversations, travel, and social situations.",
+                tags: [
+                  { label: "Daily Conversation", color: "#ec4899" },
+                  { label: "Travel", color: "#f59e42" },
+                  { label: "Social", color: "#facc15" },
+                ],
+              },
+              {
+                name: "Marcus",
+                image: "/images/avatars/Marcus.webp",
+                role: "Academic Tutor",
+                rating: 5.0,
+                status: "Online",
+                description:
+                  "Advanced speaking practice specially designed for IELTS, TOEFL, and academic English.",
+                tags: [
+                  { label: "IELTS", color: "#6366f1" },
+                  { label: "TOEFL", color: "#3b82f6" },
+                  { label: "Academic", color: "#a21caf" },
+                ],
+              },
+              {
+                name: "Oliver",
+                image: "/images/avatars/Oliver.webp",
+                role: "Fluency Coach",
+                rating: 5.0,
+                status: "Online",
+                description:
+                  "Practice fluency and spontaneous speaking with real-life scenarios and instant feedback.",
+                tags: [
+                  { label: "Fluency", color: "#0ea5e9" },
+                  { label: "Spontaneous", color: "#f59e42" },
+                  { label: "Feedback", color: "#22c55e" },
+                ],
+              },
+              {
+                name: "Sarah",
+                image: "/images/avatars/Sarah.webp",
+                role: "Pronunciation Expert",
+                rating: 5.0,
+                status: "Online",
+                description:
+                  "Get expert help with pronunciation, accent reduction, and clear communication.",
+                tags: [
+                  { label: "Pronunciation", color: "#f43f5e" },
+                  { label: "Accent", color: "#6366f1" },
+                  { label: "Clarity", color: "#22c55e" },
+                ],
+              },
+              {
+                name: "Zoe",
+                image: "/images/avatars/Zoe.webp",
+                role: "Conversation Partner",
+                rating: 5.0,
+                status: "Online",
+                description:
+                  "Friendly conversation practice for all levels and topics, from beginner to advanced.",
+                tags: [
+                  { label: "Friendly", color: "#f59e42" },
+                  { label: "All Levels", color: "#3b82f6" },
+                  { label: "Topics", color: "#a21caf" },
+                ],
+              },
+            ]}
+          />
+
+          {/* Live Demo Section */}
+          <div className="text-center">
+            <h3 className="text-2xl font-bold mb-4 mt-10">
+              Real-Time Conversation with 3D Avatars
+            </h3>
+            <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Practice speaking instantly with our AI-powered 3D avatars. Get
+              pronunciation, fluency, and grammar feedback.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/en/register">
+                <Button className="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-semibold px-8 py-3 rounded-lg transition-all duration-300 hover:scale-105 transform shadow-lg">
+                  Start Free Demo
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Decorative background elements */}
+        <div className="absolute -z-10 pointer-events-none inset-0 opacity-20">
+          <div
+            className="absolute top-1/4 right-0 w-72 h-72 bg-blue-500 bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
+            style={{ animationDuration: "8s" }}
+          />
+          <div
+            className="absolute bottom-1/4 left-0 w-72 h-72 bg-purple-500 bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
+            style={{ animationDuration: "6s", animationDelay: "2s" }}
+          />
         </div>
       </section>
 
@@ -912,128 +1049,13 @@ export default function LandingPage() {
         {/* Decorative background elements */}
         <div className="absolute -z-10 pointer-events-none inset-0 opacity-20">
           <div
-            className="absolute top-0 right-1/4 w-72 h-72 bg-accent bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
+            className="absolute top-1/4 right-0 w-72 h-72 bg-primary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
             style={{ animationDuration: "8s" }}
           />
           <div
-            className="absolute bottom-0 left-1/4 w-72 h-72 bg-primary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
+            className="absolute bottom-1/4 left-0 w-72 h-72 bg-secondary bg-opacity-20 rounded-full blur-3xl animate-pulse-glow"
             style={{ animationDuration: "6s", animationDelay: "2s" }}
           />
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section
-        id="testimonials"
-        className="relative py-16 md:py-24 overflow-hidden"
-      >
-        <div className="container mx-auto px-5 relative z-10">
-          <div className="text-center space-y-4 max-w-3xl mx-auto mb-16">
-            <Tagline>User Testimonials</Tagline>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              What Our Users Say
-            </h2>
-            <p className="text-muted-foreground">
-              Join thousands of satisfied learners who have transformed their
-              language skills
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <GradientCardSimple
-              variant="default"
-              borderOpacity="low"
-              className="relative group hover:shadow-glow transition-all duration-500 backdrop-blur-card"
-            >
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-12 h-12 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-xl font-bold">
-                1
-              </div>
-              <div className="space-y-4">
-                <p className="italic text-muted-foreground">
-                  "The combination of reading, writing, listening and speaking
-                  modules has transformed my English learning journey. The
-                  personalized feedback on my speaking and writing is incredibly
-                  detailed and helpful."
-                </p>
-                <div className="flex items-center gap-3 pt-3 border-t border-foreground border-opacity-5">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent bg-opacity-30 flex items-center justify-center">
-                    <span className="text-sm font-semibold">S</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Sarah J.</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Business Professional
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </GradientCardSimple>
-
-            <GradientCardSimple
-              variant="accent"
-              borderOpacity="low"
-              className="relative group hover:shadow-glow transition-all duration-500 backdrop-blur-card"
-            >
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-12 h-12 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-xl font-bold">
-                2
-              </div>
-              <div className="space-y-4">
-                <p className="italic text-muted-foreground">
-                  "The vocabulary and grammar modules work together beautifully.
-                  I love how the app tracks words I struggle with and creates
-                  customized grammar lessons based on my common mistakes. The
-                  progress tracking keeps me motivated."
-                </p>
-                <div className="flex items-center gap-3 pt-3 border-t border-foreground border-opacity-5">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent bg-opacity-30 flex items-center justify-center">
-                    <span className="text-sm font-semibold">M</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Michael T.</h4>
-                    <p className="text-sm text-muted-foreground">
-                      University Student
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </GradientCardSimple>
-
-            <GradientCardSimple
-              variant="secondary"
-              borderOpacity="low"
-              className="relative group hover:shadow-glow transition-all duration-500 backdrop-blur-card"
-            >
-              <div className="absolute top-0 right-0 -mt-4 -mr-4 w-12 h-12 rounded-full bg-gradient-to-r from-primary to-accent flex items-center justify-center text-white text-xl font-bold">
-                3
-              </div>
-              <div className="space-y-4">
-                <p className="italic text-muted-foreground">
-                  "As a language teacher, I'm impressed by the comprehensive
-                  approach. The interactive games make learning fun, and the
-                  spaced repetition system in the vocabulary section ensures my
-                  students retain what they learn. The speaking module's
-                  feedback is remarkable."
-                </p>
-                <div className="flex items-center gap-3 pt-3 border-t border-foreground border-opacity-5">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-r from-primary to-accent bg-opacity-30 flex items-center justify-center">
-                    <span className="text-sm font-semibold">E</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Elena K.</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Language Teacher
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </GradientCardSimple>
-          </div>
-        </div>
-
-        {/* Decorative background elements */}
-        <div className="absolute -z-10 pointer-events-none inset-0 opacity-20">
-          <div className="absolute top-1/2 right-0 w-96 h-96 bg-accent bg-opacity-20 rounded-full blur-3xl" />
-          <div className="absolute bottom-0 left-1/3 w-96 h-96 bg-primary bg-opacity-20 rounded-full blur-3xl" />
         </div>
       </section>
 

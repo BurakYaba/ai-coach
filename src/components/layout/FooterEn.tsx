@@ -41,14 +41,6 @@ export default function FooterEn() {
                 Careers
               </Link>
             </li>
-            <li>
-              <Link
-                href="/en/success-stories"
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                Success Stories
-              </Link>
-            </li>
           </ul>
         </div>
 

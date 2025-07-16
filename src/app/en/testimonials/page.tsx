@@ -32,7 +32,6 @@ export const metadata: Metadata = {
     canonical: "/en/testimonials",
     languages: {
       en: "/en/testimonials",
-      tr: "/basari-hikayeleri",
     },
   },
   openGraph: {
