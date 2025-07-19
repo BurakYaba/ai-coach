@@ -5,40 +5,24 @@ import {
   BookOpen,
   ChevronUp,
   List,
-  Loader2,
   Pause,
   Play,
   Repeat,
   Volume2,
   VolumeX,
-  Plus,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
-
-import { Skeleton } from "@/components/ui/skeleton";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/components/ui/use-toast";
-import { formatTime, normalizeQuestionType } from "@/lib/utils";
+import { formatTime } from "@/lib/utils";
 import { useRecordActivity } from "@/hooks/use-gamification";
-import { Card } from "@/components/ui/card";
 import { VocabularyPanel } from "@/components/reading/VocabularyPanel";
 import { QuestionPanel } from "@/components/reading/QuestionPanel";
 
@@ -108,7 +92,6 @@ export default function ListeningSessionPage({
   const [activeTab, setActiveTab] = useState("listen");
 
   const [answers, setAnswers] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [feedback, setFeedback] = useState<{
     answers?: Record<number, any>;
     score?: number;
@@ -117,10 +100,6 @@ export default function ListeningSessionPage({
   } | null>(null);
 
   // Add a state to track questions answered in the current session
-  const [currentSessionAnswers, setCurrentSessionAnswers] = useState<
-    Set<string>
-  >(new Set());
-
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   // Determine if we should record a gamification activity for vocabulary review
@@ -255,8 +234,6 @@ export default function ListeningSessionPage({
   const handleSubmitAnswers = async () => {
     if (!answers[currentQuestionIndex]) return;
 
-    setIsSubmitting(true);
-
     try {
       // Create an array with just the current question's answer
       const answersToSubmit = new Array(session.questions.length).fill("");
@@ -361,13 +338,6 @@ export default function ListeningSessionPage({
         },
       }));
 
-      // Add the current question to the set of answered questions
-      setCurrentSessionAnswers(prev => {
-        const newSet = new Set(prev);
-        newSet.add(session.questions[currentQuestionIndex].id);
-        return newSet;
-      });
-
       // Remove automatic advancement - user will click Next button manually
       // if (currentQuestionIndex < session.questions.length - 1) {
       //   // Find the next unanswered question
@@ -391,7 +361,7 @@ export default function ListeningSessionPage({
         variant: "destructive",
       });
     } finally {
-      setIsSubmitting(false);
+      // setIsSubmitting(false); // This line was removed
     }
   };
 

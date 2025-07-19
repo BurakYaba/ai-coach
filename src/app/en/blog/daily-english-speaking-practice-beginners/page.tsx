@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { GradientCard } from "@/components/ui/gradient-card";
 
 export const metadata: Metadata = {
@@ -366,7 +366,7 @@ export default function DailySpeakingPractice() {
               Your 30-Day Speaking Transformation Plan
             </h2>
             <div className="space-y-8">
-              {weeklyPlans.map((week, index) => (
+              {weeklyPlans.map((week, _index) => (
                 <GradientCard key={week.week} className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
@@ -418,12 +418,12 @@ export default function DailySpeakingPractice() {
               Perfect Daily Speaking Routine
             </h2>
             <div className="space-y-6">
-              {dailyRoutines.map((routine, index) => (
+              {dailyRoutines.map((routine, _index) => (
                 <Card key={routine.time} className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-xl font-bold flex items-center">
-                        <span className="text-primary mr-3">{index + 1}</span>
+                        <span className="text-primary mr-3">{_index + 1}</span>
                         {routine.activity}
                       </h3>
                       <Badge variant="outline" className="mt-1">
@@ -456,7 +456,7 @@ export default function DailySpeakingPractice() {
               Overcoming Common Speaking Challenges
             </h2>
             <div className="space-y-6">
-              {commonChallenges.map((item, index) => (
+              {commonChallenges.map((item, _index) => (
                 <Card key={item.challenge} className="p-6">
                   <div className="mb-4">
                     <h3 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">

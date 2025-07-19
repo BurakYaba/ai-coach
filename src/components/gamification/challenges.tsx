@@ -1,14 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Calendar,
-  CheckCircle2,
-  Clock,
-  Target,
-  Trophy,
-  XCircle,
-} from "lucide-react";
+import { Calendar, CheckCircle2, Clock, Target } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {

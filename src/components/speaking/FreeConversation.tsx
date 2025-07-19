@@ -7,7 +7,6 @@ import { useState, useEffect, useRef } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -158,11 +157,6 @@ export function FreeConversation() {
   >("idle");
   const [userTranscript, setUserTranscript] = useState<string>("");
   const [aiTranscript, setAiTranscript] = useState<string>("");
-  const [completeAiMessage, setCompleteAiMessage] = useState<string>("");
-  const [currentAiResponseId, setCurrentAiResponseId] = useState<string | null>(
-    null
-  );
-  const [currentItemId, setCurrentItemId] = useState<string | null>(null);
   const [conversation, setConversation] = useState<
     Array<{ role: "user" | "assistant"; text: string }>
   >([]);
@@ -171,8 +165,6 @@ export function FreeConversation() {
   const [speakingSessionId, setSpeakingSessionId] = useState<string | null>(
     null
   );
-  const [lastReceivedTranscript, setLastReceivedTranscript] =
-    useState<string>("");
   const [responseCount, setResponseCount] = useState<number>(0);
 
   const peerConnectionRef = useRef<RTCPeerConnection | null>(null);
@@ -199,7 +191,7 @@ export function FreeConversation() {
       currentAiTranscriptRef.current &&
       currentAiTranscriptRef.current.trim()
     ) {
-      setLastReceivedTranscript(currentAiTranscriptRef.current);
+      // setLastReceivedTranscript(currentAiTranscriptRef.current); // This line was removed
     }
   }, [currentAiTranscriptRef.current]);
 
@@ -1081,7 +1073,7 @@ export function FreeConversation() {
 
       case "response.created":
         setAiTranscript("");
-        setCompleteAiMessage("");
+        // setCompleteAiMessage(""); // This line was removed
         currentAiTranscriptRef.current = "";
         setStatus("listening");
         break;
@@ -1090,10 +1082,8 @@ export function FreeConversation() {
         if (event.delta) {
           currentAiTranscriptRef.current += event.delta;
 
+          // setCompleteAiMessage(currentAiTranscriptRef.current); // This line was removed
           setAiTranscript(currentAiTranscriptRef.current);
-          setCompleteAiMessage(currentAiTranscriptRef.current);
-
-          setLastReceivedTranscript(currentAiTranscriptRef.current);
         }
         break;
 
@@ -1300,11 +1290,11 @@ export function FreeConversation() {
   const clearTranscripts = () => {
     setUserTranscript("");
     setAiTranscript("");
-    setCompleteAiMessage("");
+    // setCompleteAiMessage(""); // This line was removed
     currentUserTranscriptRef.current = "";
     currentAiTranscriptRef.current = "";
-    setCurrentAiResponseId(null);
-    setCurrentItemId(null);
+    // setCurrentAiResponseId(null); // This line was removed
+    // setCurrentItemId(null); // This line was removed
   };
 
   // Check if a user input matches any template response

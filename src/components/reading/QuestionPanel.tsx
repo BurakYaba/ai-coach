@@ -76,16 +76,6 @@ export function QuestionPanel({
     []
   );
 
-  const getOptionId = useCallback(
-    (option: string | { id: string; text: string }, index: number): string => {
-      if (typeof option === "string") {
-        return index.toString();
-      }
-      return option.id || index.toString();
-    },
-    []
-  );
-
   const determineIfCorrect = useCallback(
     (
       selectedAnswer: string,

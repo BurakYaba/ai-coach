@@ -1,9 +1,8 @@
 "use client";
 
 import { differenceInDays } from "date-fns";
-import { CalendarClock, CreditCard, Calendar } from "lucide-react";
+import { CreditCard, Calendar } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   HoverCard,

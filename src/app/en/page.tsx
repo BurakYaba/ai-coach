@@ -2,13 +2,9 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  GradientCard,
-  GradientCardSimple,
-} from "@/components/ui/gradient-card";
+import { GradientCard } from "@/components/ui/gradient-card";
 import {
   StructuredData,
   organizationSchema,
@@ -75,20 +71,6 @@ const BackgroundGradient = () => {
 export default function LandingPage() {
   const { isMobile, isLoaded } = useMobileDetection();
   const prefersReducedMotion = useReducedMotion();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Close mobile menu when screen size changes to desktop
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        // lg breakpoint
-        setIsMobileMenuOpen(false);
-      }
-    };
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   // Mobile-optimized hero background style
   const getHeroBackgroundStyle = () => {
@@ -1358,105 +1340,3 @@ export default function LandingPage() {
     </div>
   );
 }
-
-const features = [
-  {
-    title: "AI-Powered Learning",
-    description:
-      "Our advanced AI engine personalizes content, analyzes your performance, and adapts lessons to your learning style and progress.",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-6 w-6 text-primary group-hover:scale-110 transition-transform duration-300"
-      >
-        <path d="M12 2a10 10 0 1 0 10 10H12V2z" />
-        <path d="M21.17 8H12V2.83c2.44.4 4.77 1.69 6.6 3.67 1.77 1.91 2.57 4 2.57 4z" />
-      </svg>
-    ),
-  },
-  {
-    title: "Comprehensive Feedback",
-    description:
-      "Get detailed, actionable feedback on your writing, speaking, and grammar with suggestions for improvement.",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-6 w-6 text-accent group-hover:scale-110 transition-transform duration-300"
-      >
-        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-      </svg>
-    ),
-  },
-  {
-    title: "Interactive Practice",
-    description:
-      "Engage with interactive exercises, conversations, and language games that make learning enjoyable.",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-6 w-6 text-secondary group-hover:scale-110 transition-transform duration-300"
-      >
-        <path d="m7 11 2-2-2-2"></path>
-        <path d="M11 13h4"></path>
-        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-      </svg>
-    ),
-  },
-  {
-    title: "Gamification & Rewards",
-    description:
-      "Stay motivated with points, badges, streaks, and level progression that make learning English addictive and fun.",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-6 w-6 text-primary group-hover:scale-110 transition-transform duration-300"
-      >
-        <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-        <path d="m15 9-6 6"></path>
-        <path d="m9 9 6 6"></path>
-      </svg>
-    ),
-  },
-];
-
-const testimonials = [
-  {
-    name: "Sarah J.",
-    title: "Business Professional",
-    text: "The combination of reading, writing, listening and speaking modules has transformed my English learning journey. The personalized feedback on my speaking and writing is incredibly detailed and helpful.",
-  },
-  {
-    name: "Michael T.",
-    title: "University Student",
-    text: "The vocabulary and grammar modules work together beautifully. I love how the app tracks words I struggle with and creates customized grammar lessons based on my common mistakes. The progress tracking keeps me motivated.",
-  },
-  {
-    name: "Elena K.",
-    title: "Language Teacher",
-    text: "As a language teacher, I'm impressed by the comprehensive approach. The interactive games make learning fun, and the spaced repetition system in the vocabulary section ensures my students retain what they learn. The speaking module's feedback is remarkable.",
-  },
-];

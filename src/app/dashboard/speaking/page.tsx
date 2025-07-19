@@ -1,6 +1,6 @@
 "use client";
 
-import { Calendar, Clock, Mic, MessageSquare, BarChart3 } from "lucide-react";
+import { Mic, MessageSquare, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -148,7 +148,7 @@ export default function SpeakingDashboard() {
     return new Date(dateString).toLocaleString();
   };
 
-  const getStatusBadge = (status: string, session: SpeakingSession) => {
+  const getStatusBadge = (status: string, _session: SpeakingSession) => {
     switch (status) {
       case "completed":
         return (

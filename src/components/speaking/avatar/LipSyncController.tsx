@@ -2,29 +2,12 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import * as THREE from "three";
-import {
-  VisemeData,
-  FacialAnimationData,
-  EyeMovementData,
-  EyebrowExpressionData,
-  HeadGestureData,
-  BlinkPatternData,
-  LipSyncController as ILipSyncController,
-} from "./types";
+import { VisemeData, FacialAnimationData } from "./types";
 import {
   AZURE_TO_RPM_VISEMES,
   VISEME_TO_MORPH_MAPPING,
-  findBestVisemeName,
-  CO_ARTICULATION_SETTINGS,
   EMOTION_TO_MORPHS,
-  VISEME_PRIORITY,
-  getVisemePriority,
-  HEAD_MOTION_SETTINGS,
-  ENHANCED_ANIMATION_CURVES,
-  NATURAL_VARIATION,
-  applyNaturalVariation,
   detectEmotionFromText,
-  blendVisemes,
 } from "./constants";
 
 interface FacialAnimationControllerProps {

@@ -1,18 +1,8 @@
 import { Metadata } from "next";
 import { getServerSession } from "next-auth/next";
-import { Suspense } from "react";
 import { redirect } from "next/navigation";
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Info } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { authOptions } from "@/lib/auth";
 import { dbConnect } from "@/lib/db";
 import User from "@/models/User";
@@ -23,29 +13,6 @@ export const metadata: Metadata = {
   title: "Dashboard | Fluenta",
   description: "Track your language learning progress",
 };
-
-// Skeleton loader for the stats
-function UserStatsSkeleton() {
-  return <div className="h-24 w-full animate-pulse rounded-lg bg-muted" />;
-}
-
-// User stats component to load asynchronously
-async function UserStats({ userId }: { userId: string }) {
-  await dbConnect();
-  const user = await User.findById(userId);
-
-  if (!user) {
-    throw new Error("User not found");
-  }
-
-  return (
-    <div className="hidden">
-      {" "}
-      {/* Hide this component as we're using GamificationProfileStats instead */}
-      {/* This is kept as a placeholder since it's referenced elsewhere */}
-    </div>
-  );
-}
 
 export default async function DashboardPage({
   searchParams,

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useSession } from "next-auth/react";
 import {
   Play,
-  Pause,
   Mic,
   MicOff,
   Volume2,

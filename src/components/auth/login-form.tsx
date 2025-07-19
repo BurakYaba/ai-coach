@@ -152,7 +152,6 @@ export function LoginForm() {
       if (!result?.ok) {
         // Track specific login errors for analytics
         let errorCategory = "general_error";
-        const errorLabel = result?.error || "unknown_error";
 
         // Check if this is an email verification error
         if (result?.error?.includes("verify your email")) {

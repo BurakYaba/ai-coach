@@ -4,7 +4,6 @@ import { useState } from "react";
 import { Trophy, Users, Flame, Award, Star } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,7 +19,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLeaderboard } from "@/hooks/use-gamification";
 
 interface LeaderboardEntry {

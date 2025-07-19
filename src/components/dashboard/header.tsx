@@ -1,16 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, Star, Calendar, CreditCard, CalendarClock } from "lucide-react";
+import { Menu, Star, Calendar } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import {
-  HoverCard,
-  HoverCardContent,
-  HoverCardTrigger,
-} from "@/components/ui/hover-card";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { differenceInDays } from "date-fns";
+
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -49,14 +42,14 @@ export default function DashboardHeader({
         {/* Full width layout with three sections */}
         <div className="flex items-center justify-between w-full">
           {/* Left side - Logo only */}
-          <div className="flex items-center space-x-2 sm:space-x-3 flex-shrink-0">
-            <div className="w-10 h-10 sm:w-11 sm:h-11 md:w-10 md:h-10 flex items-center justify-center">
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-12 md:h-12 flex items-center justify-center">
               <Image
-                src="/favicon.svg"
+                src="/logo.png"
                 alt="Fluenta"
-                width={24}
-                height={24}
-                className="w-6 h-6 sm:w-7 sm:h-7 md:w-6 md:h-6"
+                width={56}
+                height={56}
+                className="w-10 h-12 sm:w-12 sm:h-14 md:w-10 md:h-12"
               />
             </div>
             <h1 className="text-xl sm:text-2xl md:text-2xl font-bold">
@@ -109,14 +102,14 @@ export default function DashboardHeader({
                   <div className="flex flex-col h-full bg-white">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 p-4">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 flex items-center justify-center">
+                      <div className="flex items-center space-x-1">
+                        <div className="w-10 h-10 flex items-center justify-center">
                           <Image
-                            src="/favicon.svg"
+                            src="/logo.png"
                             alt="Fluenta"
-                            width={16}
-                            height={16}
-                            className="w-4 h-4"
+                            width={48}
+                            height={48}
+                            className="w-8 h-10"
                           />
                         </div>
                         <span className="font-bold text-lg text-white">

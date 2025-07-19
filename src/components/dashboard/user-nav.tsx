@@ -4,12 +4,10 @@ import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -20,7 +18,6 @@ import {
   User,
   CreditCard,
   Settings,
-  Star,
   LogOut,
 } from "lucide-react";
 import { FeedbackForm } from "@/components/feedback/FeedbackForm";

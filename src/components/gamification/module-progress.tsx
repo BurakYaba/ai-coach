@@ -2,10 +2,8 @@
 
 import { useState, useEffect } from "react";
 import {
-  BarChart3,
   Book,
   Calendar,
-  Clock,
   Star,
   Trophy,
   Headphones,
@@ -13,7 +11,6 @@ import {
   PenTool,
   Brain,
   Gamepad2,
-  TrendingUp,
 } from "lucide-react";
 
 import {
@@ -26,9 +23,7 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import axios from "axios";

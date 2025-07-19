@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -76,7 +75,6 @@ interface FeedbackFormProps {
 export function FeedbackForm({ trigger, onSuccess }: FeedbackFormProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const router = useRouter();
 
   const form = useForm<FeedbackFormValues>({
     resolver: zodResolver(feedbackSchema),

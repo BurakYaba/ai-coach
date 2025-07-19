@@ -58,14 +58,14 @@ export function MainNav({ currentPath = "/", language = "tr" }: MainNavProps) {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center">
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
               <Image
-                src="/favicon.svg"
+                src="/logo.png"
                 alt="Fluenta"
-                width={20}
-                height={20}
-                className="w-5 h-5 sm:w-6 sm:h-6"
+                width={48}
+                height={48}
+                className="w-8 h-10 sm:w-10 sm:h-12"
               />
             </div>
             <Link

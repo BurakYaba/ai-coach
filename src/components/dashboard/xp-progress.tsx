@@ -1,9 +1,7 @@
 "use client";
 
-import { ChevronsUp, Star, Trophy, TrendingUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Star, Trophy, TrendingUp } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import {
   HoverCard,
   HoverCardContent,

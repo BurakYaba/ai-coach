@@ -4,6 +4,9 @@ import { authOptions } from "@/lib/auth";
 import User from "@/models/User";
 import { dbConnect } from "@/lib/db";
 
+// Mark this route as dynamic since it uses getServerSession
+export const dynamic = "force-dynamic";
+
 // GET /api/user/profile - Get current user profile
 export async function GET() {
   try {

@@ -1,21 +1,13 @@
 "use client";
 
-import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
-import { BookOpen, Clock, Play, CheckCircle, Trash2 } from "lucide-react";
+import { BookOpen, Play, CheckCircle, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Pagination,
   PaginationContent,
@@ -24,7 +16,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/hooks/use-toast";
 import {
@@ -55,16 +46,6 @@ interface ReadingSession {
     completionTime: string | null;
   };
   createdAt: string;
-}
-
-interface ReadingSessionsResponse {
-  sessions: ReadingSession[];
-  pagination: {
-    total: number;
-    pages: number;
-    current: number;
-    limit: number;
-  };
 }
 
 export function ReadingSessionList() {
@@ -99,7 +80,15 @@ export function ReadingSessionList() {
           throw new Error("Failed to fetch sessions");
         }
 
-        const data: ReadingSessionsResponse = await response.json();
+        const data: {
+          sessions: ReadingSession[];
+          pagination: {
+            total: number;
+            pages: number;
+            current: number;
+            limit: number;
+          };
+        } = await response.json();
         setSessions(data.sessions);
         setPagination(data.pagination);
       } catch (error) {

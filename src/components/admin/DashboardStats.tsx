@@ -10,12 +10,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { Progress } from "@/components/ui/progress";
 import { toast } from "@/components/ui/use-toast";
-
-interface StatsProps {
-  variant?: "default" | "overview";
-}
 
 interface AdminStats {
   users: {
@@ -44,7 +39,7 @@ interface AdminStats {
   };
 }
 
-export function DashboardStats({ variant = "default" }: StatsProps) {
+export function DashboardStats() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

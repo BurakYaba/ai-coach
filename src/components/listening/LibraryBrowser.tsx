@@ -1,21 +1,12 @@
 "use client";
 
-import { format } from "date-fns";
-import { PlayCircle, Clock, BookOpen, Bookmark, Search } from "lucide-react";
-import Link from "next/link";
+import { PlayCircle, Search } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Pagination } from "@/components/ui/pagination";
@@ -144,19 +135,6 @@ export function LibraryBrowser() {
       });
       setStartingSession(null);
     }
-  };
-
-  // Function to get background color based on level
-  const getLevelColor = (level: string) => {
-    const colors: Record<string, string> = {
-      A1: "bg-green-100",
-      A2: "bg-green-200",
-      B1: "bg-blue-100",
-      B2: "bg-blue-200",
-      C1: "bg-purple-100",
-      C2: "bg-purple-200",
-    };
-    return colors[level] || "bg-gray-100";
   };
 
   // Function to get card border and background color based on level

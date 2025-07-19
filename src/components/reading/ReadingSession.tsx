@@ -30,7 +30,7 @@ interface ReadingSessionProps {
 
 export function ReadingSession({ sessionId }: ReadingSessionProps) {
   const router = useRouter();
-  const recordActivity = useRecordActivity();
+
   const [session, setSession] = useState<IReadingSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

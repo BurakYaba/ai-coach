@@ -1,7 +1,6 @@
 "use client";
 
 import { format } from "date-fns";
-import { useState } from "react";
 import { Award, Star } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +8,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";

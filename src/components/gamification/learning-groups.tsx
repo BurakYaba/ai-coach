@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Plus, Search, Shield, Users, X } from "lucide-react";
+import { Plus, Search, Shield, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -35,9 +35,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -106,10 +105,6 @@ export function LearningGroupsComponent() {
   const [myGroups, setMyGroups] = useState<LearningGroup[]>([]);
   const [publicGroups, setPublicGroups] = useState<LearningGroup[]>([]);
   const [searchResults, setSearchResults] = useState<LearningGroup[]>([]);
-  const [selectedGroup, setSelectedGroup] = useState<LearningGroup | null>(
-    null
-  );
-  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([]);
 
   const form = useForm<z.infer<typeof createGroupSchema>>({
     resolver: zodResolver(createGroupSchema),
@@ -421,10 +416,9 @@ export function LearningGroupsComponent() {
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea
+                        <Input
                           {...field}
                           placeholder="Describe your group's focus and goals"
-                          rows={3}
                         />
                       </FormControl>
                       <FormMessage />

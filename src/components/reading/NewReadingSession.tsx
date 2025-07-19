@@ -7,7 +7,7 @@ import { toast } from "sonner";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
@@ -110,18 +110,6 @@ interface GrammarPattern {
   pattern: string;
   explanation: string;
   examples: string[];
-}
-
-interface QuestionsResponse {
-  questions: Question[];
-}
-
-interface VocabularyResponse {
-  vocabulary: VocabularyWord[];
-}
-
-interface GrammarResponse {
-  patterns: GrammarPattern[];
 }
 
 // Use memo to prevent unnecessary re-renders

@@ -45,14 +45,14 @@ export default function AuthLayout({
       {/* Header with logo */}
       <div className="relative z-10 p-6">
         <div className="flex items-center justify-center sm:justify-start">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 flex items-center justify-center">
+          <div className="flex items-center space-x-2">
+            <div className="w-14 h-14 flex items-center justify-center">
               <Image
-                src="/favicon.svg"
+                src="/logo.png"
                 alt="Fluenta"
-                width={32}
-                height={32}
-                className="w-8 h-8"
+                width={64}
+                height={64}
+                className="w-12 h-14"
               />
             </div>
             <h1 className="text-2xl font-bold text-white">Fluenta</h1>

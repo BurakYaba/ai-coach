@@ -7,7 +7,6 @@ import { GradientCard } from "@/components/ui/gradient-card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { LanguageSwitcher } from "@/components/ui/language-switcher";
 import { MainNav } from "@/components/navigation/main-nav";
 import FooterTr from "@/components/layout/FooterTr";
 

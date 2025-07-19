@@ -4,14 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Download,
-  ArrowUpDown,
   Filter,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
   Trophy,
-  Medal,
   Activity,
   Clock,
   BookOpen,
@@ -943,15 +941,6 @@ export function UserAnalytics() {
         description: "Failed to export analytics data",
         variant: "destructive",
       });
-    }
-  };
-
-  const handleSort = (field: string) => {
-    if (sortField === field) {
-      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
-    } else {
-      setSortField(field);
-      setSortOrder("desc");
     }
   };
 

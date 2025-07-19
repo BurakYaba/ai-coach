@@ -1,7 +1,7 @@
 "use client";
 
 import { format } from "date-fns";
-import { RotateCw, Award, TrendingUp } from "lucide-react";
+import { RotateCw } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";

@@ -22,10 +22,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
-import { GrammarIssuesPanel } from "@/components/writing/GrammarIssuesPanel";
 import { Check, Plus, AlertCircleIcon, PenTool } from "lucide-react";
 
 interface WritingSession {
@@ -150,82 +148,10 @@ interface EnhancedFeedback {
   nextSteps?: string;
 }
 
-interface ScoreCardProps {
-  score: number;
-  title: string;
-  description: string;
-}
-
-// Add ScoreCard component
-const ScoreCard: React.FC<ScoreCardProps> = ({ score, title, description }) => {
-  // Calculate color based on score
-  let color = "bg-gray-100";
-  let textColor = "text-gray-700";
-
-  if (score >= 90) {
-    color = "bg-green-100";
-    textColor = "text-green-700";
-  } else if (score >= 75) {
-    color = "bg-blue-100";
-    textColor = "text-blue-700";
-  } else if (score >= 60) {
-    color = "bg-yellow-100";
-    textColor = "text-yellow-700";
-  } else if (score > 0) {
-    color = "bg-red-100";
-    textColor = "text-red-700";
-  }
-
-  return (
-    <div className={`p-4 rounded-lg ${color}`}>
-      <h3 className={`font-semibold text-lg ${textColor}`}>{title}</h3>
-      <p className="text-gray-600 text-sm mt-1">{description}</p>
-      <div className="mt-3 flex items-center">
-        <div className="font-bold text-3xl mr-2">{score}</div>
-        <div className="text-gray-500 text-sm">/100</div>
-      </div>
-    </div>
-  );
-};
-
 // Define HeroIcons components with proper types
 interface IconProps extends React.SVGProps<SVGSVGElement> {
   className?: string;
 }
-
-const XCircleIcon: React.FC<IconProps> = props => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth="1.5"
-    stroke="currentColor"
-    {...props}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-    />
-  </svg>
-);
-
-const LightBulbIcon: React.FC<IconProps> = props => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-    strokeWidth="1.5"
-    stroke="currentColor"
-    {...props}
-  >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M12 18v-5.25m0 0a6.01 6.01 0 001.5-.189m-1.5.189a6.01 6.01 0 01-1.5-.189m3.75 7.478a12.06 12.06 0 01-4.5 0m3.75 2.383a14.406 14.406 0 01-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 10-7.517 0c.85.493 1.509 1.333 1.509 2.316V18"
-    />
-  </svg>
-);
 
 const CheckCircleIcon: React.FC<IconProps> = props => (
   <svg

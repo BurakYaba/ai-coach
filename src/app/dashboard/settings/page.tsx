@@ -14,8 +14,6 @@ import {
   Calendar,
   Clock,
   Target,
-  Mail,
-  Smartphone,
 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
@@ -29,7 +27,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -51,7 +48,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNotifications } from "@/hooks/use-notifications";
 import {

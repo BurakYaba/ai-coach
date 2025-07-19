@@ -2,15 +2,14 @@
 
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, useGLTF } from "@react-three/drei";
+import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
-import { AvatarProps, VisemeData, FacialAnimationData } from "./types";
+import { AvatarProps, FacialAnimationData } from "./types";
 import {
   AZURE_TO_RPM_VISEMES,
   PERFORMANCE_SETTINGS,
   generateAvatarUrl,
-  findBestVisemeName,
   findBestNeutralMouth,
 } from "./constants";
 import { LipSyncController } from "./LipSyncController";

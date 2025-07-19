@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { extractGeolocationData } from "@/lib/language-detection";
 
+// Mark this route as dynamic since it uses request.headers
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     // Extract geolocation data from request headers

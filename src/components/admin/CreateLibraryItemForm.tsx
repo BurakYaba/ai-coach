@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Save, X, Plus, Trash } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Save, X, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -18,32 +18,32 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { toast } from '@/components/ui/use-toast';
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
 
-import { Switch } from '@/components/ui/switch';
+import { Switch } from "@/components/ui/switch";
 
 const formSchema = z.object({
-  title: z.string().min(3, { message: 'Title must be at least 3 characters' }),
-  level: z.string({ required_error: 'Level is required' }),
-  topic: z.string().min(3, { message: 'Topic must be at least 3 characters' }),
-  contentType: z.string({ required_error: 'Content type is required' }),
+  title: z.string().min(3, { message: "Title must be at least 3 characters" }),
+  level: z.string({ required_error: "Level is required" }),
+  topic: z.string().min(3, { message: "Topic must be at least 3 characters" }),
+  contentType: z.string({ required_error: "Content type is required" }),
   duration: z.coerce
     .number()
-    .min(1, { message: 'Duration must be at least 1 minute' })
-    .max(60, { message: 'Duration must be at most 60 minutes' }),
+    .min(1, { message: "Duration must be at least 1 minute" })
+    .max(60, { message: "Duration must be at most 60 minutes" }),
   content: z
     .string()
-    .min(50, { message: 'Content must be at least 50 characters' }),
+    .min(50, { message: "Content must be at least 50 characters" }),
   category: z.string().optional(),
   isPublic: z.boolean().default(false),
   tags: z.array(z.string()).optional(),
@@ -54,19 +54,19 @@ type FormValues = z.infer<typeof formSchema>;
 export function CreateLibraryItemForm() {
   const router = useRouter();
   const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState('');
+  const [tagInput, setTagInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
-      level: '',
-      topic: '',
-      contentType: '',
+      title: "",
+      level: "",
+      topic: "",
+      contentType: "",
       duration: 5,
-      content: '',
-      category: '',
+      content: "",
+      category: "",
       isPublic: false,
       tags: [],
     },
@@ -82,31 +82,31 @@ export function CreateLibraryItemForm() {
         tags,
       };
 
-      const response = await fetch('/api/library', {
-        method: 'POST',
+      const response = await fetch("/api/library", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(dataToSubmit),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Failed to create library item');
+        throw new Error(error.error || "Failed to create library item");
       }
 
       toast({
-        title: 'Success',
-        description: 'Library item created successfully',
+        title: "Success",
+        description: "Library item created successfully",
       });
 
       // Redirect to library page
-      router.push('/admin/library');
+      router.push("/admin/library");
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to create library item',
-        variant: 'destructive',
+        title: "Error",
+        description: error.message || "Failed to create library item",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -116,7 +116,7 @@ export function CreateLibraryItemForm() {
   const addTag = () => {
     if (tagInput && !tags.includes(tagInput) && tagInput.trim()) {
       setTags([...tags, tagInput]);
-      setTagInput('');
+      setTagInput("");
     }
   };
 
@@ -325,7 +325,7 @@ export function CreateLibraryItemForm() {
                         onChange={e => setTagInput(e.target.value)}
                         className="flex-grow"
                         onKeyDown={e => {
-                          if (e.key === 'Enter') {
+                          if (e.key === "Enter") {
                             e.preventDefault();
                             addTag();
                           }
@@ -372,7 +372,7 @@ export function CreateLibraryItemForm() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push('/admin/library')}
+            onClick={() => router.push("/admin/library")}
             disabled={isSubmitting}
           >
             Cancel

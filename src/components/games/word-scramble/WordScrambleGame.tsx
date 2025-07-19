@@ -2,10 +2,9 @@
 
 import dynamic from "next/dynamic";
 import { useSession } from "next-auth/react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 // Dynamic import for Phaser
 
 import { PlayButton } from "@/components/ui/play-button";

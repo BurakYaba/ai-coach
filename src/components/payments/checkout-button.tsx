@@ -27,7 +27,7 @@ export function CheckoutButton({
   children,
 }: CheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  // Removed unused router variable
 
   const handleCheckout = async () => {
     setIsLoading(true);

@@ -8,6 +8,9 @@ import User from "@/models/User";
 import UserActivity from "@/models/UserActivity";
 import GamificationProfile from "@/models/GamificationProfile";
 
+// Mark this route as dynamic since it uses getServerSession
+export const dynamic = "force-dynamic";
+
 interface ModuleActivityMap {
   reading: number;
   writing: number;

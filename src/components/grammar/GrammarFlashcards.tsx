@@ -1,19 +1,12 @@
-'use client';
+"use client";
 
-import {
-  ChevronLeft,
-  ChevronRight,
-  RotateCw,
-  Check,
-  X,
-  Bookmark,
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, Check, X, Bookmark } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,9 +14,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { toast } from '@/hooks/use-toast';
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/hooks/use-toast";
 
 interface GrammarRule {
   _id: string;
@@ -57,18 +50,18 @@ export function GrammarFlashcards() {
   const fetchFlashcards = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/grammar/flashcards');
+      const response = await fetch("/api/grammar/flashcards");
       if (!response.ok) {
-        throw new Error('Failed to fetch grammar flashcards');
+        throw new Error("Failed to fetch grammar flashcards");
       }
       const data = await response.json();
       setFlashcards(data.flashcards || []);
     } catch (error) {
-      console.error('Error fetching flashcards:', error);
+      console.error("Error fetching flashcards:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load grammar flashcards',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to load grammar flashcards",
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -77,14 +70,14 @@ export function GrammarFlashcards() {
 
   const fetchSavedCards = async () => {
     try {
-      const response = await fetch('/api/grammar/flashcards/saved');
+      const response = await fetch("/api/grammar/flashcards/saved");
       if (!response.ok) {
-        throw new Error('Failed to fetch saved flashcards');
+        throw new Error("Failed to fetch saved flashcards");
       }
       const data = await response.json();
       setSavedCards(data.savedCardIds || []);
     } catch (error) {
-      console.error('Error fetching saved flashcards:', error);
+      console.error("Error fetching saved flashcards:", error);
     }
   };
 
@@ -93,10 +86,10 @@ export function GrammarFlashcards() {
 
     const currentCard = flashcards[currentIndex];
     try {
-      const response = await fetch('/api/grammar/flashcards/review', {
-        method: 'POST',
+      const response = await fetch("/api/grammar/flashcards/review", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           flashcardId: currentCard._id,
@@ -105,21 +98,21 @@ export function GrammarFlashcards() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update flashcard status');
+        throw new Error("Failed to update flashcard status");
       }
 
       toast({
-        title: 'Marked as known',
-        description: 'This rule will appear less frequently in your reviews',
+        title: "Marked as known",
+        description: "This rule will appear less frequently in your reviews",
       });
 
       nextCard();
     } catch (error) {
-      console.error('Error updating flashcard status:', error);
+      console.error("Error updating flashcard status:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update flashcard status',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update flashcard status",
+        variant: "destructive",
       });
     }
   };
@@ -129,10 +122,10 @@ export function GrammarFlashcards() {
 
     const currentCard = flashcards[currentIndex];
     try {
-      const response = await fetch('/api/grammar/flashcards/review', {
-        method: 'POST',
+      const response = await fetch("/api/grammar/flashcards/review", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           flashcardId: currentCard._id,
@@ -141,21 +134,21 @@ export function GrammarFlashcards() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update flashcard status');
+        throw new Error("Failed to update flashcard status");
       }
 
       toast({
-        title: 'Marked for review',
-        description: 'This rule will appear more frequently in your reviews',
+        title: "Marked for review",
+        description: "This rule will appear more frequently in your reviews",
       });
 
       nextCard();
     } catch (error) {
-      console.error('Error updating flashcard status:', error);
+      console.error("Error updating flashcard status:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update flashcard status',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update flashcard status",
+        variant: "destructive",
       });
     }
   };
@@ -167,10 +160,10 @@ export function GrammarFlashcards() {
     const isSaved = savedCards.includes(currentCard._id);
 
     try {
-      const response = await fetch('/api/grammar/flashcards/save', {
-        method: 'POST',
+      const response = await fetch("/api/grammar/flashcards/save", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           flashcardId: currentCard._id,
@@ -179,28 +172,28 @@ export function GrammarFlashcards() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update saved status');
+        throw new Error("Failed to update saved status");
       }
 
       if (isSaved) {
         setSavedCards(savedCards.filter(id => id !== currentCard._id));
         toast({
-          title: 'Removed from saved',
-          description: 'Flashcard removed from your saved collection',
+          title: "Removed from saved",
+          description: "Flashcard removed from your saved collection",
         });
       } else {
         setSavedCards([...savedCards, currentCard._id]);
         toast({
-          title: 'Saved!',
-          description: 'Flashcard added to your saved collection',
+          title: "Saved!",
+          description: "Flashcard added to your saved collection",
         });
       }
     } catch (error) {
-      console.error('Error updating saved status:', error);
+      console.error("Error updating saved status:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to update saved status',
-        variant: 'destructive',
+        title: "Error",
+        description: "Failed to update saved status",
+        variant: "destructive",
       });
     }
   };
@@ -214,8 +207,8 @@ export function GrammarFlashcards() {
       setCurrentIndex(0);
       setFlashcards([...flashcards].sort(() => Math.random() - 0.5));
       toast({
-        title: 'All cards reviewed',
-        description: 'Starting again with reshuffled cards',
+        title: "All cards reviewed",
+        description: "Starting again with reshuffled cards",
       });
     }
   };
@@ -263,7 +256,7 @@ export function GrammarFlashcards() {
         <CardFooter className="flex justify-center">
           <Button
             variant="outline"
-            onClick={() => router.push('/dashboard/writing')}
+            onClick={() => router.push("/dashboard/writing")}
           >
             Try Writing Practice
           </Button>
@@ -345,11 +338,11 @@ export function GrammarFlashcards() {
             <ChevronRight className="h-4 w-4" />
           </Button>
           <Button
-            variant={isSaved ? 'secondary' : 'outline'}
+            variant={isSaved ? "secondary" : "outline"}
             size="sm"
             onClick={toggleSaveCard}
           >
-            <Bookmark className={`h-4 w-4 ${isSaved ? 'fill-current' : ''}`} />
+            <Bookmark className={`h-4 w-4 ${isSaved ? "fill-current" : ""}`} />
           </Button>
         </div>
 

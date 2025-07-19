@@ -3,26 +3,12 @@
 import { useState } from "react";
 import { Calendar, Target, Award, Star, BarChart3 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   useGamificationProfile,
   useUserAchievements,
   useUserBadges,
 } from "@/hooks/use-gamification";
-import { AchievementCard } from "./achievement-card";
-import { BadgeCard } from "./badge-card";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/components/ui/use-toast";
 
 // Local implementation of xpForLevel to avoid database imports
 function xpForLevel(level: number): number {
@@ -104,7 +90,6 @@ export function GamificationProfileStats() {
   const { data: achievements, isLoading: achievementsLoading } =
     useUserAchievements();
   const { data: badges, isLoading: badgesLoading } = useUserBadges();
-  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"achievements" | "badges">(
     "achievements"
   );
@@ -176,11 +161,6 @@ export function GamificationProfileStats() {
       color: "bg-purple-500",
     },
   ];
-
-  const totalActivities = activities.reduce(
-    (sum, activity) => sum + activity.count,
-    0
-  );
 
   return (
     <div className="space-y-8">

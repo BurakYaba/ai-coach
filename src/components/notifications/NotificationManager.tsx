@@ -7,7 +7,6 @@ import { useNotifications } from "@/hooks/use-notifications";
 
 export default function NotificationManager() {
   const { data: session, status } = useSession();
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [reminderScheduled, setReminderScheduled] = useState(false);
   const [permissionRequested, setPermissionRequested] = useState(false);
@@ -28,7 +27,7 @@ export default function NotificationManager() {
   const setupNotifications = async () => {
     try {
       // Setup push notifications or other notification systems
-      setNotificationsEnabled(true);
+      // Removed unused notificationsEnabled state
 
       // Fetch user data for notification preferences
       await fetchUserData();

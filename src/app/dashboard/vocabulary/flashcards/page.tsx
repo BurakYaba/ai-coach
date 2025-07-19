@@ -15,13 +15,13 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FlashcardView from "@/components/vocabulary/FlashcardView";
 import { useVocabularyBank, type VocabularyWord } from "@/hooks/use-vocabulary";
 
 export default function VocabularyFlashcardsPage() {
   const router = useRouter();
-  const { status } = useSession({
+  useSession({
     required: true,
     onUnauthenticated() {
       router.push("/login");

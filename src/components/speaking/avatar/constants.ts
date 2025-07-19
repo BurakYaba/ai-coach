@@ -1,6 +1,5 @@
 import {
   AvatarCharacter,
-  VisemeMapping,
   LoadingStrategy,
   AvatarSettings,
   EmotionConfig,

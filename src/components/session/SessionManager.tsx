@@ -30,8 +30,6 @@ import {
   Tablet,
   Globe,
   Calendar,
-  MapPin,
-  Chrome,
   AlertTriangle,
   LogOut,
 } from "lucide-react";

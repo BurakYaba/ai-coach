@@ -3,31 +3,19 @@
 import { useState, useEffect } from "react";
 import {
   Users,
-  User,
   Crown,
   Shield,
-  Star,
-  MessageCircle,
   Settings,
   Flame,
-  Award,
   LogOut,
   UserPlus,
 } from "lucide-react";
 import axios from "axios";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
@@ -38,7 +26,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 
@@ -310,10 +297,6 @@ export function GroupDetailComponent({ groupId }: GroupDetailsProps) {
                         <div className="text-xs text-muted-foreground mt-1">
                           <div className="flex items-center gap-2">
                             <div className="flex items-center">
-                              <Star className="h-3.5 w-3.5 text-yellow-500 mr-1" />
-                              Level {member.stats.level}
-                            </div>
-                            <div className="flex items-center">
                               <Flame className="h-3.5 w-3.5 text-orange-500 mr-1" />
                               {member.stats.streak} day streak
                             </div>
@@ -332,7 +315,7 @@ export function GroupDetailComponent({ groupId }: GroupDetailsProps) {
         <TabsContent value="achievements" className="mt-0">
           <h3 className="text-lg font-semibold mb-4">Group Achievements</h3>
           <div className="text-center py-8">
-            <Award className="h-16 w-16 text-muted-foreground/50 mx-auto mb-3" />
+            {/* Removed Award icon */}
             <h3 className="text-xl font-medium mb-1">Coming Soon</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
               Group achievements will track collective progress and milestones
@@ -345,7 +328,7 @@ export function GroupDetailComponent({ groupId }: GroupDetailsProps) {
         <TabsContent value="challenges" className="mt-0">
           <h3 className="text-lg font-semibold mb-4">Group Challenges</h3>
           <div className="text-center py-8">
-            <Award className="h-16 w-16 text-muted-foreground/50 mx-auto mb-3" />
+            {/* Removed Award icon */}
             <h3 className="text-xl font-medium mb-1">Coming Soon</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
               Group challenges will allow members to work together on

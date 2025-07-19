@@ -26,7 +26,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
@@ -210,9 +209,6 @@ export default function WritingSessionPage() {
     if (!session || !currentPeriodStartRef.current) return;
 
     const now = Date.now();
-    const periodDuration = Math.floor(
-      (now - currentPeriodStartRef.current) / 1000
-    );
 
     try {
       await fetch(`/api/writing/sessions/${sessionId}`, {

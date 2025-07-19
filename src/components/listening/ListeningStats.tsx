@@ -1,11 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { BarChart, CalendarDays, Clock, Trophy, BookOpen } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BookOpen } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -212,26 +210,6 @@ export function ListeningStats() {
             </div>
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-function StatCard({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-center space-x-3 rounded-lg border p-3">
-      <div className="rounded-md bg-primary/10 p-2 text-primary">{icon}</div>
-      <div>
-        <p className="text-xs text-gray-500">{label}</p>
-        <p className="font-semibold">{value}</p>
       </div>
     </div>
   );

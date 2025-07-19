@@ -1,6 +1,5 @@
 "use client";
 
-import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { BookOpen, GraduationCap, CheckCircle, Clock } from "lucide-react";
@@ -67,7 +66,7 @@ export default function GrammarLessonsList() {
   const [levelFilter, setLevelFilter] = useState<string>("all");
   const [completedFilter, setCompletedFilter] = useState<string>("all");
   const [categories, setCategories] = useState<string[]>([]);
-  const [levels, setLevels] = useState<string[]>([]);
+  // Removed unused levels state
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -116,7 +115,7 @@ export default function GrammarLessonsList() {
       const uniqueLevels = Array.from(
         new Set(data.lessons.map((lesson: GrammarLesson) => lesson.ceferLevel))
       );
-      setLevels(uniqueLevels as string[]);
+      // Removed setLevels(uniqueLevels as string[]);
     } catch (error) {
       console.error("Error fetching grammar lessons:", error);
       toast({

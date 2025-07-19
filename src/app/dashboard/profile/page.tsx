@@ -5,9 +5,7 @@ import {
   CheckCircle,
   AlertCircle,
   Clock,
-  Smartphone,
   User,
-  Settings,
   ArrowLeft,
   Globe,
   Target,
@@ -40,10 +38,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "@/components/ui/use-toast";
 import {
   Select,
   SelectContent,
@@ -155,7 +150,7 @@ const profileFormSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 function ProfileContent() {
-  const { data: session, update, status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);

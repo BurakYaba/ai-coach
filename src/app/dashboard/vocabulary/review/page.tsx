@@ -3,13 +3,11 @@
 import {
   AlertCircle,
   ArrowLeft,
-  ArrowRight,
   Check,
   Star,
   ThumbsDown,
   ThumbsUp,
   X,
-  BookOpen,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";

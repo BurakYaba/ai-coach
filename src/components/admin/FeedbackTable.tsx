@@ -5,14 +5,11 @@ import { format } from "date-fns";
 import {
   Star,
   Eye,
-  Filter,
   MessageSquare,
   CheckCircle,
   XCircle,
   Clock,
-  MoreVertical,
   Loader2,
-  Search,
   User,
   Tag,
   AlertCircle,
@@ -51,7 +48,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
