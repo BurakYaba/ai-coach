@@ -149,8 +149,10 @@ export default function RootLayout({
         />
         <meta name="twitter:creator" content="@fluenta" />
 
-        <link rel="icon" href="/logo.png" type="image/png" />
+        <link rel="icon" href="/favicon.png" type="image/png" />
         <link rel="icon" href="/logo.png" type="image/png" sizes="192x192" />
+        <link rel="icon" href="/logo.png" type="image/png" sizes="512x512" />
+        <link rel="icon" href="/logo.png" type="image/png" />
         <link rel="apple-touch-icon" href="/logo.png" />
         <link rel="manifest" href="/manifest.json" />
         <link rel="canonical" href="https://www.fluenta-ai.com/" />
